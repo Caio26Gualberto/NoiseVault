@@ -60,22 +60,6 @@ namespace Headbanger.Application.Profiles
             return Result<ProfileDto>.Ok(await MapAsync(user), "PROFILE_UPDATED", "Profile updated successfully");
         }
 
-        public async Task<Result<ProfileDto>> CompleteOnboarding()
-        {
-            var user = await FindCurrentAsync();
-
-            if (user == null)
-                return Result<ProfileDto>.Fail(UserNotFound());
-
-            if (user.OnboardingCompletedAt == null)
-            {
-                user.OnboardingCompletedAt = DateTime.UtcNow;
-                await _userRepository.UpdateAsync(user);
-            }
-
-            return Result<ProfileDto>.Ok(await MapAsync(user), "ONBOARDING_COMPLETED", "Onboarding completed");
-        }
-
         private Task<User?> FindCurrentAsync() =>
             _userRepository.FirstOrDefaultAsync(new QueryOptions<User>
             {
@@ -92,7 +76,6 @@ namespace Headbanger.Application.Profiles
             Email = user.Email,
             Role = _currentUser.Role,
             IsNeededChangePassword = await _authService.IsPasswordChangeRequired(user.Email),
-            OnboardingCompleted = user.OnboardingCompletedAt != null,
             CreatedAt = user.CreatedAt
         };
     }

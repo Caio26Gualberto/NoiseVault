@@ -4,8 +4,9 @@ import { Navigate, useLocation } from 'react-router-dom'
 import { AppSkeleton } from '@/components/app-skeleton'
 
 import type { Permission } from './permissions'
-import { accountPath, homePath, initialPasswordPath, loginPath, onboardingPath } from './routes'
+import { accountPath, homePath, initialPasswordPath, loginPath, welcomePath } from './routes'
 import { useAuth } from './use-auth'
+import { hasSeenWelcome } from './welcome-storage'
 
 type RequireAuthProps = {
   children: ReactNode
@@ -28,10 +29,10 @@ export function RequireAuth({ children, permission }: RequireAuthProps) {
     return <Navigate to={initialPasswordPath} replace />
   }
 
-  const onboardingExempt = location.pathname === onboardingPath || location.pathname === accountPath
+  const welcomeExempt = location.pathname === welcomePath || location.pathname === accountPath
 
-  if (user && !user.onboardingCompleted && !user.isNeededChangePassword && !onboardingExempt) {
-    return <Navigate to={onboardingPath} replace />
+  if (user && !user.isNeededChangePassword && !welcomeExempt && !hasSeenWelcome(user.id)) {
+    return <Navigate to={welcomePath} replace />
   }
 
   if (permission && !(access?.effectivePermissions.includes(permission) ?? false)) {

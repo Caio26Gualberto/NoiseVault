@@ -117,7 +117,7 @@ export function VideosPage() {
                 aria-label={t('play', { title: video.title })}
               >
                 <img src={`https://i.ytimg.com/vi/${video.youtubeId}/hqdefault.jpg`} alt="" loading="lazy" className="size-full object-cover" />
-                <span className="absolute inset-0 flex items-center justify-center bg-black/20 transition-colors group-hover:bg-black/40">
+                <span className="absolute inset-0 flex items-center justify-center bg-scrim/20 transition-colors group-hover:bg-scrim/40">
                   <span className="flex size-12 items-center justify-center rounded-full bg-primary text-primary-foreground">
                     <PlayIcon className="ml-0.5 size-5 fill-current" />
                   </span>
@@ -141,7 +141,7 @@ export function VideosPage() {
 
       <AppDialog open={playing !== null} onOpenChange={() => setPlaying(null)} title={playing?.title ?? ''} description={playing?.description} size="lg">
         {playing ? (
-          <div className="aspect-video overflow-hidden rounded-lg bg-black">
+          <div className="aspect-video overflow-hidden rounded-lg bg-scrim">
             <iframe
               title={playing.title}
               src={`https://www.youtube-nocookie.com/embed/${playing.youtubeId}?autoplay=1`}

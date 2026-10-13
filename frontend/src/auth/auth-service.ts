@@ -76,7 +76,3 @@ export function changePassword(currentPassword: string, newPassword: string) {
 export function setInitialPassword(newPassword: string) {
   return apiPost<TokensDto>('/api/profile/set-initial-password', { newPassword }, { toastSuccess: true })
 }
-
-export function completeOnboarding() {
-  return apiPost<ProfileDto>('/api/profile/complete-onboarding')
-}

@@ -31,7 +31,7 @@ Nesta entrega o backend só tem Auth. Todas as outras telas existem para validar
 
 | Tela | Módulo (ordem em `api/.claude/rules/dominio.md`) | Some |
 |---|---|---|
-| `/bem-vindo` (avatar), `/minha-conta` (bloco "Aparência do perfil" só visualização), `/perfil/:nickname` | 1 · Perfil e mídia | `bem-vindo/services/mocks.ts`, `perfil/services/mocks.ts` (fixtures `people`, `bandSummaries`, `avatar()`, `picture()` que os outros mocks importam — o último a morrer) |
+| `/minha-conta` (bloco "Aparência do perfil" só visualização), `/perfil/:nickname` | 1 · Perfil e mídia | `perfil/services/mocks.ts` (fixtures `people`, `bandSummaries`, `avatar()`, `picture()` que os outros mocks importam — o último a morrer) |
 | `/bandas/:slug`, convites em `/notificacoes` | 2 · Bandas e convites | `bandas/services/mocks.ts`, a parte de convite em `notificacoes/services/mocks.ts` |
 | `/feed`, `/feed/:id` | 3 · Feed | `feed/services/mocks.ts` |
 | `/eventos*` e o rail do feed | 4 · Eventos | `eventos/services/mocks.ts` |

@@ -26,6 +26,7 @@ Paleta (valores em `tokens.css`, aqui só a intenção):
 - **`--primary`**: o vermelho da marca, herdado do `#D32F2F` do legado e levemente dessaturado para não vibrar sobre fundo escuro. Aparece **só** em ação primária, link, anel de foco, item ativo da navegação e like ativo. Vermelho em fundo, borda de card ou título é bug: a marca funciona porque é rara.
 - **Neutros quentes**: fundo, card, borda e texto no escuro puxam levemente para o marrom do `#3C140C` do legado (matiz ~25 em oklch, croma baixíssimo). Nada de cinza azulado de dashboard. No claro, neutros quase brancos com o mesmo matiz.
 - **`--highlight`**: âmbar discreto, só para o selo de banda verificada e destaques raros. Não é segunda cor de botão. (`--accent` continua sendo o hover neutro do shadcn, não a cor de destaque.)
+- **`--scrim` / `--on-scrim`**: véu escuro e texto claro **sobre imagem** (capa do Celtic Frost no `/bem-vindo`, play sobre miniatura, legenda de foto, "+N" da grade de mídia). Fixos nos dois temas, porque a imagem não muda com o tema. `bg-black`, `text-white` e afins são bug: usar `bg-scrim/60`, `text-on-scrim`.
 - **Semânticos**: `--success`, `--warning`, `--info`, `--destructive` para toast, badge e estado. `--destructive` é diferente de `--primary` de propósito: excluir não pode parecer "a ação principal".
 - **`--ring`** = `--primary`. Foco visível sempre.
 
@@ -35,6 +36,10 @@ Paleta (valores em `tokens.css`, aqui só a intenção):
 - **Corpo**: `Inter Variable` 15px (14px abaixo de `md`), metadados 13px em `text-muted-foreground`, `tabular-nums` em contador e data.
 - Fontes auto-hospedadas pelo fontsource, importadas uma vez em `main.tsx`. **Sem CDN.**
 - `fontSize` inline numa página é bug: a escala é `text-sm/base/lg` + as classes de título em `global.css` (`.app-h1`, `.app-h2`, `.app-h3`).
+
+## Imagens do projeto
+
+`src/assets/` guarda só imagem que é **conteúdo fixo do produto**, vinda do legado: `celtic-frost.jpg` (capa do *To Mega Therion*, fundo do `/bem-vindo`) e `caio.jpg` (foto do autor na página Sobre). Imagem de usuário nunca entra no repositório: vem do backend. A `/bem-vindo` força `.dark` no próprio contêiner porque o texto vai sobre a capa em qualquer tema.
 
 ## Espaço, raio, elevação
 

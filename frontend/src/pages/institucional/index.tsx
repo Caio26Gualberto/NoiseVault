@@ -1,4 +1,4 @@
-import { HeadphonesIcon, HeartHandshakeIcon, StoreIcon } from 'lucide-react'
+import { HeadphonesIcon, StoreIcon } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
@@ -6,11 +6,10 @@ import { AppCard } from '@/components/app-card'
 import { AppEmptyState } from '@/components/app-empty-state'
 import { AppPageHeader } from '@/components/app-page-header'
 
-type InstitutionalKey = 'podcasts' | 'about' | 'store'
+type InstitutionalKey = 'podcasts' | 'store'
 
 const icons: Record<InstitutionalKey, LucideIcon> = {
   podcasts: HeadphonesIcon,
-  about: HeartHandshakeIcon,
   store: StoreIcon,
 }
 
@@ -39,10 +38,6 @@ function InstitucionalPage({ page }: { page: InstitutionalKey }) {
 
 export function PodcastsPage() {
   return <InstitucionalPage page="podcasts" />
-}
-
-export function SobrePage() {
-  return <InstitucionalPage page="about" />
 }
 
 export function LojaParceiraPage() {

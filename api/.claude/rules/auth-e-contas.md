@@ -57,9 +57,9 @@ Token inválido ou vencido → `400 PASSWORD_RESET_INVALID`; senha fraca → `40
 - O índice único de `Nickname` **não filtra soft delete**, pelo mesmo motivo do e-mail: handle é identidade e não pode ter duas linhas vivas. Na revogação de acesso, nickname e e-mail recebem o tombstone `deleted+{id}+{original}`.
 - `Nickname` usa a **colação default** (não a `case_insensitive` do e-mail) porque já é gravado em minúsculas e porque a colação não determinística do Postgres recusa `LIKE`. É por isso que a busca da equipe (`GET /api/admin/users?search=`) procura em `Name` e `Nickname`, nunca em `Email` com `Contains`.
 
-## Onboarding é campo de perfil, não claim nem filtro
+## Tela de boas-vindas não é estado do servidor
 
-`User.OnboardingCompletedAt` (nulo até concluir) sai como `onboardingCompleted` em `GET /api/profile`; `POST /api/profile/complete-onboarding` grava `DateTime.UtcNow` uma vez e é idempotente (`ONBOARDING_COMPLETED` nas duas chamadas). Não é claim porque mudar claim exige reemitir tokens; não é filtro global como `password_change_required` porque nenhuma segurança depende dele — pular o onboarding é só uma tela a menos. O front decide o redirecionamento a partir do `fetchMe` do boot.
+A tela de boas-vindas do primeiro acesso (`/bem-vindo` no front) **não tem nada na API**. Até 13/10/2026 existia `User.OnboardingCompletedAt` + `POST /api/profile/complete-onboarding`; foi removido (migration `RemoveOnboardingCompletedAt`) porque gravar no banco que alguém já viu um texto de apresentação é custo sem dono: nenhuma regra de negócio, segurança ou relatório depende disso. O front marca no `localStorage` por usuário (`frontend/.claude/rules/auth.md`). Consequência aceita: quem troca de navegador ou limpa os dados vê a apresentação de novo. Se um dia o onboarding coletar dado de perfil (cidade, gêneros), o dado vai para o módulo de Perfil — não volta uma flag de "já viu".
 
 ## Refresh token: atômico, com janela de reuso
 
@@ -120,7 +120,7 @@ Com `docker compose up -d` e a API no ar (`Email:Provider=Smtp` apontando para o
 2. `POST /api/auth/login` antes de confirmar → 403 `EMAIL_NOT_CONFIRMED`; com senha errada → 401 `INVALID_CREDENTIALS`.
 3. `POST /api/auth/resend-confirmation {email}` → 200 `CONFIRMATION_EMAIL_SENT` (também para e-mail inexistente, sem e-mail no Mailpit); 4ª chamada na mesma hora → 429 `TOO_MANY_REQUESTS` e `RATE_LIMIT_REJECTED` no log.
 4. `POST /api/auth/confirm-email {userId, token}` com o token do link → 200 `EMAIL_CONFIRMED { alreadyConfirmed: false }`; repetir → `alreadyConfirmed: true`; token adulterado → 400 `EMAIL_CONFIRMATION_INVALID`.
-5. Login → `LOGIN_SUCCESS` com `data.tokens`; `GET /api/profile` → `nickname: "caio"`, `onboardingCompleted: false`; `POST /api/profile/complete-onboarding` → `ONBOARDING_COMPLETED` com `true`; repetir → o mesmo.
+5. Login → `LOGIN_SUCCESS` com `data.tokens`; `GET /api/profile` → `nickname: "caio"`; `POST /api/profile/complete-onboarding` → 404 (endpoint removido).
 6. `POST /api/auth/refresh-token` → `TOKENS_RENEWED`; reapresentar o refresh consumido na hora → 401 `INVALID_TOKEN` e nada mais; reapresentá-lo depois de 30 s → 401, `REFRESH_TOKEN_REUSE` no log e o par novo também passa a dar `INVALID_TOKEN`.
 7. `POST /api/auth/forgot-password {email}` → 200 `PASSWORD_RESET_EMAIL_SENT` para existente e inexistente; e-mail no Mailpit com `/redefinir-senha?email=…&token=…`; `POST /api/auth/reset-password {email, token, newPassword:"xyz789"}` → 200 `PASSWORD_RESET_SUCCESS` sem tokens; refresh token anterior → `INVALID_TOKEN`; login com a senha antiga → 401; com a nova → 200; reusar o token de reset → 400 `PASSWORD_RESET_INVALID`.
 8. `POST /api/profile/change-password` com atual errada → 401 `INVALID_CREDENTIALS`; nova fraca → 400 `PASSWORD_TOO_WEAK` e a antiga continua valendo; certa → `PASSWORD_CHANGED` com tokens novos.

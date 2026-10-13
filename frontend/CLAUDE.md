@@ -55,7 +55,8 @@ src/
     mock-delay.ts          # andaime dos mocks: delay() + mockPage(); morre com o último mocks.ts
   auth/
     auth-context.ts · auth-provider.tsx · auth-service.ts · use-auth.ts
-    require-auth.tsx       # unknown → skeleton; sem sessão → /entrar; senha pendente; onboarding; permissão
+    require-auth.tsx       # unknown → skeleton; sem sessão → /entrar; senha pendente; boas-vindas (localStorage); permissão
+    welcome-storage.ts     # app-welcome-seen:{userId} — quem já viu /bem-vindo
     redirect-if-authenticated.tsx
     permissions.ts · can.tsx · use-can.ts · roles.ts
     routes.ts              # caminhos das telas fora do shell + homePath/accountPath (ninguém escreve '/entrar' em página)
@@ -71,7 +72,7 @@ src/
     ui/*                   # primitivos do shadcn (não importar de pages/ nem layout/)
     app-*/                 # globais com prefixo App (ver design-system.md)
   layout/
-    nav-config.tsx         # FONTE ÚNICA: publicRoutes, navSections, hiddenRoutes, onboardingRoute
+    nav-config.tsx         # FONTE ÚNICA: publicRoutes, navSections, hiddenRoutes, welcomeRoute
     nav-active.ts          # resolveActivePath
     app-shell.tsx · nav-sidebar.tsx · top-bar.tsx · bottom-nav.tsx · user-menu.tsx
     shell-rail.tsx · shell-rail-context.ts · use-shell-rail.ts   # rail direito registrado pela página
@@ -106,7 +107,7 @@ Regra central: **toda comunicação HTTP fica em `src/api/`**. Página nenhuma i
 
 ## Navegação — `nav-config.tsx` é a fonte única
 
-Rota e item de menu **nascem do mesmo lugar**. `publicRoutes` (com `guestOnly` para redirecionar quem já tem sessão), `navSections` (sidebar e bottom-nav; `mobile: true` marca os 5 da bottom-nav; `mobilePath` resolve rota dinâmica como `/perfil/:nickname`), `hiddenRoutes` (telas sem item) e `onboardingRoute`. `app.tsx` só mapeia. Detalhes em `shell-e-navegacao.md`.
+Rota e item de menu **nascem do mesmo lugar**. `publicRoutes` (com `guestOnly` para redirecionar quem já tem sessão), `navSections` (sidebar e bottom-nav; `mobile: true` marca os 4 fixos da bottom-nav; `mobilePath` resolve rota dinâmica como `/perfil/:nickname`), `hiddenRoutes` (telas sem item) e `welcomeRoute`. `app.tsx` só mapeia. Detalhes em `shell-e-navegacao.md`.
 
 **Nunca adicione uma rota direto no `app.tsx` nem um item direto na sidebar ou bottom-nav.**
 

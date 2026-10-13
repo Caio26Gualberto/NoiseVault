@@ -45,14 +45,14 @@ export function AppMediaGrid({ items, className }: AppMediaGridProps) {
           >
             <img src={item.url} alt={item.alt ?? ''} loading="lazy" className="size-full object-cover transition-transform duration-300 group-hover:scale-[1.02]" />
             {item.kind === 'video' ? (
-              <span className="absolute inset-0 flex items-center justify-center bg-black/30">
+              <span className="absolute inset-0 flex items-center justify-center bg-scrim/30">
                 <span className="flex size-12 items-center justify-center rounded-full bg-background/90 text-foreground">
                   <PlayIcon className="ml-0.5 size-5 fill-current" />
                 </span>
               </span>
             ) : null}
             {rest > 0 && index === shown.length - 1 ? (
-              <span className="absolute inset-0 flex items-center justify-center bg-black/60 font-heading text-2xl font-semibold text-white">
+              <span className="absolute inset-0 flex items-center justify-center bg-scrim/60 font-heading text-2xl font-semibold text-on-scrim">
                 +{rest}
               </span>
             ) : null}

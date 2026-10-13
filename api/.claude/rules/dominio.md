@@ -12,7 +12,7 @@ O que o Headbanger é, em entidades, e em que ordem elas nascem. Nesta entrega *
 
 No legado, uma banda era um `User` disfarçado: registro próprio, e-mail próprio, linha em `BandsUsers` com `IsBand = true` apontando para si mesma. Integrantes ficavam duplicados (JSON em `Band.Integrants` **e** linhas em `BandsUsers`), o instrumento morava no `User` (quem toca em duas bandas só podia ter um), o papel `Band` era calculado na hora do token e convites eram notificações com o id da banda dentro de uma string. Nada disso volta.
 
-- **`User`** (`Name`, `Nickname`, `Email`, `IsActive`, `OnboardingCompletedAt`) é a conta de uma pessoa. Dados de perfil que não são identidade (avatar, banner, cidade, instrumento, gêneros, links) entram no módulo **Perfil**, na própria entidade ou numa `UserProfile` 1:1 — decidir quando o módulo nascer, com base no que o feed precisa carregar por post.
+- **`User`** (`Name`, `Nickname`, `Email`, `IsActive`) é a conta de uma pessoa. Dados de perfil que não são identidade (avatar, banner, cidade, instrumento, gêneros, links) entram no módulo **Perfil**, na própria entidade ou numa `UserProfile` 1:1 — decidir quando o módulo nascer, com base no que o feed precisa carregar por post.
 - **`Band`** (`Name`, `Slug`, `Description`, `City`, `Genres`, `FoundedAt?`, links, `IsVerified`, `AvatarKey?`, `BannerKey?`) é entidade própria, **sem conta**. Quem age em nome da banda é um `BandMember` com `Role = Owner`. URL pública `/bandas/:slug`; `Slug` único e imutável depois de publicado (renomear a banda não quebra link).
 - **`BandMember`** (`BandId`, `UserId`, `Instrument`, `Role: Owner | Member`, `JoinedAt`): o instrumento é **da relação**, não da pessoa. `(BandId, UserId)` único. Uma banda tem pelo menos um `Owner`; o último `Owner` não sai sem passar o bastão.
 - **`BandInvitation`** (`BandId`, `InvitedUserId`, `InvitedByUserId`, `Instrument`, `Status: Pending | Accepted | Declined | Revoked`, `ExpiresAt`): entidade real, com estado e validade. A notificação do convite é **projeção** desta linha, nunca o armazenamento. Aceitar = transição atômica `Pending → Accepted` no `WHERE` + criação do `BandMember` na mesma transação.
@@ -40,7 +40,7 @@ Enum sai para o cliente como **número** (padrão dos projetos de referência); 
 
 | # | Módulo | Entidades | Telas mockadas que passam a ser reais |
 |---|---|---|---|
-| 1 | Perfil e mídia | campos de perfil, upload (avatar/banner) com storage S3-compatível e URL assinada | `/perfil/:nickname` (pessoa), `/minha-conta`, avatar do onboarding |
+| 1 | Perfil e mídia | campos de perfil, upload (avatar/banner) com storage S3-compatível e URL assinada | `/perfil/:nickname` (pessoa), `/minha-conta` |
 | 2 | Bandas e convites | `Band`, `BandMember`, `BandInvitation`, `BandGenre` | `/bandas/:slug`, convites em `/notificacoes` |
 | 3 | Feed | `Post`, `PostMedia`, `PostLike`, `Comment` | `/feed`, `/feed/:id`, rail de "próximos eventos" só depois do 4 |
 | 4 | Eventos | `Event`, `EventBand`, `EventGenre` | `/eventos`, `/eventos/:id`, `/eventos/novo`, `/eventos/:id/editar` |

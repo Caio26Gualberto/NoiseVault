@@ -13,7 +13,6 @@ export const ApiCodes = {
   passwordResetEmailSent: 'PASSWORD_RESET_EMAIL_SENT',
   passwordResetSuccess: 'PASSWORD_RESET_SUCCESS',
   passwordResetInvalid: 'PASSWORD_RESET_INVALID',
-  onboardingCompleted: 'ONBOARDING_COMPLETED',
 
   invalidName: 'INVALID_NAME',
   invalidNickname: 'INVALID_NICKNAME',

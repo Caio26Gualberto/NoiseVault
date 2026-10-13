@@ -9,7 +9,7 @@ paths:
 
 ## `nav-config.tsx` é a fonte única de rota, menu e permissão
 
-`layout/nav-config.tsx` exporta três listas: `publicRoutes` (fora do shell: auth, confirmação, redefinição, onboarding), `navSections` (o que aparece na sidebar e na bottom-nav, com `path`, `labelKey`, `icon`, `element`, `permission?`, `subRoutes?`, `mobile?`) e `hiddenRoutes` (telas sem item de menu: detalhe, formulário, perfil de terceiro, conta). `app.tsx` mapeia as três; `nav-sidebar.tsx` e `bottom-nav.tsx` leem `navSections`.
+`layout/nav-config.tsx` exporta três listas: `publicRoutes` (fora do shell: auth, confirmação, redefinição; a `/bem-vindo` também fica fora do shell, em `welcomeRoute`), `navSections` (o que aparece na sidebar e na bottom-nav, com `path`, `labelKey`, `icon`, `element`, `permission?`, `subRoutes?`, `mobile?`) e `hiddenRoutes` (telas sem item de menu: detalhe, formulário, perfil de terceiro, conta). `app.tsx` mapeia as três; `nav-sidebar.tsx` e `bottom-nav.tsx` leem `navSections`.
 
 🔴 **Nunca adicione uma rota direto no `app.tsx` nem um item direto na sidebar ou na bottom-nav.** Item de menu só existe quando a tela existe (mesmo que mockada). Criação é rota própria (`/eventos/novo`), não modal; detalhe e edição vão em `hiddenRoutes` e o item pai declara `subRoutes` para continuar marcado.
 

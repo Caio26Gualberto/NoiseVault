@@ -288,9 +288,6 @@ namespace Headbanger.Infra.Data.Migrations
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)");
 
-                    b.Property<DateTime?>("OnboardingCompletedAt")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 

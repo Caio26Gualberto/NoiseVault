@@ -4,7 +4,7 @@ import { RedirectIfAuthenticated } from './auth/redirect-if-authenticated'
 import { RequireAuth } from './auth/require-auth'
 import { homePath, initialPasswordPath } from './auth/routes'
 import { AppShell } from './layout/app-shell'
-import { hiddenRoutes, navSections, onboardingRoute, publicRoutes } from './layout/nav-config'
+import { hiddenRoutes, navSections, publicRoutes, welcomeRoute } from './layout/nav-config'
 import { PublicLayout } from './layout/public-layout'
 import { DefinirSenhaPage } from './pages/definir-senha'
 import { NaoEncontradoPage } from './pages/nao-encontrado'
@@ -41,7 +41,7 @@ export function App() {
           </RequireAuth>
         }
       />
-      <Route path={onboardingRoute.path} element={<RequireAuth>{onboardingRoute.element}</RequireAuth>} />
+      <Route path={welcomeRoute.path} element={<RequireAuth>{welcomeRoute.element}</RequireAuth>} />
 
       <Route
         element={

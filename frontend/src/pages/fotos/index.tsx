@@ -78,9 +78,9 @@ export function FotosPage() {
               className="group relative aspect-square overflow-hidden rounded-lg bg-muted focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
             >
               <img src={photo.imageUrl} alt={photo.title} loading="lazy" className="size-full object-cover transition-transform duration-300 group-hover:scale-[1.03]" />
-              <span className="absolute inset-x-0 bottom-0 flex flex-col bg-gradient-to-t from-black/80 to-transparent p-3 text-left text-white md:translate-y-2 md:opacity-0 md:transition-all md:group-hover:translate-y-0 md:group-hover:opacity-100 md:group-focus-visible:translate-y-0 md:group-focus-visible:opacity-100">
+              <span className="absolute inset-x-0 bottom-0 flex flex-col bg-gradient-to-t from-scrim/80 to-transparent p-3 text-left text-on-scrim md:translate-y-2 md:opacity-0 md:transition-all md:group-hover:translate-y-0 md:group-hover:opacity-100 md:group-focus-visible:translate-y-0 md:group-focus-visible:opacity-100">
                 <span className="truncate text-sm font-medium">{photo.title}</span>
-                {photo.subtitle ? <span className="truncate text-xs text-white/80">{photo.subtitle}</span> : null}
+                {photo.subtitle ? <span className="truncate text-xs text-on-scrim/80">{photo.subtitle}</span> : null}
               </span>
             </button>
           ))}

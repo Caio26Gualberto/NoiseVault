@@ -13,7 +13,6 @@
   "PASSWORD_RESET_EMAIL_SENT": "Se o e-mail estiver cadastrado, enviamos o link para redefinir a senha.",
   "PASSWORD_RESET_SUCCESS": "Senha redefinida. Entre com a nova senha.",
   "PASSWORD_RESET_INVALID": "Este link de redefinição é inválido ou expirou.",
-  "ONBOARDING_COMPLETED": "Tudo pronto. Bem-vindo ao Headbanger.",
 
   "INVALID_NAME": "O nome precisa ter entre 2 e 100 caracteres.",
   "INVALID_NICKNAME": "O nickname precisa ter de 3 a 30 caracteres: letras minúsculas, números, ponto ou underline.",

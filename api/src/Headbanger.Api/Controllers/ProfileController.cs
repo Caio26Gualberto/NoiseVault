@@ -32,13 +32,6 @@ namespace Headbanger.Api.Controllers
             return ToResponse(result);
         }
 
-        [HttpPost("complete-onboarding")]
-        public async Task<ActionResult> CompleteOnboarding()
-        {
-            var result = await _profileAppService.CompleteOnboarding();
-            return ToResponse(result);
-        }
-
         [HttpPost("change-password")]
         public async Task<ActionResult> ChangePassword([FromBody] ChangePasswordInputDto input)
         {

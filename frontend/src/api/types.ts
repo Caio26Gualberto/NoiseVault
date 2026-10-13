@@ -53,7 +53,6 @@ export type ProfileDto = {
   email: string
   role: string | null
   isNeededChangePassword: boolean
-  onboardingCompleted: boolean
   createdAt: string
 }
 

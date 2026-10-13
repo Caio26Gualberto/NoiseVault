@@ -8,7 +8,6 @@ namespace Headbanger.Application.Profiles.Dtos
         public string Email { get; set; } = string.Empty;
         public string? Role { get; set; }
         public bool IsNeededChangePassword { get; set; }
-        public bool OnboardingCompleted { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 }

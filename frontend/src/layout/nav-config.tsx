@@ -22,9 +22,9 @@ import {
   forgotPasswordPath,
   homePath,
   loginPath,
-  onboardingPath,
   registerPath,
   resetPasswordPath,
+  welcomePath,
 } from '../auth/routes'
 import { ModeracaoPage } from '../pages/admin/moderacao'
 import { BandasPage } from '../pages/bandas'
@@ -39,7 +39,8 @@ import { EventoFormPage } from '../pages/eventos/form'
 import { FeedPage } from '../pages/feed'
 import { PostDetalhePage } from '../pages/feed/detalhe'
 import { FotosPage } from '../pages/fotos'
-import { LojaParceiraPage, PodcastsPage, SobrePage } from '../pages/institucional'
+import { LojaParceiraPage, PodcastsPage } from '../pages/institucional'
+import { SobrePage } from '../pages/institucional/sobre'
 import { MinhaContaPage } from '../pages/minha-conta'
 import { NotificacoesPage } from '../pages/notificacoes'
 import { PerfilPage } from '../pages/perfil'
@@ -141,4 +142,4 @@ export const hiddenRoutes: HiddenRoute[] = [
   { path: accountPath, element: <MinhaContaPage /> },
 ]
 
-export const onboardingRoute: HiddenRoute = { path: onboardingPath, element: <BemVindoPage /> }
+export const welcomeRoute: HiddenRoute = { path: welcomePath, element: <BemVindoPage /> }

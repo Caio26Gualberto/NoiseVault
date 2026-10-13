@@ -23,6 +23,8 @@
   --input: oklch(0.88 0.008 40);
   --ring: oklch(0.52 0.2 27);
   --radius: 0.5rem;
+  --scrim: oklch(0.08 0.01 30);
+  --on-scrim: oklch(0.98 0.004 40);
   --sidebar: oklch(0.97 0.005 40);
   --sidebar-foreground: oklch(0.2 0.015 30);
   --sidebar-primary: oklch(0.52 0.2 27);
@@ -95,6 +97,8 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-highlight: var(--highlight);
+  --color-scrim: var(--scrim);
+  --color-on-scrim: var(--on-scrim);
   --color-highlight-foreground: var(--highlight-foreground);
   --color-destructive: var(--destructive);
   --color-success: var(--success);
