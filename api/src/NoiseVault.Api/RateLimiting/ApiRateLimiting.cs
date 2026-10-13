@@ -18,6 +18,8 @@ namespace NoiseVault.Api.RateLimiting
         public const string ResetPassword = "reset-password";
         public const string ProfileUpload = "profile-upload";
         public const string UserSearch = "user-search";
+        public const string BandCreate = "band-create";
+        public const string BandInvite = "band-invite";
     }
 
     public static class ApiRateLimiting
@@ -49,6 +51,8 @@ namespace NoiseVault.Api.RateLimiting
                 AddFixedWindow(options, ApiRateLimitPolicies.ResetPassword, permitLimit: 10, windowMinutes: 60);
                 AddFixedWindow(options, ApiRateLimitPolicies.ProfileUpload, permitLimit: 20, windowMinutes: 60);
                 AddFixedWindow(options, ApiRateLimitPolicies.UserSearch, permitLimit: 60, windowMinutes: 1);
+                AddFixedWindow(options, ApiRateLimitPolicies.BandCreate, permitLimit: 5, windowMinutes: 60);
+                AddFixedWindow(options, ApiRateLimitPolicies.BandInvite, permitLimit: 30, windowMinutes: 60);
 
                 options.OnRejected = async (context, token) =>
                 {

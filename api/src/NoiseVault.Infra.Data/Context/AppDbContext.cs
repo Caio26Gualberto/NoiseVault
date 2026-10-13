@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using NoiseVault.Application.Abstractions.Authentication;
 using NoiseVault.Domain.Entities;
+using NoiseVault.Domain.Enums.Bands;
 using NoiseVault.Infra.Data.Identity;
 
 namespace NoiseVault.Infra.Data.Context
@@ -20,6 +21,10 @@ namespace NoiseVault.Infra.Data.Context
 
         public new DbSet<User> Users => Set<User>();
         public DbSet<UserGenre> UserGenres => Set<UserGenre>();
+        public DbSet<Band> Bands => Set<Band>();
+        public DbSet<BandGenre> BandGenres => Set<BandGenre>();
+        public DbSet<BandMember> BandMembers => Set<BandMember>();
+        public DbSet<BandInvitation> BandInvitations => Set<BandInvitation>();
         public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
         public DbSet<AuthorizationAuditLog> AuthorizationAuditLogs => Set<AuthorizationAuditLog>();
         public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
@@ -85,6 +90,87 @@ namespace NoiseVault.Infra.Data.Context
             {
                 b.ToTable("UserGenres");
                 b.HasKey(g => new { g.UserId, g.Genre });
+            });
+
+            builder.Entity<Band>(b =>
+            {
+                b.ToTable("Bands");
+                b.HasKey(x => x.Id);
+
+                b.Property(x => x.Name).HasMaxLength(100).IsRequired();
+                b.Property(x => x.Slug).HasMaxLength(60).IsRequired();
+                b.HasIndex(x => x.Slug).IsUnique();
+
+                b.Property(x => x.Description).HasMaxLength(1000);
+                b.Property(x => x.InstagramUrl).HasMaxLength(300);
+                b.Property(x => x.YoutubeUrl).HasMaxLength(300);
+                b.Property(x => x.SpotifyUrl).HasMaxLength(300);
+                b.Property(x => x.AvatarKey).HasMaxLength(200);
+                b.Property(x => x.BannerKey).HasMaxLength(200);
+                b.Property(x => x.BannerPosition).HasDefaultValue(Band.DefaultBannerPosition);
+
+                b.HasMany(x => x.Genres)
+                    .WithOne()
+                    .HasForeignKey(g => g.BandId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                b.HasIndex(x => x.CreatedAt);
+            });
+
+            builder.Entity<BandGenre>(b =>
+            {
+                b.ToTable("BandGenres");
+                b.HasKey(g => new { g.BandId, g.Genre });
+            });
+
+            builder.Entity<BandMember>(b =>
+            {
+                b.ToTable("BandMembers");
+                b.HasKey(x => x.Id);
+
+                b.Property(x => x.Instrument).HasMaxLength(60);
+
+                b.HasOne(x => x.Band)
+                    .WithMany(x => x.Members)
+                    .HasForeignKey(x => x.BandId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasOne(x => x.User)
+                    .WithMany()
+                    .HasForeignKey(x => x.UserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasIndex(x => new { x.BandId, x.UserId }).IsUnique();
+                b.HasIndex(x => x.UserId);
+            });
+
+            builder.Entity<BandInvitation>(b =>
+            {
+                b.ToTable("BandInvitations");
+                b.HasKey(x => x.Id);
+
+                b.Property(x => x.Instrument).HasMaxLength(60);
+
+                b.HasOne(x => x.Band)
+                    .WithMany()
+                    .HasForeignKey(x => x.BandId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasOne(x => x.InvitedUser)
+                    .WithMany()
+                    .HasForeignKey(x => x.InvitedUserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasOne(x => x.InvitedByUser)
+                    .WithMany()
+                    .HasForeignKey(x => x.InvitedByUserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasIndex(x => new { x.BandId, x.InvitedUserId })
+                    .IsUnique()
+                    .HasFilter(DatabaseProvider.ValueIndexFilter(this, nameof(BandInvitation.Status), (int)EBandInvitationStatus.Pending));
+
+                b.HasIndex(x => new { x.InvitedUserId, x.Status });
             });
 
             builder.Entity<ApplicationUser>(b =>

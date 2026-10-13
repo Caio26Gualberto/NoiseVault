@@ -4,7 +4,7 @@
 
 **Noise Vault** — API da cena do ABC Paulista (metal, punk, hardcore e afins): feed de posts, galeria de vídeos e fotos com moderação, eventos, perfis de pessoas e de bandas. Os usuários são fãs e músicos da região; o painel admin é a mesma API com permissão. Reescrita do zero do projeto legado "NewLevel", que não serve de referência de código — só de inventário de funcionalidades.
 
-**Estado da entrega atual:** existem de verdade o módulo **Auth** (registro com confirmação de e-mail, login, refresh, logout, esqueci/redefinir senha, troca de senha) e o módulo **Perfil e mídia** (campos do perfil, avatar e capa no S3, perfil público, busca de pessoas — `perfil-e-midia.md`, `armazenamento.md`). Feed, mídia, bandas, eventos, notificações e moderação são mock no frontend e entram módulo a módulo — o mapa e a ordem estão em `.claude/rules/dominio.md`. Fora de escopo: loja, podcasts, app nativo, login social.
+**Estado da entrega atual:** existem de verdade o módulo **Auth** (registro com confirmação de e-mail, login, refresh, logout, esqueci/redefinir senha, troca de senha), o módulo **Perfil e mídia** (campos do perfil, avatar e capa no S3, perfil público, busca de pessoas — `perfil-e-midia.md`, `armazenamento.md`) e o módulo **Bandas e convites** (criar e editar banda, integrantes, convites com aceite atômico — `bandas.md`). Feed, mídia, eventos, notificações e moderação são mock no frontend e entram módulo a módulo — o mapa e a ordem estão em `.claude/rules/dominio.md`. Fora de escopo: loja, podcasts, app nativo, login social.
 
 ## Como trabalhar neste repositório
 
@@ -17,6 +17,7 @@ As **decisões** — o porquê de cada regra — vivem em `.claude/rules/`, um a
 | `.claude/rules/auth-e-contas.md` | registro com confirmação de e-mail, login, esqueci/redefinir senha, nickname, refresh atômico, convite, revogação, papéis e permissões |
 | `.claude/rules/dominio.md` | o modelo da comunidade (pessoa, banda, integrante, convite, conteúdo, moderação), enums herdados e a ordem dos módulos |
 | `.claude/rules/perfil-e-midia.md` | campos do perfil, edição, avatar e capa, perfil público, busca de pessoas |
+| `.claude/rules/bandas.md` | banda sem login, slug imutável, quem é Owner, convite com estado e aceite atômico, endpoints, limites |
 | `.claude/rules/armazenamento.md` | S3 (LocalStack em dev, CloudFront em produção), processamento de imagem, chaves, ordem sobe-grava-apaga |
 | `.claude/rules/email.md` | as duas camadas de e-mail, Mailpit em dev, SMTP via MailKit, links, o que nunca vai para o log |
 | `.claude/rules/auditoria.md` | as duas trilhas, o interceptor global, política de dados sensíveis |

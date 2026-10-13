@@ -1,4 +1,4 @@
-namespace NoiseVault.Application.Profiles.Dtos
+namespace NoiseVault.Application.Common.Media
 {
     public sealed record ImageUploadInput(Stream Content, long Length);
 }

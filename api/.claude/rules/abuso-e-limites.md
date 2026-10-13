@@ -30,6 +30,8 @@ Só rate limit não basta porque IP roda barato. Só regra de negócio não bast
 | `reset-password` | 10/h por IP | tentativa de token; o token tem 1 h de vida, então 10 por hora é o teto de chute |
 | `profile-upload` | 20/h por conta | processar imagem custa CPU e storage; trocar avatar 20 vezes por hora já é teste, não uso |
 | `user-search` | 60/min por conta | a topbar busca enquanto a pessoa digita (debounce de 350 ms); 60 por minuto é folga de sobra |
+| `band-create` | 5/h por conta | criar banda é raro; cinco por hora já é spam ou teste |
+| `band-invite` | 30/h por conta | montar a formação de uma banda cabe com folga; disparar convite em massa não |
 
 Endpoint novo que **cria**, **envia** ou **chama fora** nasce com política própria e uma linha nesta tabela. Os números são ponto de partida; o projeto ajusta e registra o porquê.
 

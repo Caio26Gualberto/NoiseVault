@@ -19,7 +19,7 @@ namespace NoiseVault.Application.Profiles
         private readonly IAuthenticateService _authService;
         private readonly ICurrentUser _currentUser;
         private readonly IFileStorage _fileStorage;
-        private readonly IImageProcessor _imageProcessor;
+        private readonly ImageReplacement _images;
         private readonly IApplicationLogger _logger;
 
         public ProfileAppService(
@@ -34,7 +34,7 @@ namespace NoiseVault.Application.Profiles
             _authService = authService;
             _currentUser = currentUser;
             _fileStorage = fileStorage;
-            _imageProcessor = imageProcessor;
+            _images = new ImageReplacement(fileStorage, imageProcessor);
             _logger = loggerFactory.Create(LogContext.Profiles);
         }
 
@@ -184,47 +184,24 @@ namespace NoiseVault.Application.Profiles
         {
             _logger.SetOperation(code);
 
-            if (file == null || file.Length == 0)
-                return Fail("IMAGE_REQUIRED", "Send an image file");
+            var upload = await _images.UploadAsync(file, preset, $"users/{_currentUser.UserId}/{folder}", cancellationToken);
 
-            var maxBytes = ImagePresets.MaxBytes(preset);
+            if (!upload.Succeeded)
+                return Result<ProfileDto>.Fail(upload.Error!);
 
-            if (file.Length > maxBytes)
-                return Fail("IMAGE_TOO_LARGE", $"Image must have at most {maxBytes / (1024 * 1024)} MB");
-
-            var processed = await _imageProcessor.ProcessAsync(file.Content, preset, cancellationToken);
-
-            if (!processed.Succeeded)
-                return processed.Rejection == EImageRejection.TooSmall
-                    ? Fail("IMAGE_TOO_SMALL", "Image is too small for this use")
-                    : Fail("IMAGE_UNSUPPORTED", "Send a JPEG, PNG or WebP image");
-
+            var newKey = upload.Key!;
             var user = await FindCurrentAsync(tracked: true);
 
             if (user == null)
+            {
+                await _images.DeleteAsync(newKey);
                 return Result<ProfileDto>.Fail(UserNotFound());
-
-            var image = processed.Image!;
-            var newKey = $"users/{user.Id}/{folder}/{Guid.NewGuid():N}.{image.Extension}";
-
-            if (!await _fileStorage.PutAsync(newKey, image.Content, image.ContentType, cancellationToken))
-                return Result<ProfileDto>.Fail(new Error("STORAGE_UNAVAILABLE", "File storage is unavailable, try again later", ErrorType.Unexpected));
+            }
 
             var oldKey = currentKey(user);
             apply(user, newKey);
 
-            try
-            {
-                await _userRepository.UpdateAsync(user);
-            }
-            catch
-            {
-                await _fileStorage.DeleteAsync(newKey, CancellationToken.None);
-                throw;
-            }
-
-            if (oldKey != null)
-                await _fileStorage.DeleteAsync(oldKey, CancellationToken.None);
+            await _images.SaveAsync(newKey, oldKey, () => _userRepository.UpdateAsync(user));
 
             _logger.Info(code, message, userId: user.Id, extra: new { Key = newKey });
 

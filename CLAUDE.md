@@ -6,7 +6,7 @@
 
 É a reescrita do zero do projeto legado "NewLevel" (`C:\Projetos\Pessoal\Alvo\newlevel`). O legado serve só como **inventário de funcionalidades**; nenhuma linha de código, entidade ou tela dele é referência — as decisões de modelagem que o substituem estão em `api/.claude/rules/dominio.md`.
 
-**Estado da entrega (outubro/2026):** backend com os módulos **Auth** (registro com confirmação de e-mail, login, refresh, logout, esqueci/redefinir senha, troca de senha) e **Perfil e mídia** (avatar e capa no S3, perfil público, busca de pessoas). A tela de boas-vindas do primeiro acesso é controlada só pelo front, via `localStorage`. Todo o resto do frontend é **mock** por página, com a mesma assinatura que o service real vai ter. A ordem dos módulos seguintes está em `api/.claude/rules/dominio.md`; o que cada tela mockada espera do backend está em `frontend/.claude/rules/mocks.md`. Fora de escopo: loja, podcasts, app nativo, login social.
+**Estado da entrega (outubro/2026):** backend com os módulos **Auth** (registro com confirmação de e-mail, login, refresh, logout, esqueci/redefinir senha, troca de senha), **Perfil e mídia** (avatar e capa no S3, perfil público, busca de pessoas) e **Bandas e convites** (criar e editar banda, integrantes, convites). A tela de boas-vindas do primeiro acesso é controlada só pelo front, via `localStorage`. Todo o resto do frontend é **mock** por página, com a mesma assinatura que o service real vai ter. A ordem dos módulos seguintes está em `api/.claude/rules/dominio.md`; o que cada tela mockada espera do backend está em `frontend/.claude/rules/mocks.md`. Fora de escopo: loja, podcasts, app nativo, login social.
 
 ## Mapa
 

@@ -1,3 +1,6 @@
+using NoiseVault.Application.Bands;
+using NoiseVault.Application.Bands.Interfaces;
+using NoiseVault.Infra.Data.Repositories.BandInvitations;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -139,6 +142,10 @@ namespace NoiseVault.Infra.IoC
             services.AddScoped<IAuditLogAppService, AuditLogAppService>();
             services.AddScoped<SeedData>();
 
+            // Bandas
+            services.AddScoped<IBandAppService, BandAppService>();
+            services.AddScoped<IBandInvitationAppService, BandInvitationAppService>();
+
             // External services
             var emailSettings = EmailSettings.FromConfiguration(config);
             services.AddSingleton(emailSettings);
@@ -166,6 +173,7 @@ namespace NoiseVault.Infra.IoC
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IAuditLogRepository, AuditLogRepository>();
             services.AddScoped<IBackgroundJobRunRepository, BackgroundJobRunRepository>();
+            services.AddScoped<IBandInvitationRepository, BandInvitationRepository>();
 
             return services;
         }

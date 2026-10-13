@@ -8,6 +8,7 @@ namespace NoiseVault.Application.Abstractions.Logging
         BackgroundJobs,
         Email,
         Storage,
-        Profiles
+        Profiles,
+        Bands
     }
 }

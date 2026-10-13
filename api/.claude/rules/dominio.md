@@ -6,14 +6,14 @@ paths:
 
 # Decisões — Domínio da comunidade
 
-O que o Noise Vault é, em entidades, e em que ordem elas nascem. Nesta entrega **só `User` existe no código**; o resto está aqui para o Auth não nascer errado e para cada módulo futuro saber onde encaixa. Decisão de modelagem registrada antes do código é a spec do módulo.
+O que o Noise Vault é, em entidades, e em que ordem elas nascem. Hoje existem no código `User` (módulo 1) e `Band`, `BandMember`, `BandInvitation` (módulo 2, `bandas.md`); o resto está aqui para o Auth não nascer errado e para cada módulo futuro saber onde encaixa. Decisão de modelagem registrada antes do código é a spec do módulo.
 
 ## `User` é sempre uma pessoa; banda não tem login
 
 No legado, uma banda era um `User` disfarçado: registro próprio, e-mail próprio, linha em `BandsUsers` com `IsBand = true` apontando para si mesma. Integrantes ficavam duplicados (JSON em `Band.Integrants` **e** linhas em `BandsUsers`), o instrumento morava no `User` (quem toca em duas bandas só podia ter um), o papel `Band` era calculado na hora do token e convites eram notificações com o id da banda dentro de uma string. Nada disso volta.
 
 - **`User`** (`Name`, `Nickname`, `Email`, `IsActive`) é a conta de uma pessoa. Os dados de perfil (`Bio`, `City`, `MainInstrument`, links, `AvatarKey`, `BannerKey`, `BannerPosition`) moram na própria `User`, e os gêneros em `UserGenre` — decidido no módulo 1, ver `perfil-e-midia.md`. `MainInstrument` é o instrumento que a pessoa se apresenta tocando; o instrumento **em cada banda** continua no `BandMember`.
-- **`Band`** (`Name`, `Slug`, `Description`, `City`, `Genres`, `FoundedAt?`, links, `IsVerified`, `AvatarKey?`, `BannerKey?`) é entidade própria, **sem conta**. Quem age em nome da banda é um `BandMember` com `Role = Owner`. URL pública `/bandas/:slug`; `Slug` único e imutável depois de publicado (renomear a banda não quebra link).
+- **`Band`** (`Name`, `Slug`, `Description`, `City`, `Genres`, `FoundedYear?`, links, `IsVerified`, `AvatarKey?`, `BannerKey?`) é entidade própria, **sem conta**. Quem age em nome da banda é um `BandMember` com `Role = Owner`. URL pública `/bandas/:slug`; `Slug` único e imutável depois de publicado (renomear a banda não quebra link). O ano de fundação é `FoundedYear` (int), não `FoundedAt`: banda sabe o ano, não o dia (`bandas.md`).
 - **`BandMember`** (`BandId`, `UserId`, `Instrument`, `Role: Owner | Member`, `JoinedAt`): o instrumento é **da relação**, não da pessoa. `(BandId, UserId)` único. Uma banda tem pelo menos um `Owner`; o último `Owner` não sai sem passar o bastão.
 - **`BandInvitation`** (`BandId`, `InvitedUserId`, `InvitedByUserId`, `Instrument`, `Status: Pending | Accepted | Declined | Revoked`, `ExpiresAt`): entidade real, com estado e validade. A notificação do convite é **projeção** desta linha, nunca o armazenamento. Aceitar = transição atômica `Pending → Accepted` no `WHERE` + criação do `BandMember` na mesma transação.
 - **Verificação de banda** (`BandVerificationRequest` no legado) vira um campo `IsVerified` + uma ação de admin com permissão (`Bands.Verify`); o formulário com telefone e mensagem é um pedido que entra na fila de moderação, não uma entidade 1:1 colada na banda.
@@ -41,7 +41,7 @@ Enum sai para o cliente como **número** (padrão dos projetos de referência); 
 | # | Módulo | Entidades | Telas mockadas que passam a ser reais |
 |---|---|---|---|
 | 1 ✅ | Perfil e mídia | campos de perfil na `User`, `UserGenre`, upload de avatar/capa em S3 com URL pública (`armazenamento.md`) | `/perfil/:nickname` (pessoa), `/minha-conta`, busca da topbar |
-| 2 | Bandas e convites | `Band`, `BandMember`, `BandInvitation`, `BandGenre` | `/bandas/:slug`, convites em `/notificacoes` |
+| 2 ✅ | Bandas e convites | `Band`, `BandMember`, `BandInvitation`, `BandGenre` | `/bandas/:slug`, convites em `/notificacoes` |
 | 3 | Feed | `Post`, `PostMedia`, `PostLike`, `Comment` | `/feed`, `/feed/:id`, rail de "próximos eventos" só depois do 4 |
 | 4 | Eventos | `Event`, `EventBand`, `EventGenre` | `/eventos`, `/eventos/:id`, `/eventos/novo`, `/eventos/:id/editar` |
 | 5 | Galeria e moderação | `Photo`, `Video`, permissões `Moderation.*` | `/videos`, `/fotos`, `/admin/moderacao` |

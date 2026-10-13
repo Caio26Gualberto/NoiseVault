@@ -1,3 +1,4 @@
+using NoiseVault.Application.Common.Media;
 using NoiseVault.Application.Profiles.Dtos;
 using NoiseVault.Application.Response;
 

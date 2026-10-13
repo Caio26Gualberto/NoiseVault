@@ -1,0 +1,24 @@
+using NoiseVault.Application.Profiles.Dtos;
+using NoiseVault.Domain.Enums.Bands;
+using NoiseVault.Domain.Enums.Profiles;
+
+namespace NoiseVault.Application.Bands.Dtos
+{
+    public class BandProfileDto
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Slug { get; set; } = string.Empty;
+        public string? Description { get; set; }
+        public EAbcCity? City { get; set; }
+        public List<EMusicGenre> Genres { get; set; } = [];
+        public int? FoundedYear { get; set; }
+        public string? AvatarUrl { get; set; }
+        public string? BannerUrl { get; set; }
+        public int BannerPosition { get; set; }
+        public bool IsVerified { get; set; }
+        public SocialLinksDto SocialLinks { get; set; } = new();
+        public List<BandMemberDto> Members { get; set; } = [];
+        public EBandMemberRole? MyRole { get; set; }
+    }
+}

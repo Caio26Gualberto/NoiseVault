@@ -1,5 +1,6 @@
 using NoiseVault.Application.Abstractions.Repository;
 using NoiseVault.Application.Auth;
+using NoiseVault.Application.Bands.Interfaces;
 using NoiseVault.Application.Interfaces;
 using NoiseVault.Application.Pagination;
 using NoiseVault.Application.Profiles.Dtos;
@@ -16,11 +17,13 @@ namespace NoiseVault.Application.PublicProfiles
 
         private readonly IRepository<User> _userRepository;
         private readonly IFileStorage _fileStorage;
+        private readonly IBandAppService _bandAppService;
 
-        public PublicProfileAppService(IRepository<User> userRepository, IFileStorage fileStorage)
+        public PublicProfileAppService(IRepository<User> userRepository, IFileStorage fileStorage, IBandAppService bandAppService)
         {
             _userRepository = userRepository;
             _fileStorage = fileStorage;
+            _bandAppService = bandAppService;
         }
 
         public async Task<Result<UserProfileDto>> GetByNickname(string nickname)
@@ -56,6 +59,7 @@ namespace NoiseVault.Application.PublicProfiles
                     Spotify = user.SpotifyUrl,
                 },
                 MemberSince = user.CreatedAt,
+                Bands = await _bandAppService.ListSummariesForUser(user.Id),
             }, "USER_PROFILE_FOUND", "Profile found");
         }
 

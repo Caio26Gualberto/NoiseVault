@@ -15,7 +15,7 @@ Todo arquivo que a comunidade envia (avatar e capa hoje; fotos de galeria, banne
 
 - **`IImageProcessor`** (`Application/Interfaces/`, implementado em `Infra.Data/Media/ImageSharpProcessor.cs`) recebe o stream enviado e um `EImagePreset`, e devolve a imagem pronta (bytes WebP, largura, altura) ou uma rejeição tipada (`Unsupported`, `TooSmall`). Ele **decodifica de verdade**: um `.txt` renomeado para `.png` não passa, e o `Content-Type` do cliente é ignorado.
 - **`IFileStorage`** (`Application/Interfaces/`, implementado em `Infra.Data/Storage/S3FileStorage.cs`) só sabe guardar, apagar e montar a URL pública de uma chave. Não conhece imagem, usuário nem regra.
-- O AppService dono do dado (perfil hoje) orquestra: valida o tamanho → processa → guarda → grava a chave no banco → apaga a antiga. A `Application` nunca vê o SDK da AWS nem o ImageSharp.
+- O AppService dono do dado (perfil e banda) orquestra: valida o tamanho → processa → guarda → grava a chave no banco → apaga a antiga. A sequência comum mora em `Application/Common/Media/ImageReplacement.cs` (`UploadAsync` valida, processa e sobe; `SaveAsync` grava, desfaz o upload se a gravação falhar e apaga a antiga), extraída quando a banda virou o segundo caso. A `Application` nunca vê o SDK da AWS nem o ImageSharp.
 
 ## Presets: o servidor decide o tamanho final
 
@@ -32,7 +32,7 @@ Todo arquivo que a comunidade envia (avatar e capa hoje; fotos de galeria, banne
 
 ## Chaves: previsíveis no prefixo, imprevisíveis no nome
 
-`users/{userId}/avatar/{guid}.webp` e `users/{userId}/banner/{guid}.webp`. O prefixo por usuário facilita limpeza e auditoria; o GUID impede adivinhar a URL de uma imagem antes de ela ser publicada e garante que **trocar a imagem troca a URL** — cache de CDN e de navegador nunca serve a imagem velha, então não existe invalidação.
+`users/{userId}/avatar/{guid}.webp`, `users/{userId}/banner/{guid}.webp`, `bands/{bandId}/avatar/{guid}.webp` e `bands/{bandId}/banner/{guid}.webp`. O prefixo por dono facilita limpeza e auditoria; o GUID impede adivinhar a URL de uma imagem antes de ela ser publicada e garante que **trocar a imagem troca a URL** — cache de CDN e de navegador nunca serve a imagem velha, então não existe invalidação.
 
 O legado montava `avatars/{id}{guid}` sem separador nem extensão e usava título digitado pelo usuário na chave de foto. Nada disso volta: chave nunca contém texto do usuário.
 

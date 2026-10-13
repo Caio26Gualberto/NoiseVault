@@ -1,3 +1,4 @@
+using NoiseVault.Application.Bands.Dtos;
 using NoiseVault.Application.Profiles.Dtos;
 using NoiseVault.Domain.Enums.Profiles;
 
@@ -17,5 +18,6 @@ namespace NoiseVault.Application.PublicProfiles.Dtos
         public List<EMusicGenre> Genres { get; set; } = [];
         public SocialLinksDto SocialLinks { get; set; } = new();
         public DateTime MemberSince { get; set; }
+        public List<BandSummaryDto> Bands { get; set; } = [];
     }
 }

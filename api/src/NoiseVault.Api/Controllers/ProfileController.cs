@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using NoiseVault.Api.RateLimiting;
 using NoiseVault.Application.Auth.Dtos;
 using NoiseVault.Application.Auth.Interfaces;
+using NoiseVault.Application.Common.Media;
 using NoiseVault.Application.Profiles.Dtos;
 using NoiseVault.Application.Profiles.Interfaces;
 

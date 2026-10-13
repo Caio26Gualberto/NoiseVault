@@ -47,9 +47,9 @@ O host é checado para o link "Instagram" não virar atalho para qualquer site c
 
 ## Perfil público e busca
 
-- `GET /api/users/{nickname}` → `UserProfileDto { id, name, nickname, avatarUrl, bannerUrl, bannerPosition, bio, city, mainInstrument, genres, socialLinks, memberSince }`, code `USER_PROFILE_FOUND`. Nickname comparado já normalizado (minúsculo). Inativo, revogado ou inexistente → 404 `PROFILE_NOT_FOUND` (mesma resposta, para não revelar conta desativada).
+- `GET /api/users/{nickname}` → `UserProfileDto { id, name, nickname, avatarUrl, bannerUrl, bannerPosition, bio, city, mainInstrument, genres, socialLinks, memberSince, bands }`, code `USER_PROFILE_FOUND`. Nickname comparado já normalizado (minúsculo). Inativo, revogado ou inexistente → 404 `PROFILE_NOT_FOUND` (mesma resposta, para não revelar conta desativada).
 - `GET /api/users/search?search=&page=&pageSize=` → `PagedResultDto<ProfileSummaryDto { id, name, nickname, avatarUrl }>`, code `USERS_FOUND`. Termo com menos de 2 caracteres devolve página vazia (não erro: a topbar dispara enquanto a pessoa digita). comparação em minúsculas (`Name.ToLower().Contains`, `Nickname.Contains` — o nickname já é gravado minúsculo) em vez de `ILIKE`, que só existe no Postgres e quebraria o `DatabaseProvider`; nunca em `Email` (colação não determinística, não aceita `LIKE`, ver `CLAUDE.md`), ordem por `Nickname` + desempate por `Id`, só ativos.
-- `stats` (posts, fotos, vídeos) e `bands` **não existem** neste módulo: entram com feed/galeria (3, 5) e bandas (2). O DTO não traz campo vazio "para o futuro"; o front esconde os blocos.
+- `bands` (`BandSummaryDto[]`) entrou com o módulo 2 (`bandas.md`), via `IBandAppService.ListSummariesForUser`. `stats` (posts, fotos, vídeos) **não existem**: entram com feed/galeria (3, 5). O DTO não traz campo vazio "para o futuro"; o front esconde os blocos.
 - Pessoa **não** tem selo de verificado — só banda (módulo 2). `ProfileSummaryDto` não tem `isVerified`.
 - Todas as rotas exigem login (o site inteiro é para membros). Se um dia o perfil ficar público para visitantes, é `[AllowAnonymous]` nestas duas actions e nada mais.
 
