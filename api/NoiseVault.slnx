@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src\NoiseVault.Workers\NoiseVault.Workers.csproj" />
+    <Project Path="src\NoiseVault.Api\NoiseVault.Api.csproj" />
+    <Project Path="src\NoiseVault.Application\NoiseVault.Application.csproj" />
+    <Project Path="src\NoiseVault.Domain\NoiseVault.Domain.csproj" />
+    <Project Path="src\NoiseVault.Infra.Data\NoiseVault.Infra.Data.csproj" />
+    <Project Path="src\NoiseVault.Infra.IoC\NoiseVault.Infra.IoC.csproj" />
+  </Folder>
+</Solution>

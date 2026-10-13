@@ -57,7 +57,7 @@ const notifications: NotificationDto[] = [
   {
     id: 5,
     type: NotificationType.popup,
-    title: 'Bem-vindo ao Headbanger',
+    title: 'Bem-vindo ao Noise Vault',
     message: 'Complete seu perfil com cidade, instrumento e gêneros para aparecer nas buscas.',
     link: '/minha-conta',
     imageUrl: null,

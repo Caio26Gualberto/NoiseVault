@@ -1,9 +1,9 @@
 ---
 paths:
-  - "**/Headbanger.Api/RateLimiting/**"
-  - "**/Headbanger.Api/Program.cs"
-  - "**/Headbanger.Application/Auth/**"
-  - "**/Headbanger.Application/Users/**"
+  - "**/NoiseVault.Api/RateLimiting/**"
+  - "**/NoiseVault.Api/Program.cs"
+  - "**/NoiseVault.Application/Auth/**"
+  - "**/NoiseVault.Application/Users/**"
 ---
 
 # Decisões — Abuso: limites de taxa e de volume

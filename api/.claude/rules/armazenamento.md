@@ -1,10 +1,10 @@
 ---
 paths:
-  - "**/Headbanger.Infra.Data/Storage/**"
-  - "**/Headbanger.Infra.Data/Media/**"
-  - "**/Headbanger.Application/Interfaces/IFileStorage.cs"
-  - "**/Headbanger.Application/Interfaces/IImageProcessor.cs"
-  - "**/Headbanger.Application/Common/Media/**"
+  - "**/NoiseVault.Infra.Data/Storage/**"
+  - "**/NoiseVault.Infra.Data/Media/**"
+  - "**/NoiseVault.Application/Interfaces/IFileStorage.cs"
+  - "**/NoiseVault.Application/Interfaces/IImageProcessor.cs"
+  - "**/NoiseVault.Application/Common/Media/**"
 ---
 
 # Decisões — Armazenamento de arquivos e imagens
@@ -48,13 +48,13 @@ Se o passo 2 falhar, o arquivo recém-subido é apagado na hora (best effort). O
 
 Avatar e capa são públicos por natureza. A URL é `{Storage:PublicBaseUrl}/{key}`, montada sem ida à AWS.
 
-- **Dev**: `PublicBaseUrl` aponta para o LocalStack em path-style (`http://localhost:4566/headbanger-media`).
+- **Dev**: `PublicBaseUrl` aponta para o LocalStack em path-style (`http://localhost:4566/noisevault-media`).
 - **Produção**: bucket **privado** + **CloudFront** com Origin Access Control; `PublicBaseUrl` é o domínio do CloudFront. Bucket público direto é desaconselhado pela própria AWS (Block Public Access) e não dá cache de borda.
 - O legado gerava uma URL assinada por imagem, guardava no Redis por mais tempo do que a URL valia e servia link morto. Nada de URL assinada nem Redis para mídia pública. URL assinada volta só se houver mídia privada de verdade.
 
 ## Dev: LocalStack, só S3
 
-- `docker-compose.yml` sobe `localstack/localstack:4.14.0` (versão fixada) com `SERVICES=s3`, porta 4566. O init hook `infra/localstack/ready.d/10-s3.sh` cria o bucket `headbanger-media` com política de leitura pública a cada boot (idempotente).
+- `docker-compose.yml` sobe `localstack/localstack:4.14.0` (versão fixada) com `SERVICES=s3`, porta 4566. O init hook `infra/localstack/ready.d/10-s3.sh` cria o bucket `noisevault-media` com política de leitura pública a cada boot (idempotente).
 - A versão fixada (4.14.0, fevereiro/2026) **sobe sem token**. As imagens mais novas passaram a exigir um token gratuito: o compose já repassa `LOCALSTACK_AUTH_TOKEN` do `.env` da raiz (fora do Git; `.env.example` mostra a forma), vazio por padrão. Ao subir a versão, criar a conta e preencher o token — o README explica.
 - A API usa o mesmo `AWSSDK.S3` da produção: em dev `Storage:ServiceUrl` (`http://localhost:4566`) liga `ForcePathStyle` e as credenciais `test`/`test` do `appsettings.Development.json` (não são segredo). Em produção `ServiceUrl` fica vazio e as credenciais vêm da **cadeia padrão da AWS** (IAM role da task) — nenhuma chave em configuração.
 - SES, SQS e outros serviços ficam de fora até terem um caso real (o e-mail continua no Mailpit, ver `email.md`).
@@ -75,7 +75,7 @@ SixLabors.ImageSharp 4.x é 100% gerenciado (roda no container sem lib nativa, a
 ## Roteiro de verificação
 
 1. `docker compose up -d` → `curl http://localhost:4566/_localstack/health` mostra `"s3": "running"` (ou `available`); `curl http://localhost:4566/_localstack/init` mostra `10-s3.sh` como `SUCCESSFUL`.
-2. `curl -I http://localhost:4566/headbanger-media/inexistente.webp` → 404 (bucket existe e responde anônimo).
+2. `curl -I http://localhost:4566/noisevault-media/inexistente.webp` → 404 (bucket existe e responde anônimo).
 3. Subir um avatar pela API (`perfil-e-midia.md`) → `STORAGE_UPLOADED` no log; a `avatarUrl` abre no navegador e é WebP 512×512; `exiftool`/propriedades do arquivo não mostram GPS.
 4. Trocar o avatar → a chave antiga responde 404 no LocalStack.
 5. Parar o LocalStack e subir avatar → 500 `STORAGE_UNAVAILABLE` + `STORAGE_UPLOAD_FAILED` no log; o perfil continua com o avatar anterior.

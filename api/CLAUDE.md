@@ -2,7 +2,7 @@
 
 ## Sobre este projeto
 
-**Headbanger** — API da comunidade de metal e rock do ABC Paulista: feed de posts, galeria de vídeos e fotos com moderação, eventos, perfis de pessoas e de bandas. Os usuários são fãs e músicos da região; o painel admin é a mesma API com permissão. Reescrita do zero do projeto legado "NewLevel", que não serve de referência de código — só de inventário de funcionalidades.
+**Noise Vault** — API da cena do ABC Paulista (metal, punk, hardcore e afins): feed de posts, galeria de vídeos e fotos com moderação, eventos, perfis de pessoas e de bandas. Os usuários são fãs e músicos da região; o painel admin é a mesma API com permissão. Reescrita do zero do projeto legado "NewLevel", que não serve de referência de código — só de inventário de funcionalidades.
 
 **Estado da entrega atual:** existem de verdade o módulo **Auth** (registro com confirmação de e-mail, login, refresh, logout, esqueci/redefinir senha, troca de senha) e o módulo **Perfil e mídia** (campos do perfil, avatar e capa no S3, perfil público, busca de pessoas — `perfil-e-midia.md`, `armazenamento.md`). Feed, mídia, bandas, eventos, notificações e moderação são mock no frontend e entram módulo a módulo — o mapa e a ordem estão em `.claude/rules/dominio.md`. Fora de escopo: loja, podcasts, app nativo, login social.
 
@@ -34,12 +34,12 @@ O que é do negócio nasce em rules novas. `User`, auth, permissões, jobs e log
 
 | Projeto | Caminho | Responsabilidade |
 |---|---|---|
-| `Headbanger.Api` | `src/Headbanger.Api` | Controllers, envelope de resposta, `CurrentUser`, middleware, rate limit, `Program.cs` |
-| `Headbanger.Application` | `src/Headbanger.Application` | AppServices (casos de uso), DTOs, `Result<T>`, abstrações (`IRepository`, `ICurrentUser`, logging, jobs, e-mail) |
-| `Headbanger.Domain` | `src/Headbanger.Domain` | Entidades (`EntityBase`), enums, constantes, catálogo de permissões, política de auditoria |
-| `Headbanger.Infra.Data` | `src/Headbanger.Infra.Data` | `AppDbContext`, `Repository<T>`, `UnitOfWork`, Identity, logging, migrations, serviços externos |
-| `Headbanger.Infra.IoC` | `src/Headbanger.Infra.IoC` | Registro de DI (`DependencyInjection.cs`, `DependencyInjectionJobs.cs`) |
-| `Headbanger.Workers` | `src/Headbanger.Workers` | Jobs Hangfire (roda dentro do processo da API) |
+| `NoiseVault.Api` | `src/NoiseVault.Api` | Controllers, envelope de resposta, `CurrentUser`, middleware, rate limit, `Program.cs` |
+| `NoiseVault.Application` | `src/NoiseVault.Application` | AppServices (casos de uso), DTOs, `Result<T>`, abstrações (`IRepository`, `ICurrentUser`, logging, jobs, e-mail) |
+| `NoiseVault.Domain` | `src/NoiseVault.Domain` | Entidades (`EntityBase`), enums, constantes, catálogo de permissões, política de auditoria |
+| `NoiseVault.Infra.Data` | `src/NoiseVault.Infra.Data` | `AppDbContext`, `Repository<T>`, `UnitOfWork`, Identity, logging, migrations, serviços externos |
+| `NoiseVault.Infra.IoC` | `src/NoiseVault.Infra.IoC` | Registro de DI (`DependencyInjection.cs`, `DependencyInjectionJobs.cs`) |
+| `NoiseVault.Workers` | `src/NoiseVault.Workers` | Jobs Hangfire (roda dentro do processo da API) |
 
 Dependência entre camadas: `Api → Application → Domain`; `Infra.Data` implementa as abstrações de `Application`; `Workers` referencia `Application`; `Infra.IoC` amarra tudo.
 
@@ -55,7 +55,7 @@ Dependência entre camadas: `Api → Application → Domain`; `Infra.Data` imple
 
 ## Rotas e escopo
 
-Uma única superfície HTTP: todo controller herda `ApiBaseController` (`[ApiController] [Authorize]`) e vive em `src/Headbanger.Api/Controllers/`. A organização é por **escopo de acesso**, não por tipo de usuário:
+Uma única superfície HTTP: todo controller herda `ApiBaseController` (`[ApiController] [Authorize]`) e vive em `src/NoiseVault.Api/Controllers/`. A organização é por **escopo de acesso**, não por tipo de usuário:
 
 - `Controllers/*.cs` — `/api/...`: o que qualquer usuário autenticado faz sobre o que é dele (`auth`, `profile`). Sem `[Authorize(Policy)]`; o filtro de dono é `UserId == _currentUser.UserId` no `WHERE`.
 - `Controllers/Admin/*.cs` — `/api/admin/...`: o que exige permissão do catálogo (`users`, `authorization`, `audit`, `jobs`; moderação de conteúdo quando existir). **Toda action tem `[Authorize(Policy = Permissions.X.Y)]`.**
@@ -87,7 +87,7 @@ Os arquivos citados como "referência" nas seções abaixo (`ItemsController`, `
 ### Layout por feature em `Application`
 
 ```
-src/Headbanger.Application/{Feature}/
+src/NoiseVault.Application/{Feature}/
   {Feature}AppService.cs
   Interfaces/I{Feature}AppService.cs
   Interfaces/I{Entidade}Repository.cs      ← só quando precisa de SQL atômico/agregado
@@ -96,7 +96,7 @@ src/Headbanger.Application/{Feature}/
 
 ### Controller
 
-Arquivo de referência: `src/Headbanger.Api/Controllers/AuthController.cs` (e `Controllers/ItemsController.cs` do boilerplate para CRUD).
+Arquivo de referência: `src/NoiseVault.Api/Controllers/AuthController.cs` (e `Controllers/ItemsController.cs` do boilerplate para CRUD).
 
 - Herda `ApiBaseController` e retorna **sempre** via `ToResponse(result)` — nunca montar `ApiResponse` manualmente nem escolher status code na mão. Ações públicas (login, register) usam `[AllowAnonymous]` por action.
 - Controller não contém lógica de negócio nem mapeamento — só delega ao AppService.
@@ -114,7 +114,7 @@ Arquivo de referência: `src/Headbanger.Api/Controllers/AuthController.cs` (e `C
 
 ### AppService
 
-Arquivo de referência: `src/Headbanger.Application/Auth/AuthAppService.cs` (e `Application/Items/ItemAppService.cs` do boilerplate para CRUD paginado).
+Arquivo de referência: `src/NoiseVault.Application/Auth/AuthAppService.cs` (e `Application/Items/ItemAppService.cs` do boilerplate para CRUD paginado).
 
 - Mapeamento entidade↔DTO é **manual** (sem AutoMapper). Nunca retornar entidade de domínio para fora do AppService — sempre DTO.
 - 🔴 **Precisou de lógica de outra entidade? Injete o AppService dela — não crie um AppService novo para o cruzamento.** A lógica mora no AppService **dono da entidade**. AppService novo continua certo quando a feature não tem entidade dona (um dashboard) ou quando o consumo é de outra superfície.
@@ -143,7 +143,7 @@ Arquivo de referência: `src/Headbanger.Application/Auth/AuthAppService.cs` (e `
 - Configuração EF é fluent **inline** no `OnModelCreating` do `AppDbContext` — não criar classes `IEntityTypeConfiguration` separadas.
 - Migrations em `Infra.Data/Migrations/`:
   ```
-  dotnet ef migrations add NomeDaMigration --project src/Headbanger.Infra.Data --startup-project src/Headbanger.Api
+  dotnet ef migrations add NomeDaMigration --project src/NoiseVault.Infra.Data --startup-project src/NoiseVault.Api
   ```
   ⚠️ **Rebuildar antes do `database update`** — com `--no-build` o snapshot recém-gerado não está compilado e o EF acusa "pending model changes". `Database:MigrateOnStartup = true` só em desenvolvimento.
 
@@ -276,7 +276,7 @@ _logger.Info(
 
 ## Convenções gerais
 
-- Namespace = caminho físico: `Headbanger.{Camada}.{Feature}[.Subpasta]`. Pastas de feature no plural.
+- Namespace = caminho físico: `Noise Vault.{Camada}.{Feature}[.Subpasta]`. Pastas de feature no plural.
 - Sufixos: `I{X}AppService`/`{X}AppService`, `{X}Dto` (geral), `{X}InputDto`/`{X}RequestDto` (entrada), `{X}QueryDto` (filtro paginado), `{X}ResponseDto` (saída); entidades sem sufixo; enums com prefixo `E`.
 - **Não escrever comentários no código, e isso inclui `/// <summary>`.** O que precisa de explicação vem para este documento ou para a rule do domínio — o nome do símbolo carrega a intenção. Linha comentada nova é bug de revisão.
 - Idioma: mensagens de exceção internas em PT-BR; códigos e mensagens de API em inglês; documentação em PT-BR.
@@ -321,7 +321,7 @@ Uma rule que contradiz este arquivo está dizendo que aquele domínio é exceç�
 Sem projeto de teste: verificação é por execução real.
 
 1. `dotnet build` limpo.
-2. Subir a API (`ASPNETCORE_ENVIRONMENT=Development`; `Database:MigrateOnStartup` aplica a migration e o seed cria `admin@headbanger.local` com `Seed:AdminPassword`).
+2. Subir a API (`ASPNETCORE_ENVIRONMENT=Development`; `Database:MigrateOnStartup` aplica a migration e o seed cria `admin@noisevault.local` com `Seed:AdminPassword`).
 3. Seguir o `## Roteiro de verificação` da rule do domínio, com resultado esperado por passo (codes, status HTTP, linha de log).
 4. Para 500: conferir a linha `UNHANDLED_EXCEPTION`/`REQUEST_FAILED` com `Action`, `user=`, `caused-by=` e o `X-Trace-Id` na resposta.
 
@@ -342,4 +342,4 @@ Sem projeto de teste: verificação é por execução real.
 
 ## Como este arquivo evolui
 
-Este arquivo descreve o padrão; a rule descreve a decisão. Convenção que vale para qualquer projeto volta para o boilerplate em `C:\Users\Administrador\Desktop\Boilerplate`; regra do negócio do Headbanger fica na rule deste repositório. O teste é: *"se eu apagar este projeto, essa frase continua verdadeira?"* — se sim, é convenção.
+Este arquivo descreve o padrão; a rule descreve a decisão. Convenção que vale para qualquer projeto volta para o boilerplate em `C:\Users\Administrador\Desktop\Boilerplate`; regra do negócio do Noise Vault fica na rule deste repositório. O teste é: *"se eu apagar este projeto, essa frase continua verdadeira?"* — se sim, é convenção.

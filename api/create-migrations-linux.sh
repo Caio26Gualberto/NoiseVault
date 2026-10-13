@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "=========================================="
-echo "     HEADBANGER MIGRATION CREATOR"
+echo "     NOISEVAULT MIGRATION CREATOR"
 echo "=========================================="
 echo
 
@@ -23,8 +23,8 @@ echo "Creating migration \"$MIGRATION_NAME\"..."
 echo
 
 dotnet ef migrations add "$MIGRATION_NAME" \
-  --project src/Headbanger.Infra.Data \
-  --startup-project src/Headbanger.Api
+  --project src/NoiseVault.Infra.Data \
+  --startup-project src/NoiseVault.Api
 
 echo
 echo "Done."

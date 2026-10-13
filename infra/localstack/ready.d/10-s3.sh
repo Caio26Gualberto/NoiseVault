@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-BUCKET=headbanger-media
+BUCKET=noisevault-media
 
 awslocal s3api head-bucket --bucket "$BUCKET" 2>/dev/null || awslocal s3api create-bucket --bucket "$BUCKET"
 
@@ -16,4 +16,4 @@ awslocal s3api put-bucket-policy --bucket "$BUCKET" --policy "{
   }]
 }"
 
-echo "headbanger: bucket $BUCKET pronto"
+echo "noisevault: bucket $BUCKET pronto"

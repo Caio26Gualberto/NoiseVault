@@ -1,12 +1,12 @@
 ---
 paths:
-  - "**/Headbanger.Application/Profiles/**"
-  - "**/Headbanger.Application/PublicProfiles/**"
-  - "**/Headbanger.Domain/Entities/User.cs"
-  - "**/Headbanger.Domain/Entities/UserGenre.cs"
-  - "**/Headbanger.Domain/Enums/Profiles/**"
-  - "**/Headbanger.Api/Controllers/ProfileController.cs"
-  - "**/Headbanger.Api/Controllers/UsersController.cs"
+  - "**/NoiseVault.Application/Profiles/**"
+  - "**/NoiseVault.Application/PublicProfiles/**"
+  - "**/NoiseVault.Domain/Entities/User.cs"
+  - "**/NoiseVault.Domain/Entities/UserGenre.cs"
+  - "**/NoiseVault.Domain/Enums/Profiles/**"
+  - "**/NoiseVault.Api/Controllers/ProfileController.cs"
+  - "**/NoiseVault.Api/Controllers/UsersController.cs"
 ---
 
 # Decisões — Perfil e mídia

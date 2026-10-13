@@ -1,10 +1,10 @@
 ---
 paths:
-  - "**/Headbanger.Infra.Data/Auditing/**"
-  - "**/Headbanger.Application/AuditLogs/**"
-  - "**/Headbanger.Domain/Auditing/**"
+  - "**/NoiseVault.Infra.Data/Auditing/**"
+  - "**/NoiseVault.Application/AuditLogs/**"
+  - "**/NoiseVault.Domain/Auditing/**"
   - "**/*Audit*"
-  - "**/Headbanger.Infra.Data/Context/AppDbContext.cs"
+  - "**/NoiseVault.Infra.Data/Context/AppDbContext.cs"
 ---
 
 # Decisões — Auditoria

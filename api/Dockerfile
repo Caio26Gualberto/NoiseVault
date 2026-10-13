@@ -2,16 +2,16 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
-COPY src/Headbanger.Api/Headbanger.Api.csproj                 src/Headbanger.Api/
-COPY src/Headbanger.Application/Headbanger.Application.csproj src/Headbanger.Application/
-COPY src/Headbanger.Domain/Headbanger.Domain.csproj           src/Headbanger.Domain/
-COPY src/Headbanger.Infra.Data/Headbanger.Infra.Data.csproj   src/Headbanger.Infra.Data/
-COPY src/Headbanger.Infra.IoC/Headbanger.Infra.IoC.csproj     src/Headbanger.Infra.IoC/
-COPY src/Headbanger.Workers/Headbanger.Workers.csproj         src/Headbanger.Workers/
-RUN dotnet restore src/Headbanger.Api/Headbanger.Api.csproj
+COPY src/NoiseVault.Api/NoiseVault.Api.csproj                 src/NoiseVault.Api/
+COPY src/NoiseVault.Application/NoiseVault.Application.csproj src/NoiseVault.Application/
+COPY src/NoiseVault.Domain/NoiseVault.Domain.csproj           src/NoiseVault.Domain/
+COPY src/NoiseVault.Infra.Data/NoiseVault.Infra.Data.csproj   src/NoiseVault.Infra.Data/
+COPY src/NoiseVault.Infra.IoC/NoiseVault.Infra.IoC.csproj     src/NoiseVault.Infra.IoC/
+COPY src/NoiseVault.Workers/NoiseVault.Workers.csproj         src/NoiseVault.Workers/
+RUN dotnet restore src/NoiseVault.Api/NoiseVault.Api.csproj
 
 COPY src/ src/
-RUN dotnet publish src/Headbanger.Api/Headbanger.Api.csproj \
+RUN dotnet publish src/NoiseVault.Api/NoiseVault.Api.csproj \
     -c $BUILD_CONFIGURATION \
     -o /app/publish \
     /p:UseAppHost=false
@@ -26,4 +26,4 @@ ENV ASPNETCORE_HTTP_PORTS=8080
 ENV TZ=America/Sao_Paulo
 COPY --from=build /app/publish .
 USER $APP_UID
-ENTRYPOINT ["dotnet", "Headbanger.Api.dll"]
+ENTRYPOINT ["dotnet", "NoiseVault.Api.dll"]

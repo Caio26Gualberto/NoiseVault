@@ -1,15 +1,15 @@
 ---
 paths:
-  - "**/Headbanger.Application/Auth/**"
-  - "**/Headbanger.Application/Users/**"
-  - "**/Headbanger.Application/Profiles/**"
-  - "**/Headbanger.Application/Authorizations/**"
-  - "**/Headbanger.Infra.Data/Identity/**"
-  - "**/Headbanger.Infra.Data/Context/Seeding/**"
-  - "**/Headbanger.Domain/Authorization/**"
-  - "**/Headbanger.Domain/Entities/User.cs"
-  - "**/Headbanger.Api/Controllers/AuthController.cs"
-  - "**/Headbanger.Api/Controllers/ProfileController.cs"
+  - "**/NoiseVault.Application/Auth/**"
+  - "**/NoiseVault.Application/Users/**"
+  - "**/NoiseVault.Application/Profiles/**"
+  - "**/NoiseVault.Application/Authorizations/**"
+  - "**/NoiseVault.Infra.Data/Identity/**"
+  - "**/NoiseVault.Infra.Data/Context/Seeding/**"
+  - "**/NoiseVault.Domain/Authorization/**"
+  - "**/NoiseVault.Domain/Entities/User.cs"
+  - "**/NoiseVault.Api/Controllers/AuthController.cs"
+  - "**/NoiseVault.Api/Controllers/ProfileController.cs"
 ---
 
 # Decisões — Auth e contas
@@ -52,7 +52,7 @@ Token inválido ou vencido → `400 PASSWORD_RESET_INVALID`; senha fraca → `40
 
 ## Nickname é identidade pública
 
-`User.Nickname` é o handle da URL `/perfil/:nickname`, pedido **no registro** (introduzir depois exigiria gerar handles para contas antigas). Regras em `NicknameRules`: minúsculo, `^[a-z0-9](?:[a-z0-9._]{1,28}[a-z0-9])?$` (3 a 30 caracteres, sem começar ou terminar em `.`/`_`), normalizado com `Trim().ToLowerInvariant()`, e uma lista reservada (`admin`, `headbanger`, `feed`, `eventos`, `videos`, `fotos`, `bandas`, `perfil`, `api`, `suporte`) para não colidir com rotas do site. `INVALID_NICKNAME` para formato; `NICKNAME_TAKEN` (409) para reservado ou em uso.
+`User.Nickname` é o handle da URL `/perfil/:nickname`, pedido **no registro** (introduzir depois exigiria gerar handles para contas antigas). Regras em `NicknameRules`: minúsculo, `^[a-z0-9](?:[a-z0-9._]{1,28}[a-z0-9])?$` (3 a 30 caracteres, sem começar ou terminar em `.`/`_`), normalizado com `Trim().ToLowerInvariant()`, e uma lista reservada (`admin`, `noisevault`, `feed`, `eventos`, `videos`, `fotos`, `bandas`, `perfil`, `api`, `suporte`) para não colidir com rotas do site. `INVALID_NICKNAME` para formato; `NICKNAME_TAKEN` (409) para reservado ou em uso.
 
 - O índice único de `Nickname` **não filtra soft delete**, pelo mesmo motivo do e-mail: handle é identidade e não pode ter duas linhas vivas. Na revogação de acesso, nickname e e-mail recebem o tombstone `deleted+{id}+{original}`.
 - `Nickname` usa a **colação default** (não a `case_insensitive` do e-mail) porque já é gravado em minúsculas e porque a colação não determinística do Postgres recusa `LIKE`. É por isso que a busca da equipe (`GET /api/admin/users?search=`) procura em `Name` e `Nickname`, nunca em `Email` com `Contains`.
@@ -125,5 +125,5 @@ Com `docker compose up -d` e a API no ar (`Email:Provider=Smtp` apontando para o
 7. `POST /api/auth/forgot-password {email}` → 200 `PASSWORD_RESET_EMAIL_SENT` para existente e inexistente; e-mail no Mailpit com `/redefinir-senha?email=…&token=…`; `POST /api/auth/reset-password {email, token, newPassword:"xyz789"}` → 200 `PASSWORD_RESET_SUCCESS` sem tokens; refresh token anterior → `INVALID_TOKEN`; login com a senha antiga → 401; com a nova → 200; reusar o token de reset → 400 `PASSWORD_RESET_INVALID`.
 8. `POST /api/profile/change-password` com atual errada → 401 `INVALID_CREDENTIALS`; nova fraca → 400 `PASSWORD_TOO_WEAK` e a antiga continua valendo; certa → `PASSWORD_CHANGED` com tokens novos.
 9. `POST /api/auth/logout` → `LOGOUT_SUCCESS`; o refresh anterior → `INVALID_TOKEN`.
-10. Login `admin@headbanger.local` / `12341234` → `GET /api/admin/users?search=cai` → 200 com o usuário; `POST /api/admin/users/invite {name, email, roleId}` → `USER_INVITED` e o e-mail de convite no Mailpit; login do convidado → `GET /api/admin/users` → 403 `PASSWORD_CHANGE_REQUIRED`; `set-initial-password` → tokens; repetir → `PASSWORD_CHANGE_NOT_PENDING`.
+10. Login `admin@noisevault.local` / `12341234` → `GET /api/admin/users?search=cai` → 200 com o usuário; `POST /api/admin/users/invite {name, email, roleId}` → `USER_INVITED` e o e-mail de convite no Mailpit; login do convidado → `GET /api/admin/users` → 403 `PASSWORD_CHANGE_REQUIRED`; `set-initial-password` → tokens; repetir → `PASSWORD_CHANGE_NOT_PENDING`.
 11. `DELETE /api/admin/users/{id}` do próprio → `CANNOT_DELETE_SELF`; do último Admin → `LAST_ADMIN_PROTECTED`; de outro → `USER_DELETED`, o login dele vira `INVALID_CREDENTIALS`, e registrar de novo o mesmo e-mail e nickname funciona (tombstone).

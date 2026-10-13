@@ -1,0 +1,90 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using NoiseVault.Api.RateLimiting;
+using NoiseVault.Application.Auth.Dtos;
+using NoiseVault.Application.Auth.Interfaces;
+
+namespace NoiseVault.Api.Controllers
+{
+    [Route("api/auth")]
+    public class AuthController : ApiBaseController
+    {
+        private readonly IAuthAppService _authAppService;
+
+        public AuthController(IAuthAppService authAppService)
+        {
+            _authAppService = authAppService;
+        }
+
+        [AllowAnonymous]
+        [EnableRateLimiting(ApiRateLimitPolicies.Login)]
+        [HttpPost("login")]
+        public async Task<ActionResult> Login([FromBody] LoginInputDto input)
+        {
+            var result = await _authAppService.Login(input);
+            return ToResponse(result);
+        }
+
+        [AllowAnonymous]
+        [EnableRateLimiting(ApiRateLimitPolicies.Register)]
+        [HttpPost("register")]
+        public async Task<ActionResult> Register([FromBody] RegisterInputDto input)
+        {
+            var result = await _authAppService.Register(input);
+            return ToResponse(result);
+        }
+
+        [AllowAnonymous]
+        [EnableRateLimiting(ApiRateLimitPolicies.ConfirmEmail)]
+        [HttpPost("confirm-email")]
+        public async Task<ActionResult> ConfirmEmail([FromBody] ConfirmEmailInputDto input)
+        {
+            var result = await _authAppService.ConfirmEmail(input);
+            return ToResponse(result);
+        }
+
+        [AllowAnonymous]
+        [EnableRateLimiting(ApiRateLimitPolicies.ResendConfirmation)]
+        [HttpPost("resend-confirmation")]
+        public async Task<ActionResult> ResendConfirmation([FromBody] ResendConfirmationInputDto input)
+        {
+            var result = await _authAppService.ResendConfirmation(input);
+            return ToResponse(result);
+        }
+
+        [AllowAnonymous]
+        [EnableRateLimiting(ApiRateLimitPolicies.ForgotPassword)]
+        [HttpPost("forgot-password")]
+        public async Task<ActionResult> ForgotPassword([FromBody] ForgotPasswordInputDto input)
+        {
+            var result = await _authAppService.ForgotPassword(input);
+            return ToResponse(result);
+        }
+
+        [AllowAnonymous]
+        [EnableRateLimiting(ApiRateLimitPolicies.ResetPassword)]
+        [HttpPost("reset-password")]
+        public async Task<ActionResult> ResetPassword([FromBody] ResetPasswordInputDto input)
+        {
+            var result = await _authAppService.ResetPassword(input);
+            return ToResponse(result);
+        }
+
+        [AllowAnonymous]
+        [EnableRateLimiting(ApiRateLimitPolicies.RefreshToken)]
+        [HttpPost("refresh-token")]
+        public async Task<ActionResult> RefreshToken([FromBody] RefreshTokenRequestDto input)
+        {
+            var result = await _authAppService.RefreshTokens(input);
+            return ToResponse(result);
+        }
+
+        [HttpPost("logout")]
+        public async Task<ActionResult> Logout()
+        {
+            var result = await _authAppService.Logout();
+            return ToResponse(result);
+        }
+    }
+}

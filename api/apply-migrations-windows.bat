@@ -1,7 +1,7 @@
 @echo off
 
 echo ==========================================
-echo        HEADBANGER MIGRATOR
+echo        NOISEVAULT MIGRATOR
 echo ==========================================
 echo.
 
@@ -11,8 +11,8 @@ echo.
 cd /d %~dp0
 
 dotnet ef database update ^
-  --project src\Headbanger.Infra.Data ^
-  --startup-project src\Headbanger.Api
+  --project src\NoiseVault.Infra.Data ^
+  --startup-project src\NoiseVault.Api
 
 echo.
 echo Done.

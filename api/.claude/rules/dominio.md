@@ -1,12 +1,12 @@
 ---
 paths:
-  - "**/Headbanger.Domain/Entities/**"
-  - "**/Headbanger.Domain/Enums/**"
+  - "**/NoiseVault.Domain/Entities/**"
+  - "**/NoiseVault.Domain/Enums/**"
 ---
 
 # Decisões — Domínio da comunidade
 
-O que o Headbanger é, em entidades, e em que ordem elas nascem. Nesta entrega **só `User` existe no código**; o resto está aqui para o Auth não nascer errado e para cada módulo futuro saber onde encaixa. Decisão de modelagem registrada antes do código é a spec do módulo.
+O que o Noise Vault é, em entidades, e em que ordem elas nascem. Nesta entrega **só `User` existe no código**; o resto está aqui para o Auth não nascer errado e para cada módulo futuro saber onde encaixa. Decisão de modelagem registrada antes do código é a spec do módulo.
 
 ## `User` é sempre uma pessoa; banda não tem login
 

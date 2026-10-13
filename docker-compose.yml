@@ -1,19 +1,19 @@
 services:
   postgres:
     image: postgres:17
-    container_name: headbanger-postgres
+    container_name: noisevault-postgres
     environment:
-      POSTGRES_DB: headbanger
+      POSTGRES_DB: noisevault
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
       - "5436:5432"
     volumes:
-      - headbanger-pgdata:/var/lib/postgresql/data
+      - noisevault-pgdata:/var/lib/postgresql/data
 
   mailpit:
     image: axllent/mailpit
-    container_name: headbanger-mailpit
+    container_name: noisevault-mailpit
     environment:
       MP_SMTP_AUTH_ACCEPT_ANY: "1"
       MP_SMTP_AUTH_ALLOW_INSECURE: "1"
@@ -23,7 +23,7 @@ services:
 
   localstack:
     image: localstack/localstack:4.14.0
-    container_name: headbanger-localstack
+    container_name: noisevault-localstack
     environment:
       SERVICES: s3
       PERSISTENCE: "1"
@@ -31,9 +31,9 @@ services:
     ports:
       - "4566:4566"
     volumes:
-      - headbanger-localstack:/var/lib/localstack
+      - noisevault-localstack:/var/lib/localstack
       - ./infra/localstack/ready.d:/etc/localstack/init/ready.d:ro
 
 volumes:
-  headbanger-pgdata:
-  headbanger-localstack:
+  noisevault-pgdata:
+  noisevault-localstack:

@@ -1,13 +1,13 @@
 {
   "edit": "Editar perfil",
-  "memberSince": "No Headbanger desde {{date}}",
+  "memberSince": "No Noise Vault desde {{date}}",
   "empty": {
     "title": "Publicações chegam em breve",
     "description": "Posts, fotos e vídeos deste perfil aparecem aqui quando o feed e a galeria entrarem."
   },
   "notFound": {
     "title": "Perfil não encontrado",
-    "description": "Ninguém usa @{{nickname}} no Headbanger.",
+    "description": "Ninguém usa @{{nickname}} no Noise Vault.",
     "action": "Ir para o feed"
   },
   "failed": {

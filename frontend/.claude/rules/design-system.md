@@ -9,7 +9,7 @@ paths:
 
 # Decisões — Design system
 
-Escrita antes da primeira tela. O Headbanger é um site público de comunidade, não um painel: o visual precisa ter identidade (metal, cartaz de show, escuro) sem sacrificar legibilidade em celular barato à noite. Toda decisão visual nova entra aqui **e** em `src/theme/tokens.css`, nunca inline numa página.
+Escrita antes da primeira tela. O Noise Vault é um site público de comunidade, não um painel: o visual precisa ter identidade (metal, cartaz de show, escuro) sem sacrificar legibilidade em celular barato à noite. Toda decisão visual nova entra aqui **e** em `src/theme/tokens.css`, nunca inline numa página.
 
 ## Escuro por padrão, claro por escolha
 

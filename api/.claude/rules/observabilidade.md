@@ -1,9 +1,9 @@
 ---
 paths:
-  - "**/Headbanger.Api/Middlewares/**"
-  - "**/Headbanger.Api/Diagnostics/**"
-  - "**/Headbanger.Api/RateLimiting/**"
-  - "**/Headbanger.Api/ApiResponse/**"
+  - "**/NoiseVault.Api/Middlewares/**"
+  - "**/NoiseVault.Api/Diagnostics/**"
+  - "**/NoiseVault.Api/RateLimiting/**"
+  - "**/NoiseVault.Api/ApiResponse/**"
   - "**/Logging/**"
 ---
 

@@ -1,8 +1,8 @@
 ---
 paths:
-  - "**/Headbanger.Workers/**"
-  - "**/Headbanger.Infra.IoC/DependencyInjectionJobs.cs"
-  - "**/Headbanger.Application/BackgroundJobs/**"
+  - "**/NoiseVault.Workers/**"
+  - "**/NoiseVault.Infra.IoC/DependencyInjectionJobs.cs"
+  - "**/NoiseVault.Application/BackgroundJobs/**"
 ---
 
 # Convenção — Background jobs (Hangfire)
@@ -11,13 +11,13 @@ Hangfire com storage no **mesmo banco** do EF (`DefaultConnection`; Postgres ou 
 
 🔴 **O dashboard só é mapeado fora de `Production`** (`Program.cs`), e o que é ambiental é a **interface web** — workers e jobs rodam em todos os ambientes. O `HangfireDashboardAuthorizationFilter` autoriza tudo porque a barreira, quando existe, fica na infraestrutura (proxy autenticado). Expor `/hangfire` em produção sem barreira é bug.
 
-Todo o código de jobs vive em `src/Headbanger.Workers`, com **duas categorias separadas**.
+Todo o código de jobs vive em `src/NoiseVault.Workers`, com **duas categorias separadas**.
 
 ## 0. Filas: nomeadas por domínio
 
 | Fila | Servidor | Quem roda ali |
 |---|---|---|
-| `default` | `headbanger-main` | ninguém de propósito — está na lista só para um job sem `[Queue]` não ficar invisível. Nenhuma fila de negócio existe ainda: o primeiro job cria a sua. |
+| `default` | `noisevault-main` | ninguém de propósito — está na lista só para um job sem `[Queue]` não ficar invisível. Nenhuma fila de negócio existe ainda: o primeiro job cria a sua. |
 
 🔴 **`[Queue]` é obrigatório em todo método de job.** O Hangfire enfileira em `default` qualquer método **sem** o atributo; se `default` não estiver na lista de nenhum servidor, o job fica `Enqueued` para sempre, sem erro, sem log. É a primeira coisa a conferir num job novo.
 
@@ -28,7 +28,7 @@ Fila nova exige acrescentá-la em `options.Queues` (ou num segundo `AddHangfireS
 Padrão **Wrapper + Trigger**, espelhado por domínio:
 
 ```
-src/Headbanger.Workers/
+src/NoiseVault.Workers/
   Wrappers/Recurring/{Domínio}/{Domínio}RecurringJobsWrapper.cs   ← registra o job (cron)
   Triggers/Recurring/{Domínio}/{Domínio}RecurringJobsTrigger.cs   ← método executado
 ```
@@ -67,7 +67,7 @@ Registro de um novo recorrente (dois passos, ambos em `Infra.IoC/`):
 ## 2. Jobs disparados por uma ação (Enqueued)
 
 ```
-src/Headbanger.Workers/
+src/NoiseVault.Workers/
   Dispatch/EnqueuedJobDispatcher.cs                              ← implementa a abstração de disparo
   Triggers/Enqueued/{Domínio}/{Domínio}EnqueuedJobsTrigger.cs    ← método executado
 ```
