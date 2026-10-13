@@ -334,7 +334,9 @@ Sem projeto de teste: verificação é por execução real.
 - `Hangfire` enfileira em `default` qualquer método sem `[Queue]`, e a fila `default` está na lista do servidor só para isso não ficar invisível — mesmo assim, job novo declara a fila.
 - `EBackgroundJobType` está **vazio** e `EnqueuedJobDispatcher` só tem o arm `_ => throw`: a infraestrutura de jobs ficou, o primeiro job de negócio ainda não existe. Ao criar o primeiro, seguir `jobs-hangfire.md`.
 - A colação `case_insensitive` de `Users.Email` é não determinística: Postgres recusa `LIKE`/`Contains` nela. Busca textual é por `Name`/`Nickname` (colação default); e-mail só por igualdade.
-- Os pacotes transitivos `Newtonsoft.Json 11.0.1` (via Hangfire) e `System.Security.Cryptography.Xml 10.0.9` disparam `NU1903` no build. Aviso, não erro; herdado do boilerplate e pendente de bump.
+- O pacote transitivo `Newtonsoft.Json 11.0.1` (via Hangfire) dispara `NU1903` no build. Aviso, não erro; herdado do boilerplate e pendente de bump.
+- Os tokens de confirmação de e-mail e de redefinição de senha dependem das chaves do Data Protection. Em container sem volume, reiniciar a API invalida todo link pendente — `PersistKeysToDbContext` antes do primeiro deploy (`auth-e-contas.md`).
+- `Infra.Data` usa `FrameworkReference` do ASP.NET Core (o pacote `Microsoft.AspNetCore.Identity 2.3` do boilerplate foi removido): sem isso o `DataProtectorTokenProvider` resolvia para a versão 2.x e o `PasswordResetTokenProvider` não compilava.
 
 ## Como este arquivo evolui
 
