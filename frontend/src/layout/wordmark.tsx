@@ -24,7 +24,7 @@ export function Wordmark({ size = 'md', to = homePath, className }: WordmarkProp
     >
       <span aria-hidden className="inline-block h-[1em] w-1.5 skew-x-[-12deg] rounded-sm bg-primary" />
       <span>
-        Head<span className="text-primary">banger</span>
+        Noise <span className="text-primary">Vault</span>
       </span>
     </Link>
   )

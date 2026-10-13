@@ -28,6 +28,8 @@ import {
 } from '../auth/routes'
 import { ModeracaoPage } from '../pages/admin/moderacao'
 import { BandasPage } from '../pages/bandas'
+import { BandaEditarPage } from '../pages/bandas/editar'
+import { BandaNovaPage } from '../pages/bandas/nova'
 import { BemVindoPage } from '../pages/bem-vindo'
 import { ConfirmarEmailPage } from '../pages/confirmar-email'
 import { CriarContaPage } from '../pages/criar-conta'
@@ -138,6 +140,8 @@ export const hiddenRoutes: HiddenRoute[] = [
   { path: '/eventos/novo', element: <EventoFormPage /> },
   { path: '/eventos/:id/editar', element: <EventoFormPage /> },
   { path: '/eventos/:id', element: <EventoDetalhePage /> },
+  { path: '/bandas/nova', element: <BandaNovaPage /> },
+  { path: '/bandas/:slug/editar', element: <BandaEditarPage /> },
   { path: '/bandas/:slug', element: <BandasPage /> },
   { path: accountPath, element: <MinhaContaPage /> },
 ]

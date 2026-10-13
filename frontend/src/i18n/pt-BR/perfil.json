@@ -57,5 +57,10 @@
     "rioGrandeDaSerra": "Rio Grande da Serra",
     "saoPaulo": "São Paulo",
     "other": "Outra cidade"
+  },
+  "bands": {
+    "title": "Bandas",
+    "create": "Criar banda",
+    "empty": "Você ainda não está em nenhuma banda. Crie a sua ou espere um convite."
   }
 }

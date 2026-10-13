@@ -3,17 +3,19 @@ import { useEffect, useRef, useState } from 'react'
 import type { ChangeEvent, KeyboardEvent, PointerEvent, SyntheticEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import type { ProfileDto } from '@/api/types'
 import { AppButton } from '@/components/app-button'
 import { useAppConfirm } from '@/components/app-confirm'
+import { acceptedImageTypes, bannerMaxBytes, bannerMinWidth, checkImageFile } from '@/lib/image-file'
 import { cn } from '@/lib/utils'
 
-import { acceptedImageTypes, bannerMaxBytes, bannerMinWidth, checkImageFile } from '../profile-validators'
-import { removeBanner, setBanner, setBannerPosition } from '../services/conta-service'
+type SavedBanner = { bannerPosition: number }
 
-type BannerEditorProps = {
-  user: ProfileDto
-  onChange: (user: ProfileDto) => void
+type AppBannerEditorProps = {
+  bannerUrl: string | null
+  bannerPosition: number
+  onUpload: (file: File, position: number) => Promise<SavedBanner>
+  onPosition: (position: number) => Promise<SavedBanner>
+  onRemove: () => Promise<SavedBanner>
 }
 
 type Drag = { pointerId: number; startY: number; startPosition: number; overflow: number }
@@ -24,8 +26,8 @@ function clamp(value: number) {
   return Math.min(100, Math.max(0, Math.round(value)))
 }
 
-export function BannerEditor({ user, onChange }: BannerEditorProps) {
-  const { t } = useTranslation('conta')
+export function AppBannerEditor({ bannerUrl, bannerPosition, onUpload, onPosition, onRemove }: AppBannerEditorProps) {
+  const { t } = useTranslation()
   const confirm = useAppConfirm()
   const inputRef = useRef<HTMLInputElement>(null)
   const frameRef = useRef<HTMLDivElement>(null)
@@ -33,7 +35,7 @@ export function BannerEditor({ user, onChange }: BannerEditorProps) {
   const naturalRef = useRef<{ width: number; height: number } | null>(null)
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
-  const [position, setPosition] = useState(user.bannerPosition)
+  const [position, setPosition] = useState(bannerPosition)
   const [dragging, setDragging] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
@@ -48,8 +50,8 @@ export function BannerEditor({ user, onChange }: BannerEditorProps) {
     return () => URL.revokeObjectURL(url)
   }, [file])
 
-  const source = preview ?? user.bannerUrl
-  const positionChanged = !file && Boolean(user.bannerUrl) && position !== user.bannerPosition
+  const source = preview ?? bannerUrl
+  const positionChanged = !file && Boolean(bannerUrl) && position !== bannerPosition
 
   const pick = (event: ChangeEvent<HTMLInputElement>) => {
     const chosen = event.target.files?.[0]
@@ -57,7 +59,7 @@ export function BannerEditor({ user, onChange }: BannerEditorProps) {
     if (!chosen) return
     const check = checkImageFile(chosen, bannerMaxBytes)
     if (check !== 'ok') {
-      setError(t(`image.${check}`, { size: 10 }))
+      setError(t(`imageUpload.image.${check}`, { size: 10 }))
       return
     }
     setError(null)
@@ -69,9 +71,9 @@ export function BannerEditor({ user, onChange }: BannerEditorProps) {
     const image = event.currentTarget
     naturalRef.current = { width: image.naturalWidth, height: image.naturalHeight }
     if (file && image.naturalWidth < bannerMinWidth) {
-      setError(t('image.tooNarrow', { width: bannerMinWidth }))
+      setError(t('imageUpload.image.tooNarrow', { width: bannerMinWidth }))
       setFile(null)
-      setPosition(user.bannerPosition)
+      setPosition(bannerPosition)
     }
   }
 
@@ -117,13 +119,12 @@ export function BannerEditor({ user, onChange }: BannerEditorProps) {
     setPosition(clamp(next))
   }
 
-  const run = async (action: () => Promise<ProfileDto>) => {
+  const run = async (action: () => Promise<SavedBanner>) => {
     setSaving(true)
     try {
-      const updated = await action()
-      onChange(updated)
+      const saved = await action()
       setFile(null)
-      setPosition(updated.bannerPosition)
+      setPosition(saved.bannerPosition)
     } catch {
       return
     } finally {
@@ -134,30 +135,29 @@ export function BannerEditor({ user, onChange }: BannerEditorProps) {
   const cancel = () => {
     setFile(null)
     setError(null)
-    setPosition(user.bannerPosition)
+    setPosition(bannerPosition)
   }
 
   const remove = () =>
     confirm({
-      title: t('banner.removeTitle'),
-      message: t('banner.removeMessage'),
-      confirmLabel: t('banner.remove'),
+      title: t('imageUpload.banner.removeTitle'),
+      message: t('imageUpload.banner.removeMessage'),
+      confirmLabel: t('imageUpload.banner.remove'),
       danger: true,
       onConfirm: async () => {
-        const updated = await removeBanner()
-        onChange(updated)
-        setPosition(updated.bannerPosition)
+        const saved = await onRemove()
+        setPosition(saved.bannerPosition)
       },
     })
 
   return (
     <div className="flex flex-col gap-3">
-      <span className="text-sm font-medium">{t('banner.title')}</span>
+      <span className="text-sm font-medium">{t('imageUpload.banner.title')}</span>
       <div
         ref={frameRef}
         role={source ? 'slider' : undefined}
         tabIndex={source ? 0 : undefined}
-        aria-label={source ? t('banner.positionLabel') : undefined}
+        aria-label={source ? t('imageUpload.banner.positionLabel') : undefined}
         aria-orientation={source ? 'vertical' : undefined}
         aria-valuemin={source ? 0 : undefined}
         aria-valuemax={source ? 100 : undefined}
@@ -184,11 +184,11 @@ export function BannerEditor({ user, onChange }: BannerEditorProps) {
             />
             <span className="pointer-events-none absolute right-2 bottom-2 inline-flex items-center gap-1.5 rounded-full bg-scrim/70 px-2.5 py-1 text-xs text-on-scrim">
               <MoveVerticalIcon className="size-3.5" />
-              {t('banner.dragHint')}
+              {t('imageUpload.banner.dragHint')}
             </span>
           </>
         ) : (
-          <div className="flex size-full items-center justify-center text-sm text-muted-foreground">{t('banner.empty')}</div>
+          <div className="flex size-full items-center justify-center text-sm text-muted-foreground">{t('imageUpload.banner.empty')}</div>
         )}
       </div>
 
@@ -196,33 +196,33 @@ export function BannerEditor({ user, onChange }: BannerEditorProps) {
         <input ref={inputRef} type="file" accept={acceptedImageTypes.join(',')} className="hidden" onChange={pick} />
         {file ? (
           <>
-            <AppButton size="sm" loading={saving} onClick={() => void run(() => setBanner(file, position))}>
-              {t('banner.save')}
+            <AppButton size="sm" loading={saving} onClick={() => void run(() => onUpload(file, position))}>
+              {t('imageUpload.banner.save')}
             </AppButton>
             <AppButton size="sm" intent="ghost" disabled={saving} onClick={cancel}>
-              {t('common:actions.cancel')}
+              {t('actions.cancel')}
             </AppButton>
           </>
         ) : (
           <>
             {positionChanged ? (
               <>
-                <AppButton size="sm" loading={saving} onClick={() => void run(() => setBannerPosition(position))}>
-                  {t('banner.savePosition')}
+                <AppButton size="sm" loading={saving} onClick={() => void run(() => onPosition(position))}>
+                  {t('imageUpload.banner.savePosition')}
                 </AppButton>
                 <AppButton size="sm" intent="ghost" disabled={saving} onClick={cancel}>
-                  {t('common:actions.cancel')}
+                  {t('actions.cancel')}
                 </AppButton>
               </>
             ) : null}
             <AppButton size="sm" intent="neutral" disabled={saving} onClick={() => inputRef.current?.click()}>
               <ImageUpIcon />
-              {user.bannerUrl ? t('banner.replace') : t('banner.choose')}
+              {bannerUrl ? t('imageUpload.banner.replace') : t('imageUpload.banner.choose')}
             </AppButton>
-            {user.bannerUrl ? (
+            {bannerUrl ? (
               <AppButton size="sm" intent="ghost" disabled={saving} onClick={remove}>
                 <Trash2Icon />
-                {t('banner.remove')}
+                {t('imageUpload.banner.remove')}
               </AppButton>
             ) : null}
           </>
@@ -233,7 +233,7 @@ export function BannerEditor({ user, onChange }: BannerEditorProps) {
           {error}
         </p>
       ) : (
-        <p className="text-[13px] text-muted-foreground">{t('banner.hint')}</p>
+        <p className="text-[13px] text-muted-foreground">{t('imageUpload.banner.hint')}</p>
       )}
     </div>
   )

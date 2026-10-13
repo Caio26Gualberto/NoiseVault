@@ -1,4 +1,4 @@
-import { CalendarIcon, GuitarIcon, MapPinIcon, PencilIcon, UserRoundXIcon } from 'lucide-react'
+import { CalendarIcon, GuitarIcon, MapPinIcon, PencilIcon, PlusIcon, UserRoundXIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router-dom'
@@ -8,6 +8,7 @@ import { ApiError } from '@/api/types'
 import { feedback } from '@/api/feedback-sink'
 import { accountPath, homePath } from '@/auth/routes'
 import { useAuth } from '@/auth/use-auth'
+import { AppAvatar } from '@/components/app-avatar'
 import { AppButton } from '@/components/app-button'
 import { AppEmptyState } from '@/components/app-empty-state'
 import { AppGenreBadges } from '@/components/app-genre-badges'
@@ -117,6 +118,42 @@ export function PerfilPage() {
         </div>
         <AppGenreBadges genres={profile.genres} max={10} tone="brand" />
       </AppProfileHero>
+
+      {profile.bands.length > 0 || isMe ? (
+        <section className="flex flex-col gap-3">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="app-h3">{t('bands.title')}</h2>
+            {isMe ? (
+              <AppButton size="sm" intent="neutral" asChild>
+                <Link to="/bandas/nova">
+                  <PlusIcon />
+                  {t('bands.create')}
+                </Link>
+              </AppButton>
+            ) : null}
+          </div>
+          {profile.bands.length === 0 ? (
+            <p className="app-meta">{t('bands.empty')}</p>
+          ) : (
+            <ul className="grid gap-3 sm:grid-cols-2">
+              {profile.bands.map((band) => (
+                <li key={band.id}>
+                  <Link
+                    to={`/bandas/${band.slug}`}
+                    className="flex items-center gap-3 rounded-xl border bg-card p-3 transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
+                  >
+                    <AppAvatar name={band.name} src={band.avatarUrl} size="lg" verified={band.isVerified} />
+                    <span className="flex min-w-0 flex-1 flex-col gap-1">
+                      <span className="truncate font-medium">{band.name}</span>
+                      <AppGenreBadges genres={band.genres} max={2} />
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      ) : null}
 
       <AppEmptyState title={t('empty.title')} description={t('empty.description')} />
     </div>

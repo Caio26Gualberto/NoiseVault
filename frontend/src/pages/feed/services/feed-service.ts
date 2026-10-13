@@ -1,5 +1,6 @@
 import type { PagedRequest, PagedResult } from '@/api/types'
-import type { BandSummaryDto, ProfileSummaryDto } from '@/pages/perfil/services/perfil-service'
+import type { BandSummaryDto } from '@/pages/bandas/services/bandas-service'
+import type { ProfileSummaryDto } from '@/pages/perfil/services/perfil-service'
 
 import * as mocks from './mocks'
 

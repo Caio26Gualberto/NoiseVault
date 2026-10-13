@@ -1,5 +1,6 @@
 import { MusicGenre } from '@/pages/perfil/genres'
-import type { BandSummaryDto, ProfileSummaryDto } from '@/pages/perfil/services/perfil-service'
+import type { BandSummaryDto } from '@/pages/bandas/services/bandas-service'
+import type { ProfileSummaryDto } from '@/pages/perfil/services/perfil-service'
 
 export const avatar = (seed: string) => `https://api.dicebear.com/9.x/thumbs/svg?seed=${seed}&backgroundType=gradientLinear`
 export const picture = (seed: string, w = 1200, h = 400) => `https://picsum.photos/seed/${seed}/${w}/${h}`

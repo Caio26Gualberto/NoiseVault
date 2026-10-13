@@ -9,6 +9,8 @@ import type { ProfileDto } from '@/api/types'
 import { changePassword } from '@/auth/auth-service'
 import { useAuth } from '@/auth/use-auth'
 import { passwordSchema, withPasswordConfirmation } from '@/auth/validators'
+import { AppAvatarUploader } from '@/components/app-avatar-uploader'
+import { AppBannerEditor } from '@/components/app-banner-editor'
 import { AppButton } from '@/components/app-button'
 import { AppCard } from '@/components/app-card'
 import { AppChipsField, AppField, AppForm, AppPasswordField, AppSelectField, AppTextareaField } from '@/components/app-field'
@@ -17,11 +19,9 @@ import { allAbcCities, useAbcCityLabel } from '@/pages/perfil/cities'
 import type { AbcCity } from '@/pages/perfil/cities'
 import { allMusicGenres, useMusicGenreLabel } from '@/pages/perfil/genres'
 
-import { AvatarUploader } from './components/avatar-uploader'
-import { BannerEditor } from './components/banner-editor'
 import { bioMaxLength, maxGenres, profileFormSchema } from './profile-validators'
 import type { ProfileFormValues } from './profile-validators'
-import { updateProfile } from './services/conta-service'
+import { removeAvatar, removeBanner, setAvatar, setBanner, setBannerPosition, updateProfile } from './services/conta-service'
 
 const passwordFormSchema = withPasswordConfirmation(
   z.object({
@@ -106,14 +106,31 @@ export function MinhaContaPage() {
     }
   }
 
+  const replaceAndReturn = async (request: Promise<ProfileDto>) => {
+    const updated = await request
+    replaceUser(updated)
+    return updated
+  }
+
   return (
     <div className="app-page-enter mx-auto flex max-w-2xl flex-col gap-6">
       <AppPageHeader title={t('title')} description={t('description')} />
 
       <AppCard title={t('appearance.title')} description={t('appearance.description')}>
         <div className="flex flex-col gap-6">
-          <AvatarUploader user={user} onChange={replaceUser} />
-          <BannerEditor user={user} onChange={replaceUser} />
+          <AppAvatarUploader
+            name={user.name}
+            avatarUrl={user.avatarUrl}
+            onUpload={async (file) => replaceUser(await setAvatar(file))}
+            onRemove={async () => replaceUser(await removeAvatar())}
+          />
+          <AppBannerEditor
+            bannerUrl={user.bannerUrl}
+            bannerPosition={user.bannerPosition}
+            onUpload={(file, position) => replaceAndReturn(setBanner(file, position))}
+            onPosition={(position) => replaceAndReturn(setBannerPosition(position))}
+            onRemove={() => replaceAndReturn(removeBanner())}
+          />
         </div>
       </AppCard>
 

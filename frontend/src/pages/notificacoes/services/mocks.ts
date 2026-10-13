@@ -11,17 +11,6 @@ function ago(hours: number): string {
 
 const notifications: NotificationDto[] = [
   {
-    id: 1,
-    type: NotificationType.bandInvite,
-    title: 'Convite para a Serra Negra',
-    message: 'Marina Vitorino convidou você para tocar guitarra na Serra Negra.',
-    link: '/bandas/serra-negra',
-    imageUrl: null,
-    readAt: null,
-    createdAt: ago(1),
-    invitation: { id: 10, bandId: 2, bandName: 'Serra Negra', bandSlug: 'serra-negra', instrument: 'Guitarra', status: 'pending' },
-  },
-  {
     id: 2,
     type: NotificationType.simple,
     title: 'Rafael Tenório comentou no seu post',
@@ -30,7 +19,6 @@ const notifications: NotificationDto[] = [
     imageUrl: null,
     readAt: null,
     createdAt: ago(2),
-    invitation: null,
   },
   {
     id: 3,
@@ -41,7 +29,6 @@ const notifications: NotificationDto[] = [
     imageUrl: picture('notif-festival', 1200, 400),
     readAt: null,
     createdAt: ago(6),
-    invitation: null,
   },
   {
     id: 4,
@@ -52,7 +39,6 @@ const notifications: NotificationDto[] = [
     imageUrl: null,
     readAt: ago(20),
     createdAt: ago(24),
-    invitation: null,
   },
   {
     id: 5,
@@ -63,7 +49,6 @@ const notifications: NotificationDto[] = [
     imageUrl: null,
     readAt: ago(70),
     createdAt: ago(72),
-    invitation: null,
   },
 ]
 
@@ -93,12 +78,4 @@ export async function remove(id: number): Promise<void> {
   await delay(100)
   const index = notifications.findIndex((n) => n.id === id)
   if (index >= 0) notifications.splice(index, 1)
-}
-
-export async function respondInvitation(id: number, accept: boolean): Promise<void> {
-  await delay(200)
-  const item = notifications.find((n) => n.id === id)
-  if (!item?.invitation) return
-  item.invitation.status = accept ? 'accepted' : 'declined'
-  item.readAt ??= new Date().toISOString()
 }

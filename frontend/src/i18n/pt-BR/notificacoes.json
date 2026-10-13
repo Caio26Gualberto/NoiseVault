@@ -5,20 +5,22 @@
   "markRead": "Marcar como lida",
   "unread": "Não lida",
   "open": "Abrir",
-  "invite": {
-    "accept": "Aceitar convite",
-    "decline": "Recusar",
-    "accepted": "Convite aceito",
-    "declined": "Convite recusado"
-  },
   "remove": {
     "action": "Excluir notificação",
     "title": "Excluir esta notificação?",
-    "message": "Ela some da sua lista. Convites pendentes continuam valendo na página da banda.",
+    "message": "Ela some da sua lista.",
     "confirm": "Excluir"
   },
   "empty": {
     "title": "Nenhuma notificação",
     "description": "Quando alguém interagir com você, aparece aqui."
+  },
+  "invitations": {
+    "title": "Convites de banda",
+    "message": "{{name}} convidou você para a {{band}}.",
+    "messageInstrument": "{{name}} convidou você para tocar {{instrument}} na {{band}}.",
+    "expires": "Vale até {{date}}",
+    "accept": "Aceitar",
+    "decline": "Recusar"
   }
 }

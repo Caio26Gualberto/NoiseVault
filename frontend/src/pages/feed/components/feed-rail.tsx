@@ -7,9 +7,9 @@ import { AppGenreBadges } from '@/components/app-genre-badges'
 import { AppSkeleton } from '@/components/app-skeleton'
 import { dayParts, formatTime } from '@/lib/format'
 import { getSuggestedBands } from '@/pages/bandas/services/bandas-service'
+import type { BandSummaryDto } from '@/pages/bandas/services/bandas-service'
 import { getUpcomingEvents } from '@/pages/eventos/services/eventos-service'
 import type { EventDto } from '@/pages/eventos/services/eventos-service'
-import type { BandSummaryDto } from '@/pages/perfil/services/perfil-service'
 
 export function FeedRail() {
   const { t } = useTranslation()

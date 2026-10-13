@@ -1,11 +1,14 @@
-import { CalendarIcon, MapPinIcon } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { CalendarIcon, LogOutIcon, MapPinIcon, PencilIcon, UsersRoundIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 
+import { homePath } from '@/auth/routes'
+import { useAuth } from '@/auth/use-auth'
 import { AppAvatar } from '@/components/app-avatar'
 import { AppBadge } from '@/components/app-badge'
 import { AppButton } from '@/components/app-button'
+import { useAppConfirm } from '@/components/app-confirm'
+import { AppEmptyState } from '@/components/app-empty-state'
 import { AppGenreBadges } from '@/components/app-genre-badges'
 import { AppProfileHero } from '@/components/app-profile-hero'
 import { AppSkeleton } from '@/components/app-skeleton'
@@ -14,34 +17,55 @@ import { formatDate } from '@/lib/format'
 import { useAbcCityLabel } from '@/pages/perfil/cities'
 
 import { BandMemberRole } from './band-member-role'
-import { getBandProfile } from './services/bandas-service'
-import type { BandProfileDto } from './services/bandas-service'
+import { useBand } from './hooks/use-band'
+import { leaveBand } from './services/bandas-service'
 
 export function BandasPage() {
   const { t } = useTranslation('bandas')
   const { slug = '' } = useParams()
+  const { user } = useAuth()
+  const navigate = useNavigate()
+  const confirm = useAppConfirm()
   const cityLabel = useAbcCityLabel()
-  const [band, setBand] = useState<BandProfileDto | null>(null)
-  const [loading, setLoading] = useState(true)
+  const { state, reload } = useBand(slug)
 
-  useEffect(() => {
-    let cancelled = false
-    setLoading(true)
-    getBandProfile(slug)
-      .then((result) => {
-        if (!cancelled) setBand(result)
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [slug])
-
-  if (loading || !band) {
+  if (state.status === 'loading') {
     return <AppSkeleton preset="profile" className="app-page-enter mx-auto max-w-4xl" />
   }
+
+  if (state.status !== 'found') {
+    return (
+      <div className="app-page-enter mx-auto max-w-4xl">
+        <AppEmptyState
+          icon={UsersRoundIcon}
+          title={state.status === 'notFound' ? t('notFound.title') : t('failed.title')}
+          description={state.status === 'notFound' ? t('notFound.description', { slug }) : t('failed.description')}
+          action={
+            <AppButton intent="neutral" asChild>
+              <Link to={homePath}>{t('notFound.action')}</Link>
+            </AppButton>
+          }
+        />
+      </div>
+    )
+  }
+
+  const { band } = state
+  const isOwner = band.myRole === BandMemberRole.owner
+  const isMember = band.myRole === BandMemberRole.member
+
+  const leave = () =>
+    confirm({
+      title: t('leave.title', { name: band.name }),
+      message: t('leave.message'),
+      confirmLabel: t('leave.confirm'),
+      danger: true,
+      onConfirm: async () => {
+        await leaveBand(band.slug)
+        if (user) navigate(`/perfil/${user.nickname}`)
+        else reload()
+      },
+    })
 
   return (
     <div className="app-page-enter mx-auto flex max-w-4xl flex-col gap-6">
@@ -52,28 +76,39 @@ export function BandasPage() {
         bannerUrl={band.bannerUrl}
         bannerPosition={band.bannerPosition}
         verified={band.isVerified}
-        subtitle={band.description}
-        stats={[
-          { label: t('stats.followers'), value: band.stats.followers },
-          { label: t('stats.posts'), value: band.stats.posts },
-          { label: t('stats.events'), value: band.stats.events },
-        ]}
+        subtitle={band.description ? <p className="whitespace-pre-line">{band.description}</p> : null}
+        stats={[{ label: t('membersLabel', { count: band.members.length }), value: band.members.length }]}
         actions={
           <>
             <AppSocialLinks links={band.socialLinks} />
-            <AppButton disabled>{t('follow')}</AppButton>
+            {isOwner ? (
+              <AppButton intent="neutral" asChild>
+                <Link to={`/bandas/${band.slug}/editar`}>
+                  <PencilIcon />
+                  {t('editAction')}
+                </Link>
+              </AppButton>
+            ) : null}
+            {isMember ? (
+              <AppButton intent="ghost" onClick={leave}>
+                <LogOutIcon />
+                {t('leave.action')}
+              </AppButton>
+            ) : null}
           </>
         }
       >
         <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
-          <span className="inline-flex items-center gap-1.5">
-            <MapPinIcon className="size-4" />
-            {cityLabel(band.city)}
-          </span>
-          {band.foundedAt ? (
+          {band.city !== null ? (
+            <span className="inline-flex items-center gap-1.5">
+              <MapPinIcon className="size-4" />
+              {cityLabel(band.city)}
+            </span>
+          ) : null}
+          {band.foundedYear !== null ? (
             <span className="inline-flex items-center gap-1.5">
               <CalendarIcon className="size-4" />
-              {t('since', { date: formatDate(band.foundedAt) })}
+              {t('since', { year: band.foundedYear })}
             </span>
           ) : null}
           {band.isVerified ? <AppBadge tone="highlight">{t('verified')}</AppBadge> : null}
@@ -94,7 +129,8 @@ export function BandasPage() {
                 <div className="flex min-w-0 flex-1 flex-col">
                   <span className="truncate font-medium">{member.user.name}</span>
                   <span className="app-meta truncate">
-                    {member.instrument} · {t('memberSince', { date: formatDate(member.joinedAt) })}
+                    {member.instrument ? `${member.instrument} · ` : ''}
+                    {t('memberSince', { date: formatDate(member.joinedAt) })}
                   </span>
                 </div>
                 {member.role === BandMemberRole.owner ? <AppBadge tone="brand">{t('owner')}</AppBadge> : null}

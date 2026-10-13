@@ -9,11 +9,6 @@ export const instrumentMaxLength = 60
 export const socialLinkMaxLength = 300
 export const maxGenres = 10
 
-export const avatarMaxBytes = 5 * 1024 * 1024
-export const bannerMaxBytes = 10 * 1024 * 1024
-export const bannerMinWidth = 800
-export const acceptedImageTypes = ['image/jpeg', 'image/png', 'image/webp']
-
 type SocialNetwork = 'instagram' | 'youtube' | 'spotify'
 
 const allowedHosts: Record<SocialNetwork, string[]> = {
@@ -55,11 +50,3 @@ export const profileFormSchema = z.object({
 })
 
 export type ProfileFormValues = z.infer<typeof profileFormSchema>
-
-export type ImageCheck = 'ok' | 'unsupported' | 'tooLarge'
-
-export function checkImageFile(file: File, maxBytes: number): ImageCheck {
-  if (!acceptedImageTypes.includes(file.type)) return 'unsupported'
-  if (file.size > maxBytes) return 'tooLarge'
-  return 'ok'
-}

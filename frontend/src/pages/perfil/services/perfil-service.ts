@@ -1,5 +1,6 @@
 import { apiGet } from '@/api/base-service'
 import type { PagedResult } from '@/api/types'
+import type { BandSummaryDto } from '@/pages/bandas/services/bandas-service'
 
 import type { AbcCity } from '../cities'
 import type { MusicGenre } from '../genres'
@@ -17,15 +18,6 @@ export type SocialLinksDto = {
   spotify: string | null
 }
 
-export type BandSummaryDto = {
-  id: number
-  name: string
-  slug: string
-  avatarUrl: string | null
-  isVerified: boolean
-  genres: MusicGenre[]
-}
-
 export type UserProfileDto = ProfileSummaryDto & {
   bannerUrl: string | null
   bannerPosition: number
@@ -35,6 +27,7 @@ export type UserProfileDto = ProfileSummaryDto & {
   genres: MusicGenre[]
   socialLinks: SocialLinksDto
   memberSince: string
+  bands: BandSummaryDto[]
 }
 
 export const peopleSearchMinLength = 2

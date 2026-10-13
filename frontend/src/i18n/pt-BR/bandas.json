@@ -1,13 +1,94 @@
 {
-  "follow": "Seguir banda",
-  "since": "Desde {{date}}",
+  "since": "Desde {{year}}",
   "verified": "Banda verificada",
   "members": "Integrantes",
+  "membersLabel_one": "integrante",
+  "membersLabel_other": "integrantes",
   "memberSince": "desde {{date}}",
   "owner": "Responsável",
-  "stats": {
-    "followers": "seguidores",
-    "posts": "posts",
-    "events": "eventos"
+  "you": "você",
+  "editAction": "Editar banda",
+  "leave": {
+    "action": "Sair da banda",
+    "title": "Sair da {{name}}?",
+    "message": "Para voltar, alguém responsável pela banda precisa convidar você de novo.",
+    "confirm": "Sair"
+  },
+  "notFound": {
+    "title": "Banda não encontrada",
+    "description": "Nenhuma banda usa /bandas/{{slug}}.",
+    "action": "Voltar ao feed"
+  },
+  "failed": {
+    "title": "Não foi possível abrir a banda",
+    "description": "Tente de novo em instantes."
+  },
+  "create": {
+    "title": "Criar banda",
+    "description": "Você entra como responsável e convida o resto da formação depois.",
+    "submit": "Criar banda"
+  },
+  "form": {
+    "name": "Nome da banda",
+    "description": "Sobre a banda",
+    "descriptionPlaceholder": "Som, história, onde ensaia, o que vem por aí...",
+    "descriptionHint": "Até {{max}} caracteres.",
+    "city": "Cidade",
+    "cityPlaceholder": "Escolha a cidade",
+    "cityNone": "Não informar",
+    "foundedYear": "Ano de formação",
+    "foundedYearPlaceholder": "Ex.: 1987",
+    "instrument": "Seu instrumento na banda",
+    "instrumentPlaceholder": "Guitarra, bateria, vocal...",
+    "genres": "Gêneros",
+    "genresHint": "Escolha até {{max}}.",
+    "instagram": "Instagram",
+    "youtube": "YouTube",
+    "spotify": "Spotify",
+    "save": "Salvar dados"
+  },
+  "edit": {
+    "title": "Editar {{name}}",
+    "description": "Só responsáveis veem esta página.",
+    "back": "Ver página da banda",
+    "appearance": {
+      "title": "Avatar e capa",
+      "description": "Aparecem na página da banda e em tudo que for marcado com ela."
+    },
+    "data": {
+      "title": "Dados da banda",
+      "description": "O endereço /bandas/{{slug}} não muda, mesmo se você trocar o nome."
+    }
+  },
+  "manage": {
+    "title": "Integrantes",
+    "description": "Responsáveis editam a banda e convidam pessoas. Para passar a responsabilidade, torne outra pessoa responsável e depois saia.",
+    "promote": "Tornar responsável",
+    "promoteTitle": "Tornar {{name}} responsável?",
+    "promoteMessage": "A pessoa passa a editar a banda e convidar gente. Você continua responsável.",
+    "promoteConfirm": "Tornar responsável",
+    "remove": "Remover",
+    "removeTitle": "Remover {{name}} da banda?",
+    "removeMessage": "A pessoa sai da lista de integrantes. Para voltar, precisa de um novo convite.",
+    "removeConfirm": "Remover"
+  },
+  "invite": {
+    "title": "Convidar integrante",
+    "description": "O convite aparece nas notificações da pessoa e vale por 14 dias.",
+    "search": "Pessoa",
+    "searchPlaceholder": "Busque pelo nome ou @nickname",
+    "searchEmpty": "Ninguém encontrado.",
+    "selected": "Convidando",
+    "change": "Trocar",
+    "instrument": "Instrumento",
+    "instrumentPlaceholder": "Guitarra, bateria, vocal...",
+    "submit": "Enviar convite",
+    "pending": "Convites pendentes",
+    "none": "Nenhum convite pendente.",
+    "expires": "vence {{date}}",
+    "revoke": "Revogar",
+    "revokeTitle": "Revogar o convite de {{name}}?",
+    "revokeMessage": "O convite deixa de valer. Dá para convidar de novo depois.",
+    "revokeConfirm": "Revogar"
   }
 }

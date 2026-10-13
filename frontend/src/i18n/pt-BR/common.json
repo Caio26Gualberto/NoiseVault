@@ -23,7 +23,9 @@
     "bioLength": "A bio pode ter no máximo 500 caracteres.",
     "instrumentLength": "O instrumento pode ter no máximo 60 caracteres.",
     "genresMax": "Escolha no máximo 10 gêneros.",
-    "socialLink": "Use o endereço completo do perfil nesse serviço (https://...)."
+    "socialLink": "Use o endereço completo do perfil nesse serviço (https://...).",
+    "bandDescriptionLength": "A descrição pode ter no máximo 1000 caracteres.",
+    "foundedYear": "Use um ano entre 1950 e o ano atual."
   },
   "password": {
     "show": "Mostrar senha",
@@ -51,5 +53,36 @@
   "comments": {
     "placeholder": "Escreva um comentário",
     "send": "Enviar comentário"
+  },
+  "imageUpload": {
+    "avatar": {
+      "title": "Avatar",
+      "choose": "Escolher imagem",
+      "save": "Salvar avatar",
+      "remove": "Remover",
+      "preview": "Prévia do avatar",
+      "hint": "JPEG, PNG ou WebP até 5 MB. O recorte é quadrado e central.",
+      "removeTitle": "Remover o avatar?",
+      "removeMessage": "Volta a mostrar as iniciais."
+    },
+    "banner": {
+      "title": "Capa",
+      "choose": "Escolher capa",
+      "replace": "Trocar capa",
+      "save": "Salvar capa",
+      "savePosition": "Salvar posição",
+      "remove": "Remover",
+      "empty": "Sem capa",
+      "dragHint": "Arraste para posicionar",
+      "positionLabel": "Posição vertical da capa",
+      "hint": "JPEG, PNG ou WebP até 10 MB e pelo menos 800px de largura. Arraste a imagem (ou use ↑ e ↓) para escolher o corte.",
+      "removeTitle": "Remover a capa?",
+      "removeMessage": "Volta ao fundo padrão."
+    },
+    "image": {
+      "unsupported": "Use uma imagem JPEG, PNG ou WebP.",
+      "tooLarge": "A imagem pode ter no máximo {{size}} MB.",
+      "tooNarrow": "A capa precisa ter pelo menos {{width}}px de largura."
+    }
   }
 }

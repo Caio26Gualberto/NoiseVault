@@ -20,7 +20,8 @@ Rule irmã: `../api/.claude/rules/perfil-e-midia.md` (campos, validação, codes
 | `/perfil/:nickname` | `GET /api/users/{nickname}` |
 | `/minha-conta` → seção Perfil | `GET /api/profile` (sessão), `PUT /api/profile`, avatar e capa |
 | Busca da topbar | `GET /api/users/search` |
-| Contadores, bandas e abas de conteúdo no perfil | **não existem**: voltam com os módulos 2 (bandas), 3 (feed) e 5 (galeria) |
+| Bandas no perfil | seção "Bandas" com os `BandSummaryDto` de `profile.bands` (módulo 2, `bandas.md`); no próprio perfil aparece "Criar banda" mesmo sem nenhuma |
+| Contadores e abas de conteúdo no perfil | **não existem**: voltam com os módulos 3 (feed) e 5 (galeria) |
 
 Os mocks dos outros módulos ainda precisam de pessoas e bandas de exemplo: elas moram em `src/api/mock-fixtures.ts` (`people`, `bandSummaries`, `avatar()`, `picture()`), andaime que morre com o último `mocks.ts`. Pessoa **não tem selo de verificado** (só banda): `ProfileSummaryDto` não tem `isVerified`.
 
@@ -36,11 +37,11 @@ Cidade e gêneros são `Select` e chips de múltipla escolha alimentados por `pa
 
 ## Avatar: escolher, ver, enviar
 
-`avatar-uploader.tsx`: o arquivo escolhido aparece na hora (`URL.createObjectURL`, revogado ao trocar ou desmontar) e só sobe quando a pessoa confirma. Tipo (JPEG/PNG/WebP) e tamanho (5 MB) são checados antes de enviar para a pessoa não esperar o upload para ouvir "não"; o servidor checa de novo de verdade. O recorte final é quadrado e central (feito no servidor), então o preview já é um círculo com `object-cover`.
+`AppAvatarUploader` (`components/app-avatar-uploader`, global desde o módulo 2: a banda usa o mesmo componente; recebe `onUpload`/`onRemove` e quem chama troca o DTO): o arquivo escolhido aparece na hora (`URL.createObjectURL`, revogado ao trocar ou desmontar) e só sobe quando a pessoa confirma. Tipo (JPEG/PNG/WebP) e tamanho (5 MB) são checados antes de enviar para a pessoa não esperar o upload para ouvir "não"; o servidor checa de novo de verdade. O recorte final é quadrado e central (feito no servidor), então o preview já é um círculo com `object-cover`.
 
 ## Capa: posicionar com a mesma proporção da tela
 
-`banner-editor.tsx`:
+`AppBannerEditor` (`components/app-banner-editor`, global pelo mesmo motivo; `onUpload`, `onPosition` e `onRemove` devolvem o DTO salvo, que traz a `bannerPosition` de volta). Validação de arquivo em `src/lib/image-file.ts`, textos em `common.json` (`imageUpload.*`):
 
 - O preview usa **a mesma proporção do `AppProfileHero`** (`aspect-[4/1]` a partir de `md`, `3/1` abaixo). No legado o preview tinha outra altura e o corte salvo não batia com o perfil.
 - Arrastar **move a imagem junto com o dedo/mouse** (pointer events: mouse, toque e caneta). Arrastar para baixo mostra a parte de cima da imagem — o legado fazia o contrário e parecia invertido.

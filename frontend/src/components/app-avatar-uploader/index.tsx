@@ -3,21 +3,20 @@ import { useEffect, useRef, useState } from 'react'
 import type { ChangeEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import type { ProfileDto } from '@/api/types'
 import { AppAvatar } from '@/components/app-avatar'
 import { AppButton } from '@/components/app-button'
 import { useAppConfirm } from '@/components/app-confirm'
+import { acceptedImageTypes, avatarMaxBytes, checkImageFile } from '@/lib/image-file'
 
-import { acceptedImageTypes, avatarMaxBytes, checkImageFile } from '../profile-validators'
-import { removeAvatar, setAvatar } from '../services/conta-service'
-
-type AvatarUploaderProps = {
-  user: ProfileDto
-  onChange: (user: ProfileDto) => void
+type AppAvatarUploaderProps = {
+  name: string
+  avatarUrl: string | null
+  onUpload: (file: File) => Promise<unknown>
+  onRemove: () => Promise<unknown>
 }
 
-export function AvatarUploader({ user, onChange }: AvatarUploaderProps) {
-  const { t } = useTranslation('conta')
+export function AppAvatarUploader({ name, avatarUrl, onUpload, onRemove }: AppAvatarUploaderProps) {
+  const { t } = useTranslation()
   const confirm = useAppConfirm()
   const inputRef = useRef<HTMLInputElement>(null)
   const [file, setFile] = useState<File | null>(null)
@@ -42,7 +41,7 @@ export function AvatarUploader({ user, onChange }: AvatarUploaderProps) {
     const check = checkImageFile(chosen, avatarMaxBytes)
     if (check !== 'ok') {
       setFile(null)
-      setError(t(`image.${check}`, { size: 5 }))
+      setError(t(`imageUpload.image.${check}`, { size: 5 }))
       return
     }
     setError(null)
@@ -53,7 +52,7 @@ export function AvatarUploader({ user, onChange }: AvatarUploaderProps) {
     if (!file) return
     setSaving(true)
     try {
-      onChange(await setAvatar(file))
+      await onUpload(file)
       setFile(null)
     } catch {
       return
@@ -64,45 +63,45 @@ export function AvatarUploader({ user, onChange }: AvatarUploaderProps) {
 
   const remove = () =>
     confirm({
-      title: t('avatar.removeTitle'),
-      message: t('avatar.removeMessage'),
-      confirmLabel: t('avatar.remove'),
+      title: t('imageUpload.avatar.removeTitle'),
+      message: t('imageUpload.avatar.removeMessage'),
+      confirmLabel: t('imageUpload.avatar.remove'),
       danger: true,
       onConfirm: async () => {
-        onChange(await removeAvatar())
+        await onRemove()
       },
     })
 
   return (
     <div className="flex flex-col gap-3">
-      <span className="text-sm font-medium">{t('avatar.title')}</span>
+      <span className="text-sm font-medium">{t('imageUpload.avatar.title')}</span>
       <div className="flex flex-wrap items-center gap-4">
         {preview ? (
-          <img src={preview} alt={t('avatar.preview')} className="size-16 rounded-full object-cover ring-2 ring-primary" />
+          <img src={preview} alt={t('imageUpload.avatar.preview')} className="size-16 rounded-full object-cover ring-2 ring-primary" />
         ) : (
-          <AppAvatar name={user.name} src={user.avatarUrl} size="xl" />
+          <AppAvatar name={name} src={avatarUrl} size="xl" />
         )}
         <div className="flex flex-wrap gap-2">
           <input ref={inputRef} type="file" accept={acceptedImageTypes.join(',')} className="hidden" onChange={pick} />
           {file ? (
             <>
               <AppButton size="sm" loading={saving} onClick={() => void save()}>
-                {t('avatar.save')}
+                {t('imageUpload.avatar.save')}
               </AppButton>
               <AppButton size="sm" intent="ghost" disabled={saving} onClick={() => setFile(null)}>
-                {t('common:actions.cancel')}
+                {t('actions.cancel')}
               </AppButton>
             </>
           ) : (
             <>
               <AppButton size="sm" intent="neutral" onClick={() => inputRef.current?.click()}>
                 <ImageUpIcon />
-                {t('avatar.choose')}
+                {t('imageUpload.avatar.choose')}
               </AppButton>
-              {user.avatarUrl ? (
+              {avatarUrl ? (
                 <AppButton size="sm" intent="ghost" onClick={remove}>
                   <Trash2Icon />
-                  {t('avatar.remove')}
+                  {t('imageUpload.avatar.remove')}
                 </AppButton>
               ) : null}
             </>
@@ -114,7 +113,7 @@ export function AvatarUploader({ user, onChange }: AvatarUploaderProps) {
           {error}
         </p>
       ) : (
-        <p className="text-[13px] text-muted-foreground">{t('avatar.hint')}</p>
+        <p className="text-[13px] text-muted-foreground">{t('imageUpload.avatar.hint')}</p>
       )}
     </div>
   )

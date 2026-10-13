@@ -1,7 +1,8 @@
 import type { PagedRequest, PagedResult } from '@/api/types'
 import type { AbcCity } from '@/pages/perfil/cities'
 import type { MusicGenre } from '@/pages/perfil/genres'
-import type { BandSummaryDto, ProfileSummaryDto } from '@/pages/perfil/services/perfil-service'
+import type { BandSummaryDto } from '@/pages/bandas/services/bandas-service'
+import type { ProfileSummaryDto } from '@/pages/perfil/services/perfil-service'
 
 import type { EventStatus } from '../event-status'
 import * as mocks from './mocks'

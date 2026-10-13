@@ -5,7 +5,6 @@ import { Link } from 'react-router-dom'
 
 import { emptyPage } from '@/api/types'
 import type { PagedResult } from '@/api/types'
-import { AppBadge } from '@/components/app-badge'
 import { AppButton, AppIconButton } from '@/components/app-button'
 import { useAppConfirm } from '@/components/app-confirm'
 import { AppEmptyState } from '@/components/app-empty-state'
@@ -15,7 +14,8 @@ import { AppSkeleton } from '@/components/app-skeleton'
 import { cn } from '@/lib/utils'
 import { formatRelative } from '@/lib/format'
 
-import { getNotifications, markAllRead, markRead, remove, respondInvitation } from './services/notificacoes-service'
+import { BandInvitations } from './components/band-invitations'
+import { getNotifications, markAllRead, markRead, remove } from './services/notificacoes-service'
 import type { NotificationDto } from './services/notificacoes-service'
 
 export function NotificacoesPage() {
@@ -67,6 +67,8 @@ export function NotificacoesPage() {
         }
       />
 
+      <BandInvitations />
+
       {loading ? (
         <AppSkeleton preset="list" count={5} />
       ) : result.items.length === 0 ? (
@@ -89,22 +91,7 @@ export function NotificacoesPage() {
 
                   {item.imageUrl ? <img src={item.imageUrl} alt="" className="aspect-[3/1] w-full rounded-lg object-cover" /> : null}
 
-                  {item.invitation ? (
-                    item.invitation.status === 'pending' ? (
-                      <div className="flex gap-2">
-                        <AppButton size="sm" onClick={() => void respondInvitation(item.id, true).then(refresh)}>
-                          {t('invite.accept')}
-                        </AppButton>
-                        <AppButton size="sm" intent="neutral" onClick={() => void respondInvitation(item.id, false).then(refresh)}>
-                          {t('invite.decline')}
-                        </AppButton>
-                      </div>
-                    ) : (
-                      <AppBadge tone={item.invitation.status === 'accepted' ? 'success' : 'neutral'}>
-                        {t(`invite.${item.invitation.status}`)}
-                      </AppBadge>
-                    )
-                  ) : item.link ? (
+                  {item.link ? (
                     <Link to={item.link} onClick={() => void markRead(item.id)} className="self-start text-[13px] font-medium text-primary hover:underline">
                       {t('open')}
                     </Link>

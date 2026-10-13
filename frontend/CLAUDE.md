@@ -4,7 +4,7 @@
 
 **Noise Vault** — site público da cena do ABC Paulista (metal, punk, hardcore e afins): feed, vídeos, fotos, eventos, perfis de pessoas e de bandas, notificações. Quem usa é o fã e o músico da região; a administração (moderação, equipe) é a mesma aplicação com permissão. Reescrita do zero do legado "NewLevel" (`C:\Projetos\Pessoal\Alvo\newlevel`), que não serve de referência de código nem de tela.
 
-**Estado da entrega atual:** auth é real (`/entrar`, `/criar-conta`, `/confirmar-email`, `/esqueci-senha`, `/redefinir-senha`, `/definir-senha`, `/bem-vindo`); perfil e mídia também (`/minha-conta` inteira com avatar e capa, `/perfil/:nickname`, busca de pessoas na topbar — `.claude/rules/perfil.md`). Feed, vídeos, fotos, eventos, bandas, notificações, moderação, reportar problema e institucionais são **mock por página** com a assinatura que o service real vai ter (`.claude/rules/mocks.md`). A ordem em que os mocks viram backend está em `../api/.claude/rules/dominio.md`.
+**Estado da entrega atual:** auth é real (`/entrar`, `/criar-conta`, `/confirmar-email`, `/esqueci-senha`, `/redefinir-senha`, `/definir-senha`, `/bem-vindo`); perfil e mídia também (`/minha-conta` inteira com avatar e capa, `/perfil/:nickname`, busca de pessoas na topbar — `.claude/rules/perfil.md`); bandas e convites também (`/bandas/:slug`, `/bandas/nova`, `/bandas/:slug/editar` e a seção de convites em `/notificacoes` — `.claude/rules/bandas.md`). Feed, vídeos, fotos, eventos, o resto das notificações, moderação, reportar problema e institucionais são **mock por página** com a assinatura que o service real vai ter (`.claude/rules/mocks.md`). A ordem em que os mocks viram backend está em `../api/.claude/rules/dominio.md`.
 
 ## Como trabalhar neste repositório
 
@@ -19,6 +19,7 @@ As **decisões por área** vivem em `.claude/rules/`, com front matter `paths:`,
 | `.claude/rules/design-system.md` | tokens (único lugar de cor), tipografia Oswald + Inter, escuro por padrão, referências do Mobbin, contrato dos componentes `App*`, mobile primeiro |
 | `.claude/rules/shell-e-navegacao.md` | `nav-config` como fonte única, sidebar/topbar/rail/bottom-nav, público × autenticado, admin no mesmo shell |
 | `.claude/rules/auth.md` | telas de auth, gates do `RequireAuth`, a exceção do `EMAIL_NOT_CONFIRMED` inline, validação espelhando o Identity |
+| `.claude/rules/bandas.md` | página da banda, criar e editar, integrantes (promover, remover, sair), convite pela busca de pessoas, convites em `/notificacoes` |
 | `.claude/rules/mocks.md` | a forma do mock por página, o que apagar ao ligar cada módulo |
 | `.claude/rules/perfil.md` | perfil público, edição em `/minha-conta`, avatar, editor de capa, busca de pessoas, fixtures compartilhadas dos mocks |
 
