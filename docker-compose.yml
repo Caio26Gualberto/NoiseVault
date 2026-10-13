@@ -21,5 +21,19 @@ services:
       - "1025:1025"
       - "8025:8025"
 
+  localstack:
+    image: localstack/localstack:4.14.0
+    container_name: headbanger-localstack
+    environment:
+      SERVICES: s3
+      PERSISTENCE: "1"
+      LOCALSTACK_AUTH_TOKEN: ${LOCALSTACK_AUTH_TOKEN:-}
+    ports:
+      - "4566:4566"
+    volumes:
+      - headbanger-localstack:/var/lib/localstack
+      - ./infra/localstack/ready.d:/etc/localstack/init/ready.d:ro
+
 volumes:
   headbanger-pgdata:
+  headbanger-localstack:
