@@ -6,6 +6,8 @@ namespace Headbanger.Application.Abstractions.Logging
         Auth,
         Users,
         BackgroundJobs,
-        Email
+        Email,
+        Storage,
+        Profiles
     }
 }

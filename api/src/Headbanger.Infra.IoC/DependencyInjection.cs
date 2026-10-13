@@ -40,6 +40,7 @@ using Headbanger.Infra.Data.Repositories;
 using Headbanger.Infra.Data.Repositories.AuditLogs;
 using Headbanger.Infra.Data.Repositories.BackgroundJobRuns;
 using Headbanger.Infra.Data.Repositories.UnitOfWork;
+using Headbanger.Infra.Data.Storage;
 using Headbanger.Workers.Dispatch;
 using Headbanger.Workers.Monitoring;
 using Headbanger.Workers.Triggers.Enqueued.BackgroundJobs;
@@ -148,6 +149,8 @@ namespace Headbanger.Infra.IoC
             }
 
             services.AddScoped<IEmailService, EmailService>();
+
+            services.AddFileStorage(config);
 
             // Jobs
             services.AddScoped<IRecurringJobReader, RecurringJobReader>();
