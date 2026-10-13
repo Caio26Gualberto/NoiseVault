@@ -1,0 +1,74 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/oswald";
+@import "./tokens.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply font-sans antialiased;
+    color-scheme: light;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-background text-foreground text-[15px] leading-relaxed md:text-base;
+    min-height: 100dvh;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  ::selection {
+    @apply bg-primary/30;
+  }
+}
+
+@utility app-h1 {
+  @apply font-heading text-[28px] leading-tight font-semibold tracking-wide uppercase md:text-[32px];
+}
+
+@utility app-h2 {
+  @apply font-heading text-[22px] leading-tight font-semibold tracking-wide uppercase;
+}
+
+@utility app-h3 {
+  @apply font-heading text-lg leading-snug font-medium tracking-wide uppercase;
+}
+
+@utility app-meta {
+  @apply text-[13px] text-muted-foreground tabular-nums;
+}
+
+@utility app-page-enter {
+  animation: app-page-enter 160ms ease-out both;
+}
+
+@keyframes app-page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-page-enter {
+    animation: none;
+  }
+}

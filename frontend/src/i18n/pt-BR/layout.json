@@ -1,0 +1,43 @@
+{
+  "nav": {
+    "feed": "Feed",
+    "videos": "Vídeos",
+    "photos": "Fotos",
+    "events": "Eventos",
+    "profile": "Perfil",
+    "notifications": "Notificações",
+    "bands": "Bandas",
+    "account": "Minha conta",
+    "moderation": "Moderação",
+    "report": "Reportar problema",
+    "podcasts": "Podcasts",
+    "about": "Sobre",
+    "store": "Loja parceira",
+    "more": "Mais",
+    "community": "Comunidade",
+    "admin": "Administração",
+    "institutional": "Institucional"
+  },
+  "search": {
+    "placeholder": "Buscar pessoas e bandas",
+    "soon": "A busca chega com o módulo de perfis."
+  },
+  "userMenu": {
+    "account": "Minha conta",
+    "myProfile": "Meu perfil",
+    "theme": "Tema",
+    "themeDark": "Escuro",
+    "themeLight": "Claro",
+    "themeAuto": "Sistema",
+    "logout": "Sair"
+  },
+  "rail": {
+    "upcomingEvents": "Próximos eventos",
+    "suggestedBands": "Bandas sugeridas"
+  },
+  "bell": {
+    "label": "Notificações",
+    "unread_one": "{{count}} não lida",
+    "unread_other": "{{count}} não lidas"
+  }
+}

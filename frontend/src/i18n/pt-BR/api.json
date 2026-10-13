@@ -1,0 +1,37 @@
+{
+  "INVALID_CREDENTIALS": "E-mail ou senha inválidos.",
+  "INVALID_TOKEN": "Sua sessão expirou. Entre de novo.",
+  "ACCOUNT_INACTIVE": "Esta conta está desativada.",
+  "EMAIL_NOT_CONFIRMED": "Confirme seu e-mail antes de entrar.",
+  "LOGIN_SUCCESS": "Bem-vindo de volta.",
+  "LOGOUT_SUCCESS": "Você saiu da sua conta.",
+
+  "REGISTRATION_PENDING_CONFIRMATION": "Conta criada. Confira seu e-mail para confirmar.",
+  "CONFIRMATION_EMAIL_SENT": "Se o e-mail estiver cadastrado e pendente, enviamos uma nova confirmação.",
+  "EMAIL_CONFIRMED": "E-mail confirmado.",
+  "EMAIL_CONFIRMATION_INVALID": "Este link de confirmação é inválido ou expirou.",
+  "PASSWORD_RESET_EMAIL_SENT": "Se o e-mail estiver cadastrado, enviamos o link para redefinir a senha.",
+  "PASSWORD_RESET_SUCCESS": "Senha redefinida. Entre com a nova senha.",
+  "PASSWORD_RESET_INVALID": "Este link de redefinição é inválido ou expirou.",
+  "ONBOARDING_COMPLETED": "Tudo pronto. Bem-vindo ao Headbanger.",
+
+  "INVALID_NAME": "O nome precisa ter entre 2 e 100 caracteres.",
+  "INVALID_NICKNAME": "O nickname precisa ter de 3 a 30 caracteres: letras minúsculas, números, ponto ou underline.",
+  "NICKNAME_TAKEN": "Este nickname já está em uso.",
+  "INVALID_EMAIL": "Informe um e-mail válido.",
+  "EMAIL_ALREADY_IN_USE": "Este e-mail já está cadastrado.",
+  "PASSWORD_TOO_WEAK": "A senha precisa ter pelo menos 6 caracteres e um número.",
+  "REGISTRATION_FAILED": "Não foi possível criar a conta. Tente de novo.",
+
+  "PASSWORD_CHANGED": "Senha alterada.",
+  "PASSWORD_CHANGE_FAILED": "Não foi possível alterar a senha.",
+  "PASSWORD_CHANGE_REQUIRED": "Defina uma nova senha para continuar.",
+  "PASSWORD_CHANGE_NOT_PENDING": "Esta conta não tem troca de senha pendente.",
+  "PROFILE_UPDATED": "Perfil atualizado.",
+  "USER_NOT_FOUND": "Usuário não encontrado.",
+
+  "TOO_MANY_REQUESTS": "Muitas tentativas. Aguarde um pouco e tente de novo.",
+  "SESSION_EXPIRED": "Sua sessão expirou. Entre de novo.",
+  "NETWORK_ERROR": "Sem conexão com o servidor. Verifique sua internet.",
+  "UNKNOWN_ERROR": "Algo deu errado. Tente de novo."
+}

@@ -1,0 +1,27 @@
+{
+  "title": "Minha conta",
+  "description": "Seus dados de acesso e de perfil.",
+  "profile": {
+    "title": "Perfil",
+    "name": "Nome",
+    "nickname": "Nickname",
+    "nicknameHint": "Seu endereço público é /perfil/{{nickname}}. Não pode ser alterado por aqui.",
+    "email": "E-mail",
+    "save": "Salvar nome"
+  },
+  "password": {
+    "title": "Senha",
+    "description": "Trocar a senha encerra as outras sessões abertas.",
+    "save": "Alterar senha"
+  },
+  "mock": {
+    "title": "Aparência do perfil",
+    "description": "Avatar, capa, cidade e gêneros chegam com o módulo de perfil. Por enquanto, só visualização.",
+    "avatar": "Avatar",
+    "banner": "Capa",
+    "city": "Cidade",
+    "genres": "Gêneros",
+    "instrument": "Instrumento",
+    "soon": "Em breve"
+  }
+}

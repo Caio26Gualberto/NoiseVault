@@ -1,0 +1,47 @@
+{
+  "appName": "Headbanger",
+  "tagline": "A comunidade de metal e rock do ABC",
+  "actions": {
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "back": "Voltar",
+    "close": "Fechar",
+    "retry": "Tentar de novo",
+    "loadMore": "Carregar mais",
+    "seeAll": "Ver todos",
+    "previous": "Anterior",
+    "next": "Próxima"
+  },
+  "validation": {
+    "required": "Campo obrigatório.",
+    "email": "Informe um e-mail válido.",
+    "nameLength": "O nome precisa ter entre 2 e 100 caracteres.",
+    "nickname": "Use de 3 a 30 caracteres: letras minúsculas, números, ponto ou underline.",
+    "password": "Pelo menos 6 caracteres e um número.",
+    "passwordMatch": "As senhas não conferem."
+  },
+  "password": {
+    "show": "Mostrar senha",
+    "hide": "Ocultar senha"
+  },
+  "pagination": {
+    "summary": "Página {{page}} de {{totalPages}}",
+    "total_one": "{{count}} item",
+    "total_other": "{{count}} itens"
+  },
+  "empty": {
+    "title": "Nada por aqui ainda",
+    "description": "Quando houver conteúdo, ele aparece nesta tela."
+  },
+  "loading": "Carregando",
+  "notFound": {
+    "title": "Página não encontrada",
+    "description": "O endereço pode estar errado ou a página foi removida.",
+    "action": "Ir para o feed"
+  },
+  "soon": {
+    "title": "Em construção",
+    "description": "Esta tela entra com o módulo correspondente do backend. A navegação já está no lugar."
+  }
+}
