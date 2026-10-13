@@ -71,8 +71,12 @@ namespace Headbanger.Infra.IoC
                     .AddInterceptors(sp.GetRequiredService<AuditSaveChangesInterceptor>()));
 
             // Identity
+            services.Configure<DataProtectionTokenProviderOptions>(options => options.TokenLifespan = TimeSpan.FromHours(24));
+            services.Configure<PasswordResetTokenProviderOptions>(options => options.TokenLifespan = TimeSpan.FromHours(1));
+
             services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
             {
+                options.Tokens.PasswordResetTokenProvider = PasswordResetTokenProvider.ProviderName;
                 options.Password.RequireDigit = true;
                 options.Password.RequiredLength = 6;
                 options.Password.RequireNonAlphanumeric = false;
@@ -81,7 +85,8 @@ namespace Headbanger.Infra.IoC
                 options.User.RequireUniqueEmail = true;
             })
             .AddEntityFrameworkStores<AppDbContext>()
-            .AddDefaultTokenProviders();
+            .AddDefaultTokenProviders()
+            .AddTokenProvider<PasswordResetTokenProvider>(PasswordResetTokenProvider.ProviderName);
 
             var jwtSettings = config.GetSection("JWT");
             var secretKey = jwtSettings["SecretKey"];
@@ -130,10 +135,19 @@ namespace Headbanger.Infra.IoC
             services.AddScoped<IAuditLogAppService, AuditLogAppService>();
             services.AddScoped<SeedData>();
 
-            // Services
-
             // External services
-            services.AddScoped<IEmailService, ConsoleEmailService>();
+            var emailSettings = EmailSettings.FromConfiguration(config);
+            services.AddSingleton(emailSettings);
+
+            if (emailSettings.UsesSmtp)
+                services.AddScoped<IEmailSender, SmtpEmailSender>();
+            else
+            {
+                Console.WriteLine("[Headbanger] Email:Provider não é Smtp — e-mails serão apenas logados (EMAIL_STUBBED).");
+                services.AddScoped<IEmailSender, ConsoleEmailSender>();
+            }
+
+            services.AddScoped<IEmailService, EmailService>();
 
             // Jobs
             services.AddScoped<IRecurringJobReader, RecurringJobReader>();

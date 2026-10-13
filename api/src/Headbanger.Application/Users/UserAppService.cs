@@ -53,11 +53,11 @@ namespace Headbanger.Application.Users
         {
             query.Normalize();
 
-            var search = query.Search?.Trim();
+            var search = query.Search?.Trim().ToLowerInvariant();
 
             var options = new QueryOptions<User>
             {
-                Predicate = u => string.IsNullOrEmpty(search) || u.Name.Contains(search) || u.Email.Contains(search),
+                Predicate = u => string.IsNullOrEmpty(search) || u.Name.ToLower().Contains(search) || u.Nickname.Contains(search),
                 OrderBy = q => q.OrderByDescending(u => u.CreatedAt).ThenByDescending(u => u.Id),
                 Skip = query.Skip,
                 Take = query.PageSize,
@@ -130,12 +130,13 @@ namespace Headbanger.Application.Users
                     new Error("EMAIL_ALREADY_IN_USE", "Email is already in use", ErrorType.Conflict));
 
             var temporaryPassword = TemporaryPasswordGenerator.Generate();
+            var nickname = await ResolveNicknameAsync(email);
 
             await _unitOfWork.BeginTransactionAsync();
 
             try
             {
-                var creation = await _authService.CreateUser(email, temporaryPassword, name, role.Name);
+                var creation = await _authService.CreateUser(email, temporaryPassword, name, nickname, role.Name);
 
                 if (!creation.Succeeded)
                 {
@@ -217,6 +218,7 @@ namespace Headbanger.Application.Users
                 return Result.Fail(new Error("USER_NOT_FOUND", "User not found", ErrorType.NotFound));
 
             var originalEmail = user.Email;
+            var originalNickname = user.Nickname;
 
             await _unitOfWork.BeginTransactionAsync();
 
@@ -236,7 +238,8 @@ namespace Headbanger.Application.Users
                     };
                 }
 
-                user.Email = BuildTombstoneEmail(userId, originalEmail);
+                user.Email = BuildTombstone(userId, originalEmail, MaxEmailLength);
+                user.Nickname = BuildTombstone(userId, originalNickname, NicknameRules.MaxLength);
                 user.IsActive = false;
 
                 await _repository.SoftDelete(user);
@@ -249,7 +252,7 @@ namespace Headbanger.Application.Users
                     TargetType = "User",
                     TargetId = userId.ToString(),
                     TargetName = user.Name,
-                    OldValueJson = JsonSerializer.Serialize(new { Email = originalEmail, Roles = revocation.Roles, Permissions = revocation.Permissions }),
+                    OldValueJson = JsonSerializer.Serialize(new { Email = originalEmail, Nickname = originalNickname, Roles = revocation.Roles, Permissions = revocation.Permissions }),
                     IpAddress = _currentUser.IpAddress,
                 });
 
@@ -264,20 +267,48 @@ namespace Headbanger.Application.Users
             }
         }
 
-        private static string BuildTombstoneEmail(int userId, string originalEmail)
+        private async Task<string> ResolveNicknameAsync(string email)
+        {
+            var baseNickname = NicknameRules.DeriveFromEmail(email);
+            var candidate = baseNickname;
+
+            for (var suffix = 2; NicknameRules.IsReserved(candidate) || await NicknameExistsAsync(candidate); suffix++)
+            {
+                var tail = suffix.ToString();
+                var head = baseNickname[..Math.Min(baseNickname.Length, NicknameRules.MaxLength - tail.Length)].TrimEnd('.', '_');
+                candidate = head + tail;
+            }
+
+            return candidate;
+        }
+
+        private async Task<bool> NicknameExistsAsync(string nickname)
+        {
+            var existing = await _repository.FirstOrDefaultAsync(new QueryOptions<User>
+            {
+                Predicate = u => u.Nickname == nickname,
+                IncludeDeleted = true,
+                AsNoTracking = true,
+            });
+
+            return existing != null;
+        }
+
+        private static string BuildTombstone(int userId, string original, int maxLength)
         {
             var prefix = $"deleted+{userId}+";
-            var available = MaxEmailLength - prefix.Length;
+            var available = maxLength - prefix.Length;
 
-            return originalEmail.Length <= available
-                ? prefix + originalEmail
-                : prefix + originalEmail[..available];
+            return original.Length <= available
+                ? prefix + original
+                : prefix + original[..available];
         }
 
         private static UserDto Map(User user) => new()
         {
             Id = user.Id,
             Name = user.Name,
+            Nickname = user.Nickname,
             Email = user.Email,
             IsActive = user.IsActive,
             CreatedAt = user.CreatedAt,

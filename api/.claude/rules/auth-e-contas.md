@@ -1,0 +1,129 @@
+---
+paths:
+  - "**/Headbanger.Application/Auth/**"
+  - "**/Headbanger.Application/Users/**"
+  - "**/Headbanger.Application/Profiles/**"
+  - "**/Headbanger.Application/Authorizations/**"
+  - "**/Headbanger.Infra.Data/Identity/**"
+  - "**/Headbanger.Infra.Data/Context/Seeding/**"
+  - "**/Headbanger.Domain/Authorization/**"
+  - "**/Headbanger.Domain/Entities/User.cs"
+  - "**/Headbanger.Api/Controllers/AuthController.cs"
+  - "**/Headbanger.Api/Controllers/ProfileController.cs"
+---
+
+# Decisões — Auth e contas
+
+Um único tipo de usuário (`User`, sempre uma pessoa — ver `dominio.md`) entra por dois caminhos: **registro público** (vira `User`, precisa confirmar o e-mail antes do primeiro login) e **convite de admin** (vira o papel escolhido, com senha temporária e e-mail já confirmado). O ciclo de permissões está no `CLAUDE.md`, que é convenção e não decisão.
+
+## Registro: validar antes de escrever, e devolver o motivo
+
+`RegisterUser` devolve `UserCreationResult` com um `EUserCreationFailure` classificado, e `AuthAppService` traduz em `PASSWORD_TOO_WEAK` / `EMAIL_ALREADY_IN_USE` / `INVALID_EMAIL`. **A validação roda antes de qualquer escrita** (`UserValidators` + `PasswordValidators` do próprio `UserManager`, mais `AnyAsync` no e-mail e no nickname): inserir o `User` e só então chamar `CreateAsync` faria e-mail repetido estourar no índice único e virar 500. Reusar os validators do Identity em vez de reimplementar a política é o que impede a mensagem de mentir quando a configuração mudar.
+
+As três escritas do registro (`Users`, `UsersIdentity`, `UserRoles`) rodam dentro de um `IUnitOfWork` aberto pelo `AuthAppService`. O `AuthenticateService` não abre transação própria: quem orquestra o caso de uso é quem decide a fronteira do commit.
+
+## Registro devolve "confira seu e-mail", não tokens
+
+`POST /api/auth/register` responde `REGISTRATION_PENDING_CONFIRMATION` com `{ userId, email }` e **nenhum token**. `ApplicationUser.EmailConfirmed` nasce `false` no registro e `true` no convite e no seed — é a coluna do Identity, não uma nova. O login recusa conta não confirmada com `403 EMAIL_NOT_CONFIRMED`.
+
+🔴 **O login confere a senha antes de olhar a confirmação.** A ordem é: usuário existe → senha bate → e-mail confirmado → conta ativa. Invertida, qualquer pessoa descobriria se um e-mail está cadastrado e pendente sem saber a senha. `INVALID_CREDENTIALS` para as duas primeiras falhas; `EMAIL_NOT_CONFIRMED` só para quem provou ter a senha.
+
+**O e-mail de confirmação sai depois do commit**, e a falha de envio **não desfaz o registro**: vira `EMAIL_CONFIRMATION_SEND_FAILED` (Warning) e a resposta continua sucesso. É o oposto do convite (abaixo), de propósito: no convite a senha só existe no e-mail, então conta sem e-mail é conta inacessível; no registro a pessoa conhece a senha e existe `POST /api/auth/resend-confirmation`. Rollback aqui a obrigaria a preencher o formulário de novo por um problema de SMTP.
+
+`resend-confirmation` e `forgot-password` respondem **200 sempre** (`CONFIRMATION_EMAIL_SENT`, `PASSWORD_RESET_EMAIL_SENT`), exista a conta ou não. Internamente só enviam quando faz sentido (conta existente e, no reenvio, ainda não confirmada; no reset, confirmada e ativa).
+
+⚠️ **Risco aceito em 13/10/2026 — tempo de resposta.** O envio é síncrono após o commit; a resposta de um e-mail existente demora o tempo do SMTP a mais que a de um inexistente. Com Mailpit é imperceptível; com provedor real é um side-channel de enumeração. A correção é mover o envio para a fila `emails` (padrão do Buscaprocesso) quando o provedor de produção entrar — não antes, porque não há segundo caso real para a fila.
+
+## Tokens de confirmação e de reset: do Identity, embrulhados para URL
+
+`IAuthenticateService` gera e consome os dois tokens via `UserManager` (`GenerateEmailConfirmationTokenAsync`, `ConfirmEmailAsync`, `GeneratePasswordResetTokenAsync`, `ResetPasswordAsync`). O token do Identity tem `+`, `/` e `=`; a `Infra.Data` o entrega **já em base64url** (`WebEncoders`) e desfaz na volta. A `Application` nunca vê o token cru nem sabe que ele é do Identity.
+
+- Confirmação vale **24 h** (`DataProtectionTokenProviderOptions`, provider padrão).
+- Reset de senha vale **1 h** por um provider próprio (`PasswordResetTokenProvider`, registrado em `options.Tokens.PasswordResetTokenProvider`). O default do Identity é 24 h para tudo; um link de reset vivo por um dia é tempo demais para quem teve a caixa de entrada vazada.
+- Os dois tokens são de uso único por construção: mudam com o `SecurityStamp`, e `ConfirmEmailAsync`/`ResetPasswordAsync` o atualizam.
+
+🔴 **Data Protection em container é efêmero.** Os tokens são protegidos pelas chaves do Data Protection; em dev no Windows elas persistem em `%LOCALAPPDATA%\ASP.NET\DataProtection-Keys`. Num container sem volume, reiniciar a API invalida **todo** link pendente de confirmação e de reset. Antes do primeiro deploy em container: `PersistKeysToDbContext` ou filesystem montado. Está registrado aqui para não virar "o link não funciona" em produção.
+
+## Redefinir senha: provar posse do e-mail não é abrir sessão
+
+`POST /api/auth/reset-password { email, token, newPassword }` responde `PASSWORD_RESET_SUCCESS` **sem tokens**; o front manda para `/entrar`. O link pode ter sido aberto em outro aparelho, e emitir sessão a partir de um e-mail transforma a caixa de entrada em credencial completa. No sucesso **todos os refresh tokens do usuário são revogados** — quem trocou a senha porque desconfiou de alguém precisa que esse alguém caia.
+
+Token inválido ou vencido → `400 PASSWORD_RESET_INVALID`; senha fraca → `400 PASSWORD_TOO_WEAK` (a mesma política do registro, pelos validators do Identity). O `email` vai na URL do link porque o Identity precisa identificar a conta e `userId` sequencial revelaria enumeração; é a única exceção à regra "dado pessoal nunca em URL" do monorepo, registrada em `email.md`.
+
+## Nickname é identidade pública
+
+`User.Nickname` é o handle da URL `/perfil/:nickname`, pedido **no registro** (introduzir depois exigiria gerar handles para contas antigas). Regras em `NicknameRules`: minúsculo, `^[a-z0-9](?:[a-z0-9._]{1,28}[a-z0-9])?$` (3 a 30 caracteres, sem começar ou terminar em `.`/`_`), normalizado com `Trim().ToLowerInvariant()`, e uma lista reservada (`admin`, `headbanger`, `feed`, `eventos`, `videos`, `fotos`, `bandas`, `perfil`, `api`, `suporte`) para não colidir com rotas do site. `INVALID_NICKNAME` para formato; `NICKNAME_TAKEN` (409) para reservado ou em uso.
+
+- O índice único de `Nickname` **não filtra soft delete**, pelo mesmo motivo do e-mail: handle é identidade e não pode ter duas linhas vivas. Na revogação de acesso, nickname e e-mail recebem o tombstone `deleted+{id}+{original}`.
+- `Nickname` usa a **colação default** (não a `case_insensitive` do e-mail) porque já é gravado em minúsculas e porque a colação não determinística do Postgres recusa `LIKE`. É por isso que a busca da equipe (`GET /api/admin/users?search=`) procura em `Name` e `Nickname`, nunca em `Email` com `Contains`.
+
+## Onboarding é campo de perfil, não claim nem filtro
+
+`User.OnboardingCompletedAt` (nulo até concluir) sai como `onboardingCompleted` em `GET /api/profile`; `POST /api/profile/complete-onboarding` grava `DateTime.UtcNow` uma vez e é idempotente (`ONBOARDING_COMPLETED` nas duas chamadas). Não é claim porque mudar claim exige reemitir tokens; não é filtro global como `password_change_required` porque nenhuma segurança depende dele — pular o onboarding é só uma tela a menos. O front decide o redirecionamento a partir do `fetchMe` do boot.
+
+## Refresh token: atômico, com janela de reuso
+
+`ConsumeRefreshTokenAsync` marca o token como consumido com `ExecuteUpdateAsync ... WHERE RevokedAt IS NULL`; zero linhas afetadas é recusa (duas abas renovando ao mesmo tempo: uma ganha, a outra toma `INVALID_TOKEN` e usa o par novo que o storage já recebeu). Um token **já revogado** apresentado de novo depois de 30 s (`RefreshReuseGrace`) é tratado como roubo: **todos** os refresh tokens daquele usuário caem. Dentro dos 30 s é a corrida legítima de abas e nada acontece. Herdado do Buscaprocesso.
+
+`Logout` e troca de senha revogam todos os refresh tokens por `ExecuteUpdateAsync`, não por `SELECT` + loop.
+
+## Troca de senha: `ChangePasswordAsync`, nunca `Remove` + `Add`
+
+`change-password` usa `UserManager.ChangePasswordAsync(user, current, new)`. A versão `RemovePasswordAsync` + `AddPasswordAsync` do boilerplate deixava a conta **sem senha** quando a nova era recusada pela política. `set-initial-password` (só com `password_change_required`) continua trocando sem a atual, e os dois devolvem `TokensDto` porque o claim precisa sair do access token.
+
+⚠️ **Regra de senha vive em dois lugares e precisa concordar.** A política está no `AddIdentity` (6 caracteres, um dígito, sem maiúscula/símbolo obrigatórios). O validador do frontend espelha — senão o usuário toma erro do servidor num campo que a tela deu por válido.
+
+## Entrada na equipe é por convite, e a senha nunca é digitada por outra pessoa
+
+`POST /api/admin/users/invite` (`Authorization.Users.Invite`, que **não** entra em `RoleDefaultPermissions` — só Admin) cria um usuário com papel e permissões adicionais opcionais, e-mail já confirmado e nickname derivado do e-mail (parte antes do `@`, normalizada, com sufixo numérico se colidir). Não existe endpoint em que alguém digita a senha do colega.
+
+- **O papel vem por id, não por nome**: papéis são dinâmicos. Papel `Admin` ignora permissões adicionais — as dele são implícitas.
+- A senha sai do `TemporaryPasswordGenerator` e **existe apenas em memória e no e-mail** — nunca no `AuthorizationAuditLog`.
+- 🔴 **O e-mail de convite é enviado dentro da transação, antes do commit.** Falha de envio ⇒ rollback + `INVITE_EMAIL_FAILED`: uma conta cuja senha ninguém conhece é pior que um convite não enviado. É a única operação em que uma chamada externa fica dentro da transação, e é deliberado. Com `ConsoleEmailSender`, a senha temporária sai no log (`EMAIL_STUBBED` com o assunto; o corpo não é logado — em dev use o Mailpit).
+
+## Primeiro login por convite: bloqueio no servidor, não só na tela
+
+Quem entra por convite nasce com `IsNeededChangePassword = true`, que vira o claim `password_change_required` no JWT. O `PasswordChangeRequiredFilter` (filtro global) devolve `403 PASSWORD_CHANGE_REQUIRED` em **qualquer** rota enquanto o claim existir, exceto as mínimas para trocar a senha: `profile`, `profile/change-password`, `profile/set-initial-password`, `admin/authorization/me`, `auth/logout`, `auth/refresh-token`.
+
+## Revogar acesso não apaga histórico
+
+`DELETE /api/admin/users/{id}` **não apaga a linha**: `User` é referenciado com `Restrict` por tudo que registra autor. A operação tem dois lados na mesma transação:
+
+- **Domínio**: soft delete de `Users` com `IsActive = false` e tombstone em `Email` e `Nickname`.
+- **Identity**: purga de verdade — `UserClaims`, `UserRoles`, `RefreshTokens` e o `ApplicationUser` (`RoleManagementService.RevokeUserAccessAsync`). É isso que faz o acesso acabar no ato.
+
+Duas guardas: `CANNOT_DELETE_SELF` e `LAST_ADMIN_PROTECTED`.
+
+## Papéis e permissões: Admin é implícito, o resto é claim
+
+`Admin` tem todas as permissões **sem claim** (`PermissionChecker` devolve o catálogo inteiro). `User` nasce sem nenhuma: usa a API pelos endpoints de dono. Papel de sistema (`IsSystem`) não é editável nem excluível; papel com usuários não é excluível (`ROLE_IN_USE`). O cache de permissões (`HybridCache`) é invalidado em toda escrita de papel/permissão e no seed.
+
+## Eventos de log (contexto `Auth`)
+
+| Evento | Nível | Quando |
+|---|---|---|
+| `USER_REGISTERED` | Info | registro commitado (`UserId`) |
+| `EMAIL_CONFIRMATION_SEND_FAILED` | Warning | envio do e-mail de confirmação devolveu `false` ou lançou (`UserId`) |
+| `PASSWORD_RESET_SEND_FAILED` | Warning | idem para o e-mail de redefinição (`UserId`) |
+| `EMAIL_CONFIRMED` | Info | confirmação aceita (`UserId`) |
+| `PASSWORD_RESET` | Info | senha redefinida pelo link (`UserId`) |
+| `REFRESH_TOKEN_REUSE` | Warning | refresh revogado apresentado fora da janela; todos os tokens do usuário caíram (`ApplicationUserId`) |
+
+Nenhum deles leva e-mail, token ou senha.
+
+## Roteiro de verificação
+
+Com `docker compose up -d` e a API no ar (`Email:Provider=Smtp` apontando para o Mailpit em http://localhost:8025):
+
+1. `POST /api/auth/register {name:"Caio", nickname:"caio", email:"caio@test.local", password:"abc123"}` → 200 `REGISTRATION_PENDING_CONFIRMATION` com `{userId, email}` e sem `tokens`; log `USER_REGISTERED` e `EMAIL_SENT`; o e-mail aparece no Mailpit com o botão para `http://localhost:5173/confirmar-email?userId=…&token=…`.
+   - Mesmo e-mail de novo → 409 `EMAIL_ALREADY_IN_USE`; `nickname:"Caio!"` → 400 `INVALID_NICKNAME`; `nickname:"admin"` → 409 `NICKNAME_TAKEN`; senha `abcdef` → 400 `PASSWORD_TOO_WEAK`.
+2. `POST /api/auth/login` antes de confirmar → 403 `EMAIL_NOT_CONFIRMED`; com senha errada → 401 `INVALID_CREDENTIALS`.
+3. `POST /api/auth/resend-confirmation {email}` → 200 `CONFIRMATION_EMAIL_SENT` (também para e-mail inexistente, sem e-mail no Mailpit); 4ª chamada na mesma hora → 429 `TOO_MANY_REQUESTS` e `RATE_LIMIT_REJECTED` no log.
+4. `POST /api/auth/confirm-email {userId, token}` com o token do link → 200 `EMAIL_CONFIRMED { alreadyConfirmed: false }`; repetir → `alreadyConfirmed: true`; token adulterado → 400 `EMAIL_CONFIRMATION_INVALID`.
+5. Login → `LOGIN_SUCCESS` com `data.tokens`; `GET /api/profile` → `nickname: "caio"`, `onboardingCompleted: false`; `POST /api/profile/complete-onboarding` → `ONBOARDING_COMPLETED` com `true`; repetir → o mesmo.
+6. `POST /api/auth/refresh-token` → `TOKENS_RENEWED`; reapresentar o refresh consumido na hora → 401 `INVALID_TOKEN` e nada mais; reapresentá-lo depois de 30 s → 401, `REFRESH_TOKEN_REUSE` no log e o par novo também passa a dar `INVALID_TOKEN`.
+7. `POST /api/auth/forgot-password {email}` → 200 `PASSWORD_RESET_EMAIL_SENT` para existente e inexistente; e-mail no Mailpit com `/redefinir-senha?email=…&token=…`; `POST /api/auth/reset-password {email, token, newPassword:"xyz789"}` → 200 `PASSWORD_RESET_SUCCESS` sem tokens; refresh token anterior → `INVALID_TOKEN`; login com a senha antiga → 401; com a nova → 200; reusar o token de reset → 400 `PASSWORD_RESET_INVALID`.
+8. `POST /api/profile/change-password` com atual errada → 401 `INVALID_CREDENTIALS`; nova fraca → 400 `PASSWORD_TOO_WEAK` e a antiga continua valendo; certa → `PASSWORD_CHANGED` com tokens novos.
+9. `POST /api/auth/logout` → `LOGOUT_SUCCESS`; o refresh anterior → `INVALID_TOKEN`.
+10. Login `admin@headbanger.local` / `12341234` → `GET /api/admin/users?search=cai` → 200 com o usuário; `POST /api/admin/users/invite {name, email, roleId}` → `USER_INVITED` e o e-mail de convite no Mailpit; login do convidado → `GET /api/admin/users` → 403 `PASSWORD_CHANGE_REQUIRED`; `set-initial-password` → tokens; repetir → `PASSWORD_CHANGE_NOT_PENDING`.
+11. `DELETE /api/admin/users/{id}` do próprio → `CANNOT_DELETE_SELF`; do último Admin → `LAST_ADMIN_PROTECTED`; de outro → `USER_DELETED`, o login dele vira `INVALID_CREDENTIALS`, e registrar de novo o mesmo e-mail e nickname funciona (tombstone).

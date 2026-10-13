@@ -34,7 +34,7 @@ namespace Headbanger.Application.Profiles
             });
 
             if (user == null)
-                return Result<ProfileDto>.Fail(new Error("USER_NOT_FOUND", "User not found", ErrorType.NotFound));
+                return Result<ProfileDto>.Fail(UserNotFound());
 
             return Result<ProfileDto>.Ok(await MapAsync(user), "USER_FOUND", "User found successfully");
         }
@@ -49,13 +49,10 @@ namespace Headbanger.Application.Profiles
                     $"Name must be between {UserNameRules.MinLength} and {UserNameRules.MaxLength} characters",
                     ErrorType.Validation));
 
-            var user = await _userRepository.FirstOrDefaultAsync(new QueryOptions<User>
-            {
-                Predicate = u => u.Id == _currentUser.UserId
-            });
+            var user = await FindCurrentAsync();
 
             if (user == null)
-                return Result<ProfileDto>.Fail(new Error("USER_NOT_FOUND", "User not found", ErrorType.NotFound));
+                return Result<ProfileDto>.Fail(UserNotFound());
 
             user.Name = name;
             await _userRepository.UpdateAsync(user);
@@ -63,13 +60,39 @@ namespace Headbanger.Application.Profiles
             return Result<ProfileDto>.Ok(await MapAsync(user), "PROFILE_UPDATED", "Profile updated successfully");
         }
 
+        public async Task<Result<ProfileDto>> CompleteOnboarding()
+        {
+            var user = await FindCurrentAsync();
+
+            if (user == null)
+                return Result<ProfileDto>.Fail(UserNotFound());
+
+            if (user.OnboardingCompletedAt == null)
+            {
+                user.OnboardingCompletedAt = DateTime.UtcNow;
+                await _userRepository.UpdateAsync(user);
+            }
+
+            return Result<ProfileDto>.Ok(await MapAsync(user), "ONBOARDING_COMPLETED", "Onboarding completed");
+        }
+
+        private Task<User?> FindCurrentAsync() =>
+            _userRepository.FirstOrDefaultAsync(new QueryOptions<User>
+            {
+                Predicate = u => u.Id == _currentUser.UserId
+            });
+
+        private static Error UserNotFound() => new("USER_NOT_FOUND", "User not found", ErrorType.NotFound);
+
         private async Task<ProfileDto> MapAsync(User user) => new()
         {
             Id = user.Id,
             Name = user.Name,
+            Nickname = user.Nickname,
             Email = user.Email,
             Role = _currentUser.Role,
             IsNeededChangePassword = await _authService.IsPasswordChangeRequired(user.Email),
+            OnboardingCompleted = user.OnboardingCompletedAt != null,
             CreatedAt = user.CreatedAt
         };
     }

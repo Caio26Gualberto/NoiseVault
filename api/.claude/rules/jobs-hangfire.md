@@ -33,7 +33,7 @@ src/Headbanger.Workers/
   Triggers/Recurring/{Domínio}/{Domínio}RecurringJobsTrigger.cs   ← método executado
 ```
 
-Referência: `Wrappers/Recurring/Items/ItemRecurringJobsWrapper.cs` + `Triggers/Recurring/Items/ItemRecurringJobsTrigger.cs` **do boilerplate** (`C:SERSADMINISTRADORDESKTOPBOILERPLATEPI`) — ESTE REPOSITóRIO AINDA NãO TEM JOB RECORRENTE.
+Referência: `Wrappers/Recurring/Items/ItemRecurringJobsWrapper.cs` + `Triggers/Recurring/Items/ItemRecurringJobsTrigger.cs` **do boilerplate** (`C:/Users/Administrador/Desktop/Boilerplate/api`) — este repositório ainda não tem job recorrente.
 
 - `recurringJobId` no formato `"<recurso>:<ação>"` (`items:archive-expired`).
 - `[Queue]` e `[JobDisplayName]` são **obrigatórios**. Sem display name o dashboard mostra `Classe.Método`.

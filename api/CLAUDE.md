@@ -14,7 +14,9 @@ As **decisões** — o porquê de cada regra — vivem em `.claude/rules/`, um a
 
 | Arquivo | Cobre |
 |---|---|
-| `.claude/rules/usuarios-e-acesso.md` | registro, login, convite com senha inicial, revogação de acesso, papéis e permissões |
+| `.claude/rules/auth-e-contas.md` | registro com confirmação de e-mail, login, esqueci/redefinir senha, onboarding, nickname, refresh atômico, convite, revogação, papéis e permissões |
+| `.claude/rules/dominio.md` | o modelo da comunidade (pessoa, banda, integrante, convite, conteúdo, moderação), enums herdados e a ordem dos módulos |
+| `.claude/rules/email.md` | as duas camadas de e-mail, Mailpit em dev, SMTP via MailKit, links, o que nunca vai para o log |
 | `.claude/rules/auditoria.md` | as duas trilhas, o interceptor global, política de dados sensíveis |
 | `.claude/rules/jobs-hangfire.md` | filas, Wrapper + Trigger, jobs enfileirados com linha de status |
 | `.claude/rules/observabilidade.md` | as quatro categorias de falha, `UNHANDLED_EXCEPTION`/`REQUEST_FAILED`/`RATE_LIMIT_REJECTED`, cadeia de exceções |
@@ -62,13 +64,11 @@ Rotas são explícitas, minúsculas/kebab-case (`/api/items/{id}/archive`), sem 
 
 ## Modelo de usuário
 
-Um tipo de usuário: `User` (`Name`, `Email`, `IsActive`) herda `EntityBase`. `ApplicationUser` (Identity) aponta 1:1 para `User` via `UserId`. Papéis/permissões vivem **só** no Identity (Roles/UserRoles/RoleClaims/UserClaims) — não existe Role denormalizada. Papéis de sistema: `User` (default do registro, sem permissão) e `Admin` (todas implícitas). O painel cria papéis intermediários pela tela; o código não precisa conhecê-los.
+Um tipo de usuário: `User` (`Name`, `Nickname`, `Email`, `IsActive`, `OnboardingCompletedAt`) herda `EntityBase` e é **sempre uma pessoa** — banda é entidade própria sem login (`.claude/rules/dominio.md`). `ApplicationUser` (Identity) aponta 1:1 para `User` via `UserId` e carrega `EmailConfirmed` e `IsNeededChangePassword`. Papéis/permissões vivem **só** no Identity (Roles/UserRoles/RoleClaims/UserClaims) — não existe Role denormalizada. Papéis de sistema: `User` (default do registro, sem permissão) e `Admin` (todas implícitas). O painel cria papéis intermediários pela tela; o código não precisa conhecê-los.
 
-Se o produto precisar de **dois tipos** com dados diferentes (cliente vs equipe, por exemplo), o molde é TPT: `User` vira abstrata e as filhas ganham tabela própria — a auth, o Identity e o `ICurrentUser` não mudam. Não crie o segundo tipo antes de ter dado que só ele carrega.
+**Auth é stateless (JWT), uma audience.** O access token vale 15 min e é validado só por assinatura + `exp` + audience (`JwtAudiences.Api`). Claims: `user_id`, roles do Identity, `password_change_required` quando houver. O refresh token (7 dias, tabela `RefreshTokens`) é guardado **só como hash SHA-256**; a rotação revoga o token consumido atomicamente e reuso fora da janela derruba todos. "Sair" = revogar os refresh tokens do usuário.
 
-**Auth é stateless (JWT), uma audience.** O access token vale 15 min e é validado só por assinatura + `exp` + audience (`JwtAudiences.Api`). Claims: `user_id`, roles do Identity, `password_change_required` quando houver. O refresh token (7 dias, tabela `RefreshTokens`) é guardado **só como hash SHA-256**; a rotação revoga o token consumido. "Sair" = revogar os refresh tokens do usuário.
-
-Fluxo: `POST /api/auth/register` (nome, e-mail, senha → papel `User`, já logado), `login`, `refresh-token`, `logout`; `POST /api/profile/change-password` (exige a atual) e `set-initial-password` (só com `password_change_required`, para quem entrou por convite). Decisões em `.claude/rules/usuarios-e-acesso.md`. Verificação de e-mail, esqueci-a-senha e login social ficaram de fora: cada um exige um provedor; quando entrarem, entram no `AuthAppService` e no `IAuthenticateService`, não num serviço paralelo.
+Fluxo: `POST /api/auth/register` (nome, nickname, e-mail, senha → papel `User`, **pendente de confirmação**, sem tokens), `confirm-email`, `resend-confirmation`, `login` (recusa `EMAIL_NOT_CONFIRMED`), `refresh-token`, `logout`, `forgot-password`, `reset-password`; `POST /api/profile/change-password` (exige a atual), `set-initial-password` (só com `password_change_required`, para quem entrou por convite) e `complete-onboarding`. Decisões em `.claude/rules/auth-e-contas.md`; e-mail em `.claude/rules/email.md`. Login social ficou de fora: quando entrar, entra no `AuthAppService` e no `IAuthenticateService`, não num serviço paralelo.
 
 ## Padrão canônico de feature
 
@@ -286,7 +286,7 @@ _logger.Info(
 ### Antes de escrever código
 
 1. Ler "Sobre este projeto", este arquivo inteiro e a rule do domínio que a task toca (tabela no topo). Se a task cria domínio novo, ler `dominio.md` de qualquer jeito — é o mapa das entidades e da ordem dos módulos.
-2. Localizar a feature de referência para o que vai fazer: CRUD paginado → `Items` do boilerplate; auth/usuários → `Auth/`, `Users/` e `usuarios-e-acesso.md`; job → `jobs-hangfire.md`; logging → `observabilidade.md`.
+2. Localizar a feature de referência para o que vai fazer: CRUD paginado → `Items` do boilerplate; auth/usuários → `Auth/`, `Users/` e `auth-e-contas.md`; job → `jobs-hangfire.md`; logging → `observabilidade.md`.
 3. Confirmar se o endpoint é do próprio usuário (`Controllers/`) ou de administração (`Controllers/Admin/`, com permissão). Validação, regra e o que a API devolve são daqui, mesmo quando a task fala em tela.
 4. Se a decisão não é óbvia (alternativas reais, impacto em cliente, dinheiro, segurança), registrar a escolha na rule **antes** de codar — a rule é a spec.
 

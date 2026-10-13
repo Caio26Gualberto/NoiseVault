@@ -1,15 +1,17 @@
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
-using Headbanger.Domain.Constants;
-using Headbanger.Domain.Entities;
-using Headbanger.Domain.Interfaces.Authenticate;
-using Headbanger.Infra.Data.Context;
+using System.Buffers.Text;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
+using Headbanger.Application.Abstractions.Logging;
+using Headbanger.Domain.Constants;
+using Headbanger.Domain.Entities;
+using Headbanger.Domain.Interfaces.Authenticate;
+using Headbanger.Infra.Data.Context;
 
 namespace Headbanger.Infra.Data.Identity.AuthenticateService
 {
@@ -17,16 +19,23 @@ namespace Headbanger.Infra.Data.Identity.AuthenticateService
     {
         private static readonly TimeSpan AccessTokenLifetime = TimeSpan.FromMinutes(15);
         private static readonly TimeSpan RefreshTokenLifetime = TimeSpan.FromDays(7);
+        private static readonly TimeSpan RefreshReuseGrace = TimeSpan.FromSeconds(30);
 
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IConfiguration _configuration;
         private readonly AppDbContext _context;
+        private readonly IApplicationLogger _logger;
 
-        public AuthenticateService(UserManager<ApplicationUser> userManager, IConfiguration configuration, AppDbContext context)
+        public AuthenticateService(
+            UserManager<ApplicationUser> userManager,
+            IConfiguration configuration,
+            AppDbContext context,
+            IApplicationLoggerFactory loggerFactory)
         {
             _userManager = userManager;
             _configuration = configuration;
             _context = context;
+            _logger = loggerFactory.Create(LogContext.Auth);
         }
 
         public async Task<(bool, bool)> Authenticate(string email, string password)
@@ -41,17 +50,24 @@ namespace Headbanger.Infra.Data.Identity.AuthenticateService
             return (passwordValid, user.IsNeededChangePassword);
         }
 
-        public Task<UserCreationResult> RegisterUser(string email, string password, string name) =>
-            CreateAsync(email, password, name, Roles.User, passwordChangeRequired: false);
+        public Task<UserCreationResult> RegisterUser(string email, string password, string name, string nickname) =>
+            CreateAsync(email, password, name, nickname, Roles.User, passwordChangeRequired: false, emailConfirmed: false);
 
-        public Task<UserCreationResult> CreateUser(string email, string temporaryPassword, string name, string role) =>
-            CreateAsync(email, temporaryPassword, name, role, passwordChangeRequired: true);
+        public Task<UserCreationResult> CreateUser(string email, string temporaryPassword, string name, string nickname, string role) =>
+            CreateAsync(email, temporaryPassword, name, nickname, role, passwordChangeRequired: true, emailConfirmed: true);
 
-        private async Task<UserCreationResult> CreateAsync(string email, string password, string name, string role, bool passwordChangeRequired)
+        private async Task<UserCreationResult> CreateAsync(
+            string email,
+            string password,
+            string name,
+            string nickname,
+            string role,
+            bool passwordChangeRequired,
+            bool emailConfirmed)
         {
             email = email.Trim().ToLowerInvariant();
 
-            if (await _context.Users.AnyAsync(u => u.Email == email))
+            if (await _context.Users.IgnoreQueryFilters().AnyAsync(u => u.Email == email))
                 return UserCreationResult.Fail(EUserCreationFailure.EmailAlreadyInUse, []);
 
             var validation = await ValidateCredentialsAsync(email, password);
@@ -59,7 +75,7 @@ namespace Headbanger.Infra.Data.Identity.AuthenticateService
             if (validation != null)
                 return validation;
 
-            var user = new User { Email = email, Name = name };
+            var user = new User { Email = email, Name = name, Nickname = nickname };
 
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
@@ -68,7 +84,7 @@ namespace Headbanger.Infra.Data.Identity.AuthenticateService
             {
                 UserName = email,
                 Email = email,
-                EmailConfirmed = true,
+                EmailConfirmed = emailConfirmed,
                 UserId = user.Id,
                 IsNeededChangePassword = passwordChangeRequired
             };
@@ -135,22 +151,82 @@ namespace Headbanger.Infra.Data.Identity.AuthenticateService
             return EUserCreationFailure.Unknown;
         }
 
+        private static bool IsPasswordError(IEnumerable<IdentityError> errors) =>
+            errors.Any(e => e.Code.StartsWith("Password", StringComparison.Ordinal) && e.Code != nameof(IdentityErrorDescriber.PasswordMismatch));
+
         public async Task Logout(string email)
         {
             var identityUser = await _userManager.FindByEmailAsync(email);
             if (identityUser == null) return;
 
-            var tokens = await _context.RefreshTokens
-                .Where(rt => rt.ApplicationUserId == identityUser.Id && rt.RevokedAt == null)
-                .ToListAsync();
+            await RevokeAllRefreshTokensAsync(identityUser.Id);
+        }
 
-            if (tokens.Count == 0) return;
-
+        private Task<int> RevokeAllRefreshTokensAsync(int applicationUserId)
+        {
             var now = DateTime.UtcNow;
-            foreach (var token in tokens)
-                token.RevokedAt = now;
 
-            await _context.SaveChangesAsync();
+            return _context.RefreshTokens
+                .Where(rt => rt.ApplicationUserId == applicationUserId && rt.RevokedAt == null)
+                .ExecuteUpdateAsync(set => set.SetProperty(rt => rt.RevokedAt, now));
+        }
+
+        public async Task<bool> IsEmailConfirmed(string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            return user?.EmailConfirmed ?? false;
+        }
+
+        public async Task<string?> GenerateEmailConfirmationTokenAsync(int userId)
+        {
+            var user = await FindByUserIdAsync(userId);
+            if (user == null || user.EmailConfirmed) return null;
+
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            return EncodeToken(token);
+        }
+
+        public async Task<EEmailConfirmationResult> ConfirmEmailAsync(int userId, string token)
+        {
+            var user = await FindByUserIdAsync(userId);
+            if (user == null) return EEmailConfirmationResult.Invalid;
+
+            if (user.EmailConfirmed)
+                return EEmailConfirmationResult.AlreadyConfirmed;
+
+            var decoded = DecodeToken(token);
+            if (decoded == null) return EEmailConfirmationResult.Invalid;
+
+            var result = await _userManager.ConfirmEmailAsync(user, decoded);
+
+            return result.Succeeded ? EEmailConfirmationResult.Confirmed : EEmailConfirmationResult.Invalid;
+        }
+
+        public async Task<string?> GeneratePasswordResetTokenAsync(string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null || !user.EmailConfirmed) return null;
+
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            return EncodeToken(token);
+        }
+
+        public async Task<EPasswordResetResult> ResetPasswordAsync(string email, string token, string newPassword)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null) return EPasswordResetResult.InvalidToken;
+
+            var decoded = DecodeToken(token);
+            if (decoded == null) return EPasswordResetResult.InvalidToken;
+
+            var result = await _userManager.ResetPasswordAsync(user, decoded, newPassword);
+
+            if (!result.Succeeded)
+                return IsPasswordError(result.Errors) ? EPasswordResetResult.WeakPassword : EPasswordResetResult.InvalidToken;
+
+            await RevokeAllRefreshTokensAsync(user.Id);
+
+            return EPasswordResetResult.Success;
         }
 
         public async Task<string> GenerateJwtToken(User user)
@@ -223,18 +299,38 @@ namespace Headbanger.Infra.Data.Identity.AuthenticateService
 
         public async Task<string?> ConsumeRefreshTokenAsync(string refreshToken)
         {
-            var hash = HashToken(refreshToken);
+            var hash = HashToken(refreshToken ?? string.Empty);
+            var now = DateTime.UtcNow;
 
             var token = await _context.RefreshTokens
+                .AsNoTracking()
                 .Include(rt => rt.ApplicationUser)
-                .FirstOrDefaultAsync(rt => rt.TokenHash == hash
-                    && rt.RevokedAt == null
-                    && rt.ExpiresAt > DateTime.UtcNow);
+                .FirstOrDefaultAsync(rt => rt.TokenHash == hash);
 
             if (token == null) return null;
 
-            token.RevokedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
+            if (token.RevokedAt != null)
+            {
+                if (token.RevokedAt < now - RefreshReuseGrace)
+                {
+                    await RevokeAllRefreshTokensAsync(token.ApplicationUserId);
+
+                    _logger.Warning(
+                        "REFRESH_TOKEN_REUSE",
+                        "Revoked refresh token presented again; all sessions revoked",
+                        extra: new { token.ApplicationUserId });
+                }
+
+                return null;
+            }
+
+            if (token.ExpiresAt <= now) return null;
+
+            var consumed = await _context.RefreshTokens
+                .Where(rt => rt.Id == token.Id && rt.RevokedAt == null)
+                .ExecuteUpdateAsync(set => set.SetProperty(rt => rt.RevokedAt, now));
+
+            if (consumed == 0) return null;
 
             return token.ApplicationUser.Email;
         }
@@ -251,21 +347,69 @@ namespace Headbanger.Infra.Data.Identity.AuthenticateService
             return user?.IsNeededChangePassword ?? false;
         }
 
-        public async Task<bool> ChangePassword(string email, string password)
+        public async Task<EPasswordChangeResult> ChangePassword(string email, string currentPassword, string newPassword)
         {
             var user = await _userManager.FindByEmailAsync(email);
-            if (user == null) return false;
+            if (user == null) return EPasswordChangeResult.NotFound;
 
-            await _userManager.RemovePasswordAsync(user);
+            var result = await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
 
-            var result = await _userManager.AddPasswordAsync(user, password);
             if (!result.Succeeded)
-                return false;
+                return IsPasswordError(result.Errors)
+                    ? EPasswordChangeResult.WeakPassword
+                    : EPasswordChangeResult.InvalidCurrentPassword;
+
+            await ClearPasswordChangeFlagAsync(user);
+
+            return EPasswordChangeResult.Success;
+        }
+
+        public async Task<EPasswordChangeResult> SetInitialPassword(string email, string newPassword)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null) return EPasswordChangeResult.NotFound;
+
+            var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var result = await _userManager.ResetPasswordAsync(user, resetToken, newPassword);
+
+            if (!result.Succeeded)
+                return IsPasswordError(result.Errors) ? EPasswordChangeResult.WeakPassword : EPasswordChangeResult.NotFound;
+
+            await ClearPasswordChangeFlagAsync(user);
+
+            return EPasswordChangeResult.Success;
+        }
+
+        private async Task ClearPasswordChangeFlagAsync(ApplicationUser user)
+        {
+            await RevokeAllRefreshTokensAsync(user.Id);
+
+            if (!user.IsNeededChangePassword)
+                return;
 
             user.IsNeededChangePassword = false;
             await _userManager.UpdateAsync(user);
+        }
 
-            return true;
+        private Task<ApplicationUser?> FindByUserIdAsync(int userId) =>
+            _userManager.Users.FirstOrDefaultAsync(a => a.UserId == userId);
+
+        private static string EncodeToken(string token) =>
+            Base64Url.EncodeToString(Encoding.UTF8.GetBytes(token));
+
+        private static string? DecodeToken(string token)
+        {
+            if (string.IsNullOrWhiteSpace(token))
+                return null;
+
+            try
+            {
+                return Encoding.UTF8.GetString(Base64Url.DecodeFromChars(token));
+            }
+            catch (FormatException)
+            {
+                return null;
+            }
         }
     }
 }

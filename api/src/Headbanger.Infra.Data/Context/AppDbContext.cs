@@ -18,7 +18,7 @@ namespace Headbanger.Infra.Data.Context
             _currentUserContext = currentUserContext;
         }
 
-        public DbSet<User> Users => Set<User>();
+        public new DbSet<User> Users => Set<User>();
         public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
         public DbSet<AuthorizationAuditLog> AuthorizationAuditLogs => Set<AuthorizationAuditLog>();
         public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
@@ -56,6 +56,8 @@ namespace Headbanger.Infra.Data.Context
                 b.HasKey(u => u.Id);
 
                 b.Property(u => u.Name).HasMaxLength(256);
+                b.Property(u => u.Nickname).HasMaxLength(30).IsRequired();
+                b.HasIndex(u => u.Nickname).IsUnique();
 
                 var email = b.Property(u => u.Email).HasMaxLength(256);
                 if (isPostgres)

@@ -7,5 +7,6 @@ namespace Headbanger.Application.Profiles.Interfaces
     {
         Task<Result<ProfileDto>> Me();
         Task<Result<ProfileDto>> UpdateName(UpdateProfileNameDto input);
+        Task<Result<ProfileDto>> CompleteOnboarding();
     }
 }

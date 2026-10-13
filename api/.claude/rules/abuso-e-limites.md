@@ -24,6 +24,10 @@ Só rate limit não basta porque IP roda barato. Só regra de negócio não bast
 | `register` | 5/h por IP | cadastro é evento raro por pessoa; 5 cobre família e rede compartilhada |
 | `login` | 10/5min por IP | erro de senha acontece; script de força bruta não |
 | `refresh-token` | 30/5min por IP | grava/revoga linha a cada chamada |
+| `confirm-email` | 10/h por IP | cada chamada valida um token do Identity; 10 cobre link clicado duas vezes e reenvio |
+| `resend-confirmation` | 3/h por IP | cada chamada pode mandar um e-mail; é o endpoint mais barato de abusar para spam |
+| `forgot-password` | 3/h por IP | idem, e o 200 constante não deixa o atacante saber se acertou |
+| `reset-password` | 10/h por IP | tentativa de token; o token tem 1 h de vida, então 10 por hora é o teto de chute |
 
 Endpoint novo que **cria**, **envia** ou **chama fora** nasce com política própria e uma linha nesta tabela. Os números são ponto de partida; o projeto ajusta e registra o porquê.
 

@@ -14,6 +14,7 @@ namespace Headbanger.Infra.Data.Context.Seeding
     {
         private const string AdminEmail = "admin@headbanger.local";
         private const string AdminName = "Admin";
+        private const string AdminNickname = "admin";
         private const string DefaultAdminPassword = "12341234";
 
         private readonly RoleManager<ApplicationRole> _roleManager;
@@ -128,7 +129,7 @@ namespace Headbanger.Infra.Data.Context.Seeding
 
             try
             {
-                var user = new User { Email = email, Name = name };
+                var user = new User { Email = email, Name = name, Nickname = AdminNickname };
 
                 _context.Users.Add(user);
                 await _context.SaveChangesAsync();
