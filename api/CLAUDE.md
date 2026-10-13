@@ -4,7 +4,7 @@
 
 **Headbanger** — API da comunidade de metal e rock do ABC Paulista: feed de posts, galeria de vídeos e fotos com moderação, eventos, perfis de pessoas e de bandas. Os usuários são fãs e músicos da região; o painel admin é a mesma API com permissão. Reescrita do zero do projeto legado "NewLevel", que não serve de referência de código — só de inventário de funcionalidades.
 
-**Estado da entrega atual:** só o módulo **Auth** existe de verdade (registro com confirmação de e-mail, login, refresh, logout, esqueci/redefinir senha, troca de senha). Feed, mídia, bandas, eventos, notificações e moderação são mock no frontend e entram módulo a módulo — o mapa e a ordem estão em `.claude/rules/dominio.md`. Fora de escopo: loja, podcasts, app nativo, login social.
+**Estado da entrega atual:** existem de verdade o módulo **Auth** (registro com confirmação de e-mail, login, refresh, logout, esqueci/redefinir senha, troca de senha) e o módulo **Perfil e mídia** (campos do perfil, avatar e capa no S3, perfil público, busca de pessoas — `perfil-e-midia.md`, `armazenamento.md`). Feed, mídia, bandas, eventos, notificações e moderação são mock no frontend e entram módulo a módulo — o mapa e a ordem estão em `.claude/rules/dominio.md`. Fora de escopo: loja, podcasts, app nativo, login social.
 
 ## Como trabalhar neste repositório
 
@@ -16,6 +16,8 @@ As **decisões** — o porquê de cada regra — vivem em `.claude/rules/`, um a
 |---|---|
 | `.claude/rules/auth-e-contas.md` | registro com confirmação de e-mail, login, esqueci/redefinir senha, nickname, refresh atômico, convite, revogação, papéis e permissões |
 | `.claude/rules/dominio.md` | o modelo da comunidade (pessoa, banda, integrante, convite, conteúdo, moderação), enums herdados e a ordem dos módulos |
+| `.claude/rules/perfil-e-midia.md` | campos do perfil, edição, avatar e capa, perfil público, busca de pessoas |
+| `.claude/rules/armazenamento.md` | S3 (LocalStack em dev, CloudFront em produção), processamento de imagem, chaves, ordem sobe-grava-apaga |
 | `.claude/rules/email.md` | as duas camadas de e-mail, Mailpit em dev, SMTP via MailKit, links, o que nunca vai para o log |
 | `.claude/rules/auditoria.md` | as duas trilhas, o interceptor global, política de dados sensíveis |
 | `.claude/rules/jobs-hangfire.md` | filas, Wrapper + Trigger, jobs enfileirados com linha de status |
@@ -28,7 +30,7 @@ O que é do negócio nasce em rules novas. `User`, auth, permissões, jobs e log
 
 ## Stack e projetos
 
-.NET 10 · ASP.NET Core · EF Core (Npgsql; o `DatabaseProvider` ainda sabe falar SQL Server, mas o projeto escolheu Postgres no dia 1) · Identity + JWT · Hangfire (jobs) · MailKit (e-mail SMTP).
+.NET 10 · ASP.NET Core · EF Core (Npgsql; o `DatabaseProvider` ainda sabe falar SQL Server, mas o projeto escolheu Postgres no dia 1) · Identity + JWT · Hangfire (jobs) · MailKit (e-mail SMTP) · AWSSDK.S3 (arquivos; LocalStack em dev) · SixLabors.ImageSharp (imagens).
 
 | Projeto | Caminho | Responsabilidade |
 |---|---|---|

@@ -28,6 +28,8 @@ Só rate limit não basta porque IP roda barato. Só regra de negócio não bast
 | `resend-confirmation` | 3/h por IP | cada chamada pode mandar um e-mail; é o endpoint mais barato de abusar para spam |
 | `forgot-password` | 3/h por IP | idem, e o 200 constante não deixa o atacante saber se acertou |
 | `reset-password` | 10/h por IP | tentativa de token; o token tem 1 h de vida, então 10 por hora é o teto de chute |
+| `profile-upload` | 20/h por conta | processar imagem custa CPU e storage; trocar avatar 20 vezes por hora já é teste, não uso |
+| `user-search` | 60/min por conta | a topbar busca enquanto a pessoa digita (debounce de 350 ms); 60 por minuto é folga de sobra |
 
 Endpoint novo que **cria**, **envia** ou **chama fora** nasce com política própria e uma linha nesta tabela. Os números são ponto de partida; o projeto ajusta e registra o porquê.
 

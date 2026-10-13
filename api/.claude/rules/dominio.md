@@ -12,7 +12,7 @@ O que o Headbanger é, em entidades, e em que ordem elas nascem. Nesta entrega *
 
 No legado, uma banda era um `User` disfarçado: registro próprio, e-mail próprio, linha em `BandsUsers` com `IsBand = true` apontando para si mesma. Integrantes ficavam duplicados (JSON em `Band.Integrants` **e** linhas em `BandsUsers`), o instrumento morava no `User` (quem toca em duas bandas só podia ter um), o papel `Band` era calculado na hora do token e convites eram notificações com o id da banda dentro de uma string. Nada disso volta.
 
-- **`User`** (`Name`, `Nickname`, `Email`, `IsActive`) é a conta de uma pessoa. Dados de perfil que não são identidade (avatar, banner, cidade, instrumento, gêneros, links) entram no módulo **Perfil**, na própria entidade ou numa `UserProfile` 1:1 — decidir quando o módulo nascer, com base no que o feed precisa carregar por post.
+- **`User`** (`Name`, `Nickname`, `Email`, `IsActive`) é a conta de uma pessoa. Os dados de perfil (`Bio`, `City`, `MainInstrument`, links, `AvatarKey`, `BannerKey`, `BannerPosition`) moram na própria `User`, e os gêneros em `UserGenre` — decidido no módulo 1, ver `perfil-e-midia.md`. `MainInstrument` é o instrumento que a pessoa se apresenta tocando; o instrumento **em cada banda** continua no `BandMember`.
 - **`Band`** (`Name`, `Slug`, `Description`, `City`, `Genres`, `FoundedAt?`, links, `IsVerified`, `AvatarKey?`, `BannerKey?`) é entidade própria, **sem conta**. Quem age em nome da banda é um `BandMember` com `Role = Owner`. URL pública `/bandas/:slug`; `Slug` único e imutável depois de publicado (renomear a banda não quebra link).
 - **`BandMember`** (`BandId`, `UserId`, `Instrument`, `Role: Owner | Member`, `JoinedAt`): o instrumento é **da relação**, não da pessoa. `(BandId, UserId)` único. Uma banda tem pelo menos um `Owner`; o último `Owner` não sai sem passar o bastão.
 - **`BandInvitation`** (`BandId`, `InvitedUserId`, `InvitedByUserId`, `Instrument`, `Status: Pending | Accepted | Declined | Revoked`, `ExpiresAt`): entidade real, com estado e validade. A notificação do convite é **projeção** desta linha, nunca o armazenamento. Aceitar = transição atômica `Pending → Accepted` no `WHERE` + criação do `BandMember` na mesma transação.
@@ -30,8 +30,8 @@ No legado, uma banda era um `User` disfarçado: registro próprio, e-mail própr
 
 ## Enums herdados do legado (os valores, não o desenho)
 
-- `EMusicGenre`: os 31 gêneros do legado (`Thrash`, `Death`, `Black`, `Doom`, `Heavy`, `Power`, `Progressive`, …). Gravados como coleção numa tabela de ligação (`BandGenre`, `EventGenre`), nunca como `List<Enum>` em coluna — `PrimitiveCollection` é bloqueado pelo `CLAUDE.md` por causa dos dois providers.
-- `EAbcCity`: as 9 cidades (`SantoAndre`, `SaoBernardo`, `SaoCaetano`, `Diadema`, `Maua`, `RibeiraoPires`, `RioGrandeDaSerra`, `Outros` …) — a lista fechada é regra de produto: a comunidade é regional.
+- `EMusicGenre` (`Domain/Enums/Profiles/EMusicGenre.cs`): 31 valores, **na ordem e com os números já usados no front** (`frontend/src/pages/perfil/genres.ts`: 0 Heavy, 1 Thrash, 2 Death … 30 Other). A lista do legado tinha outra ordem e vários rocks; o contrato numérico que vale é o do front, porque é ele que já existe. Gravados em tabela de ligação (`UserGenre`, depois `BandGenre`, `EventGenre`), nunca como `List<Enum>` em coluna — `PrimitiveCollection` é bloqueado pelo `CLAUDE.md` por causa dos dois providers. 🔴 Valor novo só no fim; reordenar quebra dado gravado.
+- `EAbcCity` (`Domain/Enums/Profiles/EAbcCity.cs`): 0 SantoAndre, 1 SaoBernardo, 2 SaoCaetano, 3 Diadema, 4 Maua, 5 RibeiraoPires, 6 RioGrandeDaSerra, 7 SaoPaulo, 8 Other — mesma numeração do front. A lista fechada é regra de produto: a comunidade é regional. Cidade é opcional no perfil.
 - `EModerationStatus`, `ENotificationType`, `EBandMemberRole`, `EBandInvitationStatus`, `EEventStatus` como acima.
 
 Enum sai para o cliente como **número** (padrão dos projetos de referência); o front espelha com `const` + `Record` exaustivo.
@@ -40,7 +40,7 @@ Enum sai para o cliente como **número** (padrão dos projetos de referência); 
 
 | # | Módulo | Entidades | Telas mockadas que passam a ser reais |
 |---|---|---|---|
-| 1 | Perfil e mídia | campos de perfil, upload (avatar/banner) com storage S3-compatível e URL assinada | `/perfil/:nickname` (pessoa), `/minha-conta` |
+| 1 ✅ | Perfil e mídia | campos de perfil na `User`, `UserGenre`, upload de avatar/capa em S3 com URL pública (`armazenamento.md`) | `/perfil/:nickname` (pessoa), `/minha-conta`, busca da topbar |
 | 2 | Bandas e convites | `Band`, `BandMember`, `BandInvitation`, `BandGenre` | `/bandas/:slug`, convites em `/notificacoes` |
 | 3 | Feed | `Post`, `PostMedia`, `PostLike`, `Comment` | `/feed`, `/feed/:id`, rail de "próximos eventos" só depois do 4 |
 | 4 | Eventos | `Event`, `EventBand`, `EventGenre` | `/eventos`, `/eventos/:id`, `/eventos/novo`, `/eventos/:id/editar` |

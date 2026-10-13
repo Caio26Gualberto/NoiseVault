@@ -254,6 +254,26 @@ namespace Headbanger.Infra.Data.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("AvatarKey")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("BannerKey")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int>("BannerPosition")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(50);
+
+                    b.Property<string>("Bio")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int?>("City")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -272,11 +292,19 @@ namespace Headbanger.Infra.Data.Migrations
                         .HasColumnType("character varying(256)")
                         .UseCollation("case_insensitive");
 
+                    b.Property<string>("InstagramUrl")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
+
+                    b.Property<string>("MainInstrument")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -288,11 +316,19 @@ namespace Headbanger.Infra.Data.Migrations
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)");
 
+                    b.Property<string>("SpotifyUrl")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int?>("UpdatedBy")
                         .HasColumnType("integer");
+
+                    b.Property<string>("YoutubeUrl")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
 
                     b.HasKey("Id");
 
@@ -303,6 +339,19 @@ namespace Headbanger.Infra.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("Users", (string)null);
+                });
+
+            modelBuilder.Entity("Headbanger.Domain.Entities.UserGenre", b =>
+                {
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Genre")
+                        .HasColumnType("integer");
+
+                    b.HasKey("UserId", "Genre");
+
+                    b.ToTable("UserGenres", (string)null);
                 });
 
             modelBuilder.Entity("Headbanger.Infra.Data.Identity.ApplicationRole", b =>
@@ -572,6 +621,15 @@ namespace Headbanger.Infra.Data.Migrations
                     b.Navigation("RequestedByUser");
                 });
 
+            modelBuilder.Entity("Headbanger.Domain.Entities.UserGenre", b =>
+                {
+                    b.HasOne("Headbanger.Domain.Entities.User", null)
+                        .WithMany("Genres")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Headbanger.Infra.Data.Identity.ApplicationUser", b =>
                 {
                     b.HasOne("Headbanger.Domain.Entities.User", "User")
@@ -643,6 +701,11 @@ namespace Headbanger.Infra.Data.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Headbanger.Domain.Entities.User", b =>
+                {
+                    b.Navigation("Genres");
                 });
 #pragma warning restore 612, 618
         }

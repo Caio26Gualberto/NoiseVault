@@ -1,3 +1,5 @@
+using Headbanger.Domain.Enums.Profiles;
+
 namespace Headbanger.Application.Profiles.Dtos
 {
     public class ProfileDto
@@ -8,6 +10,14 @@ namespace Headbanger.Application.Profiles.Dtos
         public string Email { get; set; } = string.Empty;
         public string? Role { get; set; }
         public bool IsNeededChangePassword { get; set; }
+        public string? AvatarUrl { get; set; }
+        public string? BannerUrl { get; set; }
+        public int BannerPosition { get; set; }
+        public string? Bio { get; set; }
+        public EAbcCity? City { get; set; }
+        public string? MainInstrument { get; set; }
+        public List<EMusicGenre> Genres { get; set; } = [];
+        public SocialLinksDto SocialLinks { get; set; } = new();
         public DateTime CreatedAt { get; set; }
     }
 }

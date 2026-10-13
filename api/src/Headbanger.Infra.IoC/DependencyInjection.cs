@@ -23,6 +23,8 @@ using Headbanger.Application.Common.Time;
 using Headbanger.Application.Interfaces;
 using Headbanger.Application.Profiles;
 using Headbanger.Application.Profiles.Interfaces;
+using Headbanger.Application.PublicProfiles;
+using Headbanger.Application.PublicProfiles.Interfaces;
 using Headbanger.Application.Users;
 using Headbanger.Application.Users.Interfaces;
 using Headbanger.Domain.Constants;
@@ -127,6 +129,7 @@ namespace Headbanger.Infra.IoC
             services.AddScoped<IAuthenticateService, AuthenticateService>();
             services.AddScoped<IAuthAppService, AuthAppService>();
             services.AddScoped<IProfileAppService, ProfileAppService>();
+            services.AddScoped<IPublicProfileAppService, PublicProfileAppService>();
             services.AddScoped<IPermissionDefinitionProvider, PermissionDefinitionProvider>();
             services.AddScoped<IPermissionChecker, PermissionChecker>();
             services.AddScoped<IPermissionManager, PermissionManager>();

@@ -16,6 +16,8 @@ namespace Headbanger.Api.RateLimiting
         public const string ResendConfirmation = "resend-confirmation";
         public const string ForgotPassword = "forgot-password";
         public const string ResetPassword = "reset-password";
+        public const string ProfileUpload = "profile-upload";
+        public const string UserSearch = "user-search";
     }
 
     public static class ApiRateLimiting
@@ -45,6 +47,8 @@ namespace Headbanger.Api.RateLimiting
                 AddFixedWindow(options, ApiRateLimitPolicies.ResendConfirmation, permitLimit: 3, windowMinutes: 60);
                 AddFixedWindow(options, ApiRateLimitPolicies.ForgotPassword, permitLimit: 3, windowMinutes: 60);
                 AddFixedWindow(options, ApiRateLimitPolicies.ResetPassword, permitLimit: 10, windowMinutes: 60);
+                AddFixedWindow(options, ApiRateLimitPolicies.ProfileUpload, permitLimit: 20, windowMinutes: 60);
+                AddFixedWindow(options, ApiRateLimitPolicies.UserSearch, permitLimit: 60, windowMinutes: 1);
 
                 options.OnRejected = async (context, token) =>
                 {

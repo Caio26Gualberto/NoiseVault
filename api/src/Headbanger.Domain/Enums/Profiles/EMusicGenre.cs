@@ -1,0 +1,37 @@
+namespace Headbanger.Domain.Enums.Profiles
+{
+    public enum EMusicGenre
+    {
+        Heavy = 0,
+        Thrash = 1,
+        Death = 2,
+        Black = 3,
+        Doom = 4,
+        Power = 5,
+        Progressive = 6,
+        Speed = 7,
+        Groove = 8,
+        NuMetal = 9,
+        Metalcore = 10,
+        Deathcore = 11,
+        Grindcore = 12,
+        Sludge = 13,
+        Stoner = 14,
+        Folk = 15,
+        Symphonic = 16,
+        Gothic = 17,
+        Industrial = 18,
+        MelodicDeath = 19,
+        TechnicalDeath = 20,
+        Blackened = 21,
+        Crossover = 22,
+        Hardcore = 23,
+        Punk = 24,
+        HardRock = 25,
+        ClassicRock = 26,
+        Alternative = 27,
+        Grunge = 28,
+        PostMetal = 29,
+        Other = 30,
+    }
+}

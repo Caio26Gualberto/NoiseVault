@@ -58,7 +58,7 @@ namespace Headbanger.Infra.Data.Media
                 image.Metadata.IptcProfile = null;
 
                 using var output = new MemoryStream();
-                await image.SaveAsWebpAsync(output, new WebpEncoder { Quality = Quality, SkipMetadata = true }, cancellationToken);
+                await image.SaveAsWebpAsync(output, new WebpEncoder { Quality = Quality, FileFormat = WebpFileFormatType.Lossy, SkipMetadata = true }, cancellationToken);
 
                 return ImageProcessingResult.Ok(new ProcessedImage(output.ToArray(), image.Width, image.Height, "image/webp", "webp"));
             }

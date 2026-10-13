@@ -19,6 +19,7 @@ namespace Headbanger.Infra.Data.Context
         }
 
         public new DbSet<User> Users => Set<User>();
+        public DbSet<UserGenre> UserGenres => Set<UserGenre>();
         public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
         public DbSet<AuthorizationAuditLog> AuthorizationAuditLogs => Set<AuthorizationAuditLog>();
         public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
@@ -64,6 +65,26 @@ namespace Headbanger.Infra.Data.Context
                     email.UseCollation(CaseInsensitiveCollation);
 
                 b.HasIndex(u => u.Email).IsUnique();
+
+                b.Property(u => u.Bio).HasMaxLength(500);
+                b.Property(u => u.MainInstrument).HasMaxLength(60);
+                b.Property(u => u.InstagramUrl).HasMaxLength(300);
+                b.Property(u => u.YoutubeUrl).HasMaxLength(300);
+                b.Property(u => u.SpotifyUrl).HasMaxLength(300);
+                b.Property(u => u.AvatarKey).HasMaxLength(200);
+                b.Property(u => u.BannerKey).HasMaxLength(200);
+                b.Property(u => u.BannerPosition).HasDefaultValue(User.DefaultBannerPosition);
+
+                b.HasMany(u => u.Genres)
+                    .WithOne()
+                    .HasForeignKey(g => g.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            builder.Entity<UserGenre>(b =>
+            {
+                b.ToTable("UserGenres");
+                b.HasKey(g => new { g.UserId, g.Genre });
             });
 
             builder.Entity<ApplicationUser>(b =>

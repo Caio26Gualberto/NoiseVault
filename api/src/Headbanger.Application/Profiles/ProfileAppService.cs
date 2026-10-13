@@ -1,10 +1,14 @@
 using Headbanger.Application.Abstractions.Authentication;
+using Headbanger.Application.Abstractions.Logging;
 using Headbanger.Application.Abstractions.Repository;
 using Headbanger.Application.Auth;
+using Headbanger.Application.Common.Media;
+using Headbanger.Application.Interfaces;
 using Headbanger.Application.Profiles.Dtos;
 using Headbanger.Application.Profiles.Interfaces;
 using Headbanger.Application.Response;
 using Headbanger.Domain.Entities;
+using Headbanger.Domain.Enums.Profiles;
 using Headbanger.Domain.Interfaces.Authenticate;
 
 namespace Headbanger.Application.Profiles
@@ -14,24 +18,29 @@ namespace Headbanger.Application.Profiles
         private readonly IRepository<User> _userRepository;
         private readonly IAuthenticateService _authService;
         private readonly ICurrentUser _currentUser;
+        private readonly IFileStorage _fileStorage;
+        private readonly IImageProcessor _imageProcessor;
+        private readonly IApplicationLogger _logger;
 
         public ProfileAppService(
             IRepository<User> userRepository,
             IAuthenticateService authService,
-            ICurrentUser currentUser)
+            ICurrentUser currentUser,
+            IFileStorage fileStorage,
+            IImageProcessor imageProcessor,
+            IApplicationLoggerFactory loggerFactory)
         {
             _userRepository = userRepository;
             _authService = authService;
             _currentUser = currentUser;
+            _fileStorage = fileStorage;
+            _imageProcessor = imageProcessor;
+            _logger = loggerFactory.Create(LogContext.Profiles);
         }
 
         public async Task<Result<ProfileDto>> Me()
         {
-            var user = await _userRepository.FirstOrDefaultAsync(new QueryOptions<User>
-            {
-                Predicate = u => u.Id == _currentUser.UserId,
-                AsNoTracking = true
-            });
+            var user = await FindCurrentAsync(tracked: false);
 
             if (user == null)
                 return Result<ProfileDto>.Fail(UserNotFound());
@@ -39,32 +48,222 @@ namespace Headbanger.Application.Profiles
             return Result<ProfileDto>.Ok(await MapAsync(user), "USER_FOUND", "User found successfully");
         }
 
-        public async Task<Result<ProfileDto>> UpdateName(UpdateProfileNameDto input)
+        public async Task<Result<ProfileDto>> Update(UpdateProfileInputDto input)
         {
+            _logger.SetOperation("UpdateProfile");
+
             var name = UserNameRules.Normalize(input.Name);
 
             if (!UserNameRules.IsValid(name))
-                return Result<ProfileDto>.Fail(new Error(
-                    "INVALID_NAME",
-                    $"Name must be between {UserNameRules.MinLength} and {UserNameRules.MaxLength} characters",
-                    ErrorType.Validation));
+                return Fail("INVALID_NAME", $"Name must be between {UserNameRules.MinLength} and {UserNameRules.MaxLength} characters");
 
-            var user = await FindCurrentAsync();
+            var bio = ProfileRules.NormalizeOptionalText(input.Bio);
+
+            if (bio is { Length: > ProfileRules.BioMaxLength })
+                return Fail("INVALID_BIO", $"Bio must have at most {ProfileRules.BioMaxLength} characters");
+
+            if (!ProfileRules.IsValidCity(input.City))
+                return Fail("INVALID_CITY", "City is not in the supported list");
+
+            var instrument = ProfileRules.NormalizeOptionalText(input.MainInstrument);
+
+            if (instrument is { Length: > ProfileRules.InstrumentMaxLength })
+                return Fail("INVALID_INSTRUMENT", $"Instrument must have at most {ProfileRules.InstrumentMaxLength} characters");
+
+            var genres = input.Genres ?? [];
+
+            if (!ProfileRules.IsValidGenres(genres))
+                return Fail("INVALID_GENRE", $"Choose up to {ProfileRules.MaxGenres} distinct genres from the supported list");
+
+            var instagram = ProfileRules.NormalizeOptionalText(input.SocialLinks?.Instagram);
+            var youtube = ProfileRules.NormalizeOptionalText(input.SocialLinks?.Youtube);
+            var spotify = ProfileRules.NormalizeOptionalText(input.SocialLinks?.Spotify);
+
+            if (!ProfileRules.IsValidSocialLink(ESocialNetwork.Instagram, instagram)
+                || !ProfileRules.IsValidSocialLink(ESocialNetwork.Youtube, youtube)
+                || !ProfileRules.IsValidSocialLink(ESocialNetwork.Spotify, spotify))
+                return Fail("INVALID_SOCIAL_LINK", "Each social link must be an http(s) address of its own service");
+
+            var user = await FindCurrentAsync(tracked: true);
 
             if (user == null)
                 return Result<ProfileDto>.Fail(UserNotFound());
 
             user.Name = name;
+            user.Bio = bio;
+            user.City = input.City;
+            user.MainInstrument = instrument;
+            user.InstagramUrl = instagram;
+            user.YoutubeUrl = youtube;
+            user.SpotifyUrl = spotify;
+
+            user.Genres.RemoveAll(g => !genres.Contains(g.Genre));
+            foreach (var genre in genres.Where(g => user.Genres.All(existing => existing.Genre != g)))
+                user.Genres.Add(new UserGenre { UserId = user.Id, Genre = genre });
+
             await _userRepository.UpdateAsync(user);
 
             return Result<ProfileDto>.Ok(await MapAsync(user), "PROFILE_UPDATED", "Profile updated successfully");
         }
 
-        private Task<User?> FindCurrentAsync() =>
+        public Task<Result<ProfileDto>> SetAvatar(ImageUploadInput? file, CancellationToken cancellationToken = default) =>
+            ReplaceImageAsync(
+                file,
+                EImagePreset.Avatar,
+                folder: "avatar",
+                currentKey: user => user.AvatarKey,
+                apply: (user, key) => user.AvatarKey = key,
+                code: "AVATAR_UPDATED",
+                message: "Avatar updated successfully",
+                cancellationToken);
+
+        public async Task<Result<ProfileDto>> SetBanner(ImageUploadInput? file, int? position, CancellationToken cancellationToken = default)
+        {
+            var bannerPosition = position ?? User.DefaultBannerPosition;
+
+            if (!ProfileRules.IsValidBannerPosition(bannerPosition))
+                return InvalidBannerPosition();
+
+            return await ReplaceImageAsync(
+                file,
+                EImagePreset.Banner,
+                folder: "banner",
+                currentKey: user => user.BannerKey,
+                apply: (user, key) =>
+                {
+                    user.BannerKey = key;
+                    user.BannerPosition = bannerPosition;
+                },
+                code: "BANNER_UPDATED",
+                message: "Banner updated successfully",
+                cancellationToken);
+        }
+
+        public async Task<Result<ProfileDto>> SetBannerPosition(BannerPositionInputDto input)
+        {
+            if (!ProfileRules.IsValidBannerPosition(input.Position))
+                return InvalidBannerPosition();
+
+            var user = await FindCurrentAsync(tracked: true);
+
+            if (user == null)
+                return Result<ProfileDto>.Fail(UserNotFound());
+
+            if (user.BannerKey == null)
+                return Result<ProfileDto>.Fail(new Error("BANNER_NOT_FOUND", "There is no banner to reposition", ErrorType.NotFound));
+
+            user.BannerPosition = input.Position;
+            await _userRepository.UpdateAsync(user);
+
+            return Result<ProfileDto>.Ok(await MapAsync(user), "BANNER_POSITION_UPDATED", "Banner position updated");
+        }
+
+        public Task<Result<ProfileDto>> RemoveAvatar() =>
+            RemoveImageAsync(user => user.AvatarKey, user => user.AvatarKey = null, "AVATAR_REMOVED", "Avatar removed");
+
+        public Task<Result<ProfileDto>> RemoveBanner() =>
+            RemoveImageAsync(
+                user => user.BannerKey,
+                user =>
+                {
+                    user.BannerKey = null;
+                    user.BannerPosition = User.DefaultBannerPosition;
+                },
+                "BANNER_REMOVED",
+                "Banner removed");
+
+        private async Task<Result<ProfileDto>> ReplaceImageAsync(
+            ImageUploadInput? file,
+            EImagePreset preset,
+            string folder,
+            Func<User, string?> currentKey,
+            Action<User, string> apply,
+            string code,
+            string message,
+            CancellationToken cancellationToken)
+        {
+            _logger.SetOperation(code);
+
+            if (file == null || file.Length == 0)
+                return Fail("IMAGE_REQUIRED", "Send an image file");
+
+            var maxBytes = ImagePresets.MaxBytes(preset);
+
+            if (file.Length > maxBytes)
+                return Fail("IMAGE_TOO_LARGE", $"Image must have at most {maxBytes / (1024 * 1024)} MB");
+
+            var processed = await _imageProcessor.ProcessAsync(file.Content, preset, cancellationToken);
+
+            if (!processed.Succeeded)
+                return processed.Rejection == EImageRejection.TooSmall
+                    ? Fail("IMAGE_TOO_SMALL", "Image is too small for this use")
+                    : Fail("IMAGE_UNSUPPORTED", "Send a JPEG, PNG or WebP image");
+
+            var user = await FindCurrentAsync(tracked: true);
+
+            if (user == null)
+                return Result<ProfileDto>.Fail(UserNotFound());
+
+            var image = processed.Image!;
+            var newKey = $"users/{user.Id}/{folder}/{Guid.NewGuid():N}.{image.Extension}";
+
+            if (!await _fileStorage.PutAsync(newKey, image.Content, image.ContentType, cancellationToken))
+                return Result<ProfileDto>.Fail(new Error("STORAGE_UNAVAILABLE", "File storage is unavailable, try again later", ErrorType.Unexpected));
+
+            var oldKey = currentKey(user);
+            apply(user, newKey);
+
+            try
+            {
+                await _userRepository.UpdateAsync(user);
+            }
+            catch
+            {
+                await _fileStorage.DeleteAsync(newKey, CancellationToken.None);
+                throw;
+            }
+
+            if (oldKey != null)
+                await _fileStorage.DeleteAsync(oldKey, CancellationToken.None);
+
+            _logger.Info(code, message, userId: user.Id, extra: new { Key = newKey });
+
+            return Result<ProfileDto>.Ok(await MapAsync(user), code, message);
+        }
+
+        private async Task<Result<ProfileDto>> RemoveImageAsync(Func<User, string?> currentKey, Action<User> clear, string code, string message)
+        {
+            var user = await FindCurrentAsync(tracked: true);
+
+            if (user == null)
+                return Result<ProfileDto>.Fail(UserNotFound());
+
+            var oldKey = currentKey(user);
+
+            if (oldKey != null)
+            {
+                clear(user);
+                await _userRepository.UpdateAsync(user);
+                await _fileStorage.DeleteAsync(oldKey);
+                _logger.Info(code, message, userId: user.Id, extra: new { Key = oldKey });
+            }
+
+            return Result<ProfileDto>.Ok(await MapAsync(user), code, message);
+        }
+
+        private Task<User?> FindCurrentAsync(bool tracked) =>
             _userRepository.FirstOrDefaultAsync(new QueryOptions<User>
             {
-                Predicate = u => u.Id == _currentUser.UserId
+                Predicate = u => u.Id == _currentUser.UserId,
+                Includes = [u => u.Genres],
+                AsNoTracking = !tracked,
             });
+
+        private static Result<ProfileDto> Fail(string code, string message) =>
+            Result<ProfileDto>.Fail(new Error(code, message, ErrorType.Validation));
+
+        private static Result<ProfileDto> InvalidBannerPosition() =>
+            Fail("INVALID_BANNER_POSITION", $"Banner position must be between {ProfileRules.MinBannerPosition} and {ProfileRules.MaxBannerPosition}");
 
         private static Error UserNotFound() => new("USER_NOT_FOUND", "User not found", ErrorType.NotFound);
 
@@ -76,7 +275,20 @@ namespace Headbanger.Application.Profiles
             Email = user.Email,
             Role = _currentUser.Role,
             IsNeededChangePassword = await _authService.IsPasswordChangeRequired(user.Email),
-            CreatedAt = user.CreatedAt
+            AvatarUrl = _fileStorage.PublicUrl(user.AvatarKey),
+            BannerUrl = _fileStorage.PublicUrl(user.BannerKey),
+            BannerPosition = user.BannerPosition,
+            Bio = user.Bio,
+            City = user.City,
+            MainInstrument = user.MainInstrument,
+            Genres = user.Genres.Select(g => g.Genre).OrderBy(g => g).ToList(),
+            SocialLinks = new SocialLinksDto
+            {
+                Instagram = user.InstagramUrl,
+                Youtube = user.YoutubeUrl,
+                Spotify = user.SpotifyUrl,
+            },
+            CreatedAt = user.CreatedAt,
         };
     }
 }
