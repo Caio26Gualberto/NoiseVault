@@ -23,7 +23,7 @@ export function PostCard({ post, onLike, detail = false }: PostCardProps) {
     <article className="flex flex-col gap-3 rounded-xl border bg-card p-4">
       <header className="flex items-center gap-3">
         <Link to={`/perfil/${post.author.nickname}`}>
-          <AppAvatar name={post.author.name} src={post.author.avatarUrl} size="lg" verified={post.author.isVerified} />
+          <AppAvatar name={post.author.name} src={post.author.avatarUrl} size="lg" />
         </Link>
         <div className="flex min-w-0 flex-1 flex-col">
           <div className="flex flex-wrap items-baseline gap-x-2">

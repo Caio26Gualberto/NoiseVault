@@ -1,6 +1,6 @@
 import { delay, mockPage } from '@/api/mock-delay'
 import type { PagedRequest, PagedResult } from '@/api/types'
-import { picture } from '@/pages/perfil/services/mocks'
+import { picture } from '@/api/mock-fixtures'
 
 import { NotificationType } from '../notification-type'
 import type { NotificationDto } from './notificacoes-service'

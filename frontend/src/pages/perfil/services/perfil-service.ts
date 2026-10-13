@@ -1,13 +1,14 @@
+import { apiGet } from '@/api/base-service'
+import type { PagedResult } from '@/api/types'
+
 import type { AbcCity } from '../cities'
 import type { MusicGenre } from '../genres'
-import * as mocks from './mocks'
 
 export type ProfileSummaryDto = {
   id: number
   name: string
   nickname: string
   avatarUrl: string | null
-  isVerified: boolean
 }
 
 export type SocialLinksDto = {
@@ -26,17 +27,22 @@ export type BandSummaryDto = {
 }
 
 export type UserProfileDto = ProfileSummaryDto & {
-  bio: string | null
-  city: AbcCity
-  instrument: string | null
-  genres: MusicGenre[]
   bannerUrl: string | null
   bannerPosition: number
+  bio: string | null
+  city: AbcCity | null
+  mainInstrument: string | null
+  genres: MusicGenre[]
   socialLinks: SocialLinksDto
-  bands: BandSummaryDto[]
-  stats: { posts: number; photos: number; videos: number }
   memberSince: string
 }
 
-export const getUserProfile = mocks.getUserProfile
-export const getProfileSummary = mocks.getProfileSummary
+export const peopleSearchMinLength = 2
+
+export function getUserProfile(nickname: string) {
+  return apiGet<UserProfileDto>(`/api/users/${encodeURIComponent(nickname)}`, undefined, { toastError: false })
+}
+
+export function searchPeople(search: string, pageSize = 8) {
+  return apiGet<PagedResult<ProfileSummaryDto>>('/api/users/search', { search, page: 1, pageSize }, { toastError: false })
+}

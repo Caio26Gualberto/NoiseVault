@@ -1,6 +1,6 @@
 import { delay, mockPage } from '@/api/mock-delay'
 import type { PagedResult } from '@/api/types'
-import { people } from '@/pages/perfil/services/mocks'
+import { people } from '@/api/mock-fixtures'
 
 import { ModerationStatus } from '../moderation-status'
 import type { VideoDto, VideoListQuery } from './videos-service'

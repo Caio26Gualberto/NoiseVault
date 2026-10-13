@@ -1,23 +1,18 @@
 {
   "edit": "Editar perfil",
-  "follow": "Seguir",
   "memberSince": "No Headbanger desde {{date}}",
-  "bands": "Bandas",
-  "stats": {
-    "posts": "posts",
-    "photos": "fotos",
-    "videos": "vídeos"
-  },
-  "tabs": {
-    "posts": "Posts",
-    "photos": "Fotos",
-    "videos": "Vídeos"
-  },
   "empty": {
-    "posts": "Nenhum post ainda",
-    "photos": "Nenhuma foto ainda",
-    "videos": "Nenhum vídeo ainda",
-    "description": "O conteúdo deste perfil aparece aqui quando o módulo de feed e mídia entrar."
+    "title": "Publicações chegam em breve",
+    "description": "Posts, fotos e vídeos deste perfil aparecem aqui quando o feed e a galeria entrarem."
+  },
+  "notFound": {
+    "title": "Perfil não encontrado",
+    "description": "Ninguém usa @{{nickname}} no Headbanger.",
+    "action": "Ir para o feed"
+  },
+  "failed": {
+    "title": "Não foi possível abrir o perfil",
+    "description": "Tente de novo em instantes."
   },
   "genres": {
     "heavy": "Heavy Metal",

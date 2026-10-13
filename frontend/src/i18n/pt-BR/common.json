@@ -19,7 +19,11 @@
     "nameLength": "O nome precisa ter entre 2 e 100 caracteres.",
     "nickname": "Use de 3 a 30 caracteres: letras minúsculas, números, ponto ou underline.",
     "password": "Pelo menos 6 caracteres e um número.",
-    "passwordMatch": "As senhas não conferem."
+    "passwordMatch": "As senhas não conferem.",
+    "bioLength": "A bio pode ter no máximo 500 caracteres.",
+    "instrumentLength": "O instrumento pode ter no máximo 60 caracteres.",
+    "genresMax": "Escolha no máximo 10 gêneros.",
+    "socialLink": "Use o endereço completo do perfil nesse serviço (https://...)."
   },
   "password": {
     "show": "Mostrar senha",

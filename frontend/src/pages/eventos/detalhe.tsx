@@ -93,7 +93,7 @@ export function EventoDetalhePage() {
         <div className="flex flex-col gap-5 p-4 md:p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <Link to={`/perfil/${event.organizer.nickname}`} className="flex items-center gap-3">
-              <AppAvatar name={event.organizer.name} src={event.organizer.avatarUrl} size="md" verified={event.organizer.isVerified} />
+              <AppAvatar name={event.organizer.name} src={event.organizer.avatarUrl} size="md" />
               <span className="flex flex-col">
                 <span className="app-meta">{t('organizedBy')}</span>
                 <span className="text-sm font-medium">{event.organizer.name}</span>

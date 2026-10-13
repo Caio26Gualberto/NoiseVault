@@ -2,7 +2,7 @@ import { delay } from '@/api/mock-delay'
 import { AbcCity } from '@/pages/perfil/cities'
 import { MusicGenre } from '@/pages/perfil/genres'
 import type { BandSummaryDto } from '@/pages/perfil/services/perfil-service'
-import { bandSummaries, people, picture } from '@/pages/perfil/services/mocks'
+import { bandSummaries, people, picture } from '@/api/mock-fixtures'
 
 import { BandMemberRole } from '../band-member-role'
 import type { BandProfileDto } from './bandas-service'

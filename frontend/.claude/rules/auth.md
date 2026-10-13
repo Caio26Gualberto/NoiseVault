@@ -21,7 +21,7 @@ Rule irmã: `api/.claude/rules/auth-e-contas.md` — a regra é do backend, a te
 
 `src/api/` (client, interceptor de refresh single-flight, `base-service`, `token-storage` em `localStorage`) veio do boilerplate sem alteração. `auth-provider.tsx` mudou em um ponto: **não exige `Admin.Access`** — qualquer `User` entra na comunidade. `fetchMyAccess` continua sendo chamado (para `can()` nas telas de admin), mas falha dele não derruba a sessão: o `access` fica vazio.
 
-A sessão carrega `ProfileDto { id, name, nickname, email, role, isNeededChangePassword }`. `refreshUser()` é chamado depois de editar o perfil.
+A sessão carrega o `ProfileDto` inteiro (dados de acesso e o perfil público: avatar, capa, bio, cidade, gêneros, links — ver `perfil.md`). Ação de perfil devolve o `ProfileDto` novo e a tela chama `replaceUser(dto)`; `refreshUser()` fica para quando não há DTO na mão.
 
 ## Telas e caminhos
 
@@ -34,7 +34,7 @@ A sessão carrega `ProfileDto { id, name, nickname, email, role, isNeededChangeP
 | `/redefinir-senha?email&token` | nova senha | senha + confirmação; sucesso → `/entrar` com toast |
 | `/definir-senha` | senha inicial (convite) | copiada do boilerplate; só com `isNeededChangePassword` |
 | `/bem-vindo` | boas-vindas do primeiro acesso | o texto original do projeto sobre a capa do *To Mega Therion* (Celtic Frost) em tela cheia; "Começar jornada" marca o `localStorage` e vai para `/feed` |
-| `/minha-conta` | conta | nome (real), senha (real), avatar/banner/cidade/gêneros (mock até o módulo Perfil) |
+| `/minha-conta` | conta | aparência (avatar e capa), perfil (nome, bio, cidade, instrumento, gêneros, links) e senha — tudo real; detalhes em `perfil.md` |
 
 Caminhos ficam em `auth/routes.ts`; ninguém escreve `'/entrar'` em página.
 

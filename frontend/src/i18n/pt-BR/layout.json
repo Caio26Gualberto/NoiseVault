@@ -20,8 +20,9 @@
     "moreSheetTitle": "Mais do Headbanger"
   },
   "search": {
-    "placeholder": "Buscar pessoas e bandas",
-    "soon": "A busca chega com o módulo de perfis."
+    "placeholder": "Buscar pessoas",
+    "loading": "Buscando...",
+    "empty": "Ninguém encontrado."
   },
   "userMenu": {
     "account": "Minha conta",

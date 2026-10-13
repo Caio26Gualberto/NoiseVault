@@ -1,6 +1,6 @@
 import { delay, mockPage } from '@/api/mock-delay'
 import type { PagedRequest, PagedResult } from '@/api/types'
-import { people, picture } from '@/pages/perfil/services/mocks'
+import { people, picture } from '@/api/mock-fixtures'
 import { ModerationStatus } from '@/pages/videos/moderation-status'
 
 import type { PhotoDto } from './fotos-service'

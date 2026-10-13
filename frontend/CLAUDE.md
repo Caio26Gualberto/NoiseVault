@@ -4,7 +4,7 @@
 
 **Headbanger** — site público da comunidade de metal e rock do ABC Paulista: feed, vídeos, fotos, eventos, perfis de pessoas e de bandas, notificações. Quem usa é o fã e o músico da região; a administração (moderação, equipe) é a mesma aplicação com permissão. Reescrita do zero do legado "NewLevel" (`C:\Projetos\Pessoal\Alvo\newlevel`), que não serve de referência de código nem de tela.
 
-**Estado da entrega atual:** auth é real (`/entrar`, `/criar-conta`, `/confirmar-email`, `/esqueci-senha`, `/redefinir-senha`, `/definir-senha`, `/bem-vindo`, `/minha-conta` em parte). Feed, vídeos, fotos, eventos, perfil, bandas, notificações, moderação, reportar problema e institucionais são **mock por página** com a assinatura que o service real vai ter (`.claude/rules/mocks.md`). A ordem em que os mocks viram backend está em `../api/.claude/rules/dominio.md`.
+**Estado da entrega atual:** auth é real (`/entrar`, `/criar-conta`, `/confirmar-email`, `/esqueci-senha`, `/redefinir-senha`, `/definir-senha`, `/bem-vindo`); perfil e mídia também (`/minha-conta` inteira com avatar e capa, `/perfil/:nickname`, busca de pessoas na topbar — `.claude/rules/perfil.md`). Feed, vídeos, fotos, eventos, bandas, notificações, moderação, reportar problema e institucionais são **mock por página** com a assinatura que o service real vai ter (`.claude/rules/mocks.md`). A ordem em que os mocks viram backend está em `../api/.claude/rules/dominio.md`.
 
 ## Como trabalhar neste repositório
 
@@ -20,6 +20,7 @@ As **decisões por área** vivem em `.claude/rules/`, com front matter `paths:`,
 | `.claude/rules/shell-e-navegacao.md` | `nav-config` como fonte única, sidebar/topbar/rail/bottom-nav, público × autenticado, admin no mesmo shell |
 | `.claude/rules/auth.md` | telas de auth, gates do `RequireAuth`, a exceção do `EMAIL_NOT_CONFIRMED` inline, validação espelhando o Identity |
 | `.claude/rules/mocks.md` | a forma do mock por página, o que apagar ao ligar cada módulo |
+| `.claude/rules/perfil.md` | perfil público, edição em `/minha-conta`, avatar, editor de capa, busca de pessoas, fixtures compartilhadas dos mocks |
 
 **Rule nova entra nesta tabela no mesmo commit.**
 
@@ -53,6 +54,7 @@ src/
   api/                     # fronteira HTTP — nada fora daqui usa axios (copiado do boilerplate)
     client.ts · auth-interceptor.ts · base-service.ts · api-codes.ts · feedback-sink.ts · token-storage.ts · types.ts · jwt.ts
     mock-delay.ts          # andaime dos mocks: delay() + mockPage(); morre com o último mocks.ts
+    mock-fixtures.ts       # pessoas e bandas de exemplo que os mocks compartilham; morre com o último mocks.ts
   auth/
     auth-context.ts · auth-provider.tsx · auth-service.ts · use-auth.ts
     require-auth.tsx       # unknown → skeleton; sem sessão → /entrar; senha pendente; boas-vindas (localStorage); permissão
@@ -123,7 +125,7 @@ Rota e item de menu **nascem do mesmo lugar**. `publicRoutes` (com `guestOnly` p
 
 ## i18n
 
-Só **pt-BR** por enquanto, mas nada de string solta: **nenhuma string de UI é hardcoded.** `grep -rnP "[áéíóúâêôãõç]" src --include=*.ts --include=*.tsx | grep -v src/i18n/ | grep -v api/client.ts | grep -v services/mocks.ts` deve voltar vazio (as fixtures dos mocks são dado de exemplo e morrem com o módulo). Um namespace por área (`auth`, `conta`, `feed`, …) mais `common`, `layout` e `api`. **O `code` do envelope é a chave de tradução** (`api-codes.ts` + `api.json`); mensagem de validação do zod é chave de `common.json` (`validation.*`) traduzida pelo `AppField`.
+Só **pt-BR** por enquanto, mas nada de string solta: **nenhuma string de UI é hardcoded.** `grep -rnP "[áéíóúâêôãõç]" src --include=*.ts --include=*.tsx | grep -v src/i18n/ | grep -v api/client.ts | grep -v services/mocks.ts | grep -v api/mock-fixtures.ts` deve voltar vazio (as fixtures dos mocks são dado de exemplo e morrem com o módulo). Um namespace por área (`auth`, `conta`, `feed`, …) mais `common`, `layout` e `api`. **O `code` do envelope é a chave de tradução** (`api-codes.ts` + `api.json`); mensagem de validação do zod é chave de `common.json` (`validation.*`) traduzida pelo `AppField`.
 
 ## UI e tema
 

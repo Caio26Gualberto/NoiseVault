@@ -1,6 +1,6 @@
 import { delay, mockPage } from '@/api/mock-delay'
 import type { PagedRequest, PagedResult } from '@/api/types'
-import { bandSummaries, people, picture } from '@/pages/perfil/services/mocks'
+import { bandSummaries, people, picture } from '@/api/mock-fixtures'
 
 import type { CommentDto, FeedQuery, PostDto } from './feed-service'
 

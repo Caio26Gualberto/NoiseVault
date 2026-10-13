@@ -90,7 +90,7 @@ export function BandasPage() {
                 to={`/perfil/${member.user.nickname}`}
                 className="flex items-center gap-3 rounded-xl border bg-card p-3 transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
               >
-                <AppAvatar name={member.user.name} src={member.user.avatarUrl} size="lg" verified={member.user.isVerified} />
+                <AppAvatar name={member.user.name} src={member.user.avatarUrl} size="lg" />
                 <div className="flex min-w-0 flex-1 flex-col">
                   <span className="truncate font-medium">{member.user.name}</span>
                   <span className="app-meta truncate">

@@ -1,27 +1,64 @@
 {
   "title": "Minha conta",
-  "description": "Seus dados de acesso e de perfil.",
+  "description": "Seu perfil público e seus dados de acesso.",
   "profile": {
     "title": "Perfil",
+    "description": "O que as pessoas veem em /perfil/seu-nickname.",
     "name": "Nome",
     "nickname": "Nickname",
     "nicknameHint": "Seu endereço público é /perfil/{{nickname}}. Não pode ser alterado por aqui.",
     "email": "E-mail",
-    "save": "Salvar nome"
+    "bio": "Bio",
+    "bioPlaceholder": "Banda, som que curte, shows que não perde...",
+    "bioHint": "Até {{max}} caracteres.",
+    "city": "Cidade",
+    "cityPlaceholder": "Escolha a cidade",
+    "cityNone": "Não informar",
+    "instrument": "Instrumento principal",
+    "instrumentPlaceholder": "Guitarra, bateria, vocal...",
+    "genres": "Gêneros",
+    "genresHint": "Escolha até {{max}}.",
+    "instagram": "Instagram",
+    "youtube": "YouTube",
+    "spotify": "Spotify",
+    "save": "Salvar perfil"
   },
   "password": {
     "title": "Senha",
     "description": "Trocar a senha encerra as outras sessões abertas.",
     "save": "Alterar senha"
   },
-  "mock": {
+  "appearance": {
     "title": "Aparência do perfil",
-    "description": "Avatar, capa, cidade e gêneros chegam com o módulo de perfil. Por enquanto, só visualização.",
-    "avatar": "Avatar",
-    "banner": "Capa",
-    "city": "Cidade",
-    "genres": "Gêneros",
-    "instrument": "Instrumento",
-    "soon": "Em breve"
+    "description": "Avatar e capa aparecem no seu perfil e em tudo que você publicar."
+  },
+  "avatar": {
+    "title": "Avatar",
+    "choose": "Escolher imagem",
+    "save": "Salvar avatar",
+    "remove": "Remover",
+    "preview": "Prévia do avatar",
+    "hint": "JPEG, PNG ou WebP até 5 MB. O recorte é quadrado e central.",
+    "removeTitle": "Remover o avatar?",
+    "removeMessage": "Seu perfil volta a mostrar as iniciais."
+  },
+  "banner": {
+    "title": "Capa",
+    "choose": "Escolher capa",
+    "replace": "Trocar capa",
+    "save": "Salvar capa",
+    "savePosition": "Salvar posição",
+    "remove": "Remover",
+    "empty": "Sem capa",
+    "dragHint": "Arraste para posicionar",
+    "positionLabel": "Posição vertical da capa",
+    "hint": "JPEG, PNG ou WebP até 10 MB e pelo menos 800px de largura. Arraste a imagem (ou use ↑ e ↓) para escolher o corte.",
+    "removeTitle": "Remover a capa?",
+    "removeMessage": "Seu perfil volta ao fundo padrão."
+  },
+  "image": {
+    "unsupported": "Use uma imagem JPEG, PNG ou WebP.",
+    "tooLarge": "A imagem pode ter no máximo {{size}} MB.",
+    "tooNarrow": "A capa precisa ter pelo menos {{width}}px de largura."
   }
 }

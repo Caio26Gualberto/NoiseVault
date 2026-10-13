@@ -46,7 +46,7 @@ export function UserMenu({ compact = false }: UserMenuProps) {
         )}
         aria-label={user.name}
       >
-        <AppAvatar name={user.name} size={compact ? 'md' : 'md'} />
+        <AppAvatar name={user.name} src={user.avatarUrl} size="md" />
         {compact ? null : (
           <>
             <span className="flex min-w-0 flex-1 flex-col">

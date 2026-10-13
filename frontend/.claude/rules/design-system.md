@@ -69,14 +69,14 @@ Paleta (valores em `tokens.css`, aqui só a intenção):
 
 - `src/components/ui/*` é o que o CLI do shadcn gera. Não é importado por página nem por `layout/` **exceto** através dos componentes `App*`. `grep -rn "components/ui/button" src/pages src/layout` deve voltar vazio.
 - **Botão é sempre `AppButton`** (`intent`: `primary` | `secondary` | `danger` | `neutral` | `ghost`; `loading` desabilita e mostra spinner). Só ícone: `AppIconButton` (exige `label`, que vira `aria-label` e tooltip).
-- Campo de formulário é sempre `AppField` (react-hook-form + zod), senha é `AppPasswordField` (olho para mostrar).
+- Campo de formulário é sempre `AppField` (react-hook-form + zod), senha é `AppPasswordField` (olho para mostrar), texto longo `AppTextareaField`, escolha única `AppSelectField` (`emptyLabel` adiciona a opção "não informar", que vira `''` no formulário) e múltipla escolha `AppChipsField` (chips com `aria-pressed`; `max` desabilita os não marcados quando o limite chega).
 - Confirmação destrutiva via `useAppConfirm()` — recebe `onConfirm`, **não devolve booleano**.
 - Avatar é `AppAvatar` (iniciais como fallback, `verified` para o selo). Badge é `AppBadge` (`tone`). Estado vazio é `AppEmptyState`. Carregando é `AppSkeleton` com preset. Cabeçalho de página é `AppPageHeader`. Paginação é `AppPagination`.
 - Toast é só o do `base-service` (via `sonner`); página nenhuma chama `toast()` para erro de API.
 
 ## Roteiro de verificação
 
-1. `npm run build` limpo; greps de cor, de `ui/button` fora de `app-button` e de acentuação fora de `i18n/` (exceto `api/client.ts` e os `services/mocks.ts`, cujas fixtures são dado de exemplo) vazios.
+1. `npm run build` limpo; greps de cor, de `ui/button` fora de `app-button` e de acentuação fora de `i18n/` (exceto `api/client.ts`, `api/mock-fixtures.ts` e os `services/mocks.ts`, cujas fixtures são dado de exemplo) vazios.
 2. Abrir `/entrar` a 390px e a 1440px: card centralizado, sem scroll horizontal, foco visível ao navegar por Tab.
 3. Trocar o tema no `user-menu`: nada pisca ao recarregar; os dois temas mostram a mesma hierarquia.
 4. Simular `prefers-reduced-motion`: a entrada de página não anima.

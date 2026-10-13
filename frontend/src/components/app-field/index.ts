@@ -1,3 +1,10 @@
 export { AppForm } from './app-form'
-export { AppField, AppPasswordField, AppTextareaField } from './app-field'
-export type { AppFieldProps, AppTextareaFieldProps } from './app-field'
+export { AppChipsField, AppField, AppPasswordField, AppSelectField, AppTextareaField } from './app-field'
+export type {
+  AppChipOption,
+  AppChipsFieldProps,
+  AppFieldProps,
+  AppSelectFieldProps,
+  AppSelectOption,
+  AppTextareaFieldProps,
+} from './app-field'

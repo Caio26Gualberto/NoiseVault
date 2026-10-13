@@ -7,6 +7,7 @@ import { feedback } from '../api/feedback-sink'
 import { decodeJwt } from '../api/jwt'
 import { tokenStorage } from '../api/token-storage'
 import { ApiError } from '../api/types'
+import type { ProfileDto } from '../api/types'
 import { AuthContext } from './auth-context'
 import type { AuthContextValue, AuthState } from './auth-context'
 import * as authService from './auth-service'
@@ -106,9 +107,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  const replaceUser = useCallback((user: ProfileDto) => {
+    setState((current) => (current.status === 'authenticated' ? { ...current, user } : current))
+  }, [])
+
   const value = useMemo<AuthContextValue>(
-    () => ({ ...state, login, logout, refreshAccess, refreshUser }),
-    [state, login, logout, refreshAccess, refreshUser],
+    () => ({ ...state, login, logout, refreshAccess, refreshUser, replaceUser }),
+    [state, login, logout, refreshAccess, refreshUser, replaceUser],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

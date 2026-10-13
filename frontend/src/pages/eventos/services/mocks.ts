@@ -2,7 +2,7 @@ import { delay, mockPage } from '@/api/mock-delay'
 import type { PagedRequest, PagedResult } from '@/api/types'
 import { AbcCity } from '@/pages/perfil/cities'
 import { MusicGenre } from '@/pages/perfil/genres'
-import { bandSummaries, people, picture } from '@/pages/perfil/services/mocks'
+import { bandSummaries, people, picture } from '@/api/mock-fixtures'
 
 import { EventStatus } from '../event-status'
 import type { EventCommentDto, EventDto, EventInputDto, EventListQuery } from './eventos-service'

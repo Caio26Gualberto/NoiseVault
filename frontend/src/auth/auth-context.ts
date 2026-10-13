@@ -17,6 +17,7 @@ export type AuthContextValue = AuthState & {
   logout: () => Promise<void>
   refreshAccess: () => Promise<void>
   refreshUser: () => Promise<void>
+  replaceUser: (user: ProfileDto) => void
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null)

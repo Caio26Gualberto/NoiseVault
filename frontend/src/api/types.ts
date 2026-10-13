@@ -1,3 +1,7 @@
+import type { AbcCity } from '@/pages/perfil/cities'
+import type { MusicGenre } from '@/pages/perfil/genres'
+import type { SocialLinksDto } from '@/pages/perfil/services/perfil-service'
+
 export type ApiEnvelope<T> = {
   isSuccess: boolean
   code: string
@@ -53,6 +57,14 @@ export type ProfileDto = {
   email: string
   role: string | null
   isNeededChangePassword: boolean
+  avatarUrl: string | null
+  bannerUrl: string | null
+  bannerPosition: number
+  bio: string | null
+  city: AbcCity | null
+  mainInstrument: string | null
+  genres: MusicGenre[]
+  socialLinks: SocialLinksDto
   createdAt: string
 }
 
