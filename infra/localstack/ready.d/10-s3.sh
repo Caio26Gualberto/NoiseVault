@@ -16,4 +16,23 @@ awslocal s3api put-bucket-policy --bucket "$BUCKET" --policy "{
   }]
 }"
 
+awslocal s3api put-bucket-cors --bucket "$BUCKET" --cors-configuration '{
+  "CORSRules": [{
+    "AllowedOrigins": ["http://localhost:5173"],
+    "AllowedMethods": ["GET", "PUT"],
+    "AllowedHeaders": ["*"],
+    "ExposeHeaders": ["ETag"],
+    "MaxAgeSeconds": 3000
+  }]
+}'
+
+awslocal s3api put-bucket-lifecycle-configuration --bucket "$BUCKET" --lifecycle-configuration '{
+  "Rules": [{
+    "ID": "abort-incomplete-multipart",
+    "Status": "Enabled",
+    "Filter": { "Prefix": "uploads/" },
+    "AbortIncompleteMultipartUpload": { "DaysAfterInitiation": 1 }
+  }]
+}'
+
 echo "noisevault: bucket $BUCKET pronto"
