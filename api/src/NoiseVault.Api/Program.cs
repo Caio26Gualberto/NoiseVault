@@ -34,6 +34,13 @@ builder.Services.AddHangfireServer(options =>
     options.Queues = new[] { "default" };
 });
 
+builder.Services.AddHangfireServer(options =>
+{
+    options.ServerName = "noisevault-media";
+    options.Queues = new[] { "media" };
+    options.WorkerCount = 2;
+});
+
 builder.Services.AddControllers(options =>
 {
     options.Filters.Add<PasswordChangeRequiredFilter>();

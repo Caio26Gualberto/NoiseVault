@@ -5,5 +5,6 @@ namespace NoiseVault.Application.Abstractions.Jobs
     public interface IEnqueuedJobDispatcher
     {
         string EnqueueBackgroundJobRun(int backgroundJobRunId, EBackgroundJobType jobType);
+        string EnqueueVideoTranscode(int mediaId);
     }
 }

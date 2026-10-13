@@ -1,6 +1,14 @@
 using NoiseVault.Application.Bands;
 using NoiseVault.Application.Bands.Interfaces;
 using NoiseVault.Infra.Data.Repositories.BandInvitations;
+using NoiseVault.Application.Media;
+using NoiseVault.Application.Media.Interfaces;
+using NoiseVault.Application.Posts;
+using NoiseVault.Application.Posts.Interfaces;
+using NoiseVault.Infra.Data.Repositories.Posts;
+using NoiseVault.Workers.Triggers.Enqueued.Media;
+using NoiseVault.Workers.Triggers.Recurring.Media;
+using NoiseVault.Workers.Wrappers.Recurring.Media;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -146,6 +154,11 @@ namespace NoiseVault.Infra.IoC
             services.AddScoped<IBandAppService, BandAppService>();
             services.AddScoped<IBandInvitationAppService, BandInvitationAppService>();
 
+            // Feed e mídia
+            services.AddScoped<IMediaUploadAppService, MediaUploadAppService>();
+            services.AddScoped<IPostAppService, PostAppService>();
+            services.AddScoped<ICommentAppService, CommentAppService>();
+
             // External services
             var emailSettings = EmailSettings.FromConfiguration(config);
             services.AddSingleton(emailSettings);
@@ -167,6 +180,9 @@ namespace NoiseVault.Infra.IoC
             services.AddScoped<IEnqueuedJobDispatcher, EnqueuedJobDispatcher>();
             services.AddScoped<IBackgroundJobAppService, BackgroundJobAppService>();
             services.AddScoped<BackgroundJobsEnqueuedTrigger>();
+            services.AddScoped<MediaEnqueuedJobsTrigger>();
+            services.AddScoped<MediaRecurringJobsTrigger>();
+            services.AddScoped<MediaRecurringJobsWrapper>();
 
             // Repositories
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
@@ -174,6 +190,7 @@ namespace NoiseVault.Infra.IoC
             services.AddScoped<IAuditLogRepository, AuditLogRepository>();
             services.AddScoped<IBackgroundJobRunRepository, BackgroundJobRunRepository>();
             services.AddScoped<IBandInvitationRepository, BandInvitationRepository>();
+            services.AddScoped<IPostRepository, PostRepository>();
 
             return services;
         }

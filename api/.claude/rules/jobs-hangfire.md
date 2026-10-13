@@ -17,7 +17,8 @@ Todo o código de jobs vive em `src/NoiseVault.Workers`, com **duas categorias s
 
 | Fila | Servidor | Quem roda ali |
 |---|---|---|
-| `default` | `noisevault-main` | ninguém de propósito — está na lista só para um job sem `[Queue]` não ficar invisível. Nenhuma fila de negócio existe ainda: o primeiro job cria a sua. |
+| `default` | `noisevault-main` | ninguém de propósito — está na lista só para um job sem `[Queue]` não ficar invisível. |
+| `media` | `noisevault-media` (`WorkerCount = 2`) | conversão de vídeo e `media:cleanup`. Servidor próprio porque ffmpeg é CPU pesada: no máximo 2 conversões ao mesmo tempo, sem ocupar os workers do principal. |
 
 🔴 **`[Queue]` é obrigatório em todo método de job.** O Hangfire enfileira em `default` qualquer método **sem** o atributo; se `default` não estiver na lista de nenhum servidor, o job fica `Enqueued` para sempre, sem erro, sem log. É a primeira coisa a conferir num job novo.
 
@@ -33,7 +34,7 @@ src/NoiseVault.Workers/
   Triggers/Recurring/{Domínio}/{Domínio}RecurringJobsTrigger.cs   ← método executado
 ```
 
-Referência: `Wrappers/Recurring/Items/ItemRecurringJobsWrapper.cs` + `Triggers/Recurring/Items/ItemRecurringJobsTrigger.cs` **do boilerplate** (`C:/Users/Administrador/Desktop/Boilerplate/api`) — este repositório ainda não tem job recorrente.
+Referência: `Wrappers/Recurring/Media/MediaRecurringJobsWrapper.cs` + `Triggers/Recurring/Media/MediaRecurringJobsTrigger.cs`. Enfileirado: `Triggers/Enqueued/Media/MediaEnqueuedJobsTrigger.cs`, disparado por `IEnqueuedJobDispatcher.EnqueueVideoTranscode`.
 
 - `recurringJobId` no formato `"<recurso>:<ação>"` (`items:archive-expired`).
 - `[Queue]` e `[JobDisplayName]` são **obrigatórios**. Sem display name o dashboard mostra `Classe.Método`.
@@ -46,7 +47,8 @@ Copiar `AutomaticRetry(3)` + `DisableConcurrentExecution(300)` em todo job produ
 
 | Job | Fila | Attempts / delays | Lock wait | Motivo |
 |---|---|---|---|---|
-| _(nenhum job ainda)_ | | | | Linha nova aqui no mesmo commit do primeiro job. Exemplos de perfis no boilerplate: varredura de conjunto `2 · 60, 600` com lock 30s; efeito colateral `3 · 30, 120, 600`; job com `BackgroundJobRun` `0`. |
+| `media:cleanup` (recorrente, de hora em hora) | `media` | `2 · 60, 600` | 30s | varredura de conjunto idempotente; a próxima hora pega o que sobrar |
+| `TranscodeVideoAsync(mediaId)` (enfileirado) | `media` | `2 · 60, 300`, `OnAttemptsExceeded = Fail` | — | falha transitória (S3, ffmpeg) merece nova tentativa; a **última** marca a mídia `Failed` em vez de relançar (o trigger lê `RetryCount` do `PerformContext`), senão o post ficaria "processando" para sempre. Rejeição definitiva (não é vídeo, longo demais) não relança. |
 
 ⚠️ **`DisableConcurrentExecution(timeoutInSeconds)` é o tempo de espera pelo lock distribuído, não um teto de duração.** Para job periódico o certo é estourar rápido (15–30s) e deixar o `[AutomaticRetry]` reagendar.
 

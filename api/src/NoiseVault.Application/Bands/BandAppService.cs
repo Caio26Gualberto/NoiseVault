@@ -6,6 +6,7 @@ using NoiseVault.Application.Bands.Dtos;
 using NoiseVault.Application.Bands.Interfaces;
 using NoiseVault.Application.Common.Media;
 using NoiseVault.Application.Interfaces;
+using NoiseVault.Application.Posts.Interfaces;
 using NoiseVault.Application.Profiles;
 using NoiseVault.Application.Profiles.Dtos;
 using NoiseVault.Application.PublicProfiles.Dtos;
@@ -23,6 +24,7 @@ namespace NoiseVault.Application.Bands
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUser _currentUser;
         private readonly IFileStorage _fileStorage;
+        private readonly IPostRepository _postRepository;
         private readonly ImageReplacement _images;
         private readonly IApplicationLogger _logger;
 
@@ -33,8 +35,10 @@ namespace NoiseVault.Application.Bands
             ICurrentUser currentUser,
             IFileStorage fileStorage,
             IImageProcessor imageProcessor,
+            IPostRepository postRepository,
             IApplicationLoggerFactory loggerFactory)
         {
+            _postRepository = postRepository;
             _bandRepository = bandRepository;
             _memberRepository = memberRepository;
             _unitOfWork = unitOfWork;
@@ -566,6 +570,7 @@ namespace NoiseVault.Application.Bands
                     JoinedAt = m.JoinedAt,
                 }).ToList(),
                 MyRole = members.FirstOrDefault(m => m.UserId == me)?.Role,
+                PostCount = await _postRepository.CountPublishedByBandAsync(band.Id),
             };
         }
 

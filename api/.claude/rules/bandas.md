@@ -21,7 +21,7 @@ Módulo 2 da ordem em `dominio.md`. Banda é entidade própria, **sem login**; q
   - **Expirado não é status**: é `Pending` com `ExpiresAt` no passado. Listas e transições filtram `ExpiresAt > agora`.
   - Antes de criar um convite novo para o mesmo par, os pendentes já vencidos viram `Revoked` (`RetireExpiredAsync`). Sem isso, o índice único travaria o reconvite.
 - `IsVerified` existe e aparece como selo, mas **não há ação para verificar** neste módulo. A permissão `Bands.Verify` e o endpoint de admin entram com a moderação (módulo 5). Até lá o selo é só dado.
-- **Seguir banda e contadores** (seguidores, posts, eventos) **não existem**. Seguir não está no domínio, e posts e eventos chegam nos módulos 3 e 4. O DTO não traz campo vazio "para o futuro".
+- **Seguir banda e contadores de seguidores e eventos** não existem. Seguir não está no domínio, e eventos chegam no módulo 4. `postCount` (posts publicados da banda) entrou com o módulo 3 (`feed.md`). O DTO não traz campo vazio "para o futuro".
 
 ## Slug: gerado uma vez, nunca muda
 

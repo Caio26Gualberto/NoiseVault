@@ -17,6 +17,8 @@ namespace NoiseVault.Infra.Data.Media
         private const int AvatarMinSize = 128;
         private const int BannerMaxWidth = 1600;
         private const int BannerMinWidth = 800;
+        private const int PostMaxSide = 2048;
+        private const int PostMinSide = 64;
 
         private static readonly Configuration DecodeConfiguration = new(
             new JpegConfigurationModule(),
@@ -74,6 +76,7 @@ namespace NoiseVault.Infra.Data.Media
         {
             EImagePreset.Avatar => image.Width < AvatarMinSize || image.Height < AvatarMinSize,
             EImagePreset.Banner => image.Width < BannerMinWidth,
+            EImagePreset.Post => image.Width < PostMinSide || image.Height < PostMinSide,
             _ => throw new ArgumentOutOfRangeException(nameof(preset), preset, "Preset de imagem desconhecido."),
         };
 
@@ -88,6 +91,11 @@ namespace NoiseVault.Infra.Data.Media
             EImagePreset.Banner => new ResizeOptions
             {
                 Size = new Size(Math.Min(image.Width, BannerMaxWidth), 0),
+                Mode = ResizeMode.Max,
+            },
+            EImagePreset.Post => new ResizeOptions
+            {
+                Size = new Size(Math.Min(image.Width, PostMaxSide), Math.Min(image.Height, PostMaxSide)),
                 Mode = ResizeMode.Max,
             },
             _ => throw new ArgumentOutOfRangeException(nameof(preset), preset, "Preset de imagem desconhecido."),

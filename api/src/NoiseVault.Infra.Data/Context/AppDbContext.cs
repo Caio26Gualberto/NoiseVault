@@ -25,6 +25,11 @@ namespace NoiseVault.Infra.Data.Context
         public DbSet<BandGenre> BandGenres => Set<BandGenre>();
         public DbSet<BandMember> BandMembers => Set<BandMember>();
         public DbSet<BandInvitation> BandInvitations => Set<BandInvitation>();
+        public DbSet<MediaUpload> MediaUploads => Set<MediaUpload>();
+        public DbSet<Post> Posts => Set<Post>();
+        public DbSet<PostMedia> PostMedia => Set<PostMedia>();
+        public DbSet<PostLike> PostLikes => Set<PostLike>();
+        public DbSet<Comment> Comments => Set<Comment>();
         public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
         public DbSet<AuthorizationAuditLog> AuthorizationAuditLogs => Set<AuthorizationAuditLog>();
         public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
@@ -171,6 +176,105 @@ namespace NoiseVault.Infra.Data.Context
                     .HasFilter(DatabaseProvider.ValueIndexFilter(this, nameof(BandInvitation.Status), (int)EBandInvitationStatus.Pending));
 
                 b.HasIndex(x => new { x.InvitedUserId, x.Status });
+            });
+
+            builder.Entity<MediaUpload>(b =>
+            {
+                b.ToTable("MediaUploads");
+                b.HasKey(x => x.Id);
+
+                b.Property(x => x.StorageKey).HasMaxLength(200);
+                b.Property(x => x.OriginalKey).HasMaxLength(200);
+                b.Property(x => x.MultipartUploadId).HasMaxLength(1024);
+                b.Property(x => x.PosterKey).HasMaxLength(200);
+                b.Property(x => x.FailureReason).HasMaxLength(60);
+
+                b.HasOne(x => x.Owner)
+                    .WithMany()
+                    .HasForeignKey(x => x.OwnerUserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasIndex(x => new { x.Status, x.ExpiresAt });
+                b.HasIndex(x => new { x.OwnerUserId, x.Status });
+            });
+
+            builder.Entity<Post>(b =>
+            {
+                b.ToTable("Posts");
+                b.HasKey(x => x.Id);
+
+                b.Property(x => x.Content).HasMaxLength(5000).IsRequired();
+
+                b.HasOne(x => x.Author)
+                    .WithMany()
+                    .HasForeignKey(x => x.AuthorUserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasOne(x => x.Band)
+                    .WithMany()
+                    .HasForeignKey(x => x.BandId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasIndex(x => x.PublishedAt);
+                b.HasIndex(x => new { x.AuthorUserId, x.PublishedAt });
+                b.HasIndex(x => new { x.BandId, x.PublishedAt });
+            });
+
+            builder.Entity<PostMedia>(b =>
+            {
+                b.ToTable("PostMedia");
+                b.HasKey(x => x.Id);
+
+                b.HasOne(x => x.Post)
+                    .WithMany(x => x.Media)
+                    .HasForeignKey(x => x.PostId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasOne(x => x.MediaUpload)
+                    .WithOne(x => x.Attachment)
+                    .HasForeignKey<PostMedia>(x => x.MediaUploadId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasIndex(x => x.MediaUploadId).IsUnique();
+                b.HasIndex(x => new { x.PostId, x.Order });
+            });
+
+            builder.Entity<PostLike>(b =>
+            {
+                b.ToTable("PostLikes");
+                b.HasKey(x => new { x.PostId, x.UserId });
+
+                b.HasOne<Post>()
+                    .WithMany(x => x.Likes)
+                    .HasForeignKey(x => x.PostId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasOne<User>()
+                    .WithMany()
+                    .HasForeignKey(x => x.UserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasIndex(x => x.UserId);
+            });
+
+            builder.Entity<Comment>(b =>
+            {
+                b.ToTable("Comments");
+                b.HasKey(x => x.Id);
+
+                b.Property(x => x.Text).HasMaxLength(2000).IsRequired();
+
+                b.HasOne(x => x.Post)
+                    .WithMany(x => x.Comments)
+                    .HasForeignKey(x => x.PostId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasOne(x => x.Author)
+                    .WithMany()
+                    .HasForeignKey(x => x.AuthorUserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasIndex(x => new { x.PostId, x.CreatedAt });
             });
 
             builder.Entity<ApplicationUser>(b =>

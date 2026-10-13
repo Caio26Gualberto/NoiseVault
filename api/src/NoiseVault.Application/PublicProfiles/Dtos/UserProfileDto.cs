@@ -19,5 +19,6 @@ namespace NoiseVault.Application.PublicProfiles.Dtos
         public SocialLinksDto SocialLinks { get; set; } = new();
         public DateTime MemberSince { get; set; }
         public List<BandSummaryDto> Bands { get; set; } = [];
+        public int PostCount { get; set; }
     }
 }

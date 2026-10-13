@@ -4,5 +4,6 @@ namespace NoiseVault.Application.Common.Media
     {
         Avatar = 0,
         Banner = 1,
+        Post = 2,
     }
 }

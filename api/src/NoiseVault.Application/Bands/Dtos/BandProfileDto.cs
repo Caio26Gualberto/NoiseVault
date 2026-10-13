@@ -20,5 +20,6 @@ namespace NoiseVault.Application.Bands.Dtos
         public SocialLinksDto SocialLinks { get; set; } = new();
         public List<BandMemberDto> Members { get; set; } = [];
         public EBandMemberRole? MyRole { get; set; }
+        public int PostCount { get; set; }
     }
 }

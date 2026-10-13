@@ -1,0 +1,354 @@
+using NoiseVault.Application.Abstractions.Authentication;
+using NoiseVault.Application.Abstractions.Logging;
+using NoiseVault.Application.Abstractions.Repository;
+using NoiseVault.Application.Abstractions.Repository.UnitOfWork;
+using NoiseVault.Application.Bands.Interfaces;
+using NoiseVault.Application.Interfaces;
+using NoiseVault.Application.Media.Interfaces;
+using NoiseVault.Application.Pagination;
+using NoiseVault.Application.Posts.Dtos;
+using NoiseVault.Application.Posts.Interfaces;
+using NoiseVault.Application.Posts.Models;
+using NoiseVault.Application.PublicProfiles.Dtos;
+using NoiseVault.Application.PublicProfiles.Interfaces;
+using NoiseVault.Application.Response;
+using NoiseVault.Domain.Entities;
+using NoiseVault.Domain.Enums.Bands;
+using NoiseVault.Domain.Enums.Media;
+using NoiseVault.Domain.Enums.Posts;
+
+namespace NoiseVault.Application.Posts
+{
+    public class PostAppService : IPostAppService
+    {
+        private readonly IPostRepository _postRepository;
+        private readonly IRepository<PostMedia> _postMediaRepository;
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly ICurrentUser _currentUser;
+        private readonly IBandAppService _bandAppService;
+        private readonly IPublicProfileAppService _publicProfileAppService;
+        private readonly IMediaUploadAppService _mediaAppService;
+        private readonly IFileStorage _fileStorage;
+        private readonly IApplicationLogger _logger;
+
+        public PostAppService(
+            IPostRepository postRepository,
+            IRepository<PostMedia> postMediaRepository,
+            IUnitOfWork unitOfWork,
+            ICurrentUser currentUser,
+            IBandAppService bandAppService,
+            IPublicProfileAppService publicProfileAppService,
+            IMediaUploadAppService mediaAppService,
+            IFileStorage fileStorage,
+            IApplicationLoggerFactory loggerFactory)
+        {
+            _postRepository = postRepository;
+            _postMediaRepository = postMediaRepository;
+            _unitOfWork = unitOfWork;
+            _currentUser = currentUser;
+            _bandAppService = bandAppService;
+            _publicProfileAppService = publicProfileAppService;
+            _mediaAppService = mediaAppService;
+            _fileStorage = fileStorage;
+            _logger = loggerFactory.Create(LogContext.Posts);
+        }
+
+        public Task<Result<PagedResultDto<PostDto>>> Feed(PagedRequestDto query) =>
+            PageAsync(PostScope.Everyone, query);
+
+        public async Task<Result<PagedResultDto<PostDto>>> ByUser(string nickname, PagedRequestDto query)
+        {
+            var userId = await _publicProfileAppService.FindUserId(nickname);
+
+            if (userId == null)
+                return Result<PagedResultDto<PostDto>>.Fail(new Error("PROFILE_NOT_FOUND", "Profile not found", ErrorType.NotFound));
+
+            return await PageAsync(new PostScope(AuthorUserId: userId), query);
+        }
+
+        public async Task<Result<PagedResultDto<PostDto>>> ByBand(string slug, PagedRequestDto query)
+        {
+            var (bandId, _) = await _bandAppService.FindAccess(slug);
+
+            if (bandId == null)
+                return Result<PagedResultDto<PostDto>>.Fail(new Error("BAND_NOT_FOUND", "Band not found", ErrorType.NotFound));
+
+            return await PageAsync(new PostScope(BandId: bandId), query);
+        }
+
+        public async Task<Result<PostDto>> Get(int id)
+        {
+            var post = await FindVisible(id);
+
+            return post == null
+                ? Result<PostDto>.Fail(PostNotFound())
+                : Result<PostDto>.Ok(await MapOneAsync(post), "POST_FOUND", "Post found");
+        }
+
+        public async Task<Result<PostDto>> Create(CreatePostInputDto input)
+        {
+            _logger.SetOperation("CreatePost");
+
+            var content = PostRules.NormalizeText(input.Content);
+
+            if (content.Length > PostRules.ContentMaxLength)
+                return Fail(Invalid("INVALID_POST_CONTENT", $"Post text must have at most {PostRules.ContentMaxLength} characters"));
+
+            var mediaIds = (input.MediaIds ?? []).Distinct().ToList();
+
+            if (content.Length == 0 && mediaIds.Count == 0)
+                return Fail(Invalid("POST_EMPTY", "Write something or attach a photo or video"));
+
+            if (mediaIds.Count > PostRules.MaxMediaPerPost)
+                return Fail(TooManyPhotos());
+
+            int? bandId = null;
+
+            if (!string.IsNullOrWhiteSpace(input.BandSlug))
+            {
+                var (foundBandId, role) = await _bandAppService.FindAccess(input.BandSlug);
+
+                if (foundBandId == null)
+                    return Fail(new Error("BAND_NOT_FOUND", "Band not found", ErrorType.NotFound));
+
+                if (role == null)
+                    return Fail(new Error("NOT_BAND_MEMBER", "Only band members can post as the band", ErrorType.Forbidden));
+
+                bandId = foundBandId;
+            }
+
+            var me = _currentUser.UserId;
+            var media = await _mediaAppService.ListAttachable(mediaIds, me);
+
+            if (media.Count != mediaIds.Count)
+                return Fail(new Error("MEDIA_NOT_ATTACHABLE", "Some attachments are not available anymore; upload them again", ErrorType.Conflict));
+
+            if (media.Count(m => m.Kind == EMediaKind.Photo) > PostRules.MaxPhotosPerPost)
+                return Fail(TooManyPhotos());
+
+            if (media.Count(m => m.Kind == EMediaKind.Video) > PostRules.MaxVideosPerPost)
+                return Fail(Invalid("TOO_MANY_VIDEOS", $"A post can have at most {PostRules.MaxVideosPerPost} video"));
+
+            var allReady = media.All(m => m.Status == EMediaStatus.Ready);
+
+            var post = new Post
+            {
+                AuthorUserId = me,
+                BandId = bandId,
+                Content = content,
+                PublishedAt = allReady ? DateTime.UtcNow : null,
+            };
+
+            await _unitOfWork.BeginTransactionAsync();
+
+            try
+            {
+                await _postRepository.AddAsync(post);
+
+                if (mediaIds.Count > 0)
+                    await _postMediaRepository.AddRangeAsync(mediaIds
+                        .Select((mediaId, index) => new PostMedia { PostId = post.Id, MediaUploadId = mediaId, Order = index })
+                        .ToList());
+
+                await _unitOfWork.CommitAsync();
+            }
+            catch
+            {
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+
+            var published = allReady || await _postRepository.TryPublishAsync(post.Id, DateTime.UtcNow);
+
+            _logger.Info("POST_CREATED", "Post created", userId: me, extra: new { PostId = post.Id, BandId = bandId, Media = mediaIds.Count, Published = published });
+
+            var created = await FindVisible(post.Id);
+
+            return Result<PostDto>.Ok(await MapOneAsync(created!), "POST_CREATED", published ? "Post published" : "Post created; it is published when the video is ready");
+        }
+
+        public async Task<Result<PostDto>> Update(int id, UpdatePostInputDto input)
+        {
+            _logger.SetOperation("UpdatePost");
+
+            var content = PostRules.NormalizeText(input.Content);
+
+            if (content.Length > PostRules.ContentMaxLength)
+                return Fail(Invalid("INVALID_POST_CONTENT", $"Post text must have at most {PostRules.ContentMaxLength} characters"));
+
+            var me = _currentUser.UserId;
+
+            var post = await _postRepository.FirstOrDefaultAsync(new QueryOptions<Post>
+            {
+                Predicate = p => p.Id == id && p.AuthorUserId == me,
+                Includes = [p => p.Media],
+            });
+
+            if (post == null)
+                return Fail(await DeniedAsync(id));
+
+            if (content.Length == 0 && post.Media.Count == 0)
+                return Fail(Invalid("POST_EMPTY", "Write something or attach a photo or video"));
+
+            if (content != post.Content)
+            {
+                post.Content = content;
+                post.EditedAt = DateTime.UtcNow;
+                await _postRepository.UpdateAsync(post);
+
+                _logger.Info("POST_UPDATED", "Post text edited", userId: me, extra: new { PostId = post.Id });
+            }
+
+            return Result<PostDto>.Ok(await MapOneAsync((await FindVisible(id))!), "POST_UPDATED", "Post updated");
+        }
+
+        public async Task<Result> Delete(int id)
+        {
+            _logger.SetOperation("DeletePost");
+
+            var me = _currentUser.UserId;
+
+            var post = await _postRepository.FirstOrDefaultAsync(new QueryOptions<Post>
+            {
+                Predicate = p => p.Id == id
+                    && (p.AuthorUserId == me
+                        || (p.BandId != null && p.Band!.Members.Any(m => m.UserId == me && m.Role == EBandMemberRole.Owner))),
+            });
+
+            if (post == null)
+                return Result.Fail(await DeniedAsync(id));
+
+            await _postRepository.SoftDelete(post);
+
+            var media = await _postMediaRepository.ListAsync(new QueryOptions<PostMedia>
+            {
+                Predicate = pm => pm.PostId == id,
+                Includes = [pm => pm.MediaUpload!],
+                AsNoTracking = true,
+            });
+
+            await _mediaAppService.DeleteStoredFiles(media.Select(pm => pm.MediaUpload!).ToList());
+
+            _logger.Info("POST_DELETED", "Post deleted", userId: me, extra: new { PostId = id, post.BandId, ByBandOwner = post.AuthorUserId != me });
+
+            return Result.Ok("POST_DELETED", "Post deleted");
+        }
+
+        public Task<Result<PostDto>> Like(int id) => ReactAsync(id, like: true);
+
+        public Task<Result<PostDto>> Unlike(int id) => ReactAsync(id, like: false);
+
+        public Task<PostReadModel?> FindVisible(int postId) =>
+            _postRepository.FindVisibleAsync(postId, _currentUser.UserId);
+
+        public async Task ProcessVideo(int mediaUploadId, bool finalAttempt)
+        {
+            var status = await _mediaAppService.ProcessVideo(mediaUploadId, finalAttempt);
+
+            if (status != EMediaStatus.Ready)
+                return;
+
+            foreach (var postId in await _postRepository.PendingPostIdsWithMediaAsync(mediaUploadId))
+            {
+                if (await _postRepository.TryPublishAsync(postId, DateTime.UtcNow))
+                    _logger.Info("POST_PUBLISHED", "Post published after its video was processed", extra: new { PostId = postId, MediaId = mediaUploadId });
+            }
+        }
+
+        private async Task<Result<PostDto>> ReactAsync(int id, bool like)
+        {
+            var me = _currentUser.UserId;
+            var post = await FindVisible(id);
+
+            if (post == null)
+                return Fail(PostNotFound());
+
+            if (post.PublishedAt == null)
+                return Fail(new Error("POST_NOT_PUBLISHED", "This post is still being processed", ErrorType.Conflict));
+
+            if (like)
+                await _postRepository.AddLikeAsync(id, me);
+            else
+                await _postRepository.RemoveLikeAsync(id, me);
+
+            return Result<PostDto>.Ok(
+                await MapOneAsync((await FindVisible(id))!),
+                like ? "POST_LIKED" : "POST_UNLIKED",
+                like ? "Post liked" : "Like removed");
+        }
+
+        private async Task<Result<PagedResultDto<PostDto>>> PageAsync(PostScope scope, PagedRequestDto query)
+        {
+            query.Normalize();
+
+            var (rows, totalCount) = await _postRepository.PageVisibleAsync(scope, _currentUser.UserId, query.Skip, query.PageSize);
+
+            return Result<PagedResultDto<PostDto>>.Ok(
+                PagedResultDto<PostDto>.Create(await MapAsync(rows), query.Page, query.PageSize, totalCount),
+                "POSTS_FOUND",
+                "Posts found");
+        }
+
+        private async Task<Error> DeniedAsync(int id) =>
+            await FindVisible(id) == null
+                ? PostNotFound()
+                : new Error("POST_FORBIDDEN", "Only the author can do this", ErrorType.Forbidden);
+
+        private async Task<PostDto> MapOneAsync(PostReadModel post) => (await MapAsync([post]))[0];
+
+        private async Task<List<PostDto>> MapAsync(List<PostReadModel> rows)
+        {
+            if (rows.Count == 0)
+                return [];
+
+            var postIds = rows.Select(r => r.Id).ToList();
+            var bandIds = rows.Where(r => r.BandId != null).Select(r => r.BandId!.Value).Distinct().ToList();
+
+            var bands = await _bandAppService.SummariesByIds(bandIds);
+
+            var media = (await _postMediaRepository.ListAsync(new QueryOptions<PostMedia>
+            {
+                Predicate = pm => postIds.Contains(pm.PostId),
+                Includes = [pm => pm.MediaUpload!],
+                OrderBy = q => q.OrderBy(pm => pm.PostId).ThenBy(pm => pm.Order),
+                AsNoTracking = true,
+            })).ToLookup(pm => pm.PostId);
+
+            var me = _currentUser.UserId;
+
+            return rows.Select(r => new PostDto
+            {
+                Id = r.Id,
+                Author = new ProfileSummaryDto
+                {
+                    Id = r.AuthorUserId,
+                    Name = r.AuthorName,
+                    Nickname = r.AuthorNickname,
+                    AvatarUrl = _fileStorage.PublicUrl(r.AuthorAvatarKey),
+                },
+                Band = r.BandId != null && bands.TryGetValue(r.BandId.Value, out var band) ? band : null,
+                Content = r.Content,
+                Media = media[r.Id].Select(pm => _mediaAppService.Describe(pm.MediaUpload!)).ToList(),
+                LikeCount = r.LikeCount,
+                CommentCount = r.CommentCount,
+                LikedByMe = r.LikedByMe,
+                Status = r.PublishedAt != null
+                    ? EPostStatus.Published
+                    : r.HasFailedMedia ? EPostStatus.Failed : EPostStatus.Processing,
+                CreatedAt = r.PublishedAt ?? r.CreatedAt,
+                EditedAt = r.EditedAt,
+                CanEdit = r.AuthorUserId == me,
+                CanDelete = r.AuthorUserId == me || r.ViewerOwnsBand,
+            }).ToList();
+        }
+
+        private static Result<PostDto> Fail(Error error) => Result<PostDto>.Fail(error);
+
+        private static Error Invalid(string code, string message) => new(code, message, ErrorType.Validation);
+
+        private static Error TooManyPhotos() =>
+            Invalid("TOO_MANY_PHOTOS", $"A post can have at most {PostRules.MaxPhotosPerPost} photos and {PostRules.MaxVideosPerPost} video");
+
+        private static Error PostNotFound() => new("POST_NOT_FOUND", "Post not found", ErrorType.NotFound);
+    }
+}

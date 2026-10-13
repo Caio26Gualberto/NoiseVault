@@ -3,7 +3,7 @@ using NoiseVault.Application.Response;
 
 namespace NoiseVault.Application.Common.Media
 {
-    public sealed record ImageUpload(string? Key, Error? Error)
+    public sealed record ImageUpload(string? Key, Error? Error, int Width = 0, int Height = 0)
     {
         public bool Succeeded => Key is not null;
     }
@@ -42,7 +42,7 @@ namespace NoiseVault.Application.Common.Media
             if (!await _fileStorage.PutAsync(key, image.Content, image.ContentType, cancellationToken))
                 return new ImageUpload(null, new Error("STORAGE_UNAVAILABLE", "File storage is unavailable, try again later", ErrorType.Unexpected));
 
-            return new ImageUpload(key, null);
+            return new ImageUpload(key, null, image.Width, image.Height);
         }
 
         public async Task SaveAsync(string newKey, string? oldKey, Func<Task> persist)

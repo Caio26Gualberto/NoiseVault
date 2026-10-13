@@ -4,11 +4,13 @@ namespace NoiseVault.Application.Common.Media
     {
         public const long AvatarMaxBytes = 5 * 1024 * 1024;
         public const long BannerMaxBytes = 10 * 1024 * 1024;
+        public const long PostMaxBytes = 15 * 1024 * 1024;
 
         public static long MaxBytes(EImagePreset preset) => preset switch
         {
             EImagePreset.Avatar => AvatarMaxBytes,
             EImagePreset.Banner => BannerMaxBytes,
+            EImagePreset.Post => PostMaxBytes,
             _ => throw new ArgumentOutOfRangeException(nameof(preset), preset, "Preset de imagem desconhecido."),
         };
     }

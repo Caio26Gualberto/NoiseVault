@@ -3,6 +3,7 @@ using NoiseVault.Application.Auth;
 using NoiseVault.Application.Bands.Interfaces;
 using NoiseVault.Application.Interfaces;
 using NoiseVault.Application.Pagination;
+using NoiseVault.Application.Posts.Interfaces;
 using NoiseVault.Application.Profiles.Dtos;
 using NoiseVault.Application.PublicProfiles.Dtos;
 using NoiseVault.Application.PublicProfiles.Interfaces;
@@ -18,9 +19,11 @@ namespace NoiseVault.Application.PublicProfiles
         private readonly IRepository<User> _userRepository;
         private readonly IFileStorage _fileStorage;
         private readonly IBandAppService _bandAppService;
+        private readonly IPostRepository _postRepository;
 
-        public PublicProfileAppService(IRepository<User> userRepository, IFileStorage fileStorage, IBandAppService bandAppService)
+        public PublicProfileAppService(IRepository<User> userRepository, IFileStorage fileStorage, IBandAppService bandAppService, IPostRepository postRepository)
         {
+            _postRepository = postRepository;
             _userRepository = userRepository;
             _fileStorage = fileStorage;
             _bandAppService = bandAppService;
@@ -60,7 +63,21 @@ namespace NoiseVault.Application.PublicProfiles
                 },
                 MemberSince = user.CreatedAt,
                 Bands = await _bandAppService.ListSummariesForUser(user.Id),
+                PostCount = await _postRepository.CountPublishedByAuthorAsync(user.Id),
             }, "USER_PROFILE_FOUND", "Profile found");
+        }
+
+        public async Task<int?> FindUserId(string nickname)
+        {
+            var normalized = NicknameRules.Normalize(nickname);
+
+            var user = await _userRepository.FirstOrDefaultAsync(new QueryOptions<User>
+            {
+                Predicate = u => u.Nickname == normalized && u.IsActive,
+                AsNoTracking = true,
+            });
+
+            return user?.Id;
         }
 
         public async Task<Result<PagedResultDto<ProfileSummaryDto>>> Search(UserSearchQueryDto query)

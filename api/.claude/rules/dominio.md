@@ -22,7 +22,7 @@ No legado, uma banda era um `User` disfarçado: registro próprio, e-mail própr
 
 `Post`, `Photo`, `Video`, `Event` e `Comment` têm `AuthorUserId` (FK `Restrict`). Conteúdo "da banda" é conteúdo de um membro **marcado** com `BandId` opcional — é assim que o perfil da banda lista posts sem a banda ter conta.
 
-- **`Post`** (`Content`, `BandId?`) com `PostMedia` (ordem, tipo foto/vídeo, `StorageKey`, dimensões). Likes em **`PostLike (PostId, UserId)`** com índice único — nada de `Like` polimórfico sem FK como no legado. Comentário tem **um** pai: `Comment.PostId` obrigatório. Se evento ou foto ganharem comentários, cada um ganha a sua tabela (`EventComment`), não quatro FKs nulas na mesma.
+- **`Post`** (`Content`, `BandId?`, `PublishedAt?`, `EditedAt?`) com `PostMedia (PostId, MediaUploadId, Order)`. A mídia vive antes do post como `MediaUpload` (tipo, estado, chave, dimensões, duração), porque o vídeo converte em segundo plano e precisa existir com estado antes de ser anexado (`midia-e-video.md`). É a mudança do módulo 3 em relação ao `StorageKey` em `PostMedia` que estava previsto aqui. Likes em **`PostLike (PostId, UserId)`** com índice único — nada de `Like` polimórfico sem FK como no legado. Comentário tem **um** pai: `Comment.PostId` obrigatório. Se evento ou foto ganharem comentários, cada um ganha a sua tabela (`EventComment`), não quatro FKs nulas na mesma.
 - **`Photo`** (galeria) e **`Video`** (YouTube, só `YoutubeId` + título/descrição) passam por **moderação**: `ModerationStatus: Pending | Approved | Rejected`, `ModeratedByUserId?`, `ModeratedAt?`, `RejectionReason?`. A fila de moderação é `WHERE Status = Pending`, e aprovar/rejeitar é `ExecuteUpdateAsync` condicional. Rejeitar **registra o motivo** — o legado descartava.
 - **`Event`** (`Title`, `Description`, `StartsAt`, `EndsAt?`, `Venue`, `City`, `Genres`, `TicketsUrl?`, `Price?`, `Capacity?`, `BannerKey?`, `BannerPosition?`, `Status: Draft | Published | Cancelled`) com `EventBand (EventId, BandId)` para o line-up. Não há "aprovação" de evento: quem publica é dono; moderação, se vier, é denúncia.
 - **`Notification`** (`UserId`, `Type: Simple | Banner | Popup | BandInvite`, `Title`, `Message`, `Link?`, `ImageKey?`, `ReadAt?`, `BandInvitationId?`): o tipo `BandInvite` aponta para a `BandInvitation` por FK, e aceitar/recusar age na invitation, não na notificação.
@@ -42,7 +42,7 @@ Enum sai para o cliente como **número** (padrão dos projetos de referência); 
 |---|---|---|---|
 | 1 ✅ | Perfil e mídia | campos de perfil na `User`, `UserGenre`, upload de avatar/capa em S3 com URL pública (`armazenamento.md`) | `/perfil/:nickname` (pessoa), `/minha-conta`, busca da topbar |
 | 2 ✅ | Bandas e convites | `Band`, `BandMember`, `BandInvitation`, `BandGenre` | `/bandas/:slug`, convites em `/notificacoes` |
-| 3 | Feed | `Post`, `PostMedia`, `PostLike`, `Comment` | `/feed`, `/feed/:id`, rail de "próximos eventos" só depois do 4 |
+| 3 ✅ | Feed | `Post`, `PostMedia`, `MediaUpload`, `PostLike`, `Comment` (`feed.md`, `midia-e-video.md`) | `/feed`, `/feed/:id`, rail de "próximos eventos" só depois do 4 |
 | 4 | Eventos | `Event`, `EventBand`, `EventGenre` | `/eventos`, `/eventos/:id`, `/eventos/novo`, `/eventos/:id/editar` |
 | 5 | Galeria e moderação | `Photo`, `Video`, permissões `Moderation.*` | `/videos`, `/fotos`, `/admin/moderacao` |
 | 6 | Notificações | `Notification` | `/notificacoes`, sino do topbar |
@@ -54,4 +54,4 @@ A ordem segue dependência: feed e eventos mostram autor e banda, logo perfil e 
 
 - **Login social**: cada provedor é um fluxo próprio no `AuthAppService`; entra quando houver demanda real, não como "já que estamos aqui".
 - **Podcasts** e **loja parceira**: páginas estáticas no front, sem entidade.
-- **SignalR para progresso de upload**: o legado usava para uma barra de progresso; o módulo de mídia resolve com upload direto para o storage (URL pré-assinada) e o progresso fica no cliente.
+- **SignalR para progresso de upload**: o legado usava para uma barra de progresso; o módulo 3 resolveu com upload multipart direto para o storage (URL pré-assinada) e o progresso fica no cliente. O estado da conversão o cliente consulta por polling (`GET /api/posts/{id}` a cada 5 s, só no post do próprio autor).

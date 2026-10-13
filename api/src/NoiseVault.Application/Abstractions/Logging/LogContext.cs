@@ -9,6 +9,8 @@ namespace NoiseVault.Application.Abstractions.Logging
         Email,
         Storage,
         Profiles,
-        Bands
+        Bands,
+        Posts,
+        Media
     }
 }

@@ -4,7 +4,7 @@
 
 **Noise Vault** — API da cena do ABC Paulista (metal, punk, hardcore e afins): feed de posts, galeria de vídeos e fotos com moderação, eventos, perfis de pessoas e de bandas. Os usuários são fãs e músicos da região; o painel admin é a mesma API com permissão. Reescrita do zero do projeto legado "NewLevel", que não serve de referência de código — só de inventário de funcionalidades.
 
-**Estado da entrega atual:** existem de verdade o módulo **Auth** (registro com confirmação de e-mail, login, refresh, logout, esqueci/redefinir senha, troca de senha), o módulo **Perfil e mídia** (campos do perfil, avatar e capa no S3, perfil público, busca de pessoas — `perfil-e-midia.md`, `armazenamento.md`) e o módulo **Bandas e convites** (criar e editar banda, integrantes, convites com aceite atômico — `bandas.md`). Feed, mídia, eventos, notificações e moderação são mock no frontend e entram módulo a módulo — o mapa e a ordem estão em `.claude/rules/dominio.md`. Fora de escopo: loja, podcasts, app nativo, login social.
+**Estado da entrega atual:** existem de verdade o módulo **Auth** (registro com confirmação de e-mail, login, refresh, logout, esqueci/redefinir senha, troca de senha), o módulo **Perfil e mídia** (campos do perfil, avatar e capa no S3, perfil público, busca de pessoas — `perfil-e-midia.md`, `armazenamento.md`), o módulo **Bandas e convites** (criar e editar banda, integrantes, convites com aceite atômico — `bandas.md`) e o módulo **Feed** (posts de pessoa e de banda, fotos, vídeo com upload multipart direto ao S3 e conversão por ffmpeg num job, curtidas, comentários — `feed.md`, `midia-e-video.md`). Eventos, galeria, notificações e moderação são mock no frontend e entram módulo a módulo — o mapa e a ordem estão em `.claude/rules/dominio.md`. Fora de escopo: loja, podcasts, app nativo, login social.
 
 ## Como trabalhar neste repositório
 
@@ -18,6 +18,8 @@ As **decisões** — o porquê de cada regra — vivem em `.claude/rules/`, um a
 | `.claude/rules/dominio.md` | o modelo da comunidade (pessoa, banda, integrante, convite, conteúdo, moderação), enums herdados e a ordem dos módulos |
 | `.claude/rules/perfil-e-midia.md` | campos do perfil, edição, avatar e capa, perfil público, busca de pessoas |
 | `.claude/rules/bandas.md` | banda sem login, slug imutável, quem é Owner, convite com estado e aceite atômico, endpoints, limites |
+| `.claude/rules/feed.md` | post de pessoa e de banda, visibilidade do post em processamento, quem edita e apaga, curtida, comentário, contadores |
+| `.claude/rules/midia-e-video.md` | `MediaUpload`, foto de post, vídeo em multipart pré-assinado, conversão ffmpeg no Hangfire, limpeza, CORS/lifecycle do bucket, plano do MediaConvert em produção |
 | `.claude/rules/armazenamento.md` | S3 (LocalStack em dev, CloudFront em produção), processamento de imagem, chaves, ordem sobe-grava-apaga |
 | `.claude/rules/email.md` | as duas camadas de e-mail, Mailpit em dev, SMTP via MailKit, links, o que nunca vai para o log |
 | `.claude/rules/auditoria.md` | as duas trilhas, o interceptor global, política de dados sensíveis |
@@ -335,7 +337,8 @@ Sem projeto de teste: verificação é por execução real.
 - Logging é `IApplicationLoggerFactory`, não `ILogger<T>` — e o contexto viaja pelo `ILogContextStore` Scoped, não por `BeginScope`.
 - O login devolve o token em `data.tokens.token`. O `frontend` é a comunidade, não um painel: qualquer `User` entra; `Admin.Access` só abre as telas de administração.
 - `Hangfire` enfileira em `default` qualquer método sem `[Queue]`, e a fila `default` está na lista do servidor só para isso não ficar invisível — mesmo assim, job novo declara a fila.
-- `EBackgroundJobType` está **vazio** e `EnqueuedJobDispatcher` só tem o arm `_ => throw`: a infraestrutura de jobs ficou, o primeiro job de negócio ainda não existe. Ao criar o primeiro, seguir `jobs-hangfire.md`.
+- ~~Nenhum job de negócio existia~~: o módulo 3 criou os primeiros (`media:cleanup` recorrente e a conversão de vídeo enfileirada, `jobs-hangfire.md`). `EBackgroundJobType` continua vazio: a conversão usa um método próprio no `IEnqueuedJobDispatcher` (`EnqueueVideoTranscode`), não a linha de status `BackgroundJobRun`.
+- A conversão de vídeo chama o `ffmpeg` do PATH. Visual Studio ou terminal abertos antes de instalar não enxergam o PATH novo: reinicie, ou passe `Video__FfmpegPath` e `Video__FfprobePath`.
 - A colação `case_insensitive` de `Users.Email` é não determinística: Postgres recusa `LIKE`/`Contains` nela. Busca textual é por `Name`/`Nickname` (colação default); e-mail só por igualdade.
 - O pacote transitivo `Newtonsoft.Json 11.0.1` (via Hangfire) dispara `NU1903` no build. Aviso, não erro; herdado do boilerplate e pendente de bump.
 - Os tokens de confirmação de e-mail e de redefinição de senha dependem das chaves do Data Protection. Em container sem volume, reiniciar a API invalida todo link pendente — `PersistKeysToDbContext` antes do primeiro deploy (`auth-e-contas.md`).

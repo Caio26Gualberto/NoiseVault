@@ -9,7 +9,7 @@ paths:
 
 # Decisões — Armazenamento de arquivos e imagens
 
-Todo arquivo que a comunidade envia (avatar e capa hoje; fotos de galeria, banner de evento e mídia de post depois) passa por aqui. O ambiente de produção é **AWS**: S3 para guardar, CloudFront para servir. Em dev, o **LocalStack** emula o S3 no docker-compose.
+Todo arquivo que a comunidade envia (avatar, capa e mídia de post hoje; fotos de galeria e banner de evento depois) passa por aqui. O ambiente de produção é **AWS**: S3 para guardar, CloudFront para servir. Em dev, o **LocalStack** emula o S3 no docker-compose.
 
 ## Duas camadas: o que fazer com a imagem e onde guardar
 
@@ -32,7 +32,7 @@ Todo arquivo que a comunidade envia (avatar e capa hoje; fotos de galeria, banne
 
 ## Chaves: previsíveis no prefixo, imprevisíveis no nome
 
-`users/{userId}/avatar/{guid}.webp`, `users/{userId}/banner/{guid}.webp`, `bands/{bandId}/avatar/{guid}.webp` e `bands/{bandId}/banner/{guid}.webp`. O prefixo por dono facilita limpeza e auditoria; o GUID impede adivinhar a URL de uma imagem antes de ela ser publicada e garante que **trocar a imagem troca a URL** — cache de CDN e de navegador nunca serve a imagem velha, então não existe invalidação.
+`users/{userId}/avatar/{guid}.webp`, `users/{userId}/banner/{guid}.webp`, `bands/{bandId}/avatar/{guid}.webp`, `bands/{bandId}/banner/{guid}.webp`, `users/{userId}/photos/{guid}.webp` (foto de post) e `users/{userId}/videos/{guid}/video.mp4` + `poster.webp` (vídeo convertido). O original do vídeo fica em `uploads/users/{userId}/{guid}` só até a conversão, e é o único prefixo com regra de lifecycle (`midia-e-video.md`). O prefixo por dono facilita limpeza e auditoria; o GUID impede adivinhar a URL de uma imagem antes de ela ser publicada e garante que **trocar a imagem troca a URL** — cache de CDN e de navegador nunca serve a imagem velha, então não existe invalidação.
 
 O legado montava `avatars/{id}{guid}` sem separador nem extensão e usava título digitado pelo usuário na chave de foto. Nada disso volta: chave nunca contém texto do usuário.
 
@@ -57,6 +57,7 @@ Avatar e capa são públicos por natureza. A URL é `{Storage:PublicBaseUrl}/{ke
 - `docker-compose.yml` sobe `localstack/localstack:4.14.0` (versão fixada) com `SERVICES=s3`, porta 4566. O init hook `infra/localstack/ready.d/10-s3.sh` cria o bucket `noisevault-media` com política de leitura pública a cada boot (idempotente).
 - A versão fixada (4.14.0, fevereiro/2026) **sobe sem token**. As imagens mais novas passaram a exigir um token gratuito: o compose já repassa `LOCALSTACK_AUTH_TOKEN` do `.env` da raiz (fora do Git; `.env.example` mostra a forma), vazio por padrão. Ao subir a versão, criar a conta e preencher o token — o README explica.
 - A API usa o mesmo `AWSSDK.S3` da produção: em dev `Storage:ServiceUrl` (`http://localhost:4566`) liga `ForcePathStyle` e as credenciais `test`/`test` do `appsettings.Development.json` (não são segredo). Em produção `ServiceUrl` fica vazio e as credenciais vêm da **cadeia padrão da AWS** (IAM role da task) — nenhuma chave em configuração.
+- **Escrita direta pelo navegador** existe só para vídeo: `PUT` de parte por URL pré-assinada (`IFileStorage.StartMultipartAsync`, `PresignPartUrl`, `CompleteMultipartAsync`, `AbortMultipartAsync`), com CORS e lifecycle no bucket (`midia-e-video.md`). A leitura continua pública e fixa.
 - SES, SQS e outros serviços ficam de fora até terem um caso real (o e-mail continua no Mailpit, ver `email.md`).
 
 ## Licença do ImageSharp

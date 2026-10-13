@@ -19,6 +19,9 @@ namespace NoiseVault.Infra.Data.Storage
             services.AddScoped<IFileStorage, S3FileStorage>();
             services.AddScoped<IImageProcessor, ImageSharpProcessor>();
 
+            services.AddSingleton(VideoSettings.FromConfiguration(config));
+            services.AddScoped<IVideoTranscoder, FfmpegVideoTranscoder>();
+
             return services;
         }
 

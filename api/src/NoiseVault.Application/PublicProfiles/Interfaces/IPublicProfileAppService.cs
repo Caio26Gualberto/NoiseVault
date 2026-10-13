@@ -8,5 +8,7 @@ namespace NoiseVault.Application.PublicProfiles.Interfaces
     {
         Task<Result<UserProfileDto>> GetByNickname(string nickname);
         Task<Result<PagedResultDto<ProfileSummaryDto>>> Search(UserSearchQueryDto query);
+
+        Task<int?> FindUserId(string nickname);
     }
 }

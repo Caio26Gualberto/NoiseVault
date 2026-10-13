@@ -32,6 +32,10 @@ Só rate limit não basta porque IP roda barato. Só regra de negócio não bast
 | `user-search` | 60/min por conta | a topbar busca enquanto a pessoa digita (debounce de 350 ms); 60 por minuto é folga de sobra |
 | `band-create` | 5/h por conta | criar banda é raro; cinco por hora já é spam ou teste |
 | `band-invite` | 30/h por conta | montar a formação de uma banda cabe com folga; disparar convite em massa não |
+| `media-photo` | 60/h por conta | um post tem até 10 fotos; 60 por hora cobre um show inteiro postado em vários posts |
+| `media-video` | 10/h por conta | abrir um multipart reserva storage e um job de conversão; soma-se ao limite de volume de 3 vídeos em andamento por pessoa (`midia-e-video.md`) |
+| `post-create` | 30/h por conta | publicar é frequente, mas 30 por hora já é spam |
+| `comment-create` | 60/h por conta | conversa rápida cabe; robô de comentário não |
 
 Endpoint novo que **cria**, **envia** ou **chama fora** nasce com política própria e uma linha nesta tabela. Os números são ponto de partida; o projeto ajusta e registra o porquê.
 
