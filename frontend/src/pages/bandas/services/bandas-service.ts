@@ -38,6 +38,7 @@ export type BandProfileDto = {
   socialLinks: SocialLinksDto
   members: BandMemberDto[]
   myRole: BandMemberRole | null
+  postCount: number
 }
 
 export type BandInput = {

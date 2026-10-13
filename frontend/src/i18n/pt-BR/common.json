@@ -84,5 +84,11 @@
       "tooLarge": "A imagem pode ter no máximo {{size}} MB.",
       "tooNarrow": "A capa precisa ter pelo menos {{width}}px de largura."
     }
+  },
+  "media": {
+    "open": "Abrir foto",
+    "play": "Tocar vídeo",
+    "processing": "Processando vídeo…",
+    "failed": "Não foi possível processar o vídeo"
   }
 }

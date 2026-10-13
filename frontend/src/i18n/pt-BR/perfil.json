@@ -1,10 +1,6 @@
 {
   "edit": "Editar perfil",
   "memberSince": "No Noise Vault desde {{date}}",
-  "empty": {
-    "title": "Publicações chegam em breve",
-    "description": "Posts, fotos e vídeos deste perfil aparecem aqui quando o feed e a galeria entrarem."
-  },
   "notFound": {
     "title": "Perfil não encontrado",
     "description": "Ninguém usa @{{nickname}} no Noise Vault.",
@@ -62,5 +58,12 @@
     "title": "Bandas",
     "create": "Criar banda",
     "empty": "Você ainda não está em nenhuma banda. Crie a sua ou espere um convite."
+  },
+  "postsLabel_one": "publicação",
+  "postsLabel_other": "publicações",
+  "posts": {
+    "title": "Publicações",
+    "emptyMine": "Você ainda não publicou nada. Comece pelo feed.",
+    "empty": "{{name}} ainda não publicou nada."
   }
 }

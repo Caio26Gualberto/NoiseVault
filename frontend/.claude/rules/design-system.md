@@ -71,7 +71,7 @@ Paleta (valores em `tokens.css`, aqui só a intenção):
 - **Botão é sempre `AppButton`** (`intent`: `primary` | `secondary` | `danger` | `neutral` | `ghost`; `loading` desabilita e mostra spinner). Só ícone: `AppIconButton` (exige `label`, que vira `aria-label` e tooltip).
 - Campo de formulário é sempre `AppField` (react-hook-form + zod), senha é `AppPasswordField` (olho para mostrar), texto longo `AppTextareaField`, escolha única `AppSelectField` (`emptyLabel` adiciona a opção "não informar", que vira `''` no formulário) e múltipla escolha `AppChipsField` (chips com `aria-pressed`; `max` desabilita os não marcados quando o limite chega).
 - Confirmação destrutiva via `useAppConfirm()` — recebe `onConfirm`, **não devolve booleano**.
-- Avatar é `AppAvatar` (iniciais como fallback, `verified` para o selo). Badge é `AppBadge` (`tone`). Upload de avatar é `AppAvatarUploader` e de capa é `AppBannerEditor` (pessoa e banda; recebem callbacks, não conhecem service). Estado vazio é `AppEmptyState`. Carregando é `AppSkeleton` com preset. Cabeçalho de página é `AppPageHeader`. Paginação é `AppPagination`.
+- Avatar é `AppAvatar` (iniciais como fallback, `verified` para o selo). Badge é `AppBadge` (`tone`). Upload de avatar é `AppAvatarUploader` e de capa é `AppBannerEditor` (pessoa e banda; recebem callbacks, não conhecem service). Grade de fotos e vídeos é `AppMediaGrid` (`state` para processando ou falhou; vídeo com poster, duração e `<video>` no diálogo). Estado vazio é `AppEmptyState`. Carregando é `AppSkeleton` com preset. Cabeçalho de página é `AppPageHeader`. Paginação é `AppPagination`.
 - Toast é só o do `base-service` (via `sonner`); página nenhuma chama `toast()` para erro de API.
 
 ## Roteiro de verificação

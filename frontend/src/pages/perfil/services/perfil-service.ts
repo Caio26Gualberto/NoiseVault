@@ -28,6 +28,7 @@ export type UserProfileDto = ProfileSummaryDto & {
   socialLinks: SocialLinksDto
   memberSince: string
   bands: BandSummaryDto[]
+  postCount: number
 }
 
 export const peopleSearchMinLength = 2

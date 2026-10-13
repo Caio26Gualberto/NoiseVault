@@ -14,6 +14,7 @@ import { AppProfileHero } from '@/components/app-profile-hero'
 import { AppSkeleton } from '@/components/app-skeleton'
 import { AppSocialLinks } from '@/components/app-social-links'
 import { formatDate } from '@/lib/format'
+import { OwnerPosts } from '@/pages/feed/components/owner-posts'
 import { useAbcCityLabel } from '@/pages/perfil/cities'
 
 import { BandMemberRole } from './band-member-role'
@@ -77,7 +78,10 @@ export function BandasPage() {
         bannerPosition={band.bannerPosition}
         verified={band.isVerified}
         subtitle={band.description ? <p className="whitespace-pre-line">{band.description}</p> : null}
-        stats={[{ label: t('membersLabel', { count: band.members.length }), value: band.members.length }]}
+        stats={[
+          { label: t('membersLabel', { count: band.members.length }), value: band.members.length },
+          { label: t('postsLabel', { count: band.postCount }), value: band.postCount },
+        ]}
         actions={
           <>
             <AppSocialLinks links={band.socialLinks} />
@@ -139,6 +143,16 @@ export function BandasPage() {
           ))}
         </ul>
       </section>
+
+      <div className="mx-auto w-full max-w-2xl">
+        <OwnerPosts
+          key={band.slug}
+          owner={{ bandSlug: band.slug }}
+          title={t('posts.title')}
+          emptyTitle={t('posts.empty')}
+          emptyDescription={isOwner || isMember ? t('posts.emptyMember') : undefined}
+        />
+      </div>
     </div>
   )
 }

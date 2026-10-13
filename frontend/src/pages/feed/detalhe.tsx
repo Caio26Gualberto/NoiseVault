@@ -1,15 +1,15 @@
-import { ArrowLeftIcon } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { ArrowLeftIcon, Trash2Icon } from 'lucide-react'
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 
-import { emptyPage } from '@/api/types'
-import type { PagedResult } from '@/api/types'
 import { homePath } from '@/auth/routes'
 import { AppAvatar } from '@/components/app-avatar'
-import { AppButton } from '@/components/app-button'
+import { AppButton, AppIconButton } from '@/components/app-button'
 import { AppCard } from '@/components/app-card'
+import { useAppConfirm } from '@/components/app-confirm'
 import { AppEmptyState } from '@/components/app-empty-state'
+import { AppPagination } from '@/components/app-pagination'
 import { AppSkeleton } from '@/components/app-skeleton'
 import { useShellRail } from '@/layout/use-shell-rail'
 import { formatRelative } from '@/lib/format'
@@ -17,37 +17,26 @@ import { CommentComposer } from '@/pages/eventos/components/comment-composer'
 
 import { FeedRail } from './components/feed-rail'
 import { PostCard } from './components/post-card'
-import { addComment, getComments, getPost, toggleLike } from './services/feed-service'
-import type { CommentDto, PostDto } from './services/feed-service'
+import { usePostDetail } from './hooks/use-post-detail'
+import { PostStatus } from './post-status'
 
 export function PostDetalhePage() {
   const { t } = useTranslation('feed')
   const { id = '' } = useParams()
-  const postId = Number(id)
-  const [post, setPost] = useState<PostDto | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [comments, setComments] = useState<PagedResult<CommentDto>>(() => emptyPage(50))
-  const [version, setVersion] = useState(0)
+  const navigate = useNavigate()
+  const confirm = useAppConfirm()
+  const detail = usePostDetail(Number(id))
+  const { state, comments } = detail
 
   useShellRail(useMemo(() => <FeedRail />, []))
 
-  useEffect(() => {
-    let cancelled = false
-    Promise.all([getPost(postId), getComments(postId, { page: 1, pageSize: 50 })])
-      .then(([postResult, commentResult]) => {
-        if (cancelled) return
-        setPost(postResult)
-        setComments(commentResult)
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [postId, version])
-
-  const refresh = useCallback(() => setVersion((v) => v + 1), [])
+  const removeComment = (commentId: number) =>
+    confirm({
+      title: t('comments.deleteTitle'),
+      confirmLabel: t('comments.delete'),
+      danger: true,
+      onConfirm: () => detail.removeComment(commentId),
+    })
 
   return (
     <div className="app-page-enter mx-auto flex max-w-2xl flex-col gap-4">
@@ -58,38 +47,58 @@ export function PostDetalhePage() {
         </Link>
       </AppButton>
 
-      {loading ? (
+      {state.status === 'loading' ? (
         <AppSkeleton preset="card" count={1} />
-      ) : !post ? (
+      ) : state.status !== 'found' ? (
         <AppEmptyState title={t('notFound.title')} description={t('notFound.description')} />
       ) : (
         <>
-          <PostCard post={post} detail onLike={(target) => void toggleLike(target).then(refresh)} />
-          <AppCard title={t('comments.title', { count: comments.totalCount })}>
-            <div className="flex flex-col gap-4">
-              <CommentComposer onSubmit={(text) => addComment(post.id, text).then(refresh)} />
-              {comments.items.length === 0 ? (
-                <p className="text-sm text-muted-foreground">{t('comments.empty')}</p>
-              ) : (
-                <ul className="flex flex-col gap-4">
-                  {comments.items.map((comment) => (
-                    <li key={comment.id} className="flex gap-3">
-                      <AppAvatar name={comment.author.name} src={comment.author.avatarUrl} size="md" />
-                      <div className="flex min-w-0 flex-col gap-0.5">
-                        <span className="text-sm">
-                          <Link to={`/perfil/${comment.author.nickname}`} className="font-medium hover:underline">
-                            {comment.author.name}
-                          </Link>{' '}
-                          <span className="app-meta">{formatRelative(comment.createdAt)}</span>
-                        </span>
-                        <p className="text-sm">{comment.text}</p>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </AppCard>
+          <PostCard
+            post={state.post}
+            detail
+            onLike={(target) => void detail.like(target)}
+            onUpdated={detail.replace}
+            onDeleted={() => navigate(homePath)}
+          />
+          {state.post.status === PostStatus.published ? (
+            <AppCard title={t('comments.title', { count: comments.totalCount })}>
+              <div className="flex flex-col gap-4">
+                <CommentComposer onSubmit={detail.comment} />
+                {comments.items.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">{t('comments.empty')}</p>
+                ) : (
+                  <ul className="flex flex-col gap-4">
+                    {comments.items.map((comment) => (
+                      <li key={comment.id} className="flex gap-3">
+                        <AppAvatar name={comment.author.name} src={comment.author.avatarUrl} size="md" />
+                        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                          <span className="text-sm">
+                            <Link to={`/perfil/${comment.author.nickname}`} className="font-medium hover:underline">
+                              {comment.author.name}
+                            </Link>{' '}
+                            <span className="app-meta">{formatRelative(comment.createdAt)}</span>
+                          </span>
+                          <p className="whitespace-pre-line text-sm break-words">{comment.text}</p>
+                        </div>
+                        {comment.canDelete ? (
+                          <AppIconButton label={t('comments.delete')} size="sm" onClick={() => removeComment(comment.id)}>
+                            <Trash2Icon />
+                          </AppIconButton>
+                        ) : null}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <AppPagination
+                  page={comments.page}
+                  totalPages={comments.totalPages}
+                  totalCount={comments.totalCount}
+                  onChange={detail.loadMoreComments}
+                  mode="loadMore"
+                />
+              </div>
+            </AppCard>
+          ) : null}
         </>
       )}
     </div>

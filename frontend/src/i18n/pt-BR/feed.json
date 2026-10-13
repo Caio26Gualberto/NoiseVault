@@ -3,14 +3,27 @@
   "description": "O que a comunidade está postando.",
   "backToFeed": "Voltar ao feed",
   "share": "Compartilhar",
-  "scope": {
-    "all": "Tudo",
-    "following": "Bandas"
-  },
   "composer": {
     "placeholder": "O que está rolando, {{name}}?",
-    "media": "Anexar foto ou vídeo",
-    "publish": "Publicar"
+    "publish": "Publicar",
+    "waitUpload": "Enviando…",
+    "publishAs": "Publicar como",
+    "asSelf": "Você ({{name}})",
+    "asBand": "{{name}} (banda)",
+    "addPhotos": "Anexar fotos",
+    "addVideo": "Anexar vídeo",
+    "remove": "Remover anexo",
+    "uploadFailed": "Falhou",
+    "limit": "Uma publicação pode ter até {{photos}} fotos e {{videos}} vídeo.",
+    "photo": {
+      "unsupported": "Use JPEG, PNG ou WebP.",
+      "tooLarge": "Cada foto pode ter até {{size}} MB."
+    },
+    "video": {
+      "unsupported": "Escolha um arquivo de vídeo.",
+      "tooLarge": "O vídeo pode ter até {{size}} MB.",
+      "tooLong": "O vídeo pode ter até {{minutes}} minutos."
+    }
   },
   "empty": {
     "title": "Nada por aqui ainda",
@@ -24,6 +37,28 @@
     "title_zero": "Comentários",
     "title_one": "{{count}} comentário",
     "title_other": "{{count}} comentários",
-    "empty": "Seja a primeira pessoa a comentar."
+    "empty": "Seja a primeira pessoa a comentar.",
+    "delete": "Apagar comentário",
+    "deleteTitle": "Apagar este comentário?"
+  },
+  "post": {
+    "by": "por @{{nickname}}",
+    "edited": "editado",
+    "processing": "Processando",
+    "failed": "Falhou",
+    "processingHint": "O vídeo está sendo processado. A publicação aparece para todo mundo quando ficar pronta.",
+    "failedHint": "Não foi possível processar o vídeo. Apague a publicação e tente com outro arquivo.",
+    "actions": "Ações da publicação",
+    "edit": "Editar texto",
+    "editTitle": "Editar publicação",
+    "editHint": "Só o texto pode ser editado. A publicação passa a mostrar \"editado\".",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "delete": "Apagar",
+    "deleteTitle": "Apagar esta publicação?",
+    "deleteMessage": "Ela some do feed, do perfil e da banda, junto com fotos e vídeo.",
+    "like": "Curtir",
+    "unlike": "Remover curtida",
+    "comments": "Comentários"
   }
 }

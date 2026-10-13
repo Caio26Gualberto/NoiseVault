@@ -90,5 +90,12 @@
     "revokeTitle": "Revogar o convite de {{name}}?",
     "revokeMessage": "O convite deixa de valer. Dá para convidar de novo depois.",
     "revokeConfirm": "Revogar"
+  },
+  "postsLabel_one": "publicação",
+  "postsLabel_other": "publicações",
+  "posts": {
+    "title": "Publicações",
+    "empty": "A banda ainda não publicou nada.",
+    "emptyMember": "Publique pelo feed escolhendo \"Publicar como\" a banda."
   }
 }

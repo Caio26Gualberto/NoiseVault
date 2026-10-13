@@ -21,7 +21,8 @@ Rule irmã: `../api/.claude/rules/perfil-e-midia.md` (campos, validação, codes
 | `/minha-conta` → seção Perfil | `GET /api/profile` (sessão), `PUT /api/profile`, avatar e capa |
 | Busca da topbar | `GET /api/users/search` |
 | Bandas no perfil | seção "Bandas" com os `BandSummaryDto` de `profile.bands` (módulo 2, `bandas.md`); no próprio perfil aparece "Criar banda" mesmo sem nenhuma |
-| Contadores e abas de conteúdo no perfil | **não existem**: voltam com os módulos 3 (feed) e 5 (galeria) |
+| Publicações no perfil | contador "N publicações" no hero (`postCount`) e a seção "Publicações" com `OwnerPosts` do feed (módulo 3, `feed.md`) |
+| Abas de fotos e vídeos de galeria | **não existem**: voltam com o módulo 5 |
 
 Os mocks dos outros módulos ainda precisam de pessoas e bandas de exemplo: elas moram em `src/api/mock-fixtures.ts` (`people`, `bandSummaries`, `avatar()`, `picture()`), andaime que morre com o último `mocks.ts`. Pessoa **não tem selo de verificado** (só banda): `ProfileSummaryDto` não tem `isVerified`.
 

@@ -16,6 +16,7 @@ import { AppProfileHero } from '@/components/app-profile-hero'
 import { AppSkeleton } from '@/components/app-skeleton'
 import { AppSocialLinks } from '@/components/app-social-links'
 import { formatDate } from '@/lib/format'
+import { OwnerPosts } from '@/pages/feed/components/owner-posts'
 
 import { useAbcCityLabel } from './cities'
 import { getUserProfile } from './services/perfil-service'
@@ -83,6 +84,7 @@ export function PerfilPage() {
         avatarUrl={profile.avatarUrl}
         bannerUrl={profile.bannerUrl}
         bannerPosition={profile.bannerPosition}
+        stats={[{ label: t('postsLabel', { count: profile.postCount }), value: profile.postCount }]}
         subtitle={profile.bio ? <p className="whitespace-pre-line">{profile.bio}</p> : null}
         actions={
           <>
@@ -155,7 +157,14 @@ export function PerfilPage() {
         </section>
       ) : null}
 
-      <AppEmptyState title={t('empty.title')} description={t('empty.description')} />
+      <div className="mx-auto w-full max-w-2xl">
+        <OwnerPosts
+          key={profile.nickname}
+          owner={{ nickname: profile.nickname }}
+          title={t('posts.title')}
+          emptyTitle={isMe ? t('posts.emptyMine') : t('posts.empty', { name: profile.name })}
+        />
+      </div>
     </div>
   )
 }
