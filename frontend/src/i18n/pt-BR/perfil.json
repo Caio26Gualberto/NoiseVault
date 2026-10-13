@@ -1,0 +1,66 @@
+{
+  "edit": "Editar perfil",
+  "follow": "Seguir",
+  "memberSince": "No Headbanger desde {{date}}",
+  "bands": "Bandas",
+  "stats": {
+    "posts": "posts",
+    "photos": "fotos",
+    "videos": "vídeos"
+  },
+  "tabs": {
+    "posts": "Posts",
+    "photos": "Fotos",
+    "videos": "Vídeos"
+  },
+  "empty": {
+    "posts": "Nenhum post ainda",
+    "photos": "Nenhuma foto ainda",
+    "videos": "Nenhum vídeo ainda",
+    "description": "O conteúdo deste perfil aparece aqui quando o módulo de feed e mídia entrar."
+  },
+  "genres": {
+    "heavy": "Heavy Metal",
+    "thrash": "Thrash",
+    "death": "Death",
+    "black": "Black",
+    "doom": "Doom",
+    "power": "Power",
+    "progressive": "Progressivo",
+    "speed": "Speed",
+    "groove": "Groove",
+    "nuMetal": "Nu Metal",
+    "metalcore": "Metalcore",
+    "deathcore": "Deathcore",
+    "grindcore": "Grindcore",
+    "sludge": "Sludge",
+    "stoner": "Stoner",
+    "folk": "Folk Metal",
+    "symphonic": "Sinfônico",
+    "gothic": "Gótico",
+    "industrial": "Industrial",
+    "melodicDeath": "Melodic Death",
+    "technicalDeath": "Technical Death",
+    "blackened": "Blackened",
+    "crossover": "Crossover",
+    "hardcore": "Hardcore",
+    "punk": "Punk",
+    "hardRock": "Hard Rock",
+    "classicRock": "Rock Clássico",
+    "alternative": "Alternativo",
+    "grunge": "Grunge",
+    "postMetal": "Post-Metal",
+    "other": "Outros"
+  },
+  "cities": {
+    "santoAndre": "Santo André",
+    "saoBernardo": "São Bernardo do Campo",
+    "saoCaetano": "São Caetano do Sul",
+    "diadema": "Diadema",
+    "maua": "Mauá",
+    "ribeiraoPires": "Ribeirão Pires",
+    "rioGrandeDaSerra": "Rio Grande da Serra",
+    "saoPaulo": "São Paulo",
+    "other": "Outra cidade"
+  }
+}

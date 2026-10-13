@@ -1,9 +1,9 @@
-import { BellIcon, SearchIcon } from 'lucide-react'
+import { SearchIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
 
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
+import { NotificationsBell } from './notifications-bell'
 import { UserMenu } from './user-menu'
 import { Wordmark } from './wordmark'
 
@@ -33,18 +33,7 @@ export function TopBar() {
       </Tooltip>
 
       <div className="ml-auto flex items-center gap-1 md:ml-0">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Link
-              to="/notificacoes"
-              aria-label={t('layout:bell.label')}
-              className="relative flex size-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
-            >
-              <BellIcon className="size-5" />
-            </Link>
-          </TooltipTrigger>
-          <TooltipContent>{t('layout:bell.label')}</TooltipContent>
-        </Tooltip>
+        <NotificationsBell />
         <div className="md:hidden">
           <UserMenu compact />
         </div>

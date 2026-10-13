@@ -43,5 +43,9 @@
   "soon": {
     "title": "Em construção",
     "description": "Esta tela entra com o módulo correspondente do backend. A navegação já está no lugar."
+  },
+  "comments": {
+    "placeholder": "Escreva um comentário",
+    "send": "Enviar comentário"
   }
 }

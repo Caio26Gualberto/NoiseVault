@@ -58,7 +58,7 @@ Paleta (valores em `tokens.css`, aqui só a intenção):
 
 ## Mobile primeiro
 
-🔴 **Toda tela é conferida a 390px antes de 1440px.** Abaixo de `md` (768px): sidebar vira `bottom-nav` com 5 itens (Feed, Vídeos, Fotos, Eventos, Perfil) e o resto entra num `Sheet`; o rail direito some abaixo de `xl` (1280px); listas em grid viram 1 coluna; botões de ação ocupam a largura. Nenhum elemento com largura fixa acima de 360px. `useIsMobile()` (`hooks/use-media-query.ts`) é a única fonte de breakpoint em código; o resto é classe responsiva do Tailwind.
+🔴 **Toda tela é conferida a 390px antes de 1440px.** Abaixo de `md` (768px): sidebar vira `bottom-nav` com 4 itens fixos (Feed, Vídeos, Eventos, Perfil — os `mobile: true` do `nav-config`) mais o botão "Mais", que abre um `Sheet` com o resto por seção; o rail direito some abaixo de `xl` (1280px); listas em grid viram 1 coluna; botões de ação ocupam a largura. Nenhum elemento com largura fixa acima de 360px. `useIsMobile()` (`hooks/use-media-query.ts`) é a única fonte de breakpoint em código; o resto é classe responsiva do Tailwind.
 
 ## Componentes: `ui/*` é primitivo, `App*` é o contrato
 
@@ -71,7 +71,7 @@ Paleta (valores em `tokens.css`, aqui só a intenção):
 
 ## Roteiro de verificação
 
-1. `npm run build` limpo; greps de cor, de `ui/button` fora de `app-button` e de acentuação fora de `i18n/` vazios.
+1. `npm run build` limpo; greps de cor, de `ui/button` fora de `app-button` e de acentuação fora de `i18n/` (exceto `api/client.ts` e os `services/mocks.ts`, cujas fixtures são dado de exemplo) vazios.
 2. Abrir `/entrar` a 390px e a 1440px: card centralizado, sem scroll horizontal, foco visível ao navegar por Tab.
 3. Trocar o tema no `user-menu`: nada pisca ao recarregar; os dois temas mostram a mesma hierarquia.
 4. Simular `prefers-reduced-motion`: a entrada de página não anima.

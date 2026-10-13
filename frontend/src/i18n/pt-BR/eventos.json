@@ -1,0 +1,63 @@
+{
+  "title": "Eventos",
+  "description": "Shows, festivais e ensaios abertos no ABC.",
+  "create": "Criar evento",
+  "edit": "Editar",
+  "tickets": "Ingressos",
+  "free": "Entrada franca",
+  "interested_one": "{{count}} interessado",
+  "interested_other": "{{count}} interessados",
+  "organizedBy": "Organizado por",
+  "lineup": "Line-up",
+  "searchPlaceholder": "Buscar por nome ou casa de show",
+  "filters": {
+    "genre": "Gênero",
+    "allGenres": "Todos os gêneros",
+    "city": "Cidade",
+    "allCities": "Todas as cidades"
+  },
+  "facts": {
+    "when": "Quando",
+    "time": "Horário",
+    "where": "Onde",
+    "price": "Ingresso",
+    "capacity": "Lotação",
+    "people_one": "{{count}} pessoa",
+    "people_other": "{{count}} pessoas"
+  },
+  "empty": {
+    "title": "Nenhum evento com esses filtros",
+    "description": "Tente outro gênero ou cidade, ou crie o próximo show."
+  },
+  "notFound": {
+    "title": "Evento não encontrado",
+    "description": "Ele pode ter sido removido ou o link está errado."
+  },
+  "comments": {
+    "title_zero": "Comentários",
+    "title_one": "{{count}} comentário",
+    "title_other": "{{count}} comentários",
+    "empty": "Seja a primeira pessoa a comentar."
+  },
+  "form": {
+    "createTitle": "Novo evento",
+    "editTitle": "Editar evento",
+    "description": "Preencha o essencial. Banner e line-up entram com o módulo de eventos.",
+    "created": "Evento criado.",
+    "updated": "Evento atualizado.",
+    "submitCreate": "Publicar evento",
+    "submitEdit": "Salvar alterações",
+    "fields": {
+      "title": "Nome do evento",
+      "description": "Descrição",
+      "startsAt": "Começa em",
+      "endsAt": "Termina em (opcional)",
+      "venue": "Local",
+      "city": "Cidade",
+      "genres": "Gêneros",
+      "price": "Ingresso (R$)",
+      "capacity": "Lotação",
+      "ticketsUrl": "Link dos ingressos"
+    }
+  }
+}

@@ -22,8 +22,8 @@ Nesta entrega o backend só tem Auth. Todas as outras telas existem para validar
 - Cada página tem `services/<secao>-service.ts` com as funções e os DTOs **que a tela precisa**, assinatura igual à que o `base-service` vai ter (`getFeed(query: PagedRequest): Promise<PagedResult<PostDto>>`).
 - A implementação delega para `services/mocks.ts`: `export const getFeed = mocks.getFeed`. Ligar o backend = trocar a linha por `apiGet<PagedResult<PostDto>>('/api/posts', query)` e apagar o `mocks.ts`. Hook, componentes e i18n não mudam.
 - `mocks.ts` guarda fixtures tipadas e simula o servidor: pagina com `mockPage(items, query)` de `src/api/mock-delay.ts`, espera `delay(350)` (para o loading aparecer), e **muta a fixture** em ações (like, marcar lida) para a tela refletir o refetch — nunca a tela edita o array local (regra do boilerplate: ação → service → `refresh()`).
-- Enum vem como **número** do backend, então o mock já entrega número e a página converte com `const` + `Record` exaustivo (`genres.ts`, `cities.ts`, `moderation-status.ts`, `notification-type.ts`).
-- **Mock nunca cruza de página.** Feed precisa de eventos para o rail? Importa `getUpcomingEvents` do service de `eventos/` (service nunca é promovido, mas pode ser importado do caminho da dona).
+- Enum vem como **número** do backend, então o mock já entrega número e a página converte com `const` + `Record` exaustivo (`perfil/genres.ts`, `perfil/cities.ts`, `videos/moderation-status.ts`, `notificacoes/notification-type.ts`, `eventos/event-status.ts`, `bandas/band-member-role.ts`). ⚠️ O enum mora em arquivo próprio, nunca no `*-service.ts`: o service importa o `mocks.ts`, e o `mocks.ts` importando o enum do service fecha um ciclo que estoura em `Cannot access X before initialization`.
+- **Mock nunca cruza de página pela tela.** Feed precisa de eventos para o rail? Importa `getUpcomingEvents` do service de `eventos/`. Entre `mocks.ts` a importação de fixtures compartilhadas (`people`, `bandSummaries` de `perfil/services/mocks.ts`; `videos`/`photos` na fila de moderação) é permitida: é assim que aprovar na moderação faz o vídeo aparecer na galeria. (service nunca é promovido, mas pode ser importado do caminho da dona).
 - Imagem de mock vem de `https://picsum.photos/seed/<slug>/<w>/<h>` e avatar de `https://api.dicebear.com/9.x/thumbs/svg?seed=<nickname>`; sem binário no repositório. Em produção o backend entrega URL assinada do storage.
 - Dado de exemplo tem cara de ABC Paulista (bandas, casas de show e cidades verossímeis) para o design ser avaliado com conteúdo real, mas nenhum nome de pessoa ou banda real.
 
@@ -31,7 +31,7 @@ Nesta entrega o backend só tem Auth. Todas as outras telas existem para validar
 
 | Tela | Módulo (ordem em `api/.claude/rules/dominio.md`) | Some |
 |---|---|---|
-| `/bem-vindo` (avatar), `/minha-conta` (avatar, banner, cidade, gêneros), `/perfil/:nickname` | 1 · Perfil e mídia | `bem-vindo/services/mocks.ts`, `minha-conta/services/mocks.ts`, `perfil/services/mocks.ts` |
+| `/bem-vindo` (avatar), `/minha-conta` (bloco "Aparência do perfil" só visualização), `/perfil/:nickname` | 1 · Perfil e mídia | `bem-vindo/services/mocks.ts`, `perfil/services/mocks.ts` (fixtures `people`, `bandSummaries`, `avatar()`, `picture()` que os outros mocks importam — o último a morrer) |
 | `/bandas/:slug`, convites em `/notificacoes` | 2 · Bandas e convites | `bandas/services/mocks.ts`, a parte de convite em `notificacoes/services/mocks.ts` |
 | `/feed`, `/feed/:id` | 3 · Feed | `feed/services/mocks.ts` |
 | `/eventos*` e o rail do feed | 4 · Eventos | `eventos/services/mocks.ts` |

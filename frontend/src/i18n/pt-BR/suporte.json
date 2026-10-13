@@ -1,0 +1,24 @@
+{
+  "title": "Reportar problema",
+  "description": "Achou um bug ou quer sugerir algo? Conta pra gente.",
+  "submit": "Enviar relato",
+  "fields": {
+    "label": "Tipo",
+    "title": "Resumo",
+    "titlePlaceholder": "Ex.: o like não atualiza o contador",
+    "description": "O que aconteceu",
+    "descriptionPlaceholder": "Descreva o que você fez, o que esperava e o que aconteceu.",
+    "pageUrl": "Link da página (opcional)"
+  },
+  "labels": {
+    "bug": "Erro no site",
+    "suggestion": "Sugestão",
+    "content": "Conteúdo impróprio",
+    "account": "Problema com a conta"
+  },
+  "sent": {
+    "title": "Relato enviado",
+    "description": "Protocolo {{protocol}}. A gente responde pelo seu e-mail de cadastro.",
+    "back": "Voltar ao feed"
+  }
+}

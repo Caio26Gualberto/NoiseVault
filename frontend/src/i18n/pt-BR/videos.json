@@ -1,0 +1,22 @@
+{
+  "title": "Vídeos",
+  "description": "Shows, clipes, ensaios e tutoriais da comunidade.",
+  "searchPlaceholder": "Buscar vídeo",
+  "play": "Assistir {{title}}",
+  "empty": {
+    "title": "Nenhum vídeo encontrado",
+    "description": "Tente outra busca ou envie o seu."
+  },
+  "submit": {
+    "action": "Enviar vídeo",
+    "title": "Enviar vídeo do YouTube",
+    "description": "Cole o link do YouTube. O vídeo entra na galeria depois da aprovação da moderação.",
+    "success": "Vídeo enviado para moderação.",
+    "confirm": "Enviar para moderação",
+    "fields": {
+      "url": "Link do YouTube",
+      "title": "Título",
+      "description": "Descrição"
+    }
+  }
+}

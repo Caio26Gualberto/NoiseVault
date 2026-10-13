@@ -1,0 +1,25 @@
+{
+  "moderation": {
+    "title": "Moderação",
+    "description": "Fotos e vídeos enviados pela comunidade esperando aprovação.",
+    "pending_zero": "Fila vazia",
+    "pending_one": "{{count}} item na fila",
+    "pending_other": "{{count}} itens na fila",
+    "kinds": {
+      "all": "Tudo",
+      "photo": "Fotos",
+      "video": "Vídeos"
+    },
+    "empty": {
+      "title": "Nada para moderar",
+      "description": "Novos envios aparecem aqui assim que chegarem."
+    }
+  },
+  "approve": "Aprovar",
+  "reject": {
+    "action": "Rejeitar",
+    "title": "Rejeitar este envio?",
+    "message": "\"{{title}}\" não vai aparecer na galeria. Quem enviou recebe o aviso.",
+    "confirm": "Rejeitar"
+  }
+}

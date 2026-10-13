@@ -4,11 +4,11 @@
 
 **Headbanger** — site público da comunidade de metal e rock do ABC Paulista: feed, vídeos, fotos, eventos, perfis de pessoas e de bandas, notificações. Quem usa é o fã e o músico da região; a administração (moderação, equipe) é a mesma aplicação com permissão. Reescrita do zero do legado "NewLevel" (`C:\Projetos\Pessoal\Alvo\newlevel`), que não serve de referência de código nem de tela.
 
-**Estado da entrega atual:** auth é real (`/entrar`, `/criar-conta`, `/confirmar-email`, `/esqueci-senha`, `/redefinir-senha`, `/definir-senha`, `/bem-vindo`, `/minha-conta` em parte). Todas as outras telas são **mock por página** com a assinatura que o service real vai ter (`.claude/rules/mocks.md`). A ordem em que os mocks viram backend está em `../api/.claude/rules/dominio.md`.
+**Estado da entrega atual:** auth é real (`/entrar`, `/criar-conta`, `/confirmar-email`, `/esqueci-senha`, `/redefinir-senha`, `/definir-senha`, `/bem-vindo`, `/minha-conta` em parte). Feed, vídeos, fotos, eventos, perfil, bandas, notificações, moderação, reportar problema e institucionais são **mock por página** com a assinatura que o service real vai ter (`.claude/rules/mocks.md`). A ordem em que os mocks viram backend está em `../api/.claude/rules/dominio.md`.
 
 ## Como trabalhar neste repositório
 
-Arquitetura e convenções do frontend. **A tela de referência é `pages/criar-conta`** (formulário com zod, estados de sucesso, service real) e, para listagem, `pages/feed` quando o módulo de feed entrar. Quando tiver dúvida, copie a estrutura delas.
+Arquitetura e convenções do frontend. **As telas de referência são `pages/criar-conta`** (formulário com zod, estados de sucesso, service real) **e `pages/eventos`** (listagem paginada com filtros em `hooks/use-eventos-page.ts`, detalhe, formulário em rota própria, tudo sobre `mocks.ts`). Quando tiver dúvida, copie a estrutura delas.
 
 Este projeto consome a API (`../api` — ver o `CLAUDE.md` de lá). **A interface muda a cada projeto; a arquitetura não.** O esqueleto veio do boilerplate em `C:\Users\Administrador\Desktop\Boilerplate\frontend`: fronteira HTTP única, envelope, feedback global, permissões por capacidade, `nav-config` como fonte única, listagem paginada no servidor. A lib de UI foi trocada (Mantine → Tailwind v4 + shadcn/ui); `api/`, `auth/` e `i18n/` vieram iguais.
 
@@ -122,7 +122,7 @@ Rota e item de menu **nascem do mesmo lugar**. `publicRoutes` (com `guestOnly` p
 
 ## i18n
 
-Só **pt-BR** por enquanto, mas nada de string solta: **nenhuma string de UI é hardcoded.** `grep -rnP "[áéíóúâêôãõç]" src --include=*.ts --include=*.tsx | grep -v src/i18n/ | grep -v api/client.ts` deve voltar vazio. Um namespace por área (`auth`, `conta`, `feed`, …) mais `common`, `layout` e `api`. **O `code` do envelope é a chave de tradução** (`api-codes.ts` + `api.json`); mensagem de validação do zod é chave de `common.json` (`validation.*`) traduzida pelo `AppField`.
+Só **pt-BR** por enquanto, mas nada de string solta: **nenhuma string de UI é hardcoded.** `grep -rnP "[áéíóúâêôãõç]" src --include=*.ts --include=*.tsx | grep -v src/i18n/ | grep -v api/client.ts | grep -v services/mocks.ts` deve voltar vazio (as fixtures dos mocks são dado de exemplo e morrem com o módulo). Um namespace por área (`auth`, `conta`, `feed`, …) mais `common`, `layout` e `api`. **O `code` do envelope é a chave de tradução** (`api-codes.ts` + `api.json`); mensagem de validação do zod é chave de `common.json` (`validation.*`) traduzida pelo `AppField`.
 
 ## UI e tema
 

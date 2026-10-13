@@ -1,0 +1,13 @@
+{
+  "follow": "Seguir banda",
+  "since": "Desde {{date}}",
+  "verified": "Banda verificada",
+  "members": "Integrantes",
+  "memberSince": "desde {{date}}",
+  "owner": "Responsável",
+  "stats": {
+    "followers": "seguidores",
+    "posts": "posts",
+    "events": "eventos"
+  }
+}

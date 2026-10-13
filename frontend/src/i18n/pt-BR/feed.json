@@ -1,6 +1,29 @@
 {
   "title": "Feed",
   "description": "O que a comunidade está postando.",
-  "soonTitle": "O feed está em construção",
-  "soonDescription": "Posts, fotos e vídeos da comunidade aparecem aqui quando o módulo de feed entrar."
+  "backToFeed": "Voltar ao feed",
+  "share": "Compartilhar",
+  "scope": {
+    "all": "Tudo",
+    "following": "Bandas"
+  },
+  "composer": {
+    "placeholder": "O que está rolando, {{name}}?",
+    "media": "Anexar foto ou vídeo",
+    "publish": "Publicar"
+  },
+  "empty": {
+    "title": "Nada por aqui ainda",
+    "description": "Quando alguém postar, aparece aqui."
+  },
+  "notFound": {
+    "title": "Post não encontrado",
+    "description": "Ele pode ter sido removido ou o link está errado."
+  },
+  "comments": {
+    "title_zero": "Comentários",
+    "title_one": "{{count}} comentário",
+    "title_other": "{{count}} comentários",
+    "empty": "Seja a primeira pessoa a comentar."
+  }
 }

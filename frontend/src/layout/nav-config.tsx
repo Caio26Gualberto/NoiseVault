@@ -1,7 +1,20 @@
 import type { LucideIcon } from 'lucide-react'
-import { CalendarDaysIcon, ImageIcon, NewspaperIcon, PlayIcon, UserRoundIcon } from 'lucide-react'
+import {
+  BellIcon,
+  CalendarDaysIcon,
+  HeadphonesIcon,
+  HeartHandshakeIcon,
+  ImageIcon,
+  LifeBuoyIcon,
+  NewspaperIcon,
+  PlayIcon,
+  ShieldCheckIcon,
+  StoreIcon,
+  UserRoundIcon,
+} from 'lucide-react'
 import type { ReactNode } from 'react'
 
+import { Permissions } from '../auth/permissions'
 import type { Permission } from '../auth/permissions'
 import {
   accountPath,
@@ -13,17 +26,25 @@ import {
   registerPath,
   resetPasswordPath,
 } from '../auth/routes'
+import { ModeracaoPage } from '../pages/admin/moderacao'
+import { BandasPage } from '../pages/bandas'
 import { BemVindoPage } from '../pages/bem-vindo'
 import { ConfirmarEmailPage } from '../pages/confirmar-email'
 import { CriarContaPage } from '../pages/criar-conta'
 import { EntrarPage } from '../pages/entrar'
 import { EsqueciSenhaPage } from '../pages/esqueci-senha'
 import { EventosPage } from '../pages/eventos'
+import { EventoDetalhePage } from '../pages/eventos/detalhe'
+import { EventoFormPage } from '../pages/eventos/form'
 import { FeedPage } from '../pages/feed'
+import { PostDetalhePage } from '../pages/feed/detalhe'
 import { FotosPage } from '../pages/fotos'
+import { LojaParceiraPage, PodcastsPage, SobrePage } from '../pages/institucional'
 import { MinhaContaPage } from '../pages/minha-conta'
+import { NotificacoesPage } from '../pages/notificacoes'
 import { PerfilPage } from '../pages/perfil'
 import { RedefinirSenhaPage } from '../pages/redefinir-senha'
+import { ReportarProblemaPage } from '../pages/reportar-problema'
 import { VideosPage } from '../pages/videos'
 
 export type PublicRoute = {
@@ -71,14 +92,14 @@ export const navSections: NavSection[] = [
     items: [
       { path: homePath, labelKey: 'layout:nav.feed', icon: NewspaperIcon, element: <FeedPage />, mobile: true, subRoutes: ['/feed/:id'] },
       { path: '/videos', labelKey: 'layout:nav.videos', icon: PlayIcon, element: <VideosPage />, mobile: true },
-      { path: '/fotos', labelKey: 'layout:nav.photos', icon: ImageIcon, element: <FotosPage />, mobile: true },
+      { path: '/fotos', labelKey: 'layout:nav.photos', icon: ImageIcon, element: <FotosPage /> },
       {
         path: '/eventos',
         labelKey: 'layout:nav.events',
         icon: CalendarDaysIcon,
         element: <EventosPage />,
         mobile: true,
-        subRoutes: ['/eventos/:id', '/eventos/novo', '/eventos/:id/editar'],
+        subRoutes: ['/eventos/novo', '/eventos/:id/editar', '/eventos/:id'],
       },
       {
         path: '/perfil/:nickname',
@@ -88,11 +109,35 @@ export const navSections: NavSection[] = [
         mobile: true,
         mobilePath: (nickname) => `/perfil/${nickname}`,
       },
+      { path: '/notificacoes', labelKey: 'layout:nav.notifications', icon: BellIcon, element: <NotificacoesPage /> },
+    ],
+  },
+  {
+    id: 'admin',
+    labelKey: 'layout:nav.admin',
+    permission: Permissions.adminAccess,
+    items: [
+      { path: '/admin/moderacao', labelKey: 'layout:nav.moderation', icon: ShieldCheckIcon, element: <ModeracaoPage /> },
+    ],
+  },
+  {
+    id: 'institutional',
+    labelKey: 'layout:nav.institutional',
+    items: [
+      { path: '/reportar-problema', labelKey: 'layout:nav.report', icon: LifeBuoyIcon, element: <ReportarProblemaPage /> },
+      { path: '/podcasts', labelKey: 'layout:nav.podcasts', icon: HeadphonesIcon, element: <PodcastsPage /> },
+      { path: '/sobre', labelKey: 'layout:nav.about', icon: HeartHandshakeIcon, element: <SobrePage /> },
+      { path: '/loja-parceira', labelKey: 'layout:nav.store', icon: StoreIcon, element: <LojaParceiraPage /> },
     ],
   },
 ]
 
 export const hiddenRoutes: HiddenRoute[] = [
+  { path: '/feed/:id', element: <PostDetalhePage /> },
+  { path: '/eventos/novo', element: <EventoFormPage /> },
+  { path: '/eventos/:id/editar', element: <EventoFormPage /> },
+  { path: '/eventos/:id', element: <EventoDetalhePage /> },
+  { path: '/bandas/:slug', element: <BandasPage /> },
   { path: accountPath, element: <MinhaContaPage /> },
 ]
 

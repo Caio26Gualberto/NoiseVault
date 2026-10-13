@@ -1,0 +1,25 @@
+{
+  "podcasts": {
+    "title": "Podcasts",
+    "description": "Conversas sobre a cena do ABC.",
+    "soonTitle": "Em breve",
+    "soonDescription": "O primeiro episódio está sendo gravado. Enquanto isso, o feed e os eventos seguem no ar."
+  },
+  "about": {
+    "title": "Sobre o Headbanger",
+    "description": "Por que esta comunidade existe.",
+    "body": [
+      "O Headbanger nasceu da falta de um lugar que reunisse as bandas, as casas de show e o público de metal e rock do ABC Paulista. Grupos de mensagem se perdem, eventos passam batido e o registro da cena some.",
+      "Aqui a ideia é simples: cada pessoa tem um perfil, cada banda tem a sua página com os integrantes de verdade, e os eventos, fotos e vídeos ficam num lugar só, para quem toca e para quem assiste.",
+      "O projeto é feito por gente da cena, sem patrocínio e sem anúncio. Se quiser ajudar, aparece nos shows, publica no feed e reporta o que estiver quebrado."
+    ]
+  },
+  "store": {
+    "title": "Loja parceira",
+    "description": "Onde comprar camiseta, vinil e corda de guitarra sem sair do ABC.",
+    "body": [
+      "A loja parceira do Headbanger fica em Santo André e tem desconto para quem mostra o perfil da comunidade no balcão.",
+      "Camisetas de bandas da região, vinis novos e usados, acessórios e manutenção de instrumentos. Endereço e horário entram aqui quando a parceria for fechada."
+    ]
+  }
+}
