@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src\Headbanger.Workers\Headbanger.Workers.csproj" />
+    <Project Path="src\Headbanger.Api\Headbanger.Api.csproj" />
+    <Project Path="src\Headbanger.Application\Headbanger.Application.csproj" />
+    <Project Path="src\Headbanger.Domain\Headbanger.Domain.csproj" />
+    <Project Path="src\Headbanger.Infra.Data\Headbanger.Infra.Data.csproj" />
+    <Project Path="src\Headbanger.Infra.IoC\Headbanger.Infra.IoC.csproj" />
+  </Folder>
+</Solution>
