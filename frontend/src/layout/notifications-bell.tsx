@@ -1,27 +1,14 @@
 import { BellIcon } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useLocation } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { usePolling } from '@/hooks/use-polling'
-import { getUnreadCount } from '@/pages/notificacoes/services/notificacoes-service'
+
+import { useNotifications } from './use-notifications'
 
 export function NotificationsBell() {
   const { t } = useTranslation()
-  const location = useLocation()
-  const [count, setCount] = useState(0)
-
-  const refresh = useCallback(async () => {
-    const next = await getUnreadCount().catch(() => null)
-    if (next !== null) setCount(next)
-  }, [])
-
-  useEffect(() => {
-    void refresh()
-  }, [refresh, location.pathname])
-
-  usePolling(refresh, 30000)
+  const { unreadCount: count } = useNotifications()
 
   const label = count > 0 ? `${t('layout:bell.label')} · ${t('layout:bell.unread', { count })}` : t('layout:bell.label')
 

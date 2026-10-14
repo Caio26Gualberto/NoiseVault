@@ -1,7 +1,7 @@
 import axios from 'axios'
 import type { AxiosRequestConfig } from 'axios'
 
-import { attachAuthInterceptor } from './auth-interceptor'
+import { attachAuthInterceptor, freshToken } from './auth-interceptor'
 import { tokenStorage } from './token-storage'
 
 function resolveApiBaseUrl(): string {
@@ -44,3 +44,7 @@ export function setSessionExpiredHandler(handler: () => void) {
 }
 
 attachAuthInterceptor(apiClient, bareClient, () => sessionExpiredHandler())
+
+export function getFreshToken(): Promise<string | null> {
+  return freshToken(bareClient)
+}

@@ -1,5 +1,6 @@
 import type { AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
 
+import { decodeJwt } from './jwt'
 import { tokenStorage } from './token-storage'
 import type { ApiEnvelope, TokensDto } from './types'
 
@@ -11,6 +12,7 @@ type RetriableConfig = InternalAxiosRequestConfig & {
 }
 
 const REFRESH_PATH = '/api/auth/refresh-token'
+const REFRESH_MARGIN_MS = 60_000
 
 let pendingRefresh: Promise<string | null> | null = null
 
@@ -36,6 +38,16 @@ function refreshOnce(bareClient: AxiosInstance): Promise<string | null> {
     pendingRefresh = null
   })
   return pendingRefresh
+}
+
+export async function freshToken(bareClient: AxiosInstance): Promise<string | null> {
+  const token = tokenStorage.readToken()
+  if (!token) return null
+
+  const exp = decodeJwt(token)?.exp
+  if (exp != null && exp * 1000 - Date.now() > REFRESH_MARGIN_MS) return token
+
+  return refreshOnce(bareClient)
 }
 
 export function attachAuthInterceptor(

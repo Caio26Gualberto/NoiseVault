@@ -19,6 +19,7 @@ import { allAbcCities, useAbcCityLabel } from '@/pages/perfil/cities'
 import type { AbcCity } from '@/pages/perfil/cities'
 import { allMusicGenres, useMusicGenreLabel } from '@/pages/perfil/genres'
 
+import { NotificationSettings } from './components/notification-settings'
 import { bioMaxLength, maxGenres, profileFormSchema } from './profile-validators'
 import type { ProfileFormValues } from './profile-validators'
 import { removeAvatar, removeBanner, setAvatar, setBanner, setBannerPosition, updateProfile } from './services/conta-service'
@@ -187,6 +188,8 @@ export function MinhaContaPage() {
           </AppButton>
         </AppForm>
       </AppCard>
+
+      <NotificationSettings />
 
       <AppCard title={t('password.title')} description={t('password.description')}>
         <AppForm form={passwordForm} onSubmit={savePassword}>

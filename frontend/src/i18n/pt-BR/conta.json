@@ -31,5 +31,11 @@
   "appearance": {
     "title": "Aparência do perfil",
     "description": "Avatar e capa aparecem no seu perfil e em tudo que você publicar."
+  },
+  "notifications": {
+    "title": "Notificações",
+    "description": "As notificações chegam no sino na hora. Por e-mail, só o que precisa de resposta.",
+    "emailOnBandInvite": "Receber convite de banda por e-mail",
+    "emailOnBandInviteHint": "Para você não perder um convite quando não estiver no Noise Vault."
   }
 }

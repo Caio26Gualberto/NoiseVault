@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom'
 
 import { AppAvatar } from '@/components/app-avatar'
 import { AppButton } from '@/components/app-button'
+import { useNotifications } from '@/layout/use-notifications'
 import { formatDate } from '@/lib/format'
 import { acceptBandInvitation, declineBandInvitation, getMyBandInvitations } from '@/pages/bandas/services/bandas-service'
 import type { BandInvitationDto } from '@/pages/bandas/services/bandas-service'
@@ -16,6 +17,7 @@ export function BandInvitations() {
   const [invitations, setInvitations] = useState<BandInvitationDto[]>([])
   const [busyId, setBusyId] = useState<number | null>(null)
   const [version, setVersion] = useState(0)
+  const { version: notificationsVersion } = useNotifications()
 
   useEffect(() => {
     let cancelled = false
@@ -25,7 +27,7 @@ export function BandInvitations() {
     return () => {
       cancelled = true
     }
-  }, [version])
+  }, [version, notificationsVersion])
 
   const refresh = useCallback(() => setVersion((v) => v + 1), [])
 

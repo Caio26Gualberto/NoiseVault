@@ -1,49 +1,37 @@
-import { BellIcon, CheckCheckIcon, Trash2Icon } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
+import { BellIcon, CheckCheckIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
 
-import { emptyPage } from '@/api/types'
-import type { PagedResult } from '@/api/types'
-import { AppButton, AppIconButton } from '@/components/app-button'
+import { AppButton } from '@/components/app-button'
 import { useAppConfirm } from '@/components/app-confirm'
 import { AppEmptyState } from '@/components/app-empty-state'
 import { AppPageHeader } from '@/components/app-page-header'
 import { AppPagination } from '@/components/app-pagination'
 import { AppSkeleton } from '@/components/app-skeleton'
-import { cn } from '@/lib/utils'
-import { formatRelative } from '@/lib/format'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useNotifications } from '@/layout/use-notifications'
 
 import { BandInvitations } from './components/band-invitations'
-import { getNotifications, markAllRead, markRead, remove } from './services/notificacoes-service'
+import { NotificationItem } from './components/notification-item'
+import { useNotificacoesPage } from './hooks/use-notificacoes-page'
+import { markAllRead, markRead, remove } from './services/notificacoes-service'
 import type { NotificationDto } from './services/notificacoes-service'
 
 export function NotificacoesPage() {
   const { t } = useTranslation('notificacoes')
   const confirm = useAppConfirm()
-  const [page, setPage] = useState(1)
-  const [result, setResult] = useState<PagedResult<NotificationDto>>(() => emptyPage(20))
-  const [loading, setLoading] = useState(true)
-  const [version, setVersion] = useState(0)
+  const { unreadCount, refresh: refreshCount } = useNotifications()
+  const page = useNotificacoesPage()
 
-  useEffect(() => {
-    let cancelled = false
-    setLoading(true)
-    getNotifications({ page, pageSize: 20 })
-      .then((data) => {
-        if (!cancelled) setResult(data)
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [page, version])
+  const afterChange = () => {
+    page.refresh()
+    void refreshCount()
+  }
 
-  const refresh = useCallback(() => setVersion((v) => v + 1), [])
+  const onOpen = (item: NotificationDto) => {
+    if (item.readAt === null) void markRead(item.id).catch(() => undefined)
+  }
 
-  const unread = result.items.filter((n) => n.readAt === null).length
+  const onMarkRead = (item: NotificationDto) => void markRead(item.id).then(afterChange)
 
   const onRemove = (item: NotificationDto) =>
     confirm({
@@ -51,7 +39,7 @@ export function NotificacoesPage() {
       message: t('remove.message'),
       danger: true,
       confirmLabel: t('remove.confirm'),
-      onConfirm: () => remove(item.id).then(refresh),
+      onConfirm: () => remove(item.id).then(afterChange),
     })
 
   return (
@@ -60,7 +48,7 @@ export function NotificacoesPage() {
         title={t('title')}
         description={t('description')}
         actions={
-          <AppButton intent="neutral" size="sm" disabled={unread === 0} onClick={() => void markAllRead().then(refresh)}>
+          <AppButton intent="neutral" size="sm" disabled={unreadCount === 0} onClick={() => void markAllRead().then(afterChange)}>
             <CheckCheckIcon />
             {t('markAllRead')}
           </AppButton>
@@ -69,51 +57,36 @@ export function NotificacoesPage() {
 
       <BandInvitations />
 
-      {loading ? (
+      <Tabs value={page.unreadOnly ? 'unread' : 'all'} onValueChange={(value) => page.changeUnreadOnly(value === 'unread')} className="mb-4">
+        <TabsList>
+          <TabsTrigger value="all">{t('filters.all')}</TabsTrigger>
+          <TabsTrigger value="unread">{t('filters.unread')}</TabsTrigger>
+        </TabsList>
+      </Tabs>
+
+      {page.loading && page.result.items.length === 0 ? (
         <AppSkeleton preset="list" count={5} />
-      ) : result.items.length === 0 ? (
-        <AppEmptyState icon={BellIcon} title={t('empty.title')} description={t('empty.description')} />
+      ) : page.result.items.length === 0 ? (
+        <AppEmptyState
+          icon={BellIcon}
+          title={page.unreadOnly ? t('empty.unreadTitle') : t('empty.title')}
+          description={page.unreadOnly ? t('empty.unreadDescription') : t('empty.description')}
+        />
       ) : (
         <ul className="flex flex-col divide-y rounded-xl border bg-card">
-          {result.items.map((item) => {
-            const isUnread = item.readAt === null
-            return (
-              <li key={item.id} className={cn('flex gap-3 p-4', isUnread && 'bg-primary/[0.04]')}>
-                <span className="mt-2 flex w-2 shrink-0 justify-center">
-                  {isUnread ? <span className="size-2 rounded-full bg-primary" aria-label={t('unread')} /> : null}
-                </span>
-                <div className="flex min-w-0 flex-1 flex-col gap-2">
-                  <div className="flex flex-col gap-0.5">
-                    <p className={cn('text-sm', isUnread ? 'font-semibold' : 'font-medium')}>{item.title}</p>
-                    <p className="text-sm text-muted-foreground">{item.message}</p>
-                    <span className="app-meta">{formatRelative(item.createdAt)}</span>
-                  </div>
-
-                  {item.imageUrl ? <img src={item.imageUrl} alt="" className="aspect-[3/1] w-full rounded-lg object-cover" /> : null}
-
-                  {item.link ? (
-                    <Link to={item.link} onClick={() => void markRead(item.id)} className="self-start text-[13px] font-medium text-primary hover:underline">
-                      {t('open')}
-                    </Link>
-                  ) : null}
-                </div>
-                <div className="flex shrink-0 flex-col gap-1">
-                  {isUnread ? (
-                    <AppIconButton label={t('markRead')} size="sm" onClick={() => void markRead(item.id).then(refresh)}>
-                      <CheckCheckIcon />
-                    </AppIconButton>
-                  ) : null}
-                  <AppIconButton label={t('remove.action')} size="sm" onClick={() => onRemove(item)}>
-                    <Trash2Icon />
-                  </AppIconButton>
-                </div>
-              </li>
-            )
-          })}
+          {page.result.items.map((item) => (
+            <NotificationItem key={item.id} item={item} onOpen={onOpen} onMarkRead={onMarkRead} onRemove={onRemove} />
+          ))}
         </ul>
       )}
 
-      <AppPagination page={result.page} totalPages={result.totalPages} totalCount={result.totalCount} onChange={setPage} loading={loading} />
+      <AppPagination
+        page={page.result.page}
+        totalPages={page.result.totalPages}
+        totalCount={page.result.totalCount}
+        onChange={page.setPage}
+        loading={page.loading}
+      />
     </div>
   )
 }

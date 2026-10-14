@@ -38,15 +38,15 @@ Rule irmã: `../api/.claude/rules/bandas.md`. A regra é do backend; a tela só 
 
 - **Busca:** a pessoa é escolhida pela busca de pessoas real (`searchPeople` do `perfil-service`, debounce de 350 ms, 2+ caracteres, até 6 resultados, integrantes já filtrados). Escolher alguém trava o campo num cartão com "Trocar". Digitar o nickname inteiro e enviar sem escolher também funciona: a API resolve o nickname e devolve `INVITEE_NOT_FOUND` se não houver ninguém.
 - **Pendentes:** a lista aparece abaixo do formulário (`GET /api/bands/{slug}/invitations`, uma página de 20, que é o limite de pendentes da API), com "Revogar" e a data de vencimento.
-- **Em `/notificacoes`:** a seção "Convites de banda" (`notificacoes/components/band-invitations.tsx`) vem **da API real** (`GET /api/band-invitations/mine`), acima da lista de notificações, que continua mock até o módulo 6.
+- **Em `/notificacoes`:** a seção "Convites de banda" (`notificacoes/components/band-invitations.tsx`) vem **da API real** (`GET /api/band-invitations/mine`), acima da lista de notificações (real desde o módulo 6, `notificacoes.md`), que mostra o item do convite só com o estado.
   - A seção some quando não há convite.
   - "Aceitar" leva para a página da banda. "Recusar" refaz a lista.
   - Responder é pelo **id do convite**, não da notificação: a notificação vai ser só projeção do convite (`../api/.claude/rules/dominio.md`).
-- O sino do topo ainda conta só as notificações mock; convite pendente não soma no contador até o módulo 6 unificar as duas fontes.
+- ~~O sino do topo ainda conta só as notificações mock~~: desde o módulo 6, o convite é uma notificação `BandInvite` e soma no sino. Aceitar ou recusar marca como lida, e a seção refaz a busca quando a contagem muda.
 
 ## Reaproveitamento
 
-- `BandSummaryDto` mora em `bandas-service.ts` (a página dona). Perfil, feed, eventos e `mock-fixtures` importam de lá.
+- `BandSummaryDto` mora em `bandas-service.ts` (a página dona). Perfil, feed, eventos e notificações importam de lá.
 - Os uploaders de avatar e capa viraram globais (`AppAvatarUploader`, `AppBannerEditor`), recebendo callbacks: a conta e a banda usam o mesmo componente. Validação de arquivo em `src/lib/image-file.ts`; textos em `common.json` (`imageUpload.*`).
 - O formulário (`components/band-form.tsx` + `band-validators.ts`) é o mesmo na criação e na edição. Os campos repetidos do perfil (cidade, gêneros, links, limite de instrumento) reaproveitam `minha-conta/profile-validators.ts`.
 - `band-invitation-status.ts` espelha `EBandInvitationStatus` (`pending: 0, accepted: 1, declined: 2, revoked: 3`).

@@ -4,7 +4,7 @@
 
 **Noise Vault** — site público da cena do ABC Paulista (metal, punk, hardcore e afins): feed, mural das antigas, eventos, perfis de pessoas e de bandas, notificações. Quem usa é o fã e o músico da região; a administração (moderação, equipe) é a mesma aplicação com permissão. Reescrita do zero do legado "NewLevel" (`C:\Projetos\Pessoal\Alvo\newlevel`), que não serve de referência de código nem de tela.
 
-**Estado da entrega atual:** auth é real (`/entrar`, `/criar-conta`, `/confirmar-email`, `/esqueci-senha`, `/redefinir-senha`, `/definir-senha`, `/bem-vindo`); perfil e mídia também (`/minha-conta` inteira com avatar e capa, `/perfil/:nickname`, busca de pessoas na topbar — `.claude/rules/perfil.md`); bandas e convites também (`/bandas/:slug`, `/bandas/nova`, `/bandas/:slug/editar` e a seção de convites em `/notificacoes` — `.claude/rules/bandas.md`); o feed também (`/feed`, `/feed/:id`, publicações no perfil e na banda, com fotos e vídeo — `.claude/rules/feed.md`); os eventos também (`/eventos`, detalhe, formulário, seção Shows da banda e o rail do feed — `.claude/rules/eventos.md`). O mural das antigas também (`/mural` e o detalhe, o formulário com permissão — `.claude/rules/mural.md`); Vídeos, Fotos e Moderação saíram do produto. O resto das notificações, reportar problema e institucionais são **mock por página** com a assinatura que o service real vai ter (`.claude/rules/mocks.md`). A ordem em que os mocks viram backend está em `../api/.claude/rules/dominio.md`.
+**Estado da entrega atual:** auth é real (`/entrar`, `/criar-conta`, `/confirmar-email`, `/esqueci-senha`, `/redefinir-senha`, `/definir-senha`, `/bem-vindo`); perfil e mídia também (`/minha-conta` inteira com avatar e capa, `/perfil/:nickname`, busca de pessoas na topbar — `.claude/rules/perfil.md`); bandas e convites também (`/bandas/:slug`, `/bandas/nova`, `/bandas/:slug/editar` e a seção de convites em `/notificacoes` — `.claude/rules/bandas.md`); o feed também (`/feed`, `/feed/:id`, publicações no perfil e na banda, com fotos e vídeo — `.claude/rules/feed.md`); os eventos também (`/eventos`, detalhe, formulário, seção Shows da banda e o rail do feed — `.claude/rules/eventos.md`). O mural das antigas também (`/mural` e o detalhe, o formulário com permissão — `.claude/rules/mural.md`); Vídeos, Fotos e Moderação saíram do produto. As notificações também (`/notificacoes`, o sino em tempo real por SignalR e a preferência em `/minha-conta` — `.claude/rules/notificacoes.md`). Reportar problema e institucionais são **mock por página** com a assinatura que o service real vai ter (`.claude/rules/mocks.md`). A ordem em que os mocks viram backend está em `../api/.claude/rules/dominio.md`.
 
 ## Como trabalhar neste repositório
 
@@ -23,6 +23,7 @@ As **decisões por área** vivem em `.claude/rules/`, com front matter `paths:`,
 | `.claude/rules/eventos.md` | agenda com abas e "Vou", detalhe com cancelamento, formulário com banner local e line-up misto, card de evento no feed, Shows da banda |
 | `.claude/rules/feed.md` | feed único, composer com fotos e vídeo (upload multipart direto ao S3), publicar como banda, post em processamento com polling, editar e apagar, comentários, listas no perfil e na banda |
 | `.claude/rules/mural.md` | linha do tempo interativa, grade de registros, detalhe com legendas e "Eu estava lá", formulário com data aproximada e gerenciador de mídias de arquivo, permissões `Archive.*` |
+| `.claude/rules/notificacoes.md` | SignalR só avisando (`api/notifications-hub.ts` + `layout/notifications-provider.tsx`), toast do push, frase pelo `kind` com plural de agrupamento, convites no topo, preferência de e-mail |
 | `.claude/rules/mocks.md` | a forma do mock por página, o que apagar ao ligar cada módulo |
 | `.claude/rules/perfil.md` | perfil público, edição em `/minha-conta`, avatar, editor de capa, busca de pessoas, fixtures compartilhadas dos mocks |
 
@@ -59,7 +60,7 @@ src/
     client.ts · auth-interceptor.ts · base-service.ts · api-codes.ts · feedback-sink.ts · token-storage.ts · types.ts · jwt.ts
     multipart-upload.ts    # PUT das partes de vídeo direto no S3 (axios próprio, sem auth e sem timeout)
     mock-delay.ts          # andaime dos mocks: delay() + mockPage(); morre com o último mocks.ts
-    mock-fixtures.ts       # pessoas e bandas de exemplo que os mocks compartilham; morre com o último mocks.ts
+    notifications-hub.ts   # conexão SignalR do sino (carregada sob demanda); só avisa a contagem
   auth/
     auth-context.ts · auth-provider.tsx · auth-service.ts · use-auth.ts
     require-auth.tsx       # unknown → skeleton; sem sessão → /entrar; senha pendente; boas-vindas (localStorage); permissão
@@ -83,6 +84,7 @@ src/
     nav-active.ts          # resolveActivePath
     app-shell.tsx · nav-sidebar.tsx · top-bar.tsx · bottom-nav.tsx · user-menu.tsx
     shell-rail.tsx · shell-rail-context.ts · use-shell-rail.ts   # rail direito registrado pela página
+    notifications-provider.tsx · notifications-context.ts · use-notifications.ts   # contador do sino, push e toast
     public-layout.tsx      # PublicFrame (card centralizado) + PublicLayout (Outlet)
     wordmark.tsx
   pages/
@@ -130,7 +132,7 @@ Rota e item de menu **nascem do mesmo lugar**. `publicRoutes` (com `guestOnly` p
 
 ## i18n
 
-Só **pt-BR** por enquanto, mas nada de string solta: **nenhuma string de UI é hardcoded.** `grep -rnP "[áéíóúâêôãõç]" src --include=*.ts --include=*.tsx | grep -v src/i18n/ | grep -v api/client.ts | grep -v services/mocks.ts | grep -v api/mock-fixtures.ts` deve voltar vazio (as fixtures dos mocks são dado de exemplo e morrem com o módulo). Um namespace por área (`auth`, `conta`, `feed`, …) mais `common`, `layout` e `api`. **O `code` do envelope é a chave de tradução** (`api-codes.ts` + `api.json`); mensagem de validação do zod é chave de `common.json` (`validation.*`) traduzida pelo `AppField`.
+Só **pt-BR** por enquanto, mas nada de string solta: **nenhuma string de UI é hardcoded.** `grep -rnP "[áéíóúâêôãõç]" src --include=*.ts --include=*.tsx | grep -v src/i18n/ | grep -v api/client.ts | grep -v services/mocks.ts` deve voltar vazio (as fixtures dos mocks são dado de exemplo e morrem com o módulo). Um namespace por área (`auth`, `conta`, `feed`, …) mais `common`, `layout` e `api`. **O `code` do envelope é a chave de tradução** (`api-codes.ts` + `api.json`); mensagem de validação do zod é chave de `common.json` (`validation.*`) traduzida pelo `AppField`.
 
 ## UI e tema
 

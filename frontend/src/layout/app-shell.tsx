@@ -2,6 +2,7 @@ import { Outlet } from 'react-router-dom'
 
 import { BottomNav } from './bottom-nav'
 import { NavSidebar } from './nav-sidebar'
+import { NotificationsProvider } from './notifications-provider'
 import { ShellRailProvider } from './shell-rail'
 import { useShellRailNode } from './use-shell-rail'
 import { TopBar } from './top-bar'
@@ -28,8 +29,10 @@ function ShellBody() {
 
 export function AppShell() {
   return (
-    <ShellRailProvider>
-      <ShellBody />
-    </ShellRailProvider>
+    <NotificationsProvider>
+      <ShellRailProvider>
+        <ShellBody />
+      </ShellRailProvider>
+    </NotificationsProvider>
   )
 }

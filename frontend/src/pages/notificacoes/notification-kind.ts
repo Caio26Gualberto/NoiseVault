@@ -1,0 +1,20 @@
+export const NotificationKind = {
+  postLiked: 0,
+  postCommented: 1,
+  eventCommented: 2,
+  eventInterest: 3,
+  eventCancelled: 4,
+  eventTomorrow: 5,
+  eventLineup: 6,
+  archiveLiked: 7,
+  archiveCommented: 8,
+  archiveAttended: 9,
+  archiveCommentedWhereAttended: 10,
+  bandInvite: 11,
+  bandInviteAccepted: 12,
+  bandInviteDeclined: 13,
+  bandPromoted: 14,
+  bandRemoved: 15,
+  bandMemberLeft: 16,
+} as const
+export type NotificationKind = (typeof NotificationKind)[keyof typeof NotificationKind]

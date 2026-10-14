@@ -1,10 +1,13 @@
 {
   "title": "Notificações",
-  "description": "Convites, respostas e avisos da comunidade.",
+  "description": "Curtidas, histórias, shows e convites de banda.",
   "markAllRead": "Marcar todas como lidas",
   "markRead": "Marcar como lida",
   "unread": "Não lida",
-  "open": "Abrir",
+  "filters": {
+    "all": "Todas",
+    "unread": "Não lidas"
+  },
   "remove": {
     "action": "Excluir notificação",
     "title": "Excluir esta notificação?",
@@ -13,7 +16,55 @@
   },
   "empty": {
     "title": "Nenhuma notificação",
-    "description": "Quando alguém interagir com você, aparece aqui."
+    "description": "Quando alguém curtir, comentar ou chamar você para uma banda, aparece aqui.",
+    "unreadTitle": "Tudo lido",
+    "unreadDescription": "Nenhuma notificação nova por enquanto."
+  },
+  "toast": {
+    "view": "Ver"
+  },
+  "invitationStatus": {
+    "pending": "Aguardando sua resposta",
+    "accepted": "Aceito",
+    "declined": "Recusado",
+    "revoked": "Cancelado",
+    "expired": "Expirou"
+  },
+  "kinds": {
+    "postLiked_zero": "<b>{{actor}}</b> curtiu seu post",
+    "postLiked_one": "<b>{{actor}}</b> e mais 1 pessoa curtiram seu post",
+    "postLiked_other": "<b>{{actor}}</b> e mais {{count}} pessoas curtiram seu post",
+    "postCommented_zero": "<b>{{actor}}</b> comentou no seu post",
+    "postCommented_one": "<b>{{actor}}</b> e mais 1 pessoa comentaram no seu post",
+    "postCommented_other": "<b>{{actor}}</b> e mais {{count}} pessoas comentaram no seu post",
+    "eventCommented_zero": "<b>{{actor}}</b> comentou em <b>{{event}}</b>",
+    "eventCommented_one": "<b>{{actor}}</b> e mais 1 pessoa comentaram em <b>{{event}}</b>",
+    "eventCommented_other": "<b>{{actor}}</b> e mais {{count}} pessoas comentaram em <b>{{event}}</b>",
+    "eventInterest_zero": "<b>{{actor}}</b> vai em <b>{{event}}</b>",
+    "eventInterest_one": "<b>{{actor}}</b> e mais 1 pessoa vão em <b>{{event}}</b>",
+    "eventInterest_other": "<b>{{actor}}</b> e mais {{count}} pessoas vão em <b>{{event}}</b>",
+    "eventCancelled": "<b>{{event}}</b> foi cancelado",
+    "eventTomorrow": "<b>{{event}}</b> é amanhã. Você marcou que vai",
+    "eventLineup": "<b>{{actor}}</b> colocou a <b>{{band}}</b> no line-up de <b>{{event}}</b>",
+    "archiveLiked_zero": "<b>{{actor}}</b> curtiu <b>{{archive}}</b> no mural",
+    "archiveLiked_one": "<b>{{actor}}</b> e mais 1 pessoa curtiram <b>{{archive}}</b> no mural",
+    "archiveLiked_other": "<b>{{actor}}</b> e mais {{count}} pessoas curtiram <b>{{archive}}</b> no mural",
+    "archiveCommented_zero": "<b>{{actor}}</b> contou uma história em <b>{{archive}}</b>",
+    "archiveCommented_one": "<b>{{actor}}</b> e mais 1 pessoa contaram histórias em <b>{{archive}}</b>",
+    "archiveCommented_other": "<b>{{actor}}</b> e mais {{count}} pessoas contaram histórias em <b>{{archive}}</b>",
+    "archiveAttended_zero": "<b>{{actor}}</b> estava lá em <b>{{archive}}</b>",
+    "archiveAttended_one": "<b>{{actor}}</b> e mais 1 pessoa estavam lá em <b>{{archive}}</b>",
+    "archiveAttended_other": "<b>{{actor}}</b> e mais {{count}} pessoas estavam lá em <b>{{archive}}</b>",
+    "archiveCommentedWhereAttended_zero": "<b>{{actor}}</b> contou uma história em <b>{{archive}}</b>, onde você estava",
+    "archiveCommentedWhereAttended_one": "<b>{{actor}}</b> e mais 1 pessoa contaram histórias em <b>{{archive}}</b>, onde você estava",
+    "archiveCommentedWhereAttended_other": "<b>{{actor}}</b> e mais {{count}} pessoas contaram histórias em <b>{{archive}}</b>, onde você estava",
+    "bandInvite": "<b>{{actor}}</b> convidou você para a <b>{{band}}</b>",
+    "bandInviteInstrument": "<b>{{actor}}</b> convidou você para tocar {{instrument}} na <b>{{band}}</b>",
+    "bandInviteAccepted": "<b>{{actor}}</b> aceitou o convite e entrou na <b>{{band}}</b>",
+    "bandInviteDeclined": "<b>{{actor}}</b> recusou o convite para a <b>{{band}}</b>",
+    "bandPromoted": "<b>{{actor}}</b> fez de você responsável pela <b>{{band}}</b>",
+    "bandRemoved": "<b>{{actor}}</b> tirou você da <b>{{band}}</b>",
+    "bandMemberLeft": "<b>{{actor}}</b> saiu da <b>{{band}}</b>"
   },
   "invitations": {
     "title": "Convites de banda",

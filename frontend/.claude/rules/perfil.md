@@ -6,7 +6,6 @@ paths:
   - "src/layout/people-search.tsx"
   - "src/layout/user-menu.tsx"
   - "src/components/app-profile-hero/**"
-  - "src/api/mock-fixtures.ts"
 ---
 
 # Decisões — Perfil e mídia no front
@@ -24,7 +23,7 @@ Rule irmã: `../api/.claude/rules/perfil-e-midia.md` (campos, validação, codes
 | Publicações no perfil | contador "N publicações" no hero (`postCount`) e a seção "Publicações" com `OwnerPosts` do feed (módulo 3, `feed.md`) |
 | Abas de fotos e vídeos de galeria | **não existem**: voltam com o módulo 5 |
 
-Os mocks dos outros módulos ainda precisam de pessoas e bandas de exemplo: elas moram em `src/api/mock-fixtures.ts` (`people`, `bandSummaries`, `avatar()`, `picture()`), andaime que morre com o último `mocks.ts`. Pessoa **não tem selo de verificado** (só banda): `ProfileSummaryDto` não tem `isVerified`.
+~~As fixtures compartilhadas em `src/api/mock-fixtures.ts`~~ morreram com o mock de notificações (módulo 6). Pessoa **não tem selo de verificado** (só banda): `ProfileSummaryDto` não tem `isVerified`.
 
 ## Sessão carrega o perfil inteiro
 
@@ -67,5 +66,5 @@ Com API, LocalStack e Vite no ar:
 3. Escolher uma capa larga → arrastar para mostrar outra parte → "Salvar capa" → `/perfil/:nickname` mostra o mesmo corte do preview. Arrastar de novo → "Salvar posição" → muda sem reupload (mesma `bannerUrl`).
 4. `/perfil/<nickname>` de outra pessoa → sem "Editar perfil"; `/perfil/naoexiste` → estado vazio, sem toast.
 5. Topbar: digitar "a" não busca; "adm" lista o admin; Enter abre o perfil e limpa o campo.
-6. Telas mockadas (feed, eventos, bandas, vídeos, fotos, notificações, moderação) continuam abrindo com as fixtures movidas.
+6. ~~Telas mockadas abrem com as fixtures movidas~~: não sobrou tela mockada que use fixture de pessoa.
 7. 390px: `/minha-conta` e `/perfil/:nickname` sem rolagem horizontal; arrastar a capa com toque funciona.

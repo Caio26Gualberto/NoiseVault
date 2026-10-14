@@ -17,6 +17,10 @@ export function updateProfile(input: UpdateProfileInput) {
   return apiPut<ProfileDto>('/api/profile', input, { toastSuccess: true })
 }
 
+export function updateNotificationSettings(input: { emailOnBandInvite: boolean }) {
+  return apiPut<ProfileDto>('/api/profile/notification-settings', input, { toastSuccess: true })
+}
+
 export function setAvatar(file: File) {
   const form = new FormData()
   form.append('file', file)

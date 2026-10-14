@@ -60,6 +60,7 @@ export type ProfileDto = {
   avatarUrl: string | null
   bannerUrl: string | null
   bannerPosition: number
+  emailOnBandInvite: boolean
   bio: string | null
   city: AbcCity | null
   mainInstrument: string | null
