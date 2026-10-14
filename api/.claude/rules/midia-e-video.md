@@ -93,6 +93,8 @@ Sem conversão, vídeo de iPhone (`.mov`/HEVC) não toca no Chrome e o arquivo s
 | `Ready`/`Failed` solta há mais de 24 h | apaga os arquivos e a linha |
 | anexada a post apagado e ainda com chave | apaga os arquivos e zera as chaves |
 
+As marcações de pessoas (`PhotoTag`, `marcacoes.md`) são filhas da mídia com FK `Cascade`: quando a linha do `MediaUpload` é apagada, elas saem junto.
+
 **Rede de segurança no bucket:** regra de lifecycle `AbortIncompleteMultipartUpload` de 1 dia no prefixo `uploads/`. Partes de multipart não completado são cobradas e não aparecem na listagem normal; sem a regra, um abort que falhou vira custo invisível.
 
 ## Bucket: CORS e lifecycle

@@ -1,3 +1,5 @@
+using NoiseVault.Application.Media.Dtos;
+using NoiseVault.Application.PhotoTags.Dtos;
 using NoiseVault.Application.Abstractions.Authentication;
 using NoiseVault.Application.Archive.Dtos;
 using NoiseVault.Application.Archive.Interfaces;
@@ -11,6 +13,9 @@ using NoiseVault.Application.Events.Dtos;
 using NoiseVault.Application.Events.Interfaces;
 using NoiseVault.Application.Interfaces;
 using NoiseVault.Application.Media.Interfaces;
+using NoiseVault.Application.Mentions;
+using NoiseVault.Application.Mentions.Interfaces;
+using NoiseVault.Application.PhotoTags.Interfaces;
 using NoiseVault.Application.Pagination;
 using NoiseVault.Application.Posts.Dtos;
 using NoiseVault.Application.Posts.Interfaces;
@@ -40,6 +45,8 @@ namespace NoiseVault.Application.Posts
         private readonly IArchiveRepository _archiveRepository;
         private readonly IRepository<MediaUpload> _mediaRepository;
         private readonly INotificationAppService _notificationAppService;
+        private readonly IPhotoTagAppService _photoTagAppService;
+        private readonly IMentionAppService _mentionAppService;
         private readonly IApplicationLogger _logger;
 
         public PostAppService(
@@ -55,8 +62,12 @@ namespace NoiseVault.Application.Posts
             IArchiveRepository archiveRepository,
             IRepository<MediaUpload> mediaRepository,
             INotificationAppService notificationAppService,
+            IPhotoTagAppService photoTagAppService,
+            IMentionAppService mentionAppService,
             IApplicationLoggerFactory loggerFactory)
         {
+            _photoTagAppService = photoTagAppService;
+            _mentionAppService = mentionAppService;
             _archiveRepository = archiveRepository;
             _mediaRepository = mediaRepository;
             _eventRepository = eventRepository;
@@ -112,6 +123,9 @@ namespace NoiseVault.Application.Posts
 
             if (content.Length > PostRules.ContentMaxLength)
                 return Fail(Invalid("INVALID_POST_CONTENT", $"Post text must have at most {PostRules.ContentMaxLength} characters"));
+
+            if (MentionRules.TooMany(content))
+                return Fail(TooManyMentions());
 
             var mediaIds = (input.MediaIds ?? []).Distinct().ToList();
 
@@ -181,6 +195,8 @@ namespace NoiseVault.Application.Posts
 
             _logger.Info("POST_CREATED", "Post created", userId: me, extra: new { PostId = post.Id, BandId = bandId, Media = mediaIds.Count, Published = published });
 
+            await _mentionAppService.Notify(content, null, new MentionTarget(InComment: false, PostId: post.Id), me, []);
+
             var created = await FindVisible(post.Id);
 
             return Result<PostDto>.Ok(await MapOneAsync(created!), "POST_CREATED", published ? "Post published" : "Post created; it is published when the video is ready");
@@ -194,6 +210,9 @@ namespace NoiseVault.Application.Posts
 
             if (content.Length > PostRules.ContentMaxLength)
                 return Fail(Invalid("INVALID_POST_CONTENT", $"Post text must have at most {PostRules.ContentMaxLength} characters"));
+
+            if (MentionRules.TooMany(content))
+                return Fail(TooManyMentions());
 
             var me = _currentUser.UserId;
 
@@ -211,11 +230,14 @@ namespace NoiseVault.Application.Posts
 
             if (content != post.Content)
             {
+                var previous = post.Content;
                 post.Content = content;
                 post.EditedAt = DateTime.UtcNow;
                 await _postRepository.UpdateAsync(post);
 
                 _logger.Info("POST_UPDATED", "Post text edited", userId: me, extra: new { PostId = post.Id });
+
+                await _mentionAppService.Notify(content, previous, new MentionTarget(InComment: false, PostId: post.Id), me, []);
             }
 
             return Result<PostDto>.Ok(await MapOneAsync((await FindVisible(id))!), "POST_UPDATED", "Post updated");
@@ -392,6 +414,8 @@ namespace NoiseVault.Application.Posts
             })).ToLookup(pm => pm.PostId);
 
             var me = _currentUser.UserId;
+            var mentions = await _mentionAppService.Resolve(rows.Select(r => r.Content));
+            var tags = await _photoTagAppService.ForMedia(media.SelectMany(g => g).Select(pm => pm.MediaUploadId).ToList());
 
             return rows.Select(r => new PostDto
             {
@@ -407,7 +431,8 @@ namespace NoiseVault.Application.Posts
                 Event = r.EventId != null && events.TryGetValue(r.EventId.Value, out var linkedEvent) ? linkedEvent : null,
                 Archive = r.ArchiveEntryId != null && archives.TryGetValue(r.ArchiveEntryId.Value, out var linkedArchive) ? linkedArchive : null,
                 Content = r.Content,
-                Media = media[r.Id].Select(pm => _mediaAppService.Describe(pm.MediaUpload!)).ToList(),
+                Mentions = _mentionAppService.Pick(r.Content, mentions),
+                Media = media[r.Id].Select(pm => WithTags(_mediaAppService.Describe(pm.MediaUpload!), tags)).ToList(),
                 LikeCount = r.LikeCount,
                 CommentCount = r.CommentCount,
                 LikedByMe = r.LikedByMe,
@@ -452,6 +477,15 @@ namespace NoiseVault.Application.Posts
 
         private static Error TooManyPhotos() =>
             Invalid("TOO_MANY_PHOTOS", $"A post can have at most {PostRules.MaxPhotosPerPost} photos and {PostRules.MaxVideosPerPost} video");
+
+        private static MediaDto WithTags(MediaDto media, Dictionary<int, List<PhotoTagDto>> tags)
+        {
+            media.Tags = tags.GetValueOrDefault(media.Id) ?? [];
+            return media;
+        }
+
+        private static Error TooManyMentions() =>
+            Invalid("TOO_MANY_MENTIONS", $"A text can mention at most {MentionRules.MaxPerText} people or bands");
 
         private static Error PostNotFound() => new("POST_NOT_FOUND", "Post not found", ErrorType.NotFound);
     }

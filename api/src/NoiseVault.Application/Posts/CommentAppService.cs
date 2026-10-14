@@ -4,6 +4,9 @@ using NoiseVault.Application.Notifications;
 using NoiseVault.Application.Notifications.Interfaces;
 using NoiseVault.Application.Abstractions.Repository;
 using NoiseVault.Application.Interfaces;
+using NoiseVault.Application.Mentions;
+using NoiseVault.Application.Mentions.Dtos;
+using NoiseVault.Application.Mentions.Interfaces;
 using NoiseVault.Application.Pagination;
 using NoiseVault.Application.Posts.Dtos;
 using NoiseVault.Application.Posts.Interfaces;
@@ -21,6 +24,7 @@ namespace NoiseVault.Application.Posts
         private readonly ICurrentUser _currentUser;
         private readonly IFileStorage _fileStorage;
         private readonly INotificationAppService _notificationAppService;
+        private readonly IMentionAppService _mentionAppService;
         private readonly IApplicationLogger _logger;
 
         public CommentAppService(
@@ -29,8 +33,10 @@ namespace NoiseVault.Application.Posts
             ICurrentUser currentUser,
             IFileStorage fileStorage,
             INotificationAppService notificationAppService,
+            IMentionAppService mentionAppService,
             IApplicationLoggerFactory loggerFactory)
         {
+            _mentionAppService = mentionAppService;
             _commentRepository = commentRepository;
             _postAppService = postAppService;
             _currentUser = currentUser;
@@ -60,10 +66,11 @@ namespace NoiseVault.Application.Posts
 
             var totalCount = await _commentRepository.CountAsync(options);
             var comments = await _commentRepository.ListAsync(options);
+            var mentions = await _mentionAppService.Resolve(comments.Select(c => c.Text));
 
             return Result<PagedResultDto<CommentDto>>.Ok(
                 PagedResultDto<CommentDto>.Create(
-                    comments.Select(c => Map(c, post.AuthorUserId)).ToList(),
+                    comments.Select(c => Map(c, post.AuthorUserId, mentions)).ToList(),
                     query.Page,
                     query.PageSize,
                     totalCount),
@@ -79,6 +86,9 @@ namespace NoiseVault.Application.Posts
 
             if (text.Length is 0 or > PostRules.CommentMaxLength)
                 return Result<CommentDto>.Fail(new Error("INVALID_COMMENT_TEXT", $"Comment must have between 1 and {PostRules.CommentMaxLength} characters", ErrorType.Validation));
+
+            if (MentionRules.TooMany(text))
+                return Result<CommentDto>.Fail(new Error("TOO_MANY_MENTIONS", $"A text can mention at most {MentionRules.MaxPerText} people or bands", ErrorType.Validation));
 
             var post = await _postAppService.FindVisible(postId);
 
@@ -99,6 +109,8 @@ namespace NoiseVault.Application.Posts
 
             await _notificationAppService.Notify(post.AuthorUserId, new NotificationInput(ENotificationKind.PostCommented, comment.AuthorUserId, PostId: postId));
 
+            await _mentionAppService.Notify(text, null, new MentionTarget(InComment: true, PostId: postId), comment.AuthorUserId, [post.AuthorUserId]);
+
             var saved = await _commentRepository.FirstOrDefaultAsync(new QueryOptions<Comment>
             {
                 Predicate = c => c.Id == comment.Id,
@@ -106,7 +118,7 @@ namespace NoiseVault.Application.Posts
                 AsNoTracking = true,
             });
 
-            return Result<CommentDto>.Ok(Map(saved!, post.AuthorUserId), "COMMENT_CREATED", "Comment added");
+            return Result<CommentDto>.Ok(Map(saved!, post.AuthorUserId, await _mentionAppService.Resolve([saved!.Text])), "COMMENT_CREATED", "Comment added");
         }
 
         public async Task<Result> Delete(int id)
@@ -134,7 +146,7 @@ namespace NoiseVault.Application.Posts
             return Result.Ok("COMMENT_DELETED", "Comment deleted");
         }
 
-        private CommentDto Map(Comment comment, int postAuthorUserId)
+        private CommentDto Map(Comment comment, int postAuthorUserId, IReadOnlyDictionary<string, MentionDto> mentions)
         {
             var me = _currentUser.UserId;
 
@@ -149,6 +161,7 @@ namespace NoiseVault.Application.Posts
                     AvatarUrl = _fileStorage.PublicUrl(comment.Author.AvatarKey),
                 },
                 Text = comment.Text,
+            Mentions = _mentionAppService.Pick(comment.Text, mentions),
                 CreatedAt = comment.CreatedAt,
                 CanDelete = comment.AuthorUserId == me || postAuthorUserId == me,
             };

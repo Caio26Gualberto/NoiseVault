@@ -387,6 +387,21 @@ namespace NoiseVault.Application.Bands
             return bands.ToDictionary(b => b.Id, MapSummary);
         }
 
+        public async Task<Dictionary<string, BandSummaryDto>> SummariesBySlugs(IReadOnlyCollection<string> slugs)
+        {
+            if (slugs.Count == 0)
+                return [];
+
+            var bands = await _bandRepository.ListAsync(new QueryOptions<Band>
+            {
+                Predicate = b => slugs.Contains(b.Slug),
+                Includes = [b => b.Genres],
+                AsNoTracking = true,
+            });
+
+            return bands.ToDictionary(b => b.Slug, MapSummary);
+        }
+
         public async Task<(int? BandId, EBandMemberRole? Role)> FindAccess(string slug)
         {
             var normalized = BandRules.NormalizeSlug(slug);

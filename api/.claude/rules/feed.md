@@ -61,6 +61,10 @@ Módulo 3 da ordem em `dominio.md`. A mídia (fotos e vídeo) é de `midia-e-vid
 
 **Exceção registrada à regra "injete o AppService dono":** `PublicProfileAppService` e `BandAppService` leem a contagem de posts direto do `IPostRepository` (`CountPublishedByAuthorAsync`, `CountPublishedByBandAsync`). Injetar `IPostAppService` fecharia um ciclo de DI, porque o `PostAppService` já depende dos dois.
 
+## Menções e marcações
+
+O texto do post e o dos comentários aceitam @apelido e @slug: o `PostDto.mentions` e o `CommentDto.mentions` trazem o que foi resolvido, e quem é mencionado recebe notificação. As fotos do post aceitam marcação de pessoas (`MediaDto.tags`). Tudo em `marcacoes.md`.
+
 ## Post de arquivo
 
 `Post.ArchiveEntryId` (único) é o post automático do mural das antigas (`mural.md`), com o mesmo desenho do post de evento: texto pode ser vazio, `PostDto.archive` (`ArchiveSummaryDto`) é lido ao vivo e em lote pelo `IArchiveRepository`, e apagar o registro apaga o post.
@@ -96,6 +100,7 @@ Todos autenticados, em `Controllers/`.
 | mais de 1 vídeo | `TOO_MANY_VIDEOS` |
 | mídia que não é minha, já usada, vencida, que falhou ou não existe | `MEDIA_NOT_ATTACHABLE` (409) |
 | comentário de 1 a 2000 | `INVALID_COMMENT_TEXT` |
+| mais de 10 @handles no texto do post ou do comentário | `TOO_MANY_MENTIONS` (`marcacoes.md`) |
 
 **Outros erros:** `POST_NOT_FOUND`, `POST_FORBIDDEN`, `POST_NOT_PUBLISHED`, `NOT_BAND_MEMBER`, `BAND_NOT_FOUND`, `PROFILE_NOT_FOUND`, `COMMENT_NOT_FOUND`, `COMMENT_FORBIDDEN`.
 

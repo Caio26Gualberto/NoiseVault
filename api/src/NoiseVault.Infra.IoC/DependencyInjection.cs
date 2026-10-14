@@ -1,3 +1,8 @@
+using NoiseVault.Application.PhotoTags;
+using NoiseVault.Application.PhotoTags.Interfaces;
+using NoiseVault.Infra.Data.Repositories.PhotoTags;
+using NoiseVault.Application.Mentions;
+using NoiseVault.Application.Mentions.Interfaces;
 using NoiseVault.Application.Bands;
 using NoiseVault.Application.Bands.Interfaces;
 using NoiseVault.Infra.Data.Repositories.BandInvitations;
@@ -187,6 +192,8 @@ namespace NoiseVault.Infra.IoC
 
             // Feed e mídia
             services.AddScoped<IMediaUploadAppService, MediaUploadAppService>();
+            services.AddScoped<IMentionAppService, MentionAppService>();
+            services.AddScoped<IPhotoTagAppService, PhotoTagAppService>();
             services.AddScoped<IPostAppService, PostAppService>();
             services.AddScoped<ICommentAppService, CommentAppService>();
 
@@ -244,6 +251,7 @@ namespace NoiseVault.Infra.IoC
             services.AddScoped<IPostRepository, PostRepository>();
             services.AddScoped<IEventRepository, EventRepository>();
             services.AddScoped<IArchiveRepository, ArchiveRepository>();
+            services.AddScoped<IPhotoTagRepository, PhotoTagRepository>();
             services.AddScoped<INotificationRepository, NotificationRepository>();
             services.AddScoped<ISupportTicketRepository, SupportTicketRepository>();
             services.AddScoped<ICityRepository, CityRepository>();

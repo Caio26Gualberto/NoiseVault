@@ -28,6 +28,7 @@ Módulo 4 da ordem em `dominio.md`. A agenda serve tanto para o show do porão q
   - Editar **substitui** o line-up: as linhas antigas são apagadas e as novas inseridas na mesma transação. Nada referencia uma entrada.
 - **`EventInterest (EventId, UserId, CreatedAt)`**: chave composta, sem `EntityBase`, pelo mesmo motivo do `PostLike`.
 - **`EventComment`**: tabela própria, como `dominio.md` previa ("comentário tem um pai"), com soft delete.
+- Os comentários aceitam @menção de pessoas e bandas (`EventCommentDto.mentions`, `marcacoes.md`). A descrição do evento, não.
 
 ## Próximo, já rolou, cancelado
 

@@ -1328,6 +1328,69 @@ namespace NoiseVault.Infra.Data.Migrations
                     b.ToTable("Notifications", (string)null);
                 });
 
+            modelBuilder.Entity("NoiseVault.Domain.Entities.PhotoTag", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("CreatedBy")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("DeletedBy")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("MediaUploadId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<int>("TaggedByUserId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("TaggedUserId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("UpdatedBy")
+                        .HasColumnType("integer");
+
+                    b.Property<double>("X")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("Y")
+                        .HasColumnType("double precision");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MediaUploadId");
+
+                    b.HasIndex("TaggedByUserId");
+
+                    b.HasIndex("TaggedUserId");
+
+                    b.HasIndex("MediaUploadId", "TaggedUserId")
+                        .IsUnique()
+                        .HasFilter("\"TaggedUserId\" IS NOT NULL AND \"IsDeleted\" = false");
+
+                    b.ToTable("PhotoTags", (string)null);
+                });
+
             modelBuilder.Entity("NoiseVault.Domain.Entities.Post", b =>
                 {
                     b.Property<int>("Id")
@@ -2349,6 +2412,32 @@ namespace NoiseVault.Infra.Data.Migrations
                     b.Navigation("Post");
 
                     b.Navigation("SupportTicket");
+                });
+
+            modelBuilder.Entity("NoiseVault.Domain.Entities.PhotoTag", b =>
+                {
+                    b.HasOne("NoiseVault.Domain.Entities.MediaUpload", "MediaUpload")
+                        .WithMany()
+                        .HasForeignKey("MediaUploadId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("NoiseVault.Domain.Entities.User", "TaggedBy")
+                        .WithMany()
+                        .HasForeignKey("TaggedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("NoiseVault.Domain.Entities.User", "TaggedUser")
+                        .WithMany()
+                        .HasForeignKey("TaggedUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("MediaUpload");
+
+                    b.Navigation("TaggedBy");
+
+                    b.Navigation("TaggedUser");
                 });
 
             modelBuilder.Entity("NoiseVault.Domain.Entities.Post", b =>

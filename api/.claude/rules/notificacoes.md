@@ -54,6 +54,9 @@ Por que é assim:
 | `ArchiveSubmissionReceived` 20 | quem tem `Archive.Review` (menos quem enviou) | não | `ArchiveAppService.Submit` |
 | `ArchiveSubmissionApproved` 21 | quem enviou | não | `ArchiveAppService.Approve` |
 | `ArchiveSubmissionRejected` 22 | quem enviou | não | `ArchiveAppService.Reject` |
+| `MentionedInPost` 23 · `MentionedInComment` 24 | a pessoa mencionada com @ (`marcacoes.md`) | não | `PostAppService.Create`/`Update` e os três `Add` de comentário, pelo `IMentionAppService` |
+| `BandMentionedInPost` 25 · `BandMentionedInComment` 26 | os Owners da banda mencionada, com `BandId` | não | idem |
+| `PhotoTagged` 27 | a pessoa marcada numa foto | não | `PhotoTagAppService.Add` |
 
 **Regras gerais:**
 - **Ninguém é notificado da própria ação**: o `NotifyMany` tira o ator da lista.

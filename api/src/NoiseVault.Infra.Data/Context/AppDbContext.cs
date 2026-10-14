@@ -29,6 +29,7 @@ namespace NoiseVault.Infra.Data.Context
         public DbSet<MediaUpload> MediaUploads => Set<MediaUpload>();
         public DbSet<Post> Posts => Set<Post>();
         public DbSet<PostMedia> PostMedia => Set<PostMedia>();
+        public DbSet<PhotoTag> PhotoTags => Set<PhotoTag>();
         public DbSet<PostLike> PostLikes => Set<PostLike>();
         public DbSet<Comment> Comments => Set<Comment>();
         public DbSet<Event> Events => Set<Event>();
@@ -489,6 +490,34 @@ namespace NoiseVault.Infra.Data.Context
 
                 b.HasIndex(x => new { x.ArchiveEntryId, x.Order });
                 b.HasIndex(x => x.BandId);
+            });
+
+            builder.Entity<PhotoTag>(b =>
+            {
+                b.ToTable("PhotoTags");
+                b.HasKey(x => x.Id);
+
+                b.Property(x => x.Name).HasMaxLength(80);
+
+                b.HasOne(x => x.MediaUpload)
+                    .WithMany()
+                    .HasForeignKey(x => x.MediaUploadId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                b.HasOne(x => x.TaggedUser)
+                    .WithMany()
+                    .HasForeignKey(x => x.TaggedUserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasOne(x => x.TaggedBy)
+                    .WithMany()
+                    .HasForeignKey(x => x.TaggedByUserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasIndex(x => x.MediaUploadId);
+                b.HasIndex(x => new { x.MediaUploadId, x.TaggedUserId })
+                    .IsUnique()
+                    .HasFilter(DatabaseProvider.NotNullIndexFilter(this, nameof(PhotoTag.TaggedUserId)));
             });
 
             builder.Entity<ArchiveMedia>(b =>

@@ -27,6 +27,7 @@ No lugar entra o **mural das antigas**: o arquivo da cena do ABC, com fotos e fi
 - **`ArchiveBandEntry`** (`BandId?`, `Name?`, `Order`): banda cadastrada ou nome livre, até 30. Mesmo desenho do line-up de evento (`eventos.md`).
 - **`ArchiveMedia`** (`MediaUploadId` único, `Order`, `Caption?` até 500): de 1 a **100** mídias por registro, fotos e vídeos misturados, com legenda em cada uma ("Andreas na guitarra").
 - **`ArchiveLike`**, **`ArchiveAttendance`** ("Eu estava lá") e **`ArchiveComment`**: cada um tem a sua tabela ("comentário tem um pai", `dominio.md`).
+- As histórias (comentários) aceitam @menção, e as fotos do registro publicado aceitam marcação de quem aparece (`marcacoes.md`). A marcação é presa ao `MediaUploadId`, então sobrevive à edição do registro.
 - **`Post.ArchiveEntryId`** (único): o **post automático** no feed, criado na mesma transação da publicação (do registro da curadoria, ou da aprovação do envio) e apagado junto, como o do evento (`feed.md`).
 - Um registro com vídeo ainda processando **sai publicado**: quem publica ou aprova é a curadoria, não há o que esconder. O card mostra "processando" naquela mídia até ela ficar pronta, e o detalhe consulta de novo a cada 5 s.
 

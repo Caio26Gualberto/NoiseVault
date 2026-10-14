@@ -25,5 +25,10 @@ namespace NoiseVault.Domain.Enums.Notifications
         ArchiveSubmissionReceived = 20,
         ArchiveSubmissionApproved = 21,
         ArchiveSubmissionRejected = 22,
+        MentionedInPost = 23,
+        MentionedInComment = 24,
+        BandMentionedInPost = 25,
+        BandMentionedInComment = 26,
+        PhotoTagged = 27,
     }
 }

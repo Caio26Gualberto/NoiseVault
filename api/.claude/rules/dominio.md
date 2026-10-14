@@ -48,6 +48,7 @@ Enum sai para o cliente como **número** (padrão dos projetos de referência); 
 | 6 ✅ | Notificações | `Notification`, `User.EmailOnBandInvite`, SignalR (`/hubs/notifications`), e-mail do convite (`notificacoes.md`) | `/notificacoes`, sino do topbar, preferência em `/minha-conta` |
 | 7 ✅ | Suporte | `SupportTicket`, `SupportTicketTag`, `SupportTicketArea`, `SupportTicketMedia`, `SupportTicketMessage`, `Notification.SupportTicketId`, perfil de mídia `Support`, permissões `Support.*` (`suporte.md`) | `/reportar-problema`; nascem `/suporte`, `/suporte/:id`, `/admin/suporte` e `/admin/suporte/:id` |
 | 8 ✅ | Envio da comunidade para o mural (ideia 2 do `IDEIAS.md`) | `ArchiveEntry.Status` (`Published`, `Pending`, `Rejected`), `IsSubmission`, revisão e motivo; permissão `Archive.Review` (`mural.md`) | nascem `/mural/enviar`, `/mural/envios` e `/admin/mural` |
+| 9 ✅ | @menções e marcação em fotos (ideia 3 do `IDEIAS.md`) | `PhotoTag` (chave em `MediaUploadId`, FK `Cascade`), `ENotificationKind` 23–27; a menção é resolvida do texto, sem tabela (`marcacoes.md`) | composer com autocomplete de @, texto com links e marcação no visualizador de fotos |
 
 A ordem segue dependência: feed e eventos mostram autor e banda, logo perfil e bandas vêm antes. Cada módulo nasce com a sua rule (`perfil.md`, `bandas.md`, …) e a linha dele na tabela do `CLAUDE.md`, e termina apagando o `mocks.ts` da tela correspondente (`frontend/.claude/rules/mocks.md`).
 

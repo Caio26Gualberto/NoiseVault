@@ -82,6 +82,26 @@ namespace NoiseVault.Application.PublicProfiles
             return user?.Id;
         }
 
+        public async Task<Dictionary<string, ProfileSummaryDto>> SummariesByNicknames(IReadOnlyCollection<string> nicknames)
+        {
+            if (nicknames.Count == 0)
+                return [];
+
+            var users = await _userRepository.ListAsync(new QueryOptions<User>
+            {
+                Predicate = u => u.IsActive && nicknames.Contains(u.Nickname),
+                AsNoTracking = true,
+            });
+
+            return users.ToDictionary(u => u.Nickname, u => new ProfileSummaryDto
+            {
+                Id = u.Id,
+                Name = u.Name,
+                Nickname = u.Nickname,
+                AvatarUrl = _fileStorage.PublicUrl(u.AvatarKey),
+            });
+        }
+
         public async Task<Result<PagedResultDto<ProfileSummaryDto>>> Search(UserSearchQueryDto query)
         {
             query.Normalize();

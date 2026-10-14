@@ -15,6 +15,7 @@ using NoiseVault.Application.Common.Media;
 using NoiseVault.Application.Interfaces;
 using NoiseVault.Application.Media.Dtos;
 using NoiseVault.Application.Media.Interfaces;
+using NoiseVault.Application.PhotoTags.Interfaces;
 using NoiseVault.Application.Pagination;
 using NoiseVault.Application.Posts.Interfaces;
 using NoiseVault.Application.Profiles;
@@ -45,6 +46,7 @@ namespace NoiseVault.Application.Archive
         private readonly IPostAppService _postAppService;
         private readonly IFileStorage _fileStorage;
         private readonly INotificationAppService _notificationAppService;
+        private readonly IPhotoTagAppService _photoTagAppService;
         private readonly ICityAppService _cityAppService;
         private readonly IApplicationLogger _logger;
 
@@ -61,9 +63,11 @@ namespace NoiseVault.Application.Archive
             IPostAppService postAppService,
             IFileStorage fileStorage,
             INotificationAppService notificationAppService,
+            IPhotoTagAppService photoTagAppService,
             ICityAppService cityAppService,
             IApplicationLoggerFactory loggerFactory)
         {
+            _photoTagAppService = photoTagAppService;
             _cityAppService = cityAppService;
             _archiveRepository = archiveRepository;
             _bandEntryRepository = bandEntryRepository;
@@ -729,7 +733,13 @@ namespace NoiseVault.Application.Archive
             var coverMedia = media.FirstOrDefault(m => m.MediaUploadId == row.CoverMediaUploadId) ?? media.FirstOrDefault();
 
             var dto = Map(row, bands, permissions,coverMedia != null ? _mediaAppService.Describe(coverMedia.MediaUpload!) : null);
-            dto.Media = media.Select(m => new ArchiveMediaDto { Media = _mediaAppService.Describe(m.MediaUpload!), Caption = m.Caption }).ToList();
+            var tags = await _photoTagAppService.ForMedia(media.Select(m => m.MediaUploadId).ToList());
+            dto.Media = media.Select(m =>
+            {
+                var described = _mediaAppService.Describe(m.MediaUpload!);
+                described.Tags = tags.GetValueOrDefault(m.MediaUploadId) ?? [];
+                return new ArchiveMediaDto { Media = described, Caption = m.Caption };
+            }).ToList();
 
             var (attendees, _) = await _archiveRepository.PageAttendeesAsync(row.Id, 0, ArchiveRules.AttendeesPreview);
             dto.Attendees = attendees.Select(Summary).ToList();

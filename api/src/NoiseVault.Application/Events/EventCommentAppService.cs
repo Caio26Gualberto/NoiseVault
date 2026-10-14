@@ -6,6 +6,9 @@ using NoiseVault.Application.Abstractions.Repository;
 using NoiseVault.Application.Events.Dtos;
 using NoiseVault.Application.Events.Interfaces;
 using NoiseVault.Application.Interfaces;
+using NoiseVault.Application.Mentions;
+using NoiseVault.Application.Mentions.Dtos;
+using NoiseVault.Application.Mentions.Interfaces;
 using NoiseVault.Application.Pagination;
 using NoiseVault.Application.Posts;
 using NoiseVault.Application.Posts.Dtos;
@@ -25,6 +28,7 @@ namespace NoiseVault.Application.Events
         private readonly ICurrentUser _currentUser;
         private readonly IFileStorage _fileStorage;
         private readonly INotificationAppService _notificationAppService;
+        private readonly IMentionAppService _mentionAppService;
         private readonly IApplicationLogger _logger;
 
         public EventCommentAppService(
@@ -33,8 +37,10 @@ namespace NoiseVault.Application.Events
             ICurrentUser currentUser,
             IFileStorage fileStorage,
             INotificationAppService notificationAppService,
+            IMentionAppService mentionAppService,
             IApplicationLoggerFactory loggerFactory)
         {
+            _mentionAppService = mentionAppService;
             _commentRepository = commentRepository;
             _eventAppService = eventAppService;
             _currentUser = currentUser;
@@ -64,10 +70,11 @@ namespace NoiseVault.Application.Events
 
             var totalCount = await _commentRepository.CountAsync(options);
             var comments = await _commentRepository.ListAsync(options);
+            var mentions = await _mentionAppService.Resolve(comments.Select(c => c.Text));
             var canModerate = row.OrganizerUserId == _currentUser.UserId || row.ViewerOwnsBand;
 
             return Result<PagedResultDto<EventCommentDto>>.Ok(
-                PagedResultDto<EventCommentDto>.Create(comments.Select(c => Map(c, canModerate)).ToList(), query.Page, query.PageSize, totalCount),
+                PagedResultDto<EventCommentDto>.Create(comments.Select(c => Map(c, canModerate, mentions)).ToList(), query.Page, query.PageSize, totalCount),
                 "EVENT_COMMENTS_FOUND",
                 "Comments found");
         }
@@ -80,6 +87,9 @@ namespace NoiseVault.Application.Events
 
             if (text.Length is 0 or > PostRules.CommentMaxLength)
                 return Result<EventCommentDto>.Fail(new Error("INVALID_COMMENT_TEXT", $"Comment must have between 1 and {PostRules.CommentMaxLength} characters", ErrorType.Validation));
+
+            if (MentionRules.TooMany(text))
+                return Result<EventCommentDto>.Fail(new Error("TOO_MANY_MENTIONS", $"A text can mention at most {MentionRules.MaxPerText} people or bands", ErrorType.Validation));
 
             var row = await _eventAppService.FindVisible(eventId);
 
@@ -94,6 +104,8 @@ namespace NoiseVault.Application.Events
 
             await _notificationAppService.Notify(row.OrganizerUserId, new NotificationInput(ENotificationKind.EventCommented, comment.AuthorUserId, EventId: eventId));
 
+            await _mentionAppService.Notify(text, null, new MentionTarget(InComment: true, EventId: eventId), comment.AuthorUserId, [row.OrganizerUserId]);
+
             var saved = await _commentRepository.FirstOrDefaultAsync(new QueryOptions<EventComment>
             {
                 Predicate = c => c.Id == comment.Id,
@@ -102,7 +114,7 @@ namespace NoiseVault.Application.Events
             });
 
             return Result<EventCommentDto>.Ok(
-                Map(saved!, row.OrganizerUserId == _currentUser.UserId || row.ViewerOwnsBand),
+                Map(saved!, row.OrganizerUserId == _currentUser.UserId || row.ViewerOwnsBand, await _mentionAppService.Resolve([saved!.Text])),
                 "EVENT_COMMENT_CREATED",
                 "Comment added");
         }
@@ -135,7 +147,7 @@ namespace NoiseVault.Application.Events
             return Result.Ok("EVENT_COMMENT_DELETED", "Comment deleted");
         }
 
-        private EventCommentDto Map(EventComment comment, bool canModerate) => new()
+        private EventCommentDto Map(EventComment comment, bool canModerate, IReadOnlyDictionary<string, MentionDto> mentions) => new()
         {
             Id = comment.Id,
             Author = new ProfileSummaryDto
@@ -146,6 +158,7 @@ namespace NoiseVault.Application.Events
                 AvatarUrl = _fileStorage.PublicUrl(comment.Author.AvatarKey),
             },
             Text = comment.Text,
+            Mentions = _mentionAppService.Pick(comment.Text, mentions),
             CreatedAt = comment.CreatedAt,
             CanDelete = comment.AuthorUserId == _currentUser.UserId || canModerate,
         };

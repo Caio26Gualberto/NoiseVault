@@ -1,3 +1,4 @@
+using NoiseVault.Application.Mentions.Dtos;
 using NoiseVault.Application.Archive.Dtos;
 using NoiseVault.Application.Bands.Dtos;
 using NoiseVault.Application.Events.Dtos;
@@ -15,6 +16,7 @@ namespace NoiseVault.Application.Posts.Dtos
         public EventSummaryDto? Event { get; set; }
         public ArchiveSummaryDto? Archive { get; set; }
         public string Content { get; set; } = string.Empty;
+        public List<MentionDto> Mentions { get; set; } = [];
         public List<MediaDto> Media { get; set; } = [];
         public int LikeCount { get; set; }
         public int CommentCount { get; set; }

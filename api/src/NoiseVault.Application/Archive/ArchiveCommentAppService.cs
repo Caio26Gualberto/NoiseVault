@@ -7,6 +7,9 @@ using NoiseVault.Application.Abstractions.Repository;
 using NoiseVault.Application.Archive.Dtos;
 using NoiseVault.Application.Archive.Interfaces;
 using NoiseVault.Application.Interfaces;
+using NoiseVault.Application.Mentions;
+using NoiseVault.Application.Mentions.Dtos;
+using NoiseVault.Application.Mentions.Interfaces;
 using NoiseVault.Application.Pagination;
 using NoiseVault.Application.Posts;
 using NoiseVault.Application.Posts.Dtos;
@@ -26,6 +29,7 @@ namespace NoiseVault.Application.Archive
         private readonly IPermissionChecker _permissionChecker;
         private readonly IFileStorage _fileStorage;
         private readonly INotificationAppService _notificationAppService;
+        private readonly IMentionAppService _mentionAppService;
         private readonly IApplicationLogger _logger;
 
         public ArchiveCommentAppService(
@@ -35,8 +39,10 @@ namespace NoiseVault.Application.Archive
             IPermissionChecker permissionChecker,
             IFileStorage fileStorage,
             INotificationAppService notificationAppService,
+            IMentionAppService mentionAppService,
             IApplicationLoggerFactory loggerFactory)
         {
+            _mentionAppService = mentionAppService;
             _commentRepository = commentRepository;
             _archiveAppService = archiveAppService;
             _currentUser = currentUser;
@@ -65,10 +71,11 @@ namespace NoiseVault.Application.Archive
 
             var totalCount = await _commentRepository.CountAsync(options);
             var comments = await _commentRepository.ListAsync(options);
+            var mentions = await _mentionAppService.Resolve(comments.Select(c => c.Text));
             var canModerate = await CanModerateAsync();
 
             return Result<PagedResultDto<ArchiveCommentDto>>.Ok(
-                PagedResultDto<ArchiveCommentDto>.Create(comments.Select(c => Map(c, canModerate)).ToList(), query.Page, query.PageSize, totalCount),
+                PagedResultDto<ArchiveCommentDto>.Create(comments.Select(c => Map(c, canModerate, mentions)).ToList(), query.Page, query.PageSize, totalCount),
                 "ARCHIVE_COMMENTS_FOUND",
                 "Comments found");
         }
@@ -81,6 +88,9 @@ namespace NoiseVault.Application.Archive
 
             if (text.Length is 0 or > PostRules.CommentMaxLength)
                 return Result<ArchiveCommentDto>.Fail(new Error("INVALID_COMMENT_TEXT", $"Comment must have between 1 and {PostRules.CommentMaxLength} characters", ErrorType.Validation));
+
+            if (MentionRules.TooMany(text))
+                return Result<ArchiveCommentDto>.Fail(new Error("TOO_MANY_MENTIONS", $"A text can mention at most {MentionRules.MaxPerText} people or bands", ErrorType.Validation));
 
             var entry = await _archiveAppService.FindVisible(entryId);
 
@@ -95,6 +105,8 @@ namespace NoiseVault.Application.Archive
             var attendees = (await _archiveAppService.AttendeeUserIds(entryId)).Where(id => id != entry.AuthorUserId).ToList();
             await _notificationAppService.NotifyMany(attendees, new NotificationInput(ENotificationKind.ArchiveCommentedWhereAttended, comment.AuthorUserId, ArchiveEntryId: entryId));
 
+            await _mentionAppService.Notify(text, null, new MentionTarget(InComment: true, ArchiveEntryId: entryId), comment.AuthorUserId, [entry.AuthorUserId, .. attendees]);
+
             var saved = await _commentRepository.FirstOrDefaultAsync(new QueryOptions<ArchiveComment>
             {
                 Predicate = c => c.Id == comment.Id,
@@ -102,7 +114,7 @@ namespace NoiseVault.Application.Archive
                 AsNoTracking = true,
             });
 
-            return Result<ArchiveCommentDto>.Ok(Map(saved!, await CanModerateAsync()), "ARCHIVE_COMMENT_CREATED", "Comment added");
+            return Result<ArchiveCommentDto>.Ok(Map(saved!, await CanModerateAsync(), await _mentionAppService.Resolve([saved!.Text])), "ARCHIVE_COMMENT_CREATED", "Comment added");
         }
 
         public async Task<Result> Delete(int id)
@@ -131,7 +143,7 @@ namespace NoiseVault.Application.Archive
 
         private Task<bool> CanModerateAsync() => _permissionChecker.IsGrantedAsync(_currentUser.UserId, Permissions.Archive.Delete);
 
-        private ArchiveCommentDto Map(ArchiveComment comment, bool canModerate) => new()
+        private ArchiveCommentDto Map(ArchiveComment comment, bool canModerate, IReadOnlyDictionary<string, MentionDto> mentions) => new()
         {
             Id = comment.Id,
             Author = new ProfileSummaryDto
@@ -142,6 +154,7 @@ namespace NoiseVault.Application.Archive
                 AvatarUrl = _fileStorage.PublicUrl(comment.Author.AvatarKey),
             },
             Text = comment.Text,
+            Mentions = _mentionAppService.Pick(comment.Text, mentions),
             CreatedAt = comment.CreatedAt,
             CanDelete = comment.AuthorUserId == _currentUser.UserId || canModerate,
         };

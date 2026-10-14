@@ -20,6 +20,7 @@ As **decisões** — o porquê de cada regra — vivem em `.claude/rules/`, um a
 | `.claude/rules/bandas.md` | banda sem login, slug imutável, quem é Owner, convite com estado e aceite atômico, endpoints, limites |
 | `.claude/rules/feed.md` | post de pessoa e de banda, visibilidade do post em processamento, quem edita e apaga, curtida, comentário, contadores |
 | `.claude/rules/mural.md` | mural das antigas: registro com data aproximada, envio da comunidade com aprovação ou recusa (`Archive.Review`, 5 pendentes por pessoa), mídias de arquivo (4 GB/2 h, 40 MB), permissões `Archive.*`, "Eu estava lá", linha do tempo, post no feed |
+| `.claude/rules/marcacoes.md` | @menção de pessoas e bandas em post e comentários (texto com handle, resolvido na leitura, notificação), marcação de pessoas nas fotos do feed e do mural (`PhotoTag`, quem remove) |
 | `.claude/rules/notificacoes.md` | notificação como dado estruturado, quem recebe cada tipo, agrupamento, SignalR com token na query, e-mail do convite de banda, retenção, jobs |
 | `.claude/rules/suporte.md` | ticket de suporte com tags, páginas e contexto do navegador, mídia `Support` (2 min, 200 MB), caixa de entrada com `Support.*`, conversa e ciclo de status, notificações do ticket |
 | `.claude/rules/cidades.md` | municípios do IBGE em `City` (snapshot versionado, seed em todo boot), texto livre para fora do Brasil, `Resolve` único, busca sem acento com o ABC primeiro |
