@@ -1,6 +1,5 @@
 import type { LucideIcon } from 'lucide-react'
 import {
-  BellIcon,
   HeadsetIcon,
   CalendarDaysIcon,
   ArchiveIcon,
@@ -125,7 +124,6 @@ export const navSections: NavSection[] = [
         mobile: true,
         mobilePath: (nickname) => `/perfil/${nickname}`,
       },
-      { path: '/notificacoes', labelKey: 'layout:nav.notifications', icon: BellIcon, element: <NotificacoesPage /> },
     ],
   },
   {
@@ -168,6 +166,7 @@ export const navSections: NavSection[] = [
 ]
 
 export const hiddenRoutes: HiddenRoute[] = [
+  { path: '/notificacoes', element: <NotificacoesPage /> },
   { path: '/feed/:id', element: <PostDetalhePage /> },
   { path: '/mural/novo', element: <MuralFormPage />, permission: Permissions.archiveCreate },
   { path: submitArchivePath, element: <MuralFormPage mode="submission" /> },

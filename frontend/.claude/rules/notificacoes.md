@@ -23,7 +23,7 @@ Rule irmã: `../api/.claude/rules/notificacoes.md`. A regra é do backend; a tel
   - **Conexão caída**: o provider faz polling da contagem a cada 60 s (`usePolling` com 0 quando conectado) e tenta reconectar a cada 30 s. Ao conectar, busca a contagem de novo.
 - **Busca em segundo plano** (contagem e "a mais recente") usa `toastError: false`: a API fora do ar não pode encher a tela de toast a cada minuto.
 - O toast do push é a exceção registrada à regra "página não chama `toast()`": não é erro de API, é aviso, e não tem dono melhor que o provider.
-- O **sino** (`notifications-bell.tsx`) só lê `useNotifications()`.
+- O **sino** (`notifications-bell.tsx`) só lê `useNotifications()`. Ele é a única entrada da página: `/notificacoes` saiu da sidebar e do "Mais" (decisão do usuário em 14/10/2026) e mora em `hiddenRoutes`.
 
 ## A frase vem do `kind`
 
