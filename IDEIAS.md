@@ -24,12 +24,11 @@ As três primeiras atacam direto o motivo de o pessoal estar no grupo hoje (foto
 
 Virou módulo em 14/10/2026: ver "Envio da comunidade" em `api/.claude/rules/mural.md` e em `frontend/.claude/rules/mural.md`. Decidido: a curadoria edita e publica ou recusa com motivo; o registro sai em nome de quem enviou ("Acervo de"); os limites de mídia são os do arquivo; até 5 envios pendentes por pessoa; permissão `Archive.Review`.
 
-### 3. Marcar pessoas nas fotos antigas ("quem é esse?")
+### ~~3. Marcar pessoas nas fotos antigas ("quem é esse?")~~
 
-- **Ideia**: em cada foto do mural, marcar quem aparece, com conta (notifica) ou só com o nome escrito. A pessoa marcada confirma ou remove a marcação.
-- **Por que**: é o que mais traz gente das antigas de volta. "Você foi marcado numa foto de 1991" reencontra amigos.
-- **Apoio**: o módulo de notificações já está pronto; falta a entidade da marcação e um `ENotificationKind` novo.
-- **Pontos a decidir**: marcar em posição na foto ou só lista de nomes, quem pode marcar, moderação de marcação errada ou ofensiva.
+Virou módulo em 14/10/2026, ampliado pelo usuário para ficar "igual Facebook": @menção de pessoas e bandas em posts e comentários, e marcação de pessoas no ponto da foto, no feed e no mural. Qualquer pessoa marca, com conta ou só com o nome; quem foi marcado, quem marcou, o autor e a curadoria removem. Ver `api/.claude/rules/marcacoes.md` e `frontend/.claude/rules/marcacoes.md`.
+
+- **Ficou pendente**: o "pedir remoção" da foto inteira (direito de imagem, "Fora do código" abaixo). Hoje a pessoa remove a própria marcação, mas não a foto.
 
 ## Prioridade 2 — fazer voltar
 
@@ -114,7 +113,7 @@ Virou módulo em 14/10/2026: ver "Envio da comunidade" em `api/.claude/rules/mur
 
 1. Prévia ao compartilhar (1).
 2. ~~Envio para o mural com aprovação (2)~~ (feito em 14/10/2026).
-3. Marcar pessoas nas fotos (3), com o "pedir remoção".
+3. ~~Marcar pessoas nas fotos (3)~~ (feito em 14/10/2026, com @menções); falta o "pedir remoção" da foto.
 4. "Neste dia" (4) e resumo semanal (5).
 5. Entrar com Google ou Facebook (6), antes de divulgar no grupo.
 6. Bandas: seguir banda e lançamentos (10), classificados (8), press kit (9).
