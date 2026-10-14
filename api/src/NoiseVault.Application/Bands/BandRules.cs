@@ -16,6 +16,7 @@ namespace NoiseVault.Application.Bands
         public const int MaxBandsPerUser = 10;
         public const int MaxPendingInvitationsPerBand = 20;
         public const int SuggestedCount = 5;
+        public const int MinSearchLength = 2;
 
         public static readonly TimeSpan InvitationLifetime = TimeSpan.FromDays(14);
 

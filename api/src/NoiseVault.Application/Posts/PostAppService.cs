@@ -3,6 +3,8 @@ using NoiseVault.Application.Abstractions.Logging;
 using NoiseVault.Application.Abstractions.Repository;
 using NoiseVault.Application.Abstractions.Repository.UnitOfWork;
 using NoiseVault.Application.Bands.Interfaces;
+using NoiseVault.Application.Events.Dtos;
+using NoiseVault.Application.Events.Interfaces;
 using NoiseVault.Application.Interfaces;
 using NoiseVault.Application.Media.Interfaces;
 using NoiseVault.Application.Pagination;
@@ -29,6 +31,7 @@ namespace NoiseVault.Application.Posts
         private readonly IPublicProfileAppService _publicProfileAppService;
         private readonly IMediaUploadAppService _mediaAppService;
         private readonly IFileStorage _fileStorage;
+        private readonly IEventRepository _eventRepository;
         private readonly IApplicationLogger _logger;
 
         public PostAppService(
@@ -40,8 +43,10 @@ namespace NoiseVault.Application.Posts
             IPublicProfileAppService publicProfileAppService,
             IMediaUploadAppService mediaAppService,
             IFileStorage fileStorage,
+            IEventRepository eventRepository,
             IApplicationLoggerFactory loggerFactory)
         {
+            _eventRepository = eventRepository;
             _postRepository = postRepository;
             _postMediaRepository = postMediaRepository;
             _unitOfWork = unitOfWork;
@@ -187,7 +192,7 @@ namespace NoiseVault.Application.Posts
             if (post == null)
                 return Fail(await DeniedAsync(id));
 
-            if (content.Length == 0 && post.Media.Count == 0)
+            if (content.Length == 0 && post.Media.Count == 0 && post.EventId == null)
                 return Fail(Invalid("POST_EMPTY", "Write something or attach a photo or video"));
 
             if (content != post.Content)
@@ -255,6 +260,24 @@ namespace NoiseVault.Application.Posts
             }
         }
 
+        public Task CreateForEvent(int eventId, int authorUserId, int? bandId) =>
+            _postRepository.AddAsync(new Post
+            {
+                AuthorUserId = authorUserId,
+                BandId = bandId,
+                EventId = eventId,
+                Content = string.Empty,
+                PublishedAt = DateTime.UtcNow,
+            });
+
+        public async Task DeleteForEvent(int eventId)
+        {
+            var post = await _postRepository.FirstOrDefaultAsync(new QueryOptions<Post> { Predicate = p => p.EventId == eventId });
+
+            if (post != null)
+                await _postRepository.SoftDelete(post);
+        }
+
         private async Task<Result<PostDto>> ReactAsync(int id, bool like)
         {
             var me = _currentUser.UserId;
@@ -306,6 +329,24 @@ namespace NoiseVault.Application.Posts
 
             var bands = await _bandAppService.SummariesByIds(bandIds);
 
+            var eventIds = rows.Where(r => r.EventId != null).Select(r => r.EventId!.Value).Distinct().ToList();
+            var now = DateTime.UtcNow;
+            var events = eventIds.Count == 0
+                ? []
+                : (await _eventRepository.ListByIdsAsync(eventIds, _currentUser.UserId)).ToDictionary(e => e.Id, e => new EventSummaryDto
+                {
+                    Id = e.Id,
+                    Title = e.Title,
+                    BannerUrl = _fileStorage.PublicUrl(e.BannerKey),
+                    BannerPosition = e.BannerPosition,
+                    StartsAt = e.StartsAt,
+                    Venue = e.Venue,
+                    City = e.City,
+                    CityName = e.CityName,
+                    Status = e.Status,
+                    HasEnded = e.EndsAtOrDefault < now,
+                });
+
             var media = (await _postMediaRepository.ListAsync(new QueryOptions<PostMedia>
             {
                 Predicate = pm => postIds.Contains(pm.PostId),
@@ -327,6 +368,7 @@ namespace NoiseVault.Application.Posts
                     AvatarUrl = _fileStorage.PublicUrl(r.AuthorAvatarKey),
                 },
                 Band = r.BandId != null && bands.TryGetValue(r.BandId.Value, out var band) ? band : null,
+                Event = r.EventId != null && events.TryGetValue(r.EventId.Value, out var linkedEvent) ? linkedEvent : null,
                 Content = r.Content,
                 Media = media[r.Id].Select(pm => _mediaAppService.Describe(pm.MediaUpload!)).ToList(),
                 LikeCount = r.LikeCount,

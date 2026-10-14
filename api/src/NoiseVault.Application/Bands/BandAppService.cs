@@ -5,8 +5,10 @@ using NoiseVault.Application.Abstractions.Repository.UnitOfWork;
 using NoiseVault.Application.Bands.Dtos;
 using NoiseVault.Application.Bands.Interfaces;
 using NoiseVault.Application.Common.Media;
+using NoiseVault.Application.Events.Interfaces;
 using NoiseVault.Application.Interfaces;
 using NoiseVault.Application.Posts.Interfaces;
+using NoiseVault.Application.Pagination;
 using NoiseVault.Application.Profiles;
 using NoiseVault.Application.Profiles.Dtos;
 using NoiseVault.Application.PublicProfiles.Dtos;
@@ -25,6 +27,7 @@ namespace NoiseVault.Application.Bands
         private readonly ICurrentUser _currentUser;
         private readonly IFileStorage _fileStorage;
         private readonly IPostRepository _postRepository;
+        private readonly IEventRepository _eventRepository;
         private readonly ImageReplacement _images;
         private readonly IApplicationLogger _logger;
 
@@ -36,8 +39,10 @@ namespace NoiseVault.Application.Bands
             IFileStorage fileStorage,
             IImageProcessor imageProcessor,
             IPostRepository postRepository,
+            IEventRepository eventRepository,
             IApplicationLoggerFactory loggerFactory)
         {
+            _eventRepository = eventRepository;
             _postRepository = postRepository;
             _bandRepository = bandRepository;
             _memberRepository = memberRepository;
@@ -147,6 +152,37 @@ namespace NoiseVault.Application.Bands
             });
 
             return Result<List<BandSummaryDto>>.Ok(bands.Select(MapSummary).ToList(), "BANDS_FOUND", "Bands found");
+        }
+
+        public async Task<Result<PagedResultDto<BandSummaryDto>>> Search(BandSearchQueryDto query)
+        {
+            query.Normalize();
+
+            var term = (query.Search ?? string.Empty).Trim().ToLowerInvariant();
+
+            if (term.Length < BandRules.MinSearchLength)
+                return Result<PagedResultDto<BandSummaryDto>>.Ok(
+                    PagedResultDto<BandSummaryDto>.Create([], query.Page, query.PageSize, 0),
+                    "BANDS_FOUND",
+                    "Bands found");
+
+            var options = new QueryOptions<Band>
+            {
+                Predicate = b => b.Name.ToLower().Contains(term) || b.Slug.Contains(term),
+                Includes = [b => b.Genres],
+                OrderBy = q => q.OrderBy(b => b.Name).ThenBy(b => b.Id),
+                Skip = query.Skip,
+                Take = query.PageSize,
+                AsNoTracking = true,
+            };
+
+            var totalCount = await _bandRepository.CountAsync(options);
+            var bands = await _bandRepository.ListAsync(options);
+
+            return Result<PagedResultDto<BandSummaryDto>>.Ok(
+                PagedResultDto<BandSummaryDto>.Create(bands.Select(MapSummary).ToList(), query.Page, query.PageSize, totalCount),
+                "BANDS_FOUND",
+                "Bands found");
         }
 
         public async Task<Result<List<BandSummaryDto>>> Mine() =>
@@ -571,6 +607,7 @@ namespace NoiseVault.Application.Bands
                 }).ToList(),
                 MyRole = members.FirstOrDefault(m => m.UserId == me)?.Role,
                 PostCount = await _postRepository.CountPublishedByBandAsync(band.Id),
+                UpcomingEventCount = await _eventRepository.CountUpcomingByBandAsync(band.Id, DateTime.UtcNow),
             };
         }
 

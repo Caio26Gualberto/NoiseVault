@@ -89,6 +89,8 @@ Todos autenticados, em `Controllers/` (escopo do próprio usuário, sem permiss�
 | `POST /api/band-invitations/{id}/accept` / `decline` | `BAND_INVITATION_ACCEPTED` / `BAND_INVITATION_DECLINED` |
 | `DELETE /api/band-invitations/{id}` | `BAND_INVITATION_REVOKED` |
 
+- **Busca de bandas** (`GET /api/bands/search?search=`, paginada, 2+ caracteres, nome ou slug, rate limit `user-search`) entrou com o módulo 4 para o line-up de eventos.
+- **`upcomingEventCount`** no `BandProfileDto` conta os eventos publicados que ainda não rolaram, organizados pela banda ou com ela no line-up (`eventos.md`).
 - **`suggested` e `mine` não são paginados de propósito.** `suggested` é um widget de tamanho fixo (5). `mine` é limitado pela regra de volume (no máximo 10 bandas por pessoa).
 - **Perfil público**: `UserProfileDto` ganhou `bands: BandSummaryDto[]`, vindo de `IBandAppService.ListSummariesForUser`.
 

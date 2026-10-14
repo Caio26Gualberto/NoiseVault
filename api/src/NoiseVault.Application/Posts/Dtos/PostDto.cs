@@ -1,4 +1,5 @@
 using NoiseVault.Application.Bands.Dtos;
+using NoiseVault.Application.Events.Dtos;
 using NoiseVault.Application.Media.Dtos;
 using NoiseVault.Application.PublicProfiles.Dtos;
 using NoiseVault.Domain.Enums.Posts;
@@ -10,6 +11,7 @@ namespace NoiseVault.Application.Posts.Dtos
         public int Id { get; set; }
         public ProfileSummaryDto Author { get; set; } = new();
         public BandSummaryDto? Band { get; set; }
+        public EventSummaryDto? Event { get; set; }
         public string Content { get; set; } = string.Empty;
         public List<MediaDto> Media { get; set; } = [];
         public int LikeCount { get; set; }

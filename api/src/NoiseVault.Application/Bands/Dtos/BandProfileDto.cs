@@ -21,5 +21,6 @@ namespace NoiseVault.Application.Bands.Dtos
         public List<BandMemberDto> Members { get; set; } = [];
         public EBandMemberRole? MyRole { get; set; }
         public int PostCount { get; set; }
+        public int UpcomingEventCount { get; set; }
     }
 }

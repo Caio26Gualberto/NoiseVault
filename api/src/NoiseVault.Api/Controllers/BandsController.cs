@@ -39,6 +39,14 @@ namespace NoiseVault.Api.Controllers
             return ToResponse(result);
         }
 
+        [EnableRateLimiting(ApiRateLimitPolicies.UserSearch)]
+        [HttpGet("search")]
+        public async Task<ActionResult> Search([FromQuery] BandSearchQueryDto query)
+        {
+            var result = await _bandAppService.Search(query);
+            return ToResponse(result);
+        }
+
         [HttpGet("mine")]
         public async Task<ActionResult> Mine()
         {

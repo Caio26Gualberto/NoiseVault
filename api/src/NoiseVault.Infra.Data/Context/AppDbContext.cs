@@ -30,6 +30,11 @@ namespace NoiseVault.Infra.Data.Context
         public DbSet<PostMedia> PostMedia => Set<PostMedia>();
         public DbSet<PostLike> PostLikes => Set<PostLike>();
         public DbSet<Comment> Comments => Set<Comment>();
+        public DbSet<Event> Events => Set<Event>();
+        public DbSet<EventGenre> EventGenres => Set<EventGenre>();
+        public DbSet<EventLineupEntry> EventLineupEntries => Set<EventLineupEntry>();
+        public DbSet<EventInterest> EventInterests => Set<EventInterest>();
+        public DbSet<EventComment> EventComments => Set<EventComment>();
         public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
         public DbSet<AuthorizationAuditLog> AuthorizationAuditLogs => Set<AuthorizationAuditLog>();
         public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
@@ -215,6 +220,15 @@ namespace NoiseVault.Infra.Data.Context
                     .HasForeignKey(x => x.BandId)
                     .OnDelete(DeleteBehavior.Restrict);
 
+                b.HasOne(x => x.Event)
+                    .WithMany()
+                    .HasForeignKey(x => x.EventId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasIndex(x => x.EventId)
+                    .IsUnique()
+                    .HasFilter(DatabaseProvider.NotNullIndexFilter(this, nameof(Post.EventId)));
+
                 b.HasIndex(x => x.PublishedAt);
                 b.HasIndex(x => new { x.AuthorUserId, x.PublishedAt });
                 b.HasIndex(x => new { x.BandId, x.PublishedAt });
@@ -275,6 +289,105 @@ namespace NoiseVault.Infra.Data.Context
                     .OnDelete(DeleteBehavior.Restrict);
 
                 b.HasIndex(x => new { x.PostId, x.CreatedAt });
+            });
+
+            builder.Entity<Event>(b =>
+            {
+                b.ToTable("Events");
+                b.HasKey(x => x.Id);
+
+                b.Property(x => x.Title).HasMaxLength(120).IsRequired();
+                b.Property(x => x.Description).HasMaxLength(5000);
+                b.Property(x => x.Venue).HasMaxLength(120).IsRequired();
+                b.Property(x => x.CityName).HasMaxLength(80);
+                b.Property(x => x.TicketsUrl).HasMaxLength(500);
+                b.Property(x => x.Price).HasPrecision(10, 2);
+                b.Property(x => x.BannerKey).HasMaxLength(200);
+                b.Property(x => x.BannerPosition).HasDefaultValue(Event.DefaultBannerPosition);
+
+                b.HasOne(x => x.Organizer)
+                    .WithMany()
+                    .HasForeignKey(x => x.OrganizerUserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasOne(x => x.Band)
+                    .WithMany()
+                    .HasForeignKey(x => x.BandId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasMany(x => x.Genres)
+                    .WithOne()
+                    .HasForeignKey(g => g.EventId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                b.HasIndex(x => new { x.EndsAtOrDefault, x.StartsAt });
+                b.HasIndex(x => new { x.BandId, x.StartsAt });
+                b.HasIndex(x => x.OrganizerUserId);
+            });
+
+            builder.Entity<EventGenre>(b =>
+            {
+                b.ToTable("EventGenres");
+                b.HasKey(g => new { g.EventId, g.Genre });
+            });
+
+            builder.Entity<EventLineupEntry>(b =>
+            {
+                b.ToTable("EventLineupEntries");
+                b.HasKey(x => x.Id);
+
+                b.Property(x => x.Name).HasMaxLength(100);
+
+                b.HasOne(x => x.Event)
+                    .WithMany(x => x.Lineup)
+                    .HasForeignKey(x => x.EventId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasOne(x => x.Band)
+                    .WithMany()
+                    .HasForeignKey(x => x.BandId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasIndex(x => new { x.EventId, x.Order });
+                b.HasIndex(x => x.BandId);
+            });
+
+            builder.Entity<EventInterest>(b =>
+            {
+                b.ToTable("EventInterests");
+                b.HasKey(x => new { x.EventId, x.UserId });
+
+                b.HasOne<Event>()
+                    .WithMany(x => x.Interests)
+                    .HasForeignKey(x => x.EventId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasOne<User>()
+                    .WithMany()
+                    .HasForeignKey(x => x.UserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasIndex(x => x.UserId);
+            });
+
+            builder.Entity<EventComment>(b =>
+            {
+                b.ToTable("EventComments");
+                b.HasKey(x => x.Id);
+
+                b.Property(x => x.Text).HasMaxLength(2000).IsRequired();
+
+                b.HasOne(x => x.Event)
+                    .WithMany(x => x.Comments)
+                    .HasForeignKey(x => x.EventId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasOne(x => x.Author)
+                    .WithMany()
+                    .HasForeignKey(x => x.AuthorUserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasIndex(x => new { x.EventId, x.CreatedAt });
             });
 
             builder.Entity<ApplicationUser>(b =>

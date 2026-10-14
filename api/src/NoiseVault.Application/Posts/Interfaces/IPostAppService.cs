@@ -19,5 +19,7 @@ namespace NoiseVault.Application.Posts.Interfaces
 
         Task<PostReadModel?> FindVisible(int postId);
         Task ProcessVideo(int mediaUploadId, bool finalAttempt);
+        Task CreateForEvent(int eventId, int authorUserId, int? bandId);
+        Task DeleteForEvent(int eventId);
     }
 }

@@ -1,5 +1,6 @@
 using NoiseVault.Application.Bands.Dtos;
 using NoiseVault.Application.Common.Media;
+using NoiseVault.Application.Pagination;
 using NoiseVault.Application.Profiles.Dtos;
 using NoiseVault.Application.Response;
 using NoiseVault.Domain.Enums.Bands;
@@ -13,6 +14,7 @@ namespace NoiseVault.Application.Bands.Interfaces
         Task<Result<BandProfileDto>> Update(string slug, BandInputDto input);
         Task<Result<List<BandSummaryDto>>> Suggested();
         Task<Result<List<BandSummaryDto>>> Mine();
+        Task<Result<PagedResultDto<BandSummaryDto>>> Search(BandSearchQueryDto query);
         Task<Result<BandProfileDto>> SetAvatar(string slug, ImageUploadInput? file, CancellationToken cancellationToken = default);
         Task<Result<BandProfileDto>> RemoveAvatar(string slug);
         Task<Result<BandProfileDto>> SetBanner(string slug, ImageUploadInput? file, int? position, CancellationToken cancellationToken = default);

@@ -1,6 +1,9 @@
 using NoiseVault.Application.Bands;
 using NoiseVault.Application.Bands.Interfaces;
 using NoiseVault.Infra.Data.Repositories.BandInvitations;
+using NoiseVault.Application.Events;
+using NoiseVault.Application.Events.Interfaces;
+using NoiseVault.Infra.Data.Repositories.Events;
 using NoiseVault.Application.Media;
 using NoiseVault.Application.Media.Interfaces;
 using NoiseVault.Application.Posts;
@@ -159,6 +162,10 @@ namespace NoiseVault.Infra.IoC
             services.AddScoped<IPostAppService, PostAppService>();
             services.AddScoped<ICommentAppService, CommentAppService>();
 
+            // Eventos
+            services.AddScoped<IEventAppService, EventAppService>();
+            services.AddScoped<IEventCommentAppService, EventCommentAppService>();
+
             // External services
             var emailSettings = EmailSettings.FromConfiguration(config);
             services.AddSingleton(emailSettings);
@@ -191,6 +198,7 @@ namespace NoiseVault.Infra.IoC
             services.AddScoped<IBackgroundJobRunRepository, BackgroundJobRunRepository>();
             services.AddScoped<IBandInvitationRepository, BandInvitationRepository>();
             services.AddScoped<IPostRepository, PostRepository>();
+            services.AddScoped<IEventRepository, EventRepository>();
 
             return services;
         }

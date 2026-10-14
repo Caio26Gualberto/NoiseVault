@@ -114,6 +114,7 @@ namespace NoiseVault.Infra.Data.Repositories.Posts
                 AuthorNickname = p.Author.Nickname,
                 AuthorAvatarKey = p.Author.AvatarKey,
                 BandId = p.BandId,
+                EventId = p.EventId,
                 Content = p.Content,
                 CreatedAt = p.CreatedAt,
                 PublishedAt = p.PublishedAt,
