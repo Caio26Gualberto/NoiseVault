@@ -26,7 +26,13 @@ createRoot(document.getElementById('root')!).render(
           </AppConfirmProvider>
         </AuthProvider>
       </BrowserRouter>
-      <Toaster position="top-center" richColors closeButton />
+      <Toaster
+        position="bottom-right"
+        richColors
+        closeButton
+        offset={{ bottom: 'var(--toast-offset-bottom)', right: 24 }}
+        mobileOffset={{ bottom: 'var(--toast-offset-bottom)', right: 16, left: 16 }}
+      />
     </TooltipProvider>
   </StrictMode>,
 )

@@ -90,5 +90,28 @@
     "play": "Tocar vídeo",
     "processing": "Processando vídeo…",
     "failed": "Não foi possível processar o vídeo"
+  },
+  "player": {
+    "label": "Player de vídeo",
+    "play": "Tocar",
+    "pause": "Pausar",
+    "replay": "Tocar de novo",
+    "mute": "Silenciar",
+    "unmute": "Ativar som",
+    "volume": "Volume",
+    "seek": "Posição do vídeo",
+    "speed": "Velocidade {{speed}}x",
+    "fullscreen": "Tela cheia",
+    "exitFullscreen": "Sair da tela cheia",
+    "quality": "Qualidade",
+    "qualityAuto": "Automática",
+    "qualityAutoWith": "Automática ({{quality}})"
+  },
+  "viewer": {
+    "title": "Mídia da publicação",
+    "close": "Fechar",
+    "previous": "Anterior",
+    "next": "Próxima",
+    "counter": "{{current}} de {{total}}"
   }
 }

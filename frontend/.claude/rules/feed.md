@@ -55,7 +55,7 @@ Rules irmãs: `../api/.claude/rules/feed.md` (post, curtida, comentário, quem p
   - O trigger é um botão estilizado, e não um `AppIconButton`, porque o tooltip do `AppIconButton` não aceita ser filho `asChild` do trigger do dropdown.
 - **Estados** (`post-status.ts`): `published` mostra curtir e comentar; `processing` mostra o selo "Processando" e a frase de que o post aparece para todo mundo quando ficar pronto; `failed` mostra "Falhou" e a orientação de apagar.
 - **Mídia**: `AppMediaGrid` recebe `url`, `posterUrl`, `durationSeconds` e `state`.
-  - Vídeo mostra o poster, o play e a duração; ao clicar, abre num `AppDialog` com `<video controls autoPlay playsInline>`.
+  - Vídeo mostra o poster, o play e a duração. Clicar em qualquer mídia abre o `AppMediaViewer` naquela posição, com navegação entre as mídias prontas do post; vídeo toca no `AppVideoPlayer` (`design-system.md`). O visualizador saiu do `AppDialog` porque o botão de fechar do diálogo ficava em cima do vídeo e o hover dele aparecia dentro da imagem.
   - Mídia em processamento ou que falhou vira um placeholder com o texto de `common.json` (`media.*`).
 - **Enums próprios**: `post-status.ts`, `media-kind.ts` e `media-status.ts`, cada um num arquivo, nunca no service (`mocks.md`).
 
@@ -66,7 +66,7 @@ Com o Docker, o ffmpeg, a API e o Vite no ar; conta A (admin, Owner de uma banda
 1. **Publicar com mídia (1440px).** A abre `/feed`, escolhe "Serra Negra (banda)", escreve, anexa 2 fotos e o vídeo de teste de 100 MB.
    - As miniaturas mostram spinner e porcentagem, e "Publicar" diz "Enviando…".
    - Ao terminar, publica e o post aparece no topo com o avatar da banda, "por @admin" e o selo "Processando".
-2. **Processamento.** Em segundos o selo some (polling), o vídeo mostra o poster e "0:40", e clicar toca o vídeo no diálogo.
+2. **Processamento.** Em segundos o selo some (polling) e o vídeo mostra o poster e "0:40". A engrenagem do player lista as resoluções geradas (1080p, 720p, 480p, 360p para um original 1080p) e "Automática"; escolher 360p troca a imagem na hora. Clicar abre o visualizador em tela cheia ("1 de 3", fechar no canto da tela) e o vídeo toca no player da marca: barra vermelha com prévia do tempo no hover, controles que somem durante a reprodução, `k` pausa e o play grande volta ao centro.
 3. **Editar.** "…" → "Editar texto" → salvar: toast "Publicação editada." e "editado" no cabeçalho.
 4. **Outra conta (390px).** B vê o post da banda no feed, curte (coração cheio, "1"), abre o detalhe e comenta: "1 comentário" e a lixeira no próprio comentário.
 5. **Perfil e banda.** `/bandas/serra-negra` mostra "N publicações" no hero e a seção "Publicações" com os posts da banda; `/perfil/admin`, o contador e a lista.

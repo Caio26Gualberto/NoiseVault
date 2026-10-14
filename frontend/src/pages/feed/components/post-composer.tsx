@@ -260,10 +260,10 @@ export function PostComposer({ onPublished }: PostComposerProps) {
           <div className="flex items-center gap-1">
             <input ref={photoInput} type="file" accept={acceptedImageTypes.join(',')} multiple className="hidden" onChange={addPhotos} />
             <input ref={videoInput} type="file" accept="video/*" className="hidden" onChange={(event) => void addVideo(event)} />
-            <AppIconButton label={t('composer.addPhotos')} onClick={() => photoInput.current?.click()} disabled={photoCount >= maxPhotos}>
+            <AppIconButton type="button" label={t('composer.addPhotos')} onClick={() => photoInput.current?.click()} disabled={photoCount >= maxPhotos}>
               <ImagePlusIcon />
             </AppIconButton>
-            <AppIconButton label={t('composer.addVideo')} onClick={() => videoInput.current?.click()} disabled={videoCount >= maxVideos}>
+            <AppIconButton type="button" label={t('composer.addVideo')} onClick={() => videoInput.current?.click()} disabled={videoCount >= maxVideos}>
               <VideoIcon />
             </AppIconButton>
           </div>

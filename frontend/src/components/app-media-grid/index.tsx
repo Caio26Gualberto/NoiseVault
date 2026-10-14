@@ -2,7 +2,8 @@ import { CircleAlertIcon, LoaderCircleIcon, PlayIcon } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { AppDialog } from '@/components/app-dialog'
+import { AppMediaViewer } from '@/components/app-media-viewer'
+import type { ViewerItem } from '@/components/app-media-viewer'
 import { formatDuration } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
@@ -23,9 +24,13 @@ type AppMediaGridProps = {
 
 export function AppMediaGrid({ items, className }: AppMediaGridProps) {
   const { t } = useTranslation('common')
-  const [open, setOpen] = useState<MediaItem | null>(null)
+  const [open, setOpen] = useState<number | null>(null)
 
   if (items.length === 0) return null
+
+  const viewable: ViewerItem[] = items
+    .filter((item) => (item.state ?? 'ready') === 'ready' && item.url)
+    .map((item) => ({ id: item.id, kind: item.kind, url: item.url!, posterUrl: item.posterUrl, alt: item.alt }))
 
   const shown = items.slice(0, 4)
   const rest = items.length - shown.length
@@ -60,7 +65,7 @@ export function AppMediaGrid({ items, className }: AppMediaGridProps) {
             <button
               key={item.id}
               type="button"
-              onClick={() => setOpen(item)}
+              onClick={() => setOpen(Math.max(0, viewable.findIndex((entry) => entry.id === item.id)))}
               aria-label={item.kind === 'video' ? t('media.play') : t('media.open')}
               className={cn(frame, 'focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none')}
             >
@@ -89,23 +94,7 @@ export function AppMediaGrid({ items, className }: AppMediaGridProps) {
         })}
       </div>
 
-      <AppDialog open={open !== null} onOpenChange={() => setOpen(null)} title={open?.alt ?? ''} size="lg">
-        {open?.url ? (
-          open.kind === 'video' ? (
-            <video
-              src={open.url}
-              poster={open.posterUrl ?? undefined}
-              controls
-              autoPlay
-              playsInline
-              preload="metadata"
-              className="max-h-[70vh] w-full rounded-lg bg-scrim"
-            />
-          ) : (
-            <img src={open.url} alt={open.alt ?? ''} className="max-h-[70vh] w-full rounded-lg object-contain" />
-          )
-        ) : null}
-      </AppDialog>
+      <AppMediaViewer items={viewable} index={open} onIndexChange={setOpen} />
     </>
   )
 }
