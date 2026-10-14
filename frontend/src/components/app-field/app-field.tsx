@@ -167,7 +167,7 @@ export function AppSelectField({ name, label, options, placeholder, emptyLabel, 
                 aria-invalid={invalid || undefined}
                 aria-describedby={describedBy}
                 onBlur={field.onBlur}
-                className="w-full text-[15px] data-[size=default]:h-11 md:data-[size=default]:h-10"
+                className={fieldInputClass}
               >
                 <SelectValue placeholder={placeholder} />
               </SelectTrigger>

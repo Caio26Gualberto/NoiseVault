@@ -47,6 +47,7 @@ Paleta (valores em `tokens.css`, aqui só a intenção):
 - Raio: `--radius: 0.5rem` (8px). Card 12px (`rounded-xl`), pílula/badge/avatar 999px.
 - Elevação por **borda**, não por sombra: no escuro, sombra some; `border-border` separa card do fundo. Sombra só em popover e dialog (o shadcn já faz).
 - **Cursor**: tudo que é clicável mostra a mãozinha. O Tailwind v4 tirou o `cursor: pointer` padrão dos botões, então a regra mora no `@layer base` do `global.css` (botões, links, papéis `menuitem`/`option`/`tab`/`slider`, `select`, checkbox, range, arquivo), com `not-allowed` no desabilitado. Os itens de `ui/dropdown-menu` e `ui/select` vinham do shadcn com `cursor-default` e foram trocados para `cursor-pointer`; ao regenerar um primitivo pelo CLI, refazer essa troca.
+- **`ui/select` com a altura e a largura da página**: o `SelectTrigger` do shadcn vinha com `data-[size=default]:h-8` e `w-fit`. A classe de atributo vencia o `h-11 md:h-10` passado pela página, e o seletor ficava mais baixo e mais estreito que o input do lado (a Cidade no formulário de evento, 14/10/2026). A base virou `h-8 w-full`, que o `cn()` deixa a página sobrescrever. Select de formulário usa a mesma altura do campo (`h-11 md:h-10`, o `fieldInputClass` do `AppSelectField`); filtro define a própria largura (`md:w-48`). Ao regenerar o primitivo, refazer também esta troca.
 - Animação: `.app-page-enter` (160 ms, opacity + 4px de translate) na raiz de cada página, e as do shadcn em dialog/sheet. Nenhuma outra.
 
 ## Referências (Mobbin, outubro/2026) e o que foi tirado de cada uma
