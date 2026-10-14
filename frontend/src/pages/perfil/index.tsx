@@ -10,6 +10,7 @@ import { accountPath, homePath } from '@/auth/routes'
 import { useAuth } from '@/auth/use-auth'
 import { AppAvatar } from '@/components/app-avatar'
 import { AppButton } from '@/components/app-button'
+import { AppShareButton } from '@/components/app-share-button'
 import { AppEmptyState } from '@/components/app-empty-state'
 import { AppGenreBadges } from '@/components/app-genre-badges'
 import { AppProfileHero } from '@/components/app-profile-hero'
@@ -88,6 +89,7 @@ export function PerfilPage() {
         actions={
           <>
             <AppSocialLinks links={profile.socialLinks} />
+            <AppShareButton path={`/perfil/${profile.nickname}`} title={profile.name} label size="md" />
             {isMe ? (
               <AppButton intent="neutral" asChild>
                 <Link to={accountPath}>

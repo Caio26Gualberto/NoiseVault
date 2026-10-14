@@ -7,6 +7,7 @@ import { useAuth } from '@/auth/use-auth'
 import { AppAvatar } from '@/components/app-avatar'
 import { AppBadge } from '@/components/app-badge'
 import { AppButton } from '@/components/app-button'
+import { AppShareButton } from '@/components/app-share-button'
 import { useAppConfirm } from '@/components/app-confirm'
 import { AppEmptyState } from '@/components/app-empty-state'
 import { AppGenreBadges } from '@/components/app-genre-badges'
@@ -87,6 +88,7 @@ export function BandasPage() {
         actions={
           <>
             <AppSocialLinks links={band.socialLinks} />
+            <AppShareButton path={`/bandas/${band.slug}`} title={band.name} label size="md" />
             {isOwner ? (
               <AppButton intent="neutral" asChild>
                 <Link to={`/bandas/${band.slug}/editar`}>

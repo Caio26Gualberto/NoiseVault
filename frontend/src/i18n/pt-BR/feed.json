@@ -2,7 +2,7 @@
   "title": "Feed",
   "description": "O que a comunidade está postando.",
   "backToFeed": "Voltar ao feed",
-  "share": "Compartilhar",
+  "shareTitle": "{{name}} no Noise Vault",
   "composer": {
     "placeholder": "O que está rolando, {{name}}?",
     "publish": "Publicar",

@@ -25,6 +25,7 @@ As **decisões por área** vivem em `.claude/rules/`, com front matter `paths:`,
 | `.claude/rules/mural.md` | linha do tempo interativa, envio da comunidade, meus envios, fila e painel da curadoria (`Archive.Review`), grade de registros, detalhe com legendas e "Eu estava lá", formulário com data aproximada e gerenciador de mídias de arquivo, permissões `Archive.*` |
 | `.claude/rules/marcacoes.md` | @menção com autocomplete (`AppMentionTextarea`) e texto com links (`AppRichText`), marcação de pessoas nas fotos no `AppMediaViewer`, notificações de menção e marcação |
 | `.claude/rules/pwa.md` | instalável no celular: manifesto e ícones, service worker gerado no build (só o esqueleto, nunca a API), página sem conexão, aviso de versão nova, "Instalar o app" no menu do usuário e o passo a passo do iPhone |
+| `.claude/rules/compartilhamento.md` | `AppShareButton` (menu do sistema no celular, copiar link no computador), onde aparece, o link `/s/...` e o proxy do Vite |
 | `.claude/rules/notificacoes.md` | SignalR só avisando (`api/notifications-hub.ts` + `layout/notifications-provider.tsx`), toast do push, balão do sino, frase pelo `kind` com plural de agrupamento, convites no topo, preferência de e-mail |
 | `.claude/rules/suporte.md` | formulário com tipos, páginas e anexos, página de origem, "Meus relatos", conversa, caixa de entrada com triagem e contexto, permissões `Support.*` |
 | `.claude/rules/mocks.md` | histórico: a forma do mock por página e o que morreu ao ligar cada módulo (não há mais mock) |
@@ -218,6 +219,7 @@ Sem testes automatizados nesta entrega: `lint` + `typecheck` + `build` + greps +
 - O `Toaster` usa `useColorScheme()` em vez de `next-themes`; trocar o tema sem passar por `saveColorScheme` deixa o toast na cor errada.
 - `auth-provider.tsx` faz `setState` dentro do `useEffect` de boot (aviso `set-state-in-effect` do oxlint): herdado do boilerplate, deliberado — o boot é sincronização com `localStorage`.
 - O CORS da API vem de `Cors:AllowedOrigins` (dev libera só `http://localhost:5173`). Se o Vite subir em outra porta, toda request falha por CORS.
+- O `vite.config.ts` repassa `^/s/` para a API (prévia de link, `compartilhamento.md`). Rota nova do front que comece com `/s/` vai parar na API.
 
 ## Como este arquivo evolui
 

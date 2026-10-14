@@ -78,6 +78,12 @@
     "placeholder": "Escreva um comentário",
     "send": "Enviar comentário"
   },
+  "share": {
+    "action": "Compartilhar",
+    "copied": "Link copiado",
+    "copiedHint": "Cole no grupo ou no WhatsApp: o link aparece com foto e título.",
+    "copyFailed": "Não deu para copiar o link"
+  },
   "mentions": {
     "band": "Banda",
     "loading": "Buscando...",

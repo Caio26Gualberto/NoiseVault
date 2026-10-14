@@ -18,6 +18,7 @@ import { AppRichText } from '@/components/app-rich-text'
 import { toRichMentions } from '@/pages/feed/mention'
 import { AppBadge } from '@/components/app-badge'
 import { AppButton, AppIconButton } from '@/components/app-button'
+import { AppShareButton } from '@/components/app-share-button'
 import { AppCard } from '@/components/app-card'
 import { useAppConfirm } from '@/components/app-confirm'
 import { AppEmptyState } from '@/components/app-empty-state'
@@ -162,6 +163,7 @@ export function EventoDetalhePage() {
                 <StarIcon className={cn(event.interested && 'fill-current')} />
                 {t('interested', { count: event.interestedCount })}
               </AppButton>
+              <AppShareButton path={`/eventos/${event.id}`} title={event.title} size="md" />
               {event.canManage ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger

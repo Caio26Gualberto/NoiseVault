@@ -1,4 +1,4 @@
-import { EllipsisIcon, HeartIcon, MessageCircleIcon, PencilIcon, Share2Icon, Trash2Icon } from 'lucide-react'
+import { EllipsisIcon, HeartIcon, MessageCircleIcon, PencilIcon, Trash2Icon } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
@@ -7,9 +7,10 @@ import { AppAvatar } from '@/components/app-avatar'
 import { AppRichText } from '@/components/app-rich-text'
 import { toRichMentions } from '@/pages/feed/mention'
 import { AppBadge } from '@/components/app-badge'
-import { AppButton, AppIconButton } from '@/components/app-button'
+import { AppButton } from '@/components/app-button'
 import { useAppConfirm } from '@/components/app-confirm'
 import { AppMediaGrid } from '@/components/app-media-grid'
+import { AppShareButton } from '@/components/app-share-button'
 import type { MediaItem } from '@/components/app-media-grid'
 import {
   DropdownMenu,
@@ -190,9 +191,7 @@ export function PostCard({ post, onLike, onUpdated, onDeleted, detail = false }:
             </Link>
           </AppButton>
           <div className="ml-auto">
-            <AppIconButton label={t('share')} size="sm" disabled>
-              <Share2Icon />
-            </AppIconButton>
+            <AppShareButton path={`/feed/${post.id}`} title={t('shareTitle', { name: post.band?.name ?? post.author.name })} />
           </div>
         </footer>
       ) : (

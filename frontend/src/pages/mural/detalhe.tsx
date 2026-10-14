@@ -20,6 +20,7 @@ import { AppAvatar } from '@/components/app-avatar'
 import { AppRichText } from '@/components/app-rich-text'
 import { toRichMentions } from '@/pages/feed/mention'
 import { AppButton, AppIconButton } from '@/components/app-button'
+import { AppShareButton } from '@/components/app-share-button'
 import { AppCard } from '@/components/app-card'
 import { useAppConfirm } from '@/components/app-confirm'
 import { AppEmptyState } from '@/components/app-empty-state'
@@ -129,32 +130,35 @@ export function MuralDetalhePage() {
               </p>
             ) : null}
           </div>
-          {entry.canEdit || entry.canDelete || canWithdraw ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                aria-label={t('manage.actions')}
-                className="flex size-9 shrink-0 items-center justify-center rounded-lg border text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
-              >
-                <EllipsisIcon className="size-4" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {entry.canEdit ? (
-                  <DropdownMenuItem asChild>
-                    <Link to={`/mural/${entry.id}/editar`}>
-                      <PencilIcon />
-                      {t('manage.edit')}
-                    </Link>
-                  </DropdownMenuItem>
-                ) : null}
-                {entry.canDelete || canWithdraw ? (
-                  <DropdownMenuItem variant="destructive" onSelect={remove}>
-                    <Trash2Icon />
-                    {t(canWithdraw ? 'submissions.withdraw' : 'manage.delete')}
-                  </DropdownMenuItem>
-                ) : null}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : null}
+          <div className="flex shrink-0 items-center gap-1">
+            {published ? <AppShareButton path={`/mural/${entry.id}`} title={entry.title} size="md" /> : null}
+            {entry.canEdit || entry.canDelete || canWithdraw ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  aria-label={t('manage.actions')}
+                  className="flex size-9 shrink-0 items-center justify-center rounded-lg border text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
+                >
+                  <EllipsisIcon className="size-4" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {entry.canEdit ? (
+                    <DropdownMenuItem asChild>
+                      <Link to={`/mural/${entry.id}/editar`}>
+                        <PencilIcon />
+                        {t('manage.edit')}
+                      </Link>
+                    </DropdownMenuItem>
+                  ) : null}
+                  {entry.canDelete || canWithdraw ? (
+                    <DropdownMenuItem variant="destructive" onSelect={remove}>
+                      <Trash2Icon />
+                      {t(canWithdraw ? 'submissions.withdraw' : 'manage.delete')}
+                    </DropdownMenuItem>
+                  ) : null}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : null}
+          </div>
         </div>
 
         {entry.bands.length > 0 ? (

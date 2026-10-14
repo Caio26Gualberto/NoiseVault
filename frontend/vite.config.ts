@@ -14,6 +14,9 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react(), tailwindcss(), serviceWorker()],
+    server: {
+      proxy: { '^/s/': { target: env.VITE_API_BASE_URL, changeOrigin: true } },
+    },
     resolve: {
       alias: { '@': path.resolve(import.meta.dirname, './src') },
     },
