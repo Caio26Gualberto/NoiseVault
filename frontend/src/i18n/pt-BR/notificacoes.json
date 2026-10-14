@@ -64,7 +64,16 @@
     "bandInviteDeclined": "<b>{{actor}}</b> recusou o convite para a <b>{{band}}</b>",
     "bandPromoted": "<b>{{actor}}</b> fez de você responsável pela <b>{{band}}</b>",
     "bandRemoved": "<b>{{actor}}</b> tirou você da <b>{{band}}</b>",
-    "bandMemberLeft": "<b>{{actor}}</b> saiu da <b>{{band}}</b>"
+    "bandMemberLeft": "<b>{{actor}}</b> saiu da <b>{{band}}</b>",
+    "supportTicketCreated": "<b>{{actor}}</b> abriu o relato {{protocol}}: <b>{{ticket}}</b>",
+    "supportTicketReplied_zero": "<b>{{actor}}</b> respondeu no relato {{protocol}}: <b>{{ticket}}</b>",
+    "supportTicketReplied_one": "<b>{{actor}}</b> e mais 1 pessoa responderam no relato {{protocol}}: <b>{{ticket}}</b>",
+    "supportTicketReplied_other": "<b>{{actor}}</b> e mais {{count}} pessoas responderam no relato {{protocol}}: <b>{{ticket}}</b>",
+    "supportTicketRepliedToYou": "A equipe respondeu o seu relato <b>{{ticket}}</b>",
+    "supportTicketReopened": "O seu relato <b>{{ticket}}</b> foi reaberto",
+    "supportTicketInProgress": "O seu relato <b>{{ticket}}</b> está em análise",
+    "supportTicketResolved": "O seu relato <b>{{ticket}}</b> foi resolvido",
+    "supportTicketDismissed": "O seu relato <b>{{ticket}}</b> foi encerrado"
   },
   "invitations": {
     "title": "Convites de banda",

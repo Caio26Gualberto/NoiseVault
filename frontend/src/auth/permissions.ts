@@ -17,6 +17,10 @@ export const Permissions = {
   archiveEdit: 'Archive.Edit',
   archiveDelete: 'Archive.Delete',
 
+  supportView: 'Support.View',
+  supportEdit: 'Support.Edit',
+  supportReply: 'Support.Reply',
+
   systemJobsView: 'System.Jobs.View',
   systemJobsManage: 'System.Jobs.Manage',
   systemAuditView: 'System.Audit.View',

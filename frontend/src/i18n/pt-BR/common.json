@@ -31,7 +31,10 @@
     "endsAfterStart": "O término precisa ser depois do início.",
     "archiveYear": "Use um ano entre 1950 e o ano atual.",
     "archiveDayNeedsMonth": "Para informar o dia, escolha o mês.",
-    "archiveDay": "Esse dia não existe nesse mês."
+    "archiveDay": "Esse dia não existe nesse mês.",
+    "supportTitle": "Resuma em 5 a 120 caracteres.",
+    "supportDescription": "Conte com pelo menos 20 caracteres (até 5000).",
+    "supportTags": "Marque pelo menos um tipo."
   },
   "password": {
     "show": "Mostrar senha",

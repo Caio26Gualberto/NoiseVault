@@ -16,5 +16,8 @@ export const NotificationKind = {
   bandPromoted: 14,
   bandRemoved: 15,
   bandMemberLeft: 16,
+  supportTicketCreated: 17,
+  supportTicketReplied: 18,
+  supportTicketStatusChanged: 19,
 } as const
 export type NotificationKind = (typeof NotificationKind)[keyof typeof NotificationKind]

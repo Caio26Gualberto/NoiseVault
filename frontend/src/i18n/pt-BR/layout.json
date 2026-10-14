@@ -14,7 +14,9 @@
     "community": "Comunidade",
     "institutional": "Institucional",
     "moreSheetTitle": "Mais do Noise Vault",
-    "archive": "Mural das antigas"
+    "archive": "Mural das antigas",
+    "admin": "Administração",
+    "supportInbox": "Suporte"
   },
   "search": {
     "placeholder": "Buscar pessoas",

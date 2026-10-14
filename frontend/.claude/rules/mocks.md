@@ -8,7 +8,7 @@ paths:
 
 # Decisões — Mocks por página
 
-Nesta entrega o backend tem Auth, Perfil e mídia, Bandas e convites, Feed, Eventos, Mural das antigas e Notificações. As telas que sobraram (reportar problema) existem para validar design e navegação e para **propor o contrato** que cada módulo vai cumprir. O mock é andaime: quando o endpoint real nasce, o `mocks.ts` morre no mesmo commit.
+Desde 14/10/2026 o backend tem todos os módulos de `dominio.md`, e nenhuma tela é mock. Enquanto existiram, as telas mockadas serviam para validar design e navegação e para **propor o contrato** que cada módulo ia cumprir. O mock é andaime: quando o endpoint real nasce, o `mocks.ts` morre no mesmo commit.
 
 ## A forma: service real com implementação fake
 
@@ -22,9 +22,7 @@ Nesta entrega o backend tem Auth, Perfil e mídia, Bandas e convites, Feed, Even
 
 ## O que apagar ao ligar cada módulo
 
-| Tela | Módulo (ordem em `api/.claude/rules/dominio.md`) | Some |
-|---|---|---|
-| `/reportar-problema` | 7 · Suporte | `reportar-problema/services/mocks.ts` |
+**Não sobrou nenhum.** ~~Módulo 7 · Suporte~~ ligado em 14/10/2026: `reportar-problema/services/mocks.ts` morreu, e com ele `src/api/mock-delay.ts`. O contrato do mock (`{ label, title, description, pageUrl }` → `{ protocol }`) não sobreviveu: o backend redesenhou o relato como ticket com tags, páginas, anexos e conversa (`suporte.md`). Esta rule fica como histórico e como molde, se um módulo novo nascer antes do backend.
 
 ~~Módulo 6 · Notificações~~ ligado em 14/10/2026: `notificacoes/services/mocks.ts` e `notification-type.ts` morreram, e com eles `src/api/mock-fixtures.ts`, que não tinha mais quem usasse (`notificacoes.md`). Só sobra o `mock-delay.ts`, para o reportar-problema.
 

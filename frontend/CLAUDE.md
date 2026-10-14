@@ -4,7 +4,7 @@
 
 **Noise Vault** — site público da cena do ABC Paulista (metal, punk, hardcore e afins): feed, mural das antigas, eventos, perfis de pessoas e de bandas, notificações. Quem usa é o fã e o músico da região; a administração (moderação, equipe) é a mesma aplicação com permissão. Reescrita do zero do legado "NewLevel" (`C:\Projetos\Pessoal\Alvo\newlevel`), que não serve de referência de código nem de tela.
 
-**Estado da entrega atual:** auth é real (`/entrar`, `/criar-conta`, `/confirmar-email`, `/esqueci-senha`, `/redefinir-senha`, `/definir-senha`, `/bem-vindo`); perfil e mídia também (`/minha-conta` inteira com avatar e capa, `/perfil/:nickname`, busca de pessoas na topbar — `.claude/rules/perfil.md`); bandas e convites também (`/bandas/:slug`, `/bandas/nova`, `/bandas/:slug/editar` e a seção de convites em `/notificacoes` — `.claude/rules/bandas.md`); o feed também (`/feed`, `/feed/:id`, publicações no perfil e na banda, com fotos e vídeo — `.claude/rules/feed.md`); os eventos também (`/eventos`, detalhe, formulário, seção Shows da banda e o rail do feed — `.claude/rules/eventos.md`). O mural das antigas também (`/mural` e o detalhe, o formulário com permissão — `.claude/rules/mural.md`); Vídeos, Fotos e Moderação saíram do produto. As notificações também (`/notificacoes`, o sino em tempo real por SignalR e a preferência em `/minha-conta` — `.claude/rules/notificacoes.md`). Reportar problema e institucionais são **mock por página** com a assinatura que o service real vai ter (`.claude/rules/mocks.md`). A ordem em que os mocks viram backend está em `../api/.claude/rules/dominio.md`.
+**Estado da entrega atual:** auth é real (`/entrar`, `/criar-conta`, `/confirmar-email`, `/esqueci-senha`, `/redefinir-senha`, `/definir-senha`, `/bem-vindo`); perfil e mídia também (`/minha-conta` inteira com avatar e capa, `/perfil/:nickname`, busca de pessoas na topbar — `.claude/rules/perfil.md`); bandas e convites também (`/bandas/:slug`, `/bandas/nova`, `/bandas/:slug/editar` e a seção de convites em `/notificacoes` — `.claude/rules/bandas.md`); o feed também (`/feed`, `/feed/:id`, publicações no perfil e na banda, com fotos e vídeo — `.claude/rules/feed.md`); os eventos também (`/eventos`, detalhe, formulário, seção Shows da banda e o rail do feed — `.claude/rules/eventos.md`). O mural das antigas também (`/mural` e o detalhe, o formulário com permissão — `.claude/rules/mural.md`); Vídeos, Fotos e Moderação saíram do produto. As notificações também (`/notificacoes`, o sino em tempo real por SignalR e a preferência em `/minha-conta` — `.claude/rules/notificacoes.md`). O suporte também (`/reportar-problema` com prints e vídeo, `/suporte` com os relatos e a conversa, e a caixa de entrada `/admin/suporte` com permissão `Support.*` — `.claude/rules/suporte.md`). Não sobrou tela mockada: o último `mocks.ts` e o `mock-delay.ts` morreram com o suporte (`.claude/rules/mocks.md`). Institucionais (podcasts, sobre, loja) são páginas estáticas, sem backend.
 
 ## Como trabalhar neste repositório
 
@@ -24,7 +24,8 @@ As **decisões por área** vivem em `.claude/rules/`, com front matter `paths:`,
 | `.claude/rules/feed.md` | feed único, composer com fotos e vídeo (upload multipart direto ao S3), publicar como banda, post em processamento com polling, editar e apagar, comentários, listas no perfil e na banda |
 | `.claude/rules/mural.md` | linha do tempo interativa, grade de registros, detalhe com legendas e "Eu estava lá", formulário com data aproximada e gerenciador de mídias de arquivo, permissões `Archive.*` |
 | `.claude/rules/notificacoes.md` | SignalR só avisando (`api/notifications-hub.ts` + `layout/notifications-provider.tsx`), toast do push, frase pelo `kind` com plural de agrupamento, convites no topo, preferência de e-mail |
-| `.claude/rules/mocks.md` | a forma do mock por página, o que apagar ao ligar cada módulo |
+| `.claude/rules/suporte.md` | formulário com tipos, páginas e anexos, página de origem, "Meus relatos", conversa, caixa de entrada com triagem e contexto, permissões `Support.*` |
+| `.claude/rules/mocks.md` | histórico: a forma do mock por página e o que morreu ao ligar cada módulo (não há mais mock) |
 | `.claude/rules/perfil.md` | perfil público, edição em `/minha-conta`, avatar, editor de capa, busca de pessoas, fixtures compartilhadas dos mocks |
 
 **Rule nova entra nesta tabela no mesmo commit.**
@@ -59,7 +60,6 @@ src/
   api/                     # fronteira HTTP — nada fora daqui usa axios (copiado do boilerplate)
     client.ts · auth-interceptor.ts · base-service.ts · api-codes.ts · feedback-sink.ts · token-storage.ts · types.ts · jwt.ts
     multipart-upload.ts    # PUT das partes de vídeo direto no S3 (axios próprio, sem auth e sem timeout)
-    mock-delay.ts          # andaime dos mocks: delay() + mockPage(); morre com o último mocks.ts
     notifications-hub.ts   # conexão SignalR do sino (carregada sob demanda); só avisa a contagem
   auth/
     auth-context.ts · auth-provider.tsx · auth-service.ts · use-auth.ts
@@ -85,6 +85,7 @@ src/
     app-shell.tsx · nav-sidebar.tsx · top-bar.tsx · bottom-nav.tsx · user-menu.tsx
     shell-rail.tsx · shell-rail-context.ts · use-shell-rail.ts   # rail direito registrado pela página
     notifications-provider.tsx · notifications-context.ts · use-notifications.ts   # contador do sino, push e toast
+    last-location.ts       # última rota do shell antes do /reportar-problema (a "página de onde veio" do relato)
     public-layout.tsx      # PublicFrame (card centralizado) + PublicLayout (Outlet)
     wordmark.tsx
   pages/

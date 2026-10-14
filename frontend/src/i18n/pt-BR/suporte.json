@@ -1,24 +1,140 @@
 {
   "title": "Reportar problema",
-  "description": "Achou um bug ou quer sugerir algo? Conta pra gente.",
+  "description": "Achou um bug ou quer sugerir algo? Conta pra gente: o relato chega direto para quem cuida do Noise Vault.",
+  "myTickets": "Meus relatos",
   "submit": "Enviar relato",
+  "uploading": "Enviando anexos…",
   "fields": {
-    "label": "Tipo",
+    "tags": "Tipo",
+    "tagsHint": "Marque quantos quiser. O aparelho já vem marcado pelo tamanho da sua tela.",
     "title": "Resumo",
     "titlePlaceholder": "Ex.: o like não atualiza o contador",
     "description": "O que aconteceu",
     "descriptionPlaceholder": "Descreva o que você fez, o que esperava e o que aconteceu.",
-    "pageUrl": "Link da página (opcional)"
+    "areas": "Em quais páginas (opcional)",
+    "areasHint": "Nem sempre o problema está na última página que você abriu. Marque onde ele aparece."
   },
-  "labels": {
-    "bug": "Erro no site",
+  "tags": {
+    "bug": "Bug",
     "suggestion": "Sugestão",
-    "content": "Conteúdo impróprio",
-    "account": "Problema com a conta"
+    "account": "Conta",
+    "mobile": "Celular",
+    "desktop": "Computador"
+  },
+  "areas": {
+    "feed": "Feed",
+    "events": "Eventos",
+    "archive": "Mural das antigas",
+    "profile": "Perfil",
+    "bands": "Bandas",
+    "notifications": "Notificações",
+    "account": "Minha conta",
+    "signIn": "Entrar e cadastro",
+    "other": "Outra"
+  },
+  "status": {
+    "open": "Novo",
+    "inProgress": "Em análise",
+    "resolved": "Resolvido",
+    "dismissed": "Não procede"
+  },
+  "priority": {
+    "low": "Baixa",
+    "normal": "Normal",
+    "high": "Alta"
+  },
+  "attachments": {
+    "title": "Prints e vídeo (opcional)",
+    "hint": "Até {{max}} arquivos: fotos (JPEG, PNG ou WebP, até 15 MB) e 1 vídeo de até 2 minutos. Gravar a tela mostrando o problema ajuda muito.",
+    "addPhotos": "Adicionar prints",
+    "addVideo": "Adicionar vídeo",
+    "remove": "Remover anexo",
+    "failed": "Falhou",
+    "failedHint": "Algum anexo falhou. Remova e tente de novo, ou envie sem ele.",
+    "limit": "No máximo {{max}} arquivos por relato.",
+    "photo": {
+      "unsupported": "Use JPEG, PNG ou WebP.",
+      "tooLarge": "A foto pode ter até 15 MB."
+    },
+    "video": {
+      "unsupported": "Esse arquivo não é um vídeo.",
+      "tooLarge": "O vídeo pode ter até 200 MB.",
+      "tooLong": "O vídeo pode ter até 2 minutos."
+    }
+  },
+  "context": {
+    "withOrigin": "Junto com o relato vão a página de onde você veio ({{path}}), o seu navegador e o tamanho da tela, para a gente conseguir reproduzir.",
+    "withoutOrigin": "Junto com o relato vão o seu navegador e o tamanho da tela, para a gente conseguir reproduzir."
   },
   "sent": {
     "title": "Relato enviado",
-    "description": "Protocolo {{protocol}}. A gente responde pelo seu e-mail de cadastro.",
+    "description": "Protocolo {{protocol}}. A resposta chega aqui no Noise Vault, nas suas notificações.",
+    "follow": "Acompanhar relato",
     "back": "Voltar ao feed"
+  },
+  "mine": {
+    "title": "Meus relatos",
+    "description": "O que você reportou e o que a equipe respondeu.",
+    "new": "Novo relato",
+    "answered": "Respondido",
+    "emptyTitle": "Nenhum relato ainda",
+    "emptyDescription": "Quando você reportar um problema, ele aparece aqui com as respostas."
+  },
+  "detail": {
+    "notFound": "Relato não encontrado",
+    "areas": "Páginas",
+    "openedAt": "Aberto em {{date}}",
+    "closedAt": "encerrado em {{date}}"
+  },
+  "conversation": {
+    "title": "Conversa",
+    "staff": "Equipe",
+    "send": "Enviar",
+    "placeholder": "Escreva uma resposta…",
+    "staffPlaceholder": "Responder a quem reportou…",
+    "staffHint": "A primeira resposta num relato novo já o coloca em análise.",
+    "reopenHint": "Este relato foi resolvido. Se o problema voltou, responda aqui e ele é reaberto.",
+    "closed": "Este relato foi encerrado. Se o problema continuar, abra um novo relato.",
+    "emptyReporter": "Ninguém respondeu ainda. Você recebe uma notificação quando a equipe responder.",
+    "emptyStaff": "Ainda sem conversa neste relato."
+  },
+  "admin": {
+    "title": "Suporte",
+    "description": "Relatos da comunidade. Triagem, conversa e status num lugar só.",
+    "all": "Todos",
+    "searchPlaceholder": "Buscar por título, texto, pessoa ou protocolo (NV-0042)",
+    "awaiting": "Aguardando você",
+    "emptyTitle": "Nada por aqui",
+    "emptyDescription": "Nenhum relato com esses filtros.",
+    "filters": {
+      "tag": "Tipo",
+      "allTags": "Todos os tipos",
+      "area": "Página",
+      "allAreas": "Todas as páginas",
+      "priority": "Prioridade",
+      "allPriorities": "Todas as prioridades",
+      "sort": "Ordenar"
+    },
+    "sort": {
+      "activity": "Atividade recente",
+      "newest": "Mais novos",
+      "priority": "Prioridade"
+    },
+    "triage": {
+      "title": "Triagem",
+      "status": "Status",
+      "priority": "Prioridade",
+      "note": "Nota interna",
+      "noteHint": "Só a equipe vê. Quem reportou é avisado quando o status muda.",
+      "save": "Salvar"
+    },
+    "context": {
+      "title": "Contexto",
+      "reporter": "Quem reportou",
+      "origin": "Veio de",
+      "viewport": "Tela",
+      "userAgent": "Navegador",
+      "unknown": "Não informado"
+    }
   }
 }

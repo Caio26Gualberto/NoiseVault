@@ -1,6 +1,7 @@
 import type { LucideIcon } from 'lucide-react'
 import {
   BellIcon,
+  HeadsetIcon,
   CalendarDaysIcon,
   CassetteTapeIcon,
   HeadphonesIcon,
@@ -44,6 +45,10 @@ import { NotificacoesPage } from '../pages/notificacoes'
 import { PerfilPage } from '../pages/perfil'
 import { RedefinirSenhaPage } from '../pages/redefinir-senha'
 import { ReportarProblemaPage } from '../pages/reportar-problema'
+import { SuporteAdminPage } from '../pages/admin/suporte'
+import { SuporteAdminDetalhePage } from '../pages/admin/suporte/detalhe'
+import { SuportePage } from '../pages/suporte'
+import { SuporteDetalhePage } from '../pages/suporte/detalhe'
 import { MuralPage } from '../pages/mural'
 import { MuralDetalhePage } from '../pages/mural/detalhe'
 import { MuralFormPage } from '../pages/mural/form'
@@ -123,10 +128,31 @@ export const navSections: NavSection[] = [
     id: 'institutional',
     labelKey: 'layout:nav.institutional',
     items: [
-      { path: '/reportar-problema', labelKey: 'layout:nav.report', icon: LifeBuoyIcon, element: <ReportarProblemaPage /> },
+      {
+        path: '/reportar-problema',
+        labelKey: 'layout:nav.report',
+        icon: LifeBuoyIcon,
+        element: <ReportarProblemaPage />,
+        subRoutes: ['/suporte', '/suporte/:id'],
+      },
       { path: '/podcasts', labelKey: 'layout:nav.podcasts', icon: HeadphonesIcon, element: <PodcastsPage /> },
       { path: '/sobre', labelKey: 'layout:nav.about', icon: HeartHandshakeIcon, element: <SobrePage /> },
       { path: '/loja-parceira', labelKey: 'layout:nav.store', icon: StoreIcon, element: <LojaParceiraPage /> },
+    ],
+  },
+  {
+    id: 'admin',
+    labelKey: 'layout:nav.admin',
+    permission: Permissions.supportView,
+    items: [
+      {
+        path: '/admin/suporte',
+        labelKey: 'layout:nav.supportInbox',
+        icon: HeadsetIcon,
+        element: <SuporteAdminPage />,
+        permission: Permissions.supportView,
+        subRoutes: ['/admin/suporte/:id'],
+      },
     ],
   },
 ]
@@ -142,6 +168,9 @@ export const hiddenRoutes: HiddenRoute[] = [
   { path: '/bandas/nova', element: <BandaNovaPage /> },
   { path: '/bandas/:slug/editar', element: <BandaEditarPage /> },
   { path: '/bandas/:slug', element: <BandasPage /> },
+  { path: '/suporte', element: <SuportePage /> },
+  { path: '/suporte/:id', element: <SuporteDetalhePage /> },
+  { path: '/admin/suporte/:id', element: <SuporteAdminDetalhePage />, permission: Permissions.supportView },
   { path: accountPath, element: <MinhaContaPage /> },
 ]
 

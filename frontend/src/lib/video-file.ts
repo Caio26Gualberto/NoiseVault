@@ -55,6 +55,7 @@ export type VideoLimits = { maxBytes: number; maxSeconds: number }
 export const postVideoLimits: VideoLimits = { maxBytes: videoMaxBytes, maxSeconds: videoMaxSeconds }
 export const archiveVideoLimits: VideoLimits = { maxBytes: 4 * 1024 * 1024 * 1024, maxSeconds: 2 * 60 * 60 }
 export const archivePhotoMaxBytes = 40 * 1024 * 1024
+export const supportVideoLimits: VideoLimits = { maxBytes: 200 * 1024 * 1024, maxSeconds: 2 * 60 }
 
 export async function checkVideoFile(file: File, limits: VideoLimits = postVideoLimits): Promise<VideoCheck> {
   if (!isVideo(file)) return 'unsupported'

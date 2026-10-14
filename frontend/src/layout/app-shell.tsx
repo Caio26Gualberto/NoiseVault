@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom'
 
 import { BottomNav } from './bottom-nav'
+import { useRememberLocation } from './last-location'
 import { NavSidebar } from './nav-sidebar'
 import { NotificationsProvider } from './notifications-provider'
 import { ShellRailProvider } from './shell-rail'
@@ -9,6 +10,7 @@ import { TopBar } from './top-bar'
 
 function ShellBody() {
   const rail = useShellRailNode()
+  useRememberLocation()
 
   return (
     <div className="flex min-h-dvh">
