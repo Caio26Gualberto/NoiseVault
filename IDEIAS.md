@@ -20,12 +20,9 @@ As três primeiras atacam direto o motivo de o pessoal estar no grupo hoje (foto
 - **Depende da hospedagem**: com o front no Amplify, só a rota de compartilhamento (`/s/...`) funciona; com o front em S3 + CloudFront, uma CloudFront Function cobre também o link copiado da barra. Ver "Front e a prévia de links" em `api/.claude/rules/hospedagem.md`.
 - **Por que primeiro**: maior retorno pelo menor custo. Cada post no grupo vira um cartão com foto e título que traz gente de volta.
 
-### 2. A comunidade envia para o mural, a curadoria aprova
+### ~~2. A comunidade envia para o mural, a curadoria aprova~~
 
-- **Problema**: hoje só quem tem `Archive.*` publica, mas quem tem as fotos e fitas são os membros do grupo.
-- **Ideia**: "Enviar para o mural das antigas" para qualquer pessoa logada. A pessoa sobe as fotos ou o vídeo e diz o ano, o lugar e as bandas. O registro entra numa fila; a curadoria revisa, ajusta e publica (ou recusa com motivo).
-- **Crédito**: o registro publicado mostra "acervo de Fulano".
-- **Pontos a decidir**: limite de envios pendentes por pessoa, notificação de aprovado ou recusado, se a curadoria edita antes de publicar, nova permissão (`Archive.Review`).
+Virou módulo em 14/10/2026: ver "Envio da comunidade" em `api/.claude/rules/mural.md` e em `frontend/.claude/rules/mural.md`. Decidido: a curadoria edita e publica ou recusa com motivo; o registro sai em nome de quem enviou ("Acervo de"); os limites de mídia são os do arquivo; até 5 envios pendentes por pessoa; permissão `Archive.Review`.
 
 ### 3. Marcar pessoas nas fotos antigas ("quem é esse?")
 
@@ -116,7 +113,7 @@ As três primeiras atacam direto o motivo de o pessoal estar no grupo hoje (foto
 ## Ordem sugerida
 
 1. Prévia ao compartilhar (1).
-2. Envio para o mural com aprovação (2).
+2. ~~Envio para o mural com aprovação (2)~~ (feito em 14/10/2026).
 3. Marcar pessoas nas fotos (3), com o "pedir remoção".
 4. "Neste dia" (4) e resumo semanal (5).
 5. Entrar com Google ou Facebook (6), antes de divulgar no grupo.
