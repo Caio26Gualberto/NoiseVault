@@ -78,6 +78,11 @@
     "placeholder": "Escreva um comentário",
     "send": "Enviar comentário"
   },
+  "mentions": {
+    "band": "Banda",
+    "loading": "Buscando...",
+    "empty": "Ninguém com esse nome."
+  },
   "imageUpload": {
     "avatar": {
       "title": "Avatar",
@@ -136,6 +141,20 @@
     "close": "Fechar",
     "previous": "Anterior",
     "next": "Próxima",
-    "counter": "{{current}} de {{total}}"
+    "counter": "{{current}} de {{total}}",
+    "tags": {
+      "start": "Marcar pessoas",
+      "done": "Concluir",
+      "show": "Mostrar marcações",
+      "hide": "Esconder marcações",
+      "hint": "Toque em quem aparece na foto.",
+      "who": "Quem é?",
+      "pickHint": "Busque pelo nome ou apelido. Quem não tem conta pode ser marcado só com o nome.",
+      "byName": "Marcar só com o nome: {{name}}",
+      "with": "Com: {{names}}",
+      "remove": "Remover marcação",
+      "removeTitle": "Remover esta marcação?",
+      "removeMessage": "{{name}} deixa de aparecer marcado nesta foto."
+    }
   }
 }

@@ -17,6 +17,8 @@ import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { AppAvatar } from '@/components/app-avatar'
+import { AppRichText } from '@/components/app-rich-text'
+import { toRichMentions } from '@/pages/feed/mention'
 import { AppButton, AppIconButton } from '@/components/app-button'
 import { AppCard } from '@/components/app-card'
 import { useAppConfirm } from '@/components/app-confirm'
@@ -38,7 +40,8 @@ import { ArchiveEntryStatus, adminArchivePath, mySubmissionsPath } from './archi
 import { AttendeesDialog } from './components/attendees-dialog'
 import { ReviewPanel } from './components/review-panel'
 import { useArchiveDetail } from './hooks/use-archive-detail'
-import { deleteArchiveEntry, deleteArchiveSubmission } from './services/mural-service'
+import { deleteArchiveEntry, deleteArchiveSubmission, getArchiveEntry } from './services/mural-service'
+import { photoTagging, toAppTags } from '@/pages/feed/photo-tags'
 
 export function MuralDetalhePage() {
   const { t } = useTranslation('mural')
@@ -60,6 +63,7 @@ export function MuralDetalhePage() {
 
   const { entry } = state
   const where = [entry.venue, formatCity(entry)].filter(Boolean).join(' · ')
+  const published = entry.status === ArchiveEntryStatus.published
   const ready = entry.media.filter((item) => item.media.status === MediaStatus.ready && item.media.url)
   const viewerItems: ViewerItem[] = ready.map((item) => ({
     id: item.media.id,
@@ -67,9 +71,10 @@ export function MuralDetalhePage() {
     url: item.media.url!,
     posterUrl: item.media.posterUrl,
     caption: item.caption,
+    tags: toAppTags(item.media),
+    taggable: published && item.media.kind === MediaKind.photo,
   }))
-
-  const published = entry.status === ArchiveEntryStatus.published
+  const tagging = photoTagging(async () => detail.replace(await getArchiveEntry(entry.id)))
   const canWithdraw = entry.isMine && !published && !entry.canDelete
   const backPath = published ? '/mural' : entry.isMine ? mySubmissionsPath : adminArchivePath
 
@@ -299,7 +304,7 @@ export function MuralDetalhePage() {
                         </Link>{' '}
                         <span className="app-meta">{formatRelative(comment.createdAt)}</span>
                       </span>
-                      <p className="whitespace-pre-line text-sm break-words">{comment.text}</p>
+                      <AppRichText text={comment.text} mentions={toRichMentions(comment.mentions)} className="text-sm" />
                     </div>
                     {comment.canDelete ? (
                       <AppIconButton label={t('comments.delete')} size="sm" onClick={() => removeComment(comment.id)}>
@@ -315,7 +320,7 @@ export function MuralDetalhePage() {
         </AppCard>
       ) : null}
 
-      <AppMediaViewer items={viewerItems} index={viewerIndex} onIndexChange={setViewerIndex} />
+      <AppMediaViewer items={viewerItems} index={viewerIndex} onIndexChange={setViewerIndex} tagging={tagging} />
       <AttendeesDialog entryId={entry.id} open={attendeesOpen} onOpenChange={setAttendeesOpen} />
     </div>
   )

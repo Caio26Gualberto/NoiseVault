@@ -6,6 +6,11 @@ import { useTranslation } from 'react-i18next'
 import { AppVideoPlayer } from '@/components/app-video-player'
 import { cn } from '@/lib/utils'
 
+import { PhotoTags } from './photo-tags'
+import type { AppPhotoTag, AppPhotoTagging } from './photo-tags'
+
+export type { AppPhotoTag, AppPhotoTagTarget, AppPhotoTagging } from './photo-tags'
+
 export type ViewerItem = {
   id: string | number
   kind: 'photo' | 'video'
@@ -13,12 +18,15 @@ export type ViewerItem = {
   posterUrl?: string | null
   alt?: string
   caption?: string | null
+  tags?: AppPhotoTag[]
+  taggable?: boolean
 }
 
 type AppMediaViewerProps = {
   items: ViewerItem[]
   index: number | null
   onIndexChange: (index: number | null) => void
+  tagging?: AppPhotoTagging
 }
 
 function ViewerButton({ label, onClick, className, children }: { label: string; onClick: () => void; className?: string; children: ReactNode }) {
@@ -38,7 +46,7 @@ function ViewerButton({ label, onClick, className, children }: { label: string; 
   )
 }
 
-export function AppMediaViewer({ items, index, onIndexChange }: AppMediaViewerProps) {
+export function AppMediaViewer({ items, index, onIndexChange, tagging }: AppMediaViewerProps) {
   const { t } = useTranslation('common')
   const open = index !== null && items[index] !== undefined
   const item = open ? items[index] : null
@@ -51,6 +59,7 @@ export function AppMediaViewer({ items, index, onIndexChange }: AppMediaViewerPr
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (!many) return
+    if (event.target instanceof HTMLInputElement) return
     if (event.key === 'ArrowRight' && item?.kind !== 'video') go(1)
     if (event.key === 'ArrowLeft' && item?.kind !== 'video') go(-1)
   }
@@ -75,11 +84,15 @@ export function AppMediaViewer({ items, index, onIndexChange }: AppMediaViewerPr
               {item.kind === 'video' ? (
                 <AppVideoPlayer key={item.id} src={item.url} poster={item.posterUrl} autoPlay className="w-full" />
               ) : (
-                <img
+                <PhotoTags
                   key={item.id}
-                  src={item.url}
+                  itemId={item.id}
+                  url={item.url}
                   alt={item.alt ?? item.caption ?? ''}
-                  className={cn('max-w-full rounded-lg object-contain', item.caption ? 'max-h-[calc(100vh-11rem)]' : 'max-h-[calc(100vh-8rem)]')}
+                  imageClassName={cn('max-w-full rounded-lg object-contain', item.caption || item.tags?.length || item.taggable ? 'max-h-[calc(100vh-13rem)]' : 'max-h-[calc(100vh-8rem)]')}
+                  tags={item.tags ?? []}
+                  taggable={item.taggable ?? false}
+                  tagging={tagging}
                 />
               )}
               {item.caption ? <figcaption className="max-w-3xl text-center text-sm text-on-scrim/90">{item.caption}</figcaption> : null}

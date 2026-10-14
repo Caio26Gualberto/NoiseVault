@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
 import { AppAvatar } from '@/components/app-avatar'
+import { AppRichText } from '@/components/app-rich-text'
+import { toRichMentions } from '@/pages/feed/mention'
 import { AppBadge } from '@/components/app-badge'
 import { AppButton, AppIconButton } from '@/components/app-button'
 import { useAppConfirm } from '@/components/app-confirm'
@@ -21,7 +23,8 @@ import { formatCompact, formatRelative } from '@/lib/format'
 import { MediaKind } from '../media-kind'
 import { MediaStatus } from '../media-status'
 import { PostStatus } from '../post-status'
-import { deletePost } from '../services/feed-service'
+import { photoTagging, toAppTags } from '../photo-tags'
+import { deletePost, getPost } from '../services/feed-service'
 import { ArchiveEmbed } from './archive-embed'
 import { EventEmbed } from './event-embed'
 import type { PostDto } from '../services/feed-service'
@@ -36,7 +39,7 @@ type PostCardProps = {
   detail?: boolean
 }
 
-function toMediaItem(media: MediaDto): MediaItem {
+function toMediaItem(media: MediaDto, published: boolean): MediaItem {
   return {
     id: media.id,
     kind: media.kind === MediaKind.video ? 'video' : 'photo',
@@ -44,6 +47,8 @@ function toMediaItem(media: MediaDto): MediaItem {
     posterUrl: media.posterUrl,
     durationSeconds: media.durationSeconds,
     state: media.status === MediaStatus.ready ? 'ready' : media.status === MediaStatus.failed ? 'failed' : 'processing',
+    tags: toAppTags(media),
+    taggable: published && media.kind === MediaKind.photo && media.status === MediaStatus.ready,
   }
 }
 
@@ -153,10 +158,13 @@ export function PostCard({ post, onLike, onUpdated, onDeleted, detail = false }:
       </header>
 
       {post.content ? (
-        <p className={cn('whitespace-pre-line text-[15px] leading-relaxed', !detail && 'line-clamp-6')}>{post.content}</p>
+        <AppRichText text={post.content} mentions={toRichMentions(post.mentions)} className={cn('text-[15px] leading-relaxed', !detail && 'line-clamp-6')} />
       ) : null}
 
-      <AppMediaGrid items={post.media.map(toMediaItem)} />
+      <AppMediaGrid
+        items={post.media.map((media) => toMediaItem(media, post.status === PostStatus.published))}
+        tagging={photoTagging(async () => onUpdated(await getPost(post.id)))}
+      />
 
       {post.event ? <EventEmbed event={post.event} /> : null}
 

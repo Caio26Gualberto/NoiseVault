@@ -2,6 +2,7 @@ import { apiDelete, apiGet, apiPost, apiPostForm } from '@/api/base-service'
 import { uploadParts } from '@/api/multipart-upload'
 import type { UploadProgress } from '@/api/multipart-upload'
 import { videoContentType } from '@/lib/video-file'
+import type { ProfileSummaryDto } from '@/pages/perfil/services/perfil-service'
 
 import type { MediaKind } from '../media-kind'
 import type { MediaStatus } from '../media-status'
@@ -15,7 +16,19 @@ export type MediaDto = {
   width: number | null
   height: number | null
   durationSeconds: number | null
+  tags: PhotoTagDto[]
 }
+
+export type PhotoTagDto = {
+  id: number
+  x: number
+  y: number
+  user: ProfileSummaryDto | null
+  name: string | null
+  canRemove: boolean
+}
+
+export type PhotoTagInput = { x: number; y: number; nickname?: string; name?: string }
 
 export type VideoUploadDto = {
   id: number
@@ -56,4 +69,12 @@ export async function uploadVideo(
     void deleteMedia(upload.id).catch(() => undefined)
     throw error
   }
+}
+
+export function addPhotoTag(mediaId: number, input: PhotoTagInput): Promise<PhotoTagDto[]> {
+  return apiPost<PhotoTagDto[]>(`/api/media/${mediaId}/tags`, input, { toastSuccess: true })
+}
+
+export function removePhotoTag(id: number): Promise<void> {
+  return apiDelete<void>(`/api/photo-tags/${id}`, { toastSuccess: true })
 }

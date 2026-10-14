@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { AppMediaViewer } from '@/components/app-media-viewer'
-import type { ViewerItem } from '@/components/app-media-viewer'
+import type { AppPhotoTag, AppPhotoTagging, ViewerItem } from '@/components/app-media-viewer'
 import { formatDuration } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
@@ -16,14 +16,17 @@ export type MediaItem = {
   state?: 'ready' | 'processing' | 'failed'
   alt?: string
   caption?: string | null
+  tags?: AppPhotoTag[]
+  taggable?: boolean
 }
 
 type AppMediaGridProps = {
   items: MediaItem[]
   className?: string
+  tagging?: AppPhotoTagging
 }
 
-export function AppMediaGrid({ items, className }: AppMediaGridProps) {
+export function AppMediaGrid({ items, className, tagging }: AppMediaGridProps) {
   const { t } = useTranslation('common')
   const [open, setOpen] = useState<number | null>(null)
 
@@ -31,7 +34,7 @@ export function AppMediaGrid({ items, className }: AppMediaGridProps) {
 
   const viewable: ViewerItem[] = items
     .filter((item) => (item.state ?? 'ready') === 'ready' && item.url)
-    .map((item) => ({ id: item.id, kind: item.kind, url: item.url!, posterUrl: item.posterUrl, alt: item.alt, caption: item.caption }))
+    .map((item) => ({ id: item.id, kind: item.kind, url: item.url!, posterUrl: item.posterUrl, alt: item.alt, caption: item.caption, tags: item.tags, taggable: item.taggable }))
 
   const shown = items.slice(0, 4)
   const rest = items.length - shown.length
@@ -95,7 +98,7 @@ export function AppMediaGrid({ items, className }: AppMediaGridProps) {
         })}
       </div>
 
-      <AppMediaViewer items={viewable} index={open} onIndexChange={setOpen} />
+      <AppMediaViewer items={viewable} index={open} onIndexChange={setOpen} tagging={tagging} />
     </>
   )
 }

@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/auth/use-auth'
 import { AppAvatar } from '@/components/app-avatar'
 import { AppButton, AppIconButton } from '@/components/app-button'
+import { AppMentionTextarea } from '@/components/app-mention-textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { acceptedImageTypes, checkImageFile } from '@/lib/image-file'
 import { cn } from '@/lib/utils'
@@ -14,6 +15,7 @@ import { getMyBands } from '@/pages/bandas/services/bandas-service'
 import type { BandSummaryDto } from '@/pages/bandas/services/bandas-service'
 
 import { createPost } from '../services/feed-service'
+import { searchMentions } from '../services/mentions-service'
 import type { PostDto } from '../services/feed-service'
 import { deleteMedia, uploadPhoto, uploadVideo } from '../services/media-service'
 import { postContentMaxLength } from './post-edit-dialog'
@@ -198,9 +200,10 @@ export function PostComposer({ onPublished }: PostComposerProps) {
           </Select>
         ) : null}
 
-        <textarea
+        <AppMentionTextarea
           value={content}
-          onChange={(event) => setContent(event.target.value)}
+          onChange={setContent}
+          search={searchMentions}
           rows={2}
           maxLength={postContentMaxLength}
           placeholder={t('composer.placeholder', { name: firstName })}

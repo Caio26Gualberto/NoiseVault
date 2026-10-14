@@ -22,5 +22,10 @@ export const NotificationKind = {
   archiveSubmissionReceived: 20,
   archiveSubmissionApproved: 21,
   archiveSubmissionRejected: 22,
+  mentionedInPost: 23,
+  mentionedInComment: 24,
+  bandMentionedInPost: 25,
+  bandMentionedInComment: 26,
+  photoTagged: 27,
 } as const
 export type NotificationKind = (typeof NotificationKind)[keyof typeof NotificationKind]

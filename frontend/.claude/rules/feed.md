@@ -61,6 +61,10 @@ Rules irmãs: `../api/.claude/rules/feed.md` (post, curtida, comentário, quem p
   - Mídia em processamento ou que falhou vira um placeholder com o texto de `common.json` (`media.*`).
 - **Enums próprios**: `post-status.ts`, `media-kind.ts` e `media-status.ts`, cada um num arquivo, nunca no service (`mocks.md`).
 
+## Menções e marcações
+
+Os comentários (e, no feed, o texto do post) usam `AppMentionTextarea` para escrever e `AppRichText` para mostrar; as fotos publicadas aceitam marcação de pessoas no viewer. Tudo em `marcacoes.md`.
+
 ## Roteiro de verificação
 
 Com o Docker, o ffmpeg, a API e o Vite no ar; conta A (admin, Owner de uma banda) e conta B confirmada. O script `feed-ui.mjs` (Playwright + Brave) vive fora do repositório.

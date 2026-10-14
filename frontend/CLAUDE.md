@@ -23,6 +23,7 @@ As **decisões por área** vivem em `.claude/rules/`, com front matter `paths:`,
 | `.claude/rules/eventos.md` | agenda com abas e "Vou", detalhe com cancelamento, formulário com banner local e line-up misto, card de evento no feed, Shows da banda |
 | `.claude/rules/feed.md` | feed único, composer com fotos e vídeo (upload multipart direto ao S3), publicar como banda, post em processamento com polling, editar e apagar, comentários, listas no perfil e na banda |
 | `.claude/rules/mural.md` | linha do tempo interativa, envio da comunidade, meus envios, fila e painel da curadoria (`Archive.Review`), grade de registros, detalhe com legendas e "Eu estava lá", formulário com data aproximada e gerenciador de mídias de arquivo, permissões `Archive.*` |
+| `.claude/rules/marcacoes.md` | @menção com autocomplete (`AppMentionTextarea`) e texto com links (`AppRichText`), marcação de pessoas nas fotos no `AppMediaViewer`, notificações de menção e marcação |
 | `.claude/rules/notificacoes.md` | SignalR só avisando (`api/notifications-hub.ts` + `layout/notifications-provider.tsx`), toast do push, balão do sino, frase pelo `kind` com plural de agrupamento, convites no topo, preferência de e-mail |
 | `.claude/rules/suporte.md` | formulário com tipos, páginas e anexos, página de origem, "Meus relatos", conversa, caixa de entrada com triagem e contexto, permissões `Support.*` |
 | `.claude/rules/mocks.md` | histórico: a forma do mock por página e o que morreu ao ligar cada módulo (não há mais mock) |

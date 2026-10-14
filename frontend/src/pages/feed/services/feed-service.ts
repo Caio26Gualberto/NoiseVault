@@ -7,6 +7,7 @@ import type { ProfileSummaryDto } from '@/pages/perfil/services/perfil-service'
 
 import type { PostStatus } from '../post-status'
 import type { MediaDto } from './media-service'
+import type { MentionDto } from '../mention'
 
 export type PostDto = {
   id: number
@@ -15,6 +16,7 @@ export type PostDto = {
   event: EventSummaryDto | null
   archive: ArchiveSummaryDto | null
   content: string
+  mentions: MentionDto[]
   media: MediaDto[]
   likeCount: number
   commentCount: number
@@ -30,6 +32,7 @@ export type CommentDto = {
   id: number
   author: ProfileSummaryDto
   text: string
+  mentions: MentionDto[]
   createdAt: string
   canDelete: boolean
 }

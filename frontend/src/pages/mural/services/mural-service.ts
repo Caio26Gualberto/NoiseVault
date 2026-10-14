@@ -1,6 +1,7 @@
 import { apiDelete, apiGet, apiPost, apiPostForm, apiPut } from '@/api/base-service'
 import type { PagedRequest, PagedResult } from '@/api/types'
 import type { BandSummaryDto } from '@/pages/bandas/services/bandas-service'
+import type { MentionDto } from '@/pages/feed/mention'
 import type { MediaDto } from '@/pages/feed/services/media-service'
 import type { CityDto } from '@/pages/perfil/city'
 import type { ProfileSummaryDto } from '@/pages/perfil/services/perfil-service'
@@ -93,6 +94,7 @@ export type ArchiveCommentDto = {
   id: number
   author: ProfileSummaryDto
   text: string
+  mentions: MentionDto[]
   createdAt: string
   canDelete: boolean
 }

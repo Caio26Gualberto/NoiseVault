@@ -85,6 +85,10 @@ Rule irmã: `../api/.claude/rules/mural.md`. A regra é do backend; a tela só r
 - **Fila** (`pages/admin/mural/`, no molde da caixa de entrada do suporte): refaz a busca e a contagem quando a `version` do `NotificationsProvider` sobe, porque cada envio novo chega como notificação.
 - **Notificações**: envio recebido e publicado levam a `/mural/:id`; recusado leva a `/mural/envios`.
 
+## Menções e marcações
+
+Os comentários (e, no feed, o texto do post) usam `AppMentionTextarea` para escrever e `AppRichText` para mostrar; as fotos publicadas aceitam marcação de pessoas no viewer. Tudo em `marcacoes.md`.
+
 ## Roteiro de verificação
 
 Com a API, o ffmpeg e o Vite no ar. O script `mural-ui.mjs` vive fora do repositório.

@@ -39,6 +39,10 @@ Rule irmã: `../api/.claude/rules/eventos.md`. A regra é do backend; a tela só
 - `hooks/use-event-detail.ts` troca o evento pelo DTO que "Vou" e "Cancelar" devolvem (`replace`), como no feed.
 - `components/band-events.tsx` é a seção "Shows" da banda, com 4 por página e as mesmas abas.
 
+## Menções e marcações
+
+Os comentários (e, no feed, o texto do post) usam `AppMentionTextarea` para escrever e `AppRichText` para mostrar; as fotos publicadas aceitam marcação de pessoas no viewer. Tudo em `marcacoes.md`.
+
 ## Roteiro de verificação
 
 Com a API e o Vite no ar. O script `events-ui.mjs` (Playwright + Brave) vive fora do repositório.

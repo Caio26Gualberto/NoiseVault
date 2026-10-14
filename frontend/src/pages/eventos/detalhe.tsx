@@ -14,6 +14,8 @@ import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { AppAvatar } from '@/components/app-avatar'
+import { AppRichText } from '@/components/app-rich-text'
+import { toRichMentions } from '@/pages/feed/mention'
 import { AppBadge } from '@/components/app-badge'
 import { AppButton, AppIconButton } from '@/components/app-button'
 import { AppCard } from '@/components/app-card'
@@ -252,7 +254,7 @@ export function EventoDetalhePage() {
                       </Link>{' '}
                       <span className="app-meta">{formatRelative(comment.createdAt)}</span>
                     </span>
-                    <p className="whitespace-pre-line text-sm break-words">{comment.text}</p>
+                    <AppRichText text={comment.text} mentions={toRichMentions(comment.mentions)} className="text-sm" />
                   </div>
                   {comment.canDelete ? (
                     <AppIconButton label={t('comments.delete')} size="sm" onClick={() => removeComment(comment.id)}>

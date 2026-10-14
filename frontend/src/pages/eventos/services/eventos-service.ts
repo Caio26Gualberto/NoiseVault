@@ -3,6 +3,7 @@ import type { PagedRequest, PagedResult } from '@/api/types'
 import type { CityDto } from '@/pages/perfil/city'
 import type { MusicGenre } from '@/pages/perfil/genres'
 import type { BandSummaryDto } from '@/pages/bandas/services/bandas-service'
+import type { MentionDto } from '@/pages/feed/mention'
 import type { ProfileSummaryDto } from '@/pages/perfil/services/perfil-service'
 
 import type { EventStatus } from '../event-status'
@@ -91,6 +92,7 @@ export type EventCommentDto = {
   id: number
   author: ProfileSummaryDto
   text: string
+  mentions: MentionDto[]
   createdAt: string
   canDelete: boolean
 }

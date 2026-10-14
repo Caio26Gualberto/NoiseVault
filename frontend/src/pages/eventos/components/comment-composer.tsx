@@ -6,6 +6,8 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/auth/use-auth'
 import { AppAvatar } from '@/components/app-avatar'
 import { AppIconButton } from '@/components/app-button'
+import { AppMentionTextarea } from '@/components/app-mention-textarea'
+import { searchMentions } from '@/pages/feed/services/mentions-service'
 
 type CommentComposerProps = {
   onSubmit: (text: string) => Promise<void>
@@ -33,10 +35,11 @@ export function CommentComposer({ onSubmit }: CommentComposerProps) {
   return (
     <form onSubmit={(event) => void submit(event)} className="flex items-start gap-3">
       {user ? <AppAvatar name={user.name} size="md" /> : null}
-      <div className="flex flex-1 items-end gap-2 rounded-lg border bg-background px-3 py-2 focus-within:ring-2 focus-within:ring-ring/50">
-        <textarea
+      <div className="flex min-w-0 flex-1 items-end gap-2 rounded-lg border bg-background px-3 py-2 focus-within:ring-2 focus-within:ring-ring/50">
+        <AppMentionTextarea
           value={text}
-          onChange={(event) => setText(event.target.value)}
+          onChange={setText}
+          search={searchMentions}
           rows={1}
           placeholder={t('comments.placeholder')}
           aria-label={t('comments.placeholder')}

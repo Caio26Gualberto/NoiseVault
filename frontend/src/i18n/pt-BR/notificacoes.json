@@ -76,7 +76,18 @@
     "supportTicketDismissed": "O seu relato <b>{{ticket}}</b> foi encerrado",
     "archiveSubmissionReceived": "<b>{{actor}}</b> enviou <b>{{archive}}</b> para o mural",
     "archiveSubmissionApproved": "O seu envio <b>{{archive}}</b> foi publicado no mural",
-    "archiveSubmissionRejected": "O seu envio <b>{{archive}}</b> não foi publicado. Veja o motivo em Meus envios"
+    "archiveSubmissionRejected": "O seu envio <b>{{archive}}</b> não foi publicado. Veja o motivo em Meus envios",
+    "mentionedInPost": "<b>{{actor}}</b> mencionou você num post",
+    "mentionedInComment": "<b>{{actor}}</b> mencionou você num comentário",
+    "mentionedInCommentEvent": "<b>{{actor}}</b> mencionou você num comentário em <b>{{event}}</b>",
+    "mentionedInCommentArchive": "<b>{{actor}}</b> mencionou você numa história em <b>{{archive}}</b>",
+    "bandMentionedInPost": "<b>{{actor}}</b> mencionou a <b>{{band}}</b> num post",
+    "bandMentionedInComment": "<b>{{actor}}</b> mencionou a <b>{{band}}</b> num comentário",
+    "bandMentionedInCommentEvent": "<b>{{actor}}</b> mencionou a <b>{{band}}</b> num comentário em <b>{{event}}</b>",
+    "bandMentionedInCommentArchive": "<b>{{actor}}</b> mencionou a <b>{{band}}</b> numa história em <b>{{archive}}</b>",
+    "photoTagged": "<b>{{actor}}</b> marcou você numa foto",
+    "photoTaggedEvent": "<b>{{actor}}</b> marcou você numa foto",
+    "photoTaggedArchive": "<b>{{actor}}</b> marcou você numa foto em <b>{{archive}}</b>"
   },
   "invitations": {
     "title": "Convites de banda",

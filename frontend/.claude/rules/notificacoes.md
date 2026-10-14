@@ -38,6 +38,7 @@ Rule irmã: `../api/.claude/rules/notificacoes.md`. A regra é do backend; a tel
   - o convite não tem link: quem age é a seção de convites no topo da página;
   - ticket de suporte → `/suporte/:id` quando `ticket.mine` (quem reportou), senão `/admin/suporte/:id` (a equipe);
   - envio para o mural: recebido (a curadoria) e publicado → `/mural/:id`; recusado → `/mural/envios`, onde está o motivo.
+  - menção e marcação em foto (23–27): o alvo (post, evento ou registro), com a frase pelo lugar (`marcacoes.md`).
 - **Suporte**: a frase de `supportTicketStatusChanged` sai do status atual do ticket (`supportTicketResolved`, `…InProgress`, `…Dismissed`, `…Reopened`), e `supportTicketReplied` para quem reportou vira "A equipe respondeu o seu relato" (`supportTicketRepliedToYou`), sem expor quem da equipe respondeu.
 
 ## Balão do sino, como no Facebook

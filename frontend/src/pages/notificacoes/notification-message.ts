@@ -1,5 +1,6 @@
 import {
   ArchiveIcon,
+  AtSignIcon,
   CalendarCheckIcon,
   CalendarClockIcon,
   CalendarXIcon,
@@ -9,6 +10,7 @@ import {
   LifeBuoyIcon,
   MessageCircleIcon,
   MicVocalIcon,
+  TagIcon,
   UserMinusIcon,
   UserPlusIcon,
   UsersIcon,
@@ -34,6 +36,7 @@ const eventLink = (n: NotificationDto) => (n.event ? `/eventos/${n.event.id}` : 
 const archiveLink = (n: NotificationDto) => (n.archive ? `/mural/${n.archive.id}` : null)
 const bandLink = (n: NotificationDto) => (n.band ? `/bandas/${n.band.slug}` : null)
 const ticketLink = (n: NotificationDto) => (n.ticket ? (n.ticket.mine ? myTicketPath(n.ticket.id) : adminTicketPath(n.ticket.id)) : null)
+const targetLink = (n: NotificationDto) => postLink(n) ?? eventLink(n) ?? archiveLink(n)
 
 export const notificationKinds: Record<NotificationKind, KindConfig> = {
   [NotificationKind.postLiked]: { key: 'postLiked', icon: HeartIcon, link: postLink },
@@ -59,7 +62,14 @@ export const notificationKinds: Record<NotificationKind, KindConfig> = {
   [NotificationKind.archiveSubmissionReceived]: { key: 'archiveSubmissionReceived', icon: ArchiveIcon, link: archiveLink },
   [NotificationKind.archiveSubmissionApproved]: { key: 'archiveSubmissionApproved', icon: CassetteTapeIcon, link: archiveLink },
   [NotificationKind.archiveSubmissionRejected]: { key: 'archiveSubmissionRejected', icon: ArchiveIcon, link: () => mySubmissionsPath },
+  [NotificationKind.mentionedInPost]: { key: 'mentionedInPost', icon: AtSignIcon, link: targetLink },
+  [NotificationKind.mentionedInComment]: { key: 'mentionedInComment', icon: AtSignIcon, link: targetLink },
+  [NotificationKind.bandMentionedInPost]: { key: 'bandMentionedInPost', icon: AtSignIcon, link: targetLink },
+  [NotificationKind.bandMentionedInComment]: { key: 'bandMentionedInComment', icon: AtSignIcon, link: targetLink },
+  [NotificationKind.photoTagged]: { key: 'photoTagged', icon: TagIcon, link: targetLink },
 }
+
+const withPlace = new Set<NotificationKind>([NotificationKind.mentionedInComment, NotificationKind.bandMentionedInComment, NotificationKind.photoTagged])
 
 const ticketStatusKey: Record<SupportTicketStatus, string> = {
   [SupportTicketStatus.open]: 'supportTicketReopened',
@@ -72,6 +82,8 @@ function messageKey(n: NotificationDto) {
   if (n.kind === NotificationKind.bandInvite && n.invitation?.instrument) return 'bandInviteInstrument'
   if (n.kind === NotificationKind.supportTicketStatusChanged && n.ticket) return ticketStatusKey[n.ticket.status]
   if (n.kind === NotificationKind.supportTicketReplied && n.ticket?.mine) return 'supportTicketRepliedToYou'
+  if (withPlace.has(n.kind) && n.event) return `${notificationKinds[n.kind].key}Event`
+  if (withPlace.has(n.kind) && n.archive) return `${notificationKinds[n.kind].key}Archive`
   return notificationKinds[n.kind].key
 }
 
