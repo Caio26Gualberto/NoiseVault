@@ -49,6 +49,8 @@ Comprado pelo usuário em 14/10/2026. O `.com` já tinha dono, o `.com.br` o usu
 | `api.noisevault.net` | o Lightsail (Caddy com HTTPS) | API, SignalR (`/hubs`) e a rota de prévia `/s/...` (que o Amplify repassa) |
 | `media.noisevault.net` | o CloudFront do bucket | `Storage:PublicBaseUrl` |
 | e-mail `nao-responda@noisevault.net` | SES | o domínio verificado no SES, com SPF, DKIM e DMARC no DNS, para confirmação e redefinição de senha não caírem no spam |
+| `ensaio.noisevault.net` | o mesmo app do Amplify, que mostra a moldura do módulo de músicos e bandas pelo endereço | planejado (`IDEIAS.md`, 8a); pede a sessão por cookie em `.noisevault.net` antes |
+| `mercado.noisevault.net` | idem, para venda e troca | planejado (`IDEIAS.md`, 8b) |
 
 - Quem guarda o DNS ainda não foi decidido. O caminho mais simples é o **Route 53**, junto do resto da AWS; se o domínio ficar em outro registrador, ele aponta os servidores de nome para o Route 53.
 - O login social (`IDEIAS.md`, item 6) volta a ser possível com o site em `https://noisevault.net`: as origens do Google e os domínios do SDK do Facebook são esses.

@@ -82,6 +82,19 @@ Parte 1 feita em 14/10/2026: ícone na tela inicial, tela cheia, página sem con
 - "Procuro baterista", "toco baixo e procuro banda", "vendo amplificador".
 - É o que mais faz músico entrar todo dia. O perfil já tem instrumento e cidade.
 - **Pontos a decidir**: tipos de anúncio, validade (anúncio vence sozinho), contato (pela plataforma ou link externo), se venda de equipamento entra (a loja ficou fora do escopo; classificado entre pessoas é outra coisa).
+- **Conversa de 14/10/2026: virou dois módulos.**
+  - **8a. Músicos e bandas (vem primeiro).**
+    - Do lado da pessoa, uma **ficha de músico** opcional, parte do mesmo perfil e não um segundo perfil (`User` continua sendo uma pessoa só):
+      - instrumentos com nível, gêneros que quer tocar, influências, objetivo, região e até onde topa ir;
+      - disponibilidade, estrutura (equipamento, transporte, lugar de ensaio) e mostra do som;
+      - um interruptor "Estou procurando banda", que tira ou põe a pessoa na vitrine.
+    - Do lado da banda, **"Vagas abertas"** na página dela.
+    - A banda busca músicos e usa o **convite de banda que já existe**. O músico vê as vagas e clica em "Tenho interesse", e a banda recebe a ficha por notificação.
+  - **Experiência própria, como um site à parte com a mesma marca**: moldura e navegação só dele, no subdomínio **`ensaio.noisevault.net`** (o nome ainda é proposta; "Line-up" e "Procura-se" também foram sugeridos).
+    - Linguagem visual proposta: **o mural de recados da loja de discos**, com anúncio como flyer xerocado preso com fita e a tirinha de destacar como "Tenho interesse".
+    - Antes do código, um **protótipo visual** para aprovação.
+  - **8b. Mercado (venda e troca, depois)**, em **`mercado.noisevault.net`**: preço, estado, fotos obrigatórias, reservado e vendido, validade de 30 dias, denúncia, dicas contra golpe, sem pagamento pelo site. Talvez serviços (aula, estúdio, gravação, foto) entrem como um tipo. O contato da venda pede uma decisão sobre mensagem (externa, conversa por anúncio ou mensagem direta geral).
+  - **Pré-requisito dos subdomínios: sessão por cookie.** Hoje os tokens ficam no `localStorage`, que é preso a cada endereço, e o login não atravessaria os subdomínios. O refresh token passa a um cookie `HttpOnly` em `.noisevault.net`, criado pela API, e o token de acesso fica só na memória. O CORS passa a aceitar credenciais com a lista exata de origens, e o refresh ganha proteção contra requisição forjada (CSRF). Deixa o site principal mais seguro também. Vem antes do 8a.
 
 ### 9. Página da banda como press kit
 
