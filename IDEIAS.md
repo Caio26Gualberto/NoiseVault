@@ -49,10 +49,16 @@ Virou módulo em 14/10/2026, ampliado pelo usuário para ficar "igual Facebook":
 - Entrar com Facebook especialmente, já que a comunidade vem de lá.
 - Reavaliar antes da divulgação no grupo. Quando entrar, entra no `AuthAppService` e no `IAuthenticateService`, não num serviço paralelo (`api/CLAUDE.md`).
 
-### 7. Instalável no celular (PWA)
+### ~~7. Instalável no celular (PWA)~~
 
-- "Adicionar à tela inicial", com ícone e abertura em tela cheia.
-- Não é o app nativo que ficou de fora; custa pouco e ajuda quem não tem costume de abrir site.
+Parte 1 feita em 14/10/2026: ícone na tela inicial, tela cheia, página sem conexão, aviso de versão nova e "Instalar o app" (com o passo a passo do iPhone). Ver `frontend/.claude/rules/pwa.md`.
+
+### 7b. Notificação no celular (Web Push)
+
+- O sino avisa em tempo real só com o site aberto. Com o app instalado, dá para mandar a notificação do sistema ("Fulano marcou você numa foto de 1991") mesmo com ele fechado.
+- **Android** funciona bem; **iPhone** só a partir do iOS 16.4 e só com o app instalado na tela inicial.
+- **Precisa de backend**: chaves VAPID, a inscrição de cada aparelho guardada por pessoa, o envio por job do Hangfire ao lado do SignalR e uma preferência em Minha conta ("receber no celular").
+- **Pontos a decidir**: quais tipos de notificação vão para o celular (todos ou só menção, marcação e convite), e se agrupa como o sino.
 
 ## Para as bandas locais
 
@@ -117,4 +123,4 @@ Virou módulo em 14/10/2026, ampliado pelo usuário para ficar "igual Facebook":
 4. "Neste dia" (4) e resumo semanal (5).
 5. Entrar com Google ou Facebook (6), antes de divulgar no grupo.
 6. Bandas: seguir banda e lançamentos (10), classificados (8), press kit (9).
-7. Casas de show (11), áudio (13), histórias (14), banda da semana (12), PWA (7) e podcast (15), conforme o uso pedir.
+7. Casas de show (11), áudio (13), histórias (14), banda da semana (12), ~~PWA (7)~~ (parte 1 feita; falta o Web Push, 7b) e podcast (15), conforme o uso pedir.
