@@ -167,6 +167,7 @@ export function MinhaContaPage() {
               label={t('profile.city')}
               placeholder={t('profile.cityPlaceholder')}
               emptyLabel={t('profile.cityNone')}
+              hint={t('profile.cityTooltip')}
               options={allAbcCities.map((city) => ({ value: String(city), label: cityLabel(city) }))}
             />
             <AppField name="mainInstrument" label={t('profile.instrument')} placeholder={t('profile.instrumentPlaceholder')} />

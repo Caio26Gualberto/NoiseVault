@@ -1,5 +1,5 @@
-import { EyeIcon, EyeOffIcon } from 'lucide-react'
-import { useId, useState } from 'react'
+import { CircleHelpIcon, EyeIcon, EyeOffIcon } from 'lucide-react'
+import { useId, useRef, useState } from 'react'
 import type { ComponentProps, ReactNode } from 'react'
 import { Controller, useFormContext } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
@@ -8,12 +8,14 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 
 type FieldShellProps = {
   name: string
   label: string
   description?: ReactNode
+  hint?: string
   children: (bindings: { id: string; invalid: boolean; describedBy: string | undefined }) => ReactNode
 }
 
@@ -25,7 +27,38 @@ function useFieldError(name: string): string | null {
   return message ? t(message, { defaultValue: message }) : null
 }
 
-function FieldShell({ name, label, description, children }: FieldShellProps) {
+function FieldHint({ label, text }: { label: string; text: string }) {
+  const { t } = useTranslation()
+  const [open, setOpen] = useState(false)
+  const openOnPress = useRef(false)
+
+  return (
+    <Tooltip open={open} onOpenChange={setOpen}>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          onPointerDown={(event) => {
+            event.preventDefault()
+            openOnPress.current = open
+          }}
+          onClick={(event) => {
+            event.preventDefault()
+            setOpen(!openOnPress.current)
+          }}
+          aria-label={t('field.hint', { label })}
+          className="-m-1 rounded-full p-1 text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
+        >
+          <CircleHelpIcon className="size-4" />
+        </button>
+      </TooltipTrigger>
+      <TooltipContent side="top" sideOffset={6} className="text-sm leading-snug">
+        {text}
+      </TooltipContent>
+    </Tooltip>
+  )
+}
+
+function FieldShell({ name, label, description, hint, children }: FieldShellProps) {
   const id = useId()
   const error = useFieldError(name)
   const descriptionId = description ? `${id}-description` : undefined
@@ -34,7 +67,10 @@ function FieldShell({ name, label, description, children }: FieldShellProps) {
 
   return (
     <div className="flex flex-col gap-1.5">
-      <Label htmlFor={id}>{label}</Label>
+      <span className="flex items-center gap-1.5">
+        <Label htmlFor={id}>{label}</Label>
+        {hint ? <FieldHint label={label} text={hint} /> : null}
+      </span>
       {children({ id, invalid: Boolean(error), describedBy })}
       {description ? (
         <p id={descriptionId} className="text-[13px] text-muted-foreground">
@@ -56,13 +92,14 @@ export type AppFieldProps = Omit<ComponentProps<typeof Input>, 'name' | 'id'> & 
   name: string
   label: string
   description?: ReactNode
+  hint?: string
 }
 
-export function AppField({ name, label, description, className, ...props }: AppFieldProps) {
+export function AppField({ name, label, description, hint, className, ...props }: AppFieldProps) {
   const { register } = useFormContext()
 
   return (
-    <FieldShell name={name} label={label} description={description}>
+    <FieldShell name={name} label={label} description={description} hint={hint}>
       {({ id, invalid, describedBy }) => (
         <Input
           id={id}
@@ -77,13 +114,13 @@ export function AppField({ name, label, description, className, ...props }: AppF
   )
 }
 
-export function AppPasswordField({ name, label, description, className, autoComplete, ...props }: AppFieldProps) {
+export function AppPasswordField({ name, label, description, hint, className, autoComplete, ...props }: AppFieldProps) {
   const { register } = useFormContext()
   const { t } = useTranslation()
   const [visible, setVisible] = useState(false)
 
   return (
-    <FieldShell name={name} label={label} description={description}>
+    <FieldShell name={name} label={label} description={description} hint={hint}>
       {({ id, invalid, describedBy }) => (
         <div className="relative">
           <Input
@@ -114,13 +151,14 @@ export type AppTextareaFieldProps = Omit<ComponentProps<typeof Textarea>, 'name'
   name: string
   label: string
   description?: ReactNode
+  hint?: string
 }
 
-export function AppTextareaField({ name, label, description, className, ...props }: AppTextareaFieldProps) {
+export function AppTextareaField({ name, label, description, hint, className, ...props }: AppTextareaFieldProps) {
   const { register } = useFormContext()
 
   return (
-    <FieldShell name={name} label={label} description={description}>
+    <FieldShell name={name} label={label} description={description} hint={hint}>
       {({ id, invalid, describedBy }) => (
         <Textarea
           id={id}
@@ -144,15 +182,16 @@ export type AppSelectFieldProps = {
   placeholder?: string
   emptyLabel?: string
   description?: ReactNode
+  hint?: string
 }
 
 const emptySelectValue = '__empty__'
 
-export function AppSelectField({ name, label, options, placeholder, emptyLabel, description }: AppSelectFieldProps) {
+export function AppSelectField({ name, label, options, placeholder, emptyLabel, description, hint }: AppSelectFieldProps) {
   const { control } = useFormContext()
 
   return (
-    <FieldShell name={name} label={label} description={description}>
+    <FieldShell name={name} label={label} description={description} hint={hint}>
       {({ id, invalid, describedBy }) => (
         <Controller
           control={control}
@@ -195,13 +234,14 @@ export type AppChipsFieldProps<T extends string | number> = {
   options: AppChipOption<T>[]
   max?: number
   description?: ReactNode
+  hint?: string
 }
 
-export function AppChipsField<T extends string | number>({ name, label, options, max, description }: AppChipsFieldProps<T>) {
+export function AppChipsField<T extends string | number>({ name, label, options, max, description, hint }: AppChipsFieldProps<T>) {
   const { control } = useFormContext()
 
   return (
-    <FieldShell name={name} label={label} description={description}>
+    <FieldShell name={name} label={label} description={description} hint={hint}>
       {({ id, describedBy }) => (
         <Controller
           control={control}

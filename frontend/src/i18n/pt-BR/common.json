@@ -17,7 +17,7 @@
     "required": "Campo obrigatório.",
     "email": "Informe um e-mail válido.",
     "nameLength": "O nome precisa ter entre 2 e 100 caracteres.",
-    "nickname": "Use de 3 a 30 caracteres: letras minúsculas, números, ponto ou underline.",
+    "nickname": "O apelido precisa ter de 3 a 30 caracteres: letras minúsculas, números, ponto ou underline, sem espaço.",
     "password": "Pelo menos 6 caracteres e um número.",
     "passwordMatch": "As senhas não conferem.",
     "bioLength": "A bio pode ter no máximo 500 caracteres.",
@@ -35,6 +35,9 @@
     "supportTitle": "Resuma em 5 a 120 caracteres.",
     "supportDescription": "Conte com pelo menos 20 caracteres (até 5000).",
     "supportTags": "Marque pelo menos um tipo."
+  },
+  "field": {
+    "hint": "Saiba mais sobre {{label}}"
   },
   "password": {
     "show": "Mostrar senha",

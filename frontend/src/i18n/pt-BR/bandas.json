@@ -76,7 +76,7 @@
     "title": "Convidar integrante",
     "description": "O convite aparece nas notificações da pessoa e vale por 14 dias.",
     "search": "Pessoa",
-    "searchPlaceholder": "Busque pelo nome ou @nickname",
+    "searchPlaceholder": "Busque pelo nome ou @apelido",
     "searchEmpty": "Ninguém encontrado.",
     "selected": "Convidando",
     "change": "Trocar",

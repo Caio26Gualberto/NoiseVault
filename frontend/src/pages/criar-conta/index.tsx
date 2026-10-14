@@ -103,6 +103,7 @@ export function CriarContaPage() {
           autoCapitalize="none"
           spellCheck={false}
           placeholder={t('fields.nicknamePlaceholder')}
+          hint={t('fields.nicknameTooltip')}
           description={nickname ? t('fields.nicknameHint', { nickname: nickname.toLowerCase() }) : undefined}
         />
         <AppField
@@ -112,6 +113,7 @@ export function CriarContaPage() {
           autoComplete="email"
           inputMode="email"
           placeholder={t('fields.emailPlaceholder')}
+          hint={t('fields.emailTooltip')}
         />
         <AppPasswordField name="password" label={t('fields.password')} autoComplete="new-password" />
         <AppPasswordField name="confirmPassword" label={t('fields.confirmPassword')} autoComplete="new-password" />

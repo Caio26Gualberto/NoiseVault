@@ -61,6 +61,15 @@ Quem já viu a tela de boas-vindas fica marcado em `localStorage` na chave `app-
 
 O toast global cobre todo erro de API. **`EMAIL_NOT_CONFIRMED` no login é a exceção**: além do toast, a tela de login mostra uma faixa inline "Seu e-mail ainda não foi confirmado" com o botão "Reenviar e-mail", porque a ação de reenviar é da tela e a pessoa precisa dela ali, não num toast que some. O hook `use-login.ts` captura o `ApiError` por `code` e expõe `pendingConfirmation`. Nenhuma outra tela faz isso sem registrar aqui.
 
+## "Apelido", não "nickname"
+
+Decisão do usuário em 14/10/2026: o público inclui muita gente das antigas, que não sabe o que é "nickname". Na tela o campo é **Apelido** em todo lugar (cadastro, Minha conta, mensagens de erro, busca de integrante). O código, o DTO e o code da API continuam `nickname` (`INVALID_NICKNAME`, `NICKNAME_TAKEN`): só a palavra que a pessoa lê mudou.
+
+Os tooltips vieram do cadastro do legado e explicam o campo sem tomar espaço no formulário (`hint` do `AppField`):
+- **Apelido**: "Seu apelido como era conhecido na época, seja punk, cabeludo ou qualquer outra coisa", mais o porquê das minúsculas sem espaço (ele vira o endereço do perfil);
+- **E-mail**: é a forma de login;
+- **Cidade** (Minha conta, porque o cadastro não pede cidade): "De onde você era, ou a cidade em que costumava ser reconhecido".
+
 ## Validação espelha o Identity
 
 `auth/validators.ts` concentra os schemas zod reutilizados: `passwordSchema` = mínimo 6 e pelo menos um dígito (a política do `AddIdentity`); `nicknameSchema` = `^[a-z0-9](?:[a-z0-9._]{1,28}[a-z0-9])?$` com `transform(lowercase)`; `nameSchema` = 2 a 100; `emailSchema`. ⚠️ Mudou a política no backend, muda aqui no mesmo commit — senão a tela aprova o que o servidor recusa.
