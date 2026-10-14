@@ -21,9 +21,11 @@ const nameMaxLength = 100
 type LineupEditorProps = {
   value: LineupItem[]
   onChange: (value: LineupItem[]) => void
+  legend?: string
+  hint?: string
 }
 
-export function LineupEditor({ value, onChange }: LineupEditorProps) {
+export function LineupEditor({ value, onChange, legend, hint }: LineupEditorProps) {
   const { t } = useTranslation('eventos')
   const [query, setQuery] = useState('')
   const term = useDebouncedValue(query.trim())
@@ -71,8 +73,8 @@ export function LineupEditor({ value, onChange }: LineupEditorProps) {
 
   return (
     <fieldset className="flex flex-col gap-2">
-      <legend className="text-sm font-medium">{t('form.fields.lineup')}</legend>
-      <p className="app-meta">{t('form.lineupHint')}</p>
+      <legend className="text-sm font-medium">{legend ?? t('form.fields.lineup')}</legend>
+      <p className="app-meta">{hint ?? t('form.lineupHint')}</p>
 
       {value.length > 0 ? (
         <ol className="flex flex-col gap-1.5">

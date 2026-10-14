@@ -18,7 +18,7 @@ Rule irmã: `../api/.claude/rules/bandas.md`. A regra é do backend; a tela só 
 
 - As três estão em `hiddenRoutes` no `nav-config`, com `/bandas/nova` antes de `/bandas/:slug`.
 - Criar banda leva direto a `/editar`, porque o próximo passo natural é subir imagem e convidar a formação.
-- **Sem "Seguir" e sem contadores falsos.** O hero mostra integrantes, publicações (`postCount`, módulo 3) e shows marcados (`upcomingEventCount`, módulo 4). A seção "Shows" (`eventos/components/band-events.tsx`) vem antes de Publicações. Seguidores e eventos voltam quando existirem, não antes.
+- **Sem "Seguir" e sem contadores falsos.** O hero mostra integrantes, publicações (`postCount`, módulo 3) e shows marcados (`upcomingEventCount`, módulo 4). A seção "Shows" (`eventos/components/band-events.tsx`) vem antes de Publicações, seguida de "Das antigas" (`mural/components/band-archive.tsx`), que só aparece quando a banda tem registro no mural. Seguidores e eventos voltam quando existirem, não antes.
 - A seção "Publicações" vem depois de Integrantes, com `OwnerPosts` do feed (`feed.md`). Integrante publica como banda pelo composer do `/feed`.
 - `BAND_NOT_FOUND` é tratado na tela, como `PROFILE_NOT_FOUND` no perfil:
   - `getBandProfile` chama com `toastError: false`;

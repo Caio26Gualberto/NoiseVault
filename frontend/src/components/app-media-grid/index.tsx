@@ -15,6 +15,7 @@ export type MediaItem = {
   durationSeconds?: number | null
   state?: 'ready' | 'processing' | 'failed'
   alt?: string
+  caption?: string | null
 }
 
 type AppMediaGridProps = {
@@ -30,7 +31,7 @@ export function AppMediaGrid({ items, className }: AppMediaGridProps) {
 
   const viewable: ViewerItem[] = items
     .filter((item) => (item.state ?? 'ready') === 'ready' && item.url)
-    .map((item) => ({ id: item.id, kind: item.kind, url: item.url!, posterUrl: item.posterUrl, alt: item.alt }))
+    .map((item) => ({ id: item.id, kind: item.kind, url: item.url!, posterUrl: item.posterUrl, alt: item.alt, caption: item.caption }))
 
   const shown = items.slice(0, 4)
   const rest = items.length - shown.length

@@ -1,0 +1,128 @@
+{
+  "title": "Mural das antigas",
+  "description": "Fotos e fitas da cena do ABC, digitalizadas por quem viveu.",
+  "create": "Novo registro",
+  "back": "Voltar ao mural",
+  "searchPlaceholder": "Buscar por título, local, banda ou história",
+  "publishedBy": "Publicado por",
+  "timeline": {
+    "label": "Linha do tempo",
+    "years": "Anos com registros",
+    "all": "Todos",
+    "hint": "Toque num ano ou numa década",
+    "decade": "Anos {{decade}}",
+    "decadeShort": "{{decade}}s",
+    "yearCount_one": "{{year}} · {{count}} registro",
+    "yearCount_other": "{{year}} · {{count}} registros"
+  },
+  "filters": {
+    "kind": "Tipo",
+    "allKinds": "Fotos e vídeos",
+    "photos": "Com fotos",
+    "videos": "Com vídeos",
+    "city": "Cidade",
+    "allCities": "Todas as cidades",
+    "sort": "Ordem",
+    "newest": "Mais recentes",
+    "oldest": "Mais antigos"
+  },
+  "empty": {
+    "title": "O mural ainda está vazio",
+    "description": "Os primeiros registros das antigas aparecem aqui assim que forem digitalizados.",
+    "filteredTitle": "Nada com esses filtros",
+    "filteredDescription": "Tente outro ano, década ou busca."
+  },
+  "notFound": {
+    "title": "Registro não encontrado",
+    "description": "Ele pode ter sido apagado ou o link está errado."
+  },
+  "attendance": {
+    "action": "Eu estava lá",
+    "attended": "Você estava lá",
+    "count_one": "{{count}} pessoa estava lá",
+    "count_other": "{{count}} pessoas estavam lá",
+    "summary_one": "{{names}} estava lá",
+    "summary_other": "{{names}} estavam lá",
+    "summaryMore_one": "{{names}} e mais {{count}} estavam lá",
+    "summaryMore_other": "{{names}} e mais {{count}} estavam lá",
+    "listTitle_one": "{{count}} pessoa estava lá",
+    "listTitle_other": "{{count}} pessoas estavam lá"
+  },
+  "media": {
+    "openPhoto": "Abrir foto",
+    "playVideo": "Tocar vídeo",
+    "processing": "Processando…",
+    "failed": "Falhou"
+  },
+  "manage": {
+    "actions": "Ações do registro",
+    "edit": "Editar registro",
+    "delete": "Apagar registro",
+    "deleteTitle": "Apagar este registro?",
+    "deleteMessage": "Ele some do mural e do feed, junto com as fotos e os vídeos. Não dá para desfazer."
+  },
+  "comments": {
+    "title_zero": "Histórias",
+    "title_one": "{{count}} história",
+    "title_other": "{{count}} histórias",
+    "empty": "Estava lá ou reconhece alguém? Conte aqui.",
+    "delete": "Apagar comentário",
+    "deleteTitle": "Apagar este comentário?"
+  },
+  "band": {
+    "title": "Das antigas"
+  },
+  "form": {
+    "createTitle": "Novo registro",
+    "editTitle": "Editar registro",
+    "description": "Uma memória por registro: o show, o ensaio, a viagem. Fotos e vídeos juntos, com a história.",
+    "titlePlaceholder": "Ex.: Show no Ginásio de Santo André",
+    "dateHint": "Só o ano já basta. Mês e dia são opcionais.",
+    "unknown": "Não sei",
+    "unknownShort": "—",
+    "otherCity": "Outra cidade",
+    "venuePlaceholder": "Ex.: Ginásio Pedro Dell'Antonia",
+    "descriptionPlaceholder": "Quem estava, o que rolou, de onde veio a fita…",
+    "bandsHint": "Busque bandas do Noise Vault ou digite qualquer nome.",
+    "submitCreate": "Publicar no mural",
+    "submitEdit": "Salvar alterações",
+    "waitUpload": "Enviando mídias…",
+    "fields": {
+      "title": "Título",
+      "date": "Quando",
+      "year": "Ano",
+      "month": "Mês",
+      "day": "Dia",
+      "venue": "Local (opcional)",
+      "city": "Cidade",
+      "cityName": "Nome da cidade",
+      "description": "A história (opcional)",
+      "bands": "Bandas"
+    },
+    "media": {
+      "title": "Fotos e vídeos",
+      "hint": "Fotos até 40 MB e vídeos até 2 h e 4 GB (fita VHS inteira cabe). Legenda em cada um.",
+      "addPhotos": "Adicionar fotos",
+      "addVideos": "Adicionar vídeos",
+      "caption": "Legenda",
+      "captionPlaceholder": "Legenda (opcional): quem aparece, o que está rolando",
+      "makeCover": "Usar como capa",
+      "isCover": "Capa",
+      "up": "Subir",
+      "down": "Descer",
+      "remove": "Remover",
+      "failed": "Falhou",
+      "required": "Adicione pelo menos uma foto ou vídeo.",
+      "limit": "Um registro pode ter até {{max}} fotos e vídeos.",
+      "photo": {
+        "unsupported": "Use JPEG, PNG ou WebP.",
+        "tooLarge": "Cada foto pode ter até {{size}} MB."
+      },
+      "video": {
+        "unsupported": "Escolha um arquivo de vídeo.",
+        "tooLarge": "O vídeo pode ter até {{size}} GB.",
+        "tooLong": "O vídeo pode ter até {{hours}} h."
+      }
+    }
+  }
+}

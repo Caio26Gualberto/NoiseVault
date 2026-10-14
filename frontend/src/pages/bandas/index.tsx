@@ -15,6 +15,7 @@ import { AppSkeleton } from '@/components/app-skeleton'
 import { AppSocialLinks } from '@/components/app-social-links'
 import { formatDate } from '@/lib/format'
 import { BandEvents } from '@/pages/eventos/components/band-events'
+import { BandArchive } from '@/pages/mural/components/band-archive'
 import { OwnerPosts } from '@/pages/feed/components/owner-posts'
 import { useAbcCityLabel } from '@/pages/perfil/cities'
 
@@ -147,6 +148,8 @@ export function BandasPage() {
       </section>
 
       <BandEvents slug={band.slug} />
+
+      <BandArchive slug={band.slug} />
 
       <div className="mx-auto w-full max-w-2xl">
         <OwnerPosts

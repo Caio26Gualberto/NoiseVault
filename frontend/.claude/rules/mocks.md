@@ -3,11 +3,8 @@ paths:
   - "src/pages/**/services/mocks.ts"
   - "src/api/mock-delay.ts"
   - "src/api/mock-fixtures.ts"
-  - "src/pages/videos/**"
-  - "src/pages/fotos/**"
   - "src/pages/perfil/**"
   - "src/pages/notificacoes/**"
-  - "src/pages/admin/**"
   - "src/pages/reportar-problema/**"
 ---
 
@@ -29,13 +26,14 @@ Nesta entrega o backend tem Auth, Perfil e mídia, Bandas e convites, Feed e Eve
 
 | Tela | Módulo (ordem em `api/.claude/rules/dominio.md`) | Some |
 |---|---|---|
-| `/videos`, `/fotos`, `/admin/moderacao` | 5 · Galeria e moderação | `videos/`, `fotos/`, `admin/moderacao/services/mocks.ts` |
 | `/notificacoes`, sino | 6 · Notificações | `notificacoes/services/mocks.ts` |
 | `/reportar-problema` | 7 · Suporte | `reportar-problema/services/mocks.ts` |
 
 ~~Módulo 1 · Perfil e mídia~~ ligado em 13/10/2026: `perfil/services/mocks.ts` morreu e as fixtures foram para `src/api/mock-fixtures.ts`.
 
 ~~Módulo 2 · Bandas e convites~~ ligado em 13/10/2026: `bandas/services/mocks.ts` morreu e a fixture de convite saiu de `notificacoes/services/mocks.ts`, com o campo `invitation` e o `respondInvitation`. Os convites de `/notificacoes` vêm da API (`bandas.md`). `bandSummaries` continua em `mock-fixtures.ts` porque eventos ainda marca bandas de exemplo.
+
+~~Módulo 5 · Galeria e moderação~~ **removido** em 13/10/2026: as telas `/videos`, `/fotos` e `/admin/moderacao` saíram, com os mocks, e o mural das antigas (`mural.md`) entrou ligado à API. `people` e `picture` de `mock-fixtures.ts` continuam só para as notificações.
 
 ~~Módulo 4 · Eventos~~ ligado em 13/10/2026: `eventos/services/mocks.ts` morreu, e com ele `bandSummaries` de `mock-fixtures.ts` (ninguém mais marca banda de exemplo). `people`, `avatar` e `picture` continuam para vídeos, fotos e notificações.
 

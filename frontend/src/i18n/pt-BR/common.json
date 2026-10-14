@@ -28,7 +28,10 @@
     "foundedYear": "Use um ano entre 1950 e o ano atual.",
     "url": "Use um link que comece com http:// ou https://.",
     "number": "Use só números.",
-    "endsAfterStart": "O término precisa ser depois do início."
+    "endsAfterStart": "O término precisa ser depois do início.",
+    "archiveYear": "Use um ano entre 1950 e o ano atual.",
+    "archiveDayNeedsMonth": "Para informar o dia, escolha o mês.",
+    "archiveDay": "Esse dia não existe nesse mês."
   },
   "password": {
     "show": "Mostrar senha",

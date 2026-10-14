@@ -21,7 +21,7 @@ Item ativo: `resolveActivePath` (copiado do boilerplate) resolve **uma vez** par
 - **Topbar**: busca de pessoas real (`people-search.tsx`, só a partir de `md`; ver `perfil.md`), sino de notificações (`notifications-bell.tsx`: contador mock, refetch a cada navegação e `usePolling` de 30 s), e em mobile o wordmark à esquerda e o avatar à direita.
 - **`<main>`**: coluna de até 680px centrada em páginas de leitura (feed, detalhe); largura total em galerias e listas. A página escolhe com `AppPageHeader`/`contentWidth`.
 - **Rail direito** (≥ `xl`, 320px): a página registra o conteúdo via `useShellRail(node)` (`shell-rail.tsx`); vazio = não renderiza. Feed registra "Próximos eventos" e "Bandas sugeridas".
-- **Bottom-nav** (< `md`): os 4 itens com `mobile: true` em `navSections` (Feed, Vídeos, Eventos, Perfil) mais "Mais", que abre um `Sheet` com todas as outras folhas agrupadas por seção. O item "Mais" acende quando a rota ativa está dentro dele.
+- **Bottom-nav** (< `md`): os 4 itens com `mobile: true` em `navSections` (Feed, Mural, Eventos, Perfil) mais "Mais", que abre um `Sheet` com todas as outras folhas agrupadas por seção. O item "Mais" acende quando a rota ativa está dentro dele.
 
 🔴 **`user-menu.tsx` é o único dono de tema e "Sair".** Não recriar em outro lugar.
 
@@ -31,7 +31,7 @@ Rotas públicas usam `PublicLayout` (fundo escuro, card centralizado, wordmark).
 
 ## Admin dentro do mesmo shell
 
-`/admin/moderacao` é um item de `navSections` com `permission: Admin.Access`; a sidebar o esconde para quem não tem. O gate do front é UX; a proteção é a policy do endpoint. Sem permissão, a rota redireciona para `/feed`.
+A seção "Administração" saiu com a moderação (módulo 5 redefinido); ela volta quando houver painel. Rotas com `permission` em `hiddenRoutes` (hoje `/mural/novo` e `/mural/:id/editar`, com `Archive.*`) redirecionam para `/feed` sem a capacidade. O gate do front é UX; a proteção é a policy do endpoint.
 
 ## Roteiro de verificação
 
@@ -39,4 +39,4 @@ Rotas públicas usam `PublicLayout` (fundo escuro, card centralizado, wordmark).
 2. Navegar `/eventos` → `/eventos/123`: o item "Eventos" continua ativo; `/eventos/novo` idem.
 3. Sem sessão, qualquer rota do shell cai em `/entrar` e, depois do login, volta para a rota pedida.
 4. Com sessão, `/entrar` redireciona para `/feed`; `/redefinir-senha?token=x` abre normalmente.
-5. Usuário comum não vê "Moderação"; admin vê. Acessar `/admin/moderacao` sem permissão → `/feed`.
+5. Usuário comum não vê "Novo registro" no mural; admin vê. Acessar `/mural/novo` sem permissão → `/feed`.

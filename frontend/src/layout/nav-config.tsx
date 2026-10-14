@@ -2,13 +2,11 @@ import type { LucideIcon } from 'lucide-react'
 import {
   BellIcon,
   CalendarDaysIcon,
+  CassetteTapeIcon,
   HeadphonesIcon,
   HeartHandshakeIcon,
-  ImageIcon,
   LifeBuoyIcon,
   NewspaperIcon,
-  PlayIcon,
-  ShieldCheckIcon,
   StoreIcon,
   UserRoundIcon,
 } from 'lucide-react'
@@ -26,7 +24,6 @@ import {
   resetPasswordPath,
   welcomePath,
 } from '../auth/routes'
-import { ModeracaoPage } from '../pages/admin/moderacao'
 import { BandasPage } from '../pages/bandas'
 import { BandaEditarPage } from '../pages/bandas/editar'
 import { BandaNovaPage } from '../pages/bandas/nova'
@@ -40,7 +37,6 @@ import { EventoDetalhePage } from '../pages/eventos/detalhe'
 import { EventoFormPage } from '../pages/eventos/form'
 import { FeedPage } from '../pages/feed'
 import { PostDetalhePage } from '../pages/feed/detalhe'
-import { FotosPage } from '../pages/fotos'
 import { LojaParceiraPage, PodcastsPage } from '../pages/institucional'
 import { SobrePage } from '../pages/institucional/sobre'
 import { MinhaContaPage } from '../pages/minha-conta'
@@ -48,7 +44,9 @@ import { NotificacoesPage } from '../pages/notificacoes'
 import { PerfilPage } from '../pages/perfil'
 import { RedefinirSenhaPage } from '../pages/redefinir-senha'
 import { ReportarProblemaPage } from '../pages/reportar-problema'
-import { VideosPage } from '../pages/videos'
+import { MuralPage } from '../pages/mural'
+import { MuralDetalhePage } from '../pages/mural/detalhe'
+import { MuralFormPage } from '../pages/mural/form'
 
 export type PublicRoute = {
   path: string
@@ -94,8 +92,14 @@ export const navSections: NavSection[] = [
     labelKey: 'layout:nav.community',
     items: [
       { path: homePath, labelKey: 'layout:nav.feed', icon: NewspaperIcon, element: <FeedPage />, mobile: true, subRoutes: ['/feed/:id'] },
-      { path: '/videos', labelKey: 'layout:nav.videos', icon: PlayIcon, element: <VideosPage />, mobile: true },
-      { path: '/fotos', labelKey: 'layout:nav.photos', icon: ImageIcon, element: <FotosPage /> },
+      {
+        path: '/mural',
+        labelKey: 'layout:nav.archive',
+        icon: CassetteTapeIcon,
+        element: <MuralPage />,
+        mobile: true,
+        subRoutes: ['/mural/novo', '/mural/:id/editar', '/mural/:id'],
+      },
       {
         path: '/eventos',
         labelKey: 'layout:nav.events',
@@ -116,14 +120,6 @@ export const navSections: NavSection[] = [
     ],
   },
   {
-    id: 'admin',
-    labelKey: 'layout:nav.admin',
-    permission: Permissions.adminAccess,
-    items: [
-      { path: '/admin/moderacao', labelKey: 'layout:nav.moderation', icon: ShieldCheckIcon, element: <ModeracaoPage /> },
-    ],
-  },
-  {
     id: 'institutional',
     labelKey: 'layout:nav.institutional',
     items: [
@@ -137,6 +133,9 @@ export const navSections: NavSection[] = [
 
 export const hiddenRoutes: HiddenRoute[] = [
   { path: '/feed/:id', element: <PostDetalhePage /> },
+  { path: '/mural/novo', element: <MuralFormPage />, permission: Permissions.archiveCreate },
+  { path: '/mural/:id/editar', element: <MuralFormPage />, permission: Permissions.archiveEdit },
+  { path: '/mural/:id', element: <MuralDetalhePage /> },
   { path: '/eventos/novo', element: <EventoFormPage /> },
   { path: '/eventos/:id/editar', element: <EventoFormPage /> },
   { path: '/eventos/:id', element: <EventoDetalhePage /> },

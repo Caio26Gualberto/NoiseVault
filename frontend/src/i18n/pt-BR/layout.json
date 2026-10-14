@@ -1,23 +1,20 @@
 {
   "nav": {
     "feed": "Feed",
-    "videos": "Vídeos",
-    "photos": "Fotos",
     "events": "Eventos",
     "profile": "Perfil",
     "notifications": "Notificações",
     "bands": "Bandas",
     "account": "Minha conta",
-    "moderation": "Moderação",
     "report": "Reportar problema",
     "podcasts": "Podcasts",
     "about": "Sobre",
     "store": "Loja parceira",
     "more": "Mais",
     "community": "Comunidade",
-    "admin": "Administração",
     "institutional": "Institucional",
-    "moreSheetTitle": "Mais do Noise Vault"
+    "moreSheetTitle": "Mais do Noise Vault",
+    "archive": "Mural das antigas"
   },
   "search": {
     "placeholder": "Buscar pessoas",

@@ -12,6 +12,7 @@ export type ViewerItem = {
   url: string
   posterUrl?: string | null
   alt?: string
+  caption?: string | null
 }
 
 type AppMediaViewerProps = {
@@ -70,11 +71,19 @@ export function AppMediaViewer({ items, index, onIndexChange }: AppMediaViewerPr
           <DialogPrimitive.Title className="sr-only">{item?.alt || t('viewer.title')}</DialogPrimitive.Title>
 
           {item ? (
-            item.kind === 'video' ? (
-              <AppVideoPlayer key={item.id} src={item.url} poster={item.posterUrl} autoPlay className="w-full max-w-5xl" />
-            ) : (
-              <img key={item.id} src={item.url} alt={item.alt ?? ''} className="max-h-full max-w-full rounded-lg object-contain" />
-            )
+            <figure className="flex max-h-full w-full max-w-5xl flex-col items-center justify-center gap-3">
+              {item.kind === 'video' ? (
+                <AppVideoPlayer key={item.id} src={item.url} poster={item.posterUrl} autoPlay className="w-full" />
+              ) : (
+                <img
+                  key={item.id}
+                  src={item.url}
+                  alt={item.alt ?? item.caption ?? ''}
+                  className={cn('max-w-full rounded-lg object-contain', item.caption ? 'max-h-[calc(100vh-11rem)]' : 'max-h-[calc(100vh-8rem)]')}
+                />
+              )}
+              {item.caption ? <figcaption className="max-w-3xl text-center text-sm text-on-scrim/90">{item.caption}</figcaption> : null}
+            </figure>
           ) : null}
 
           <ViewerButton label={t('viewer.close')} onClick={() => onIndexChange(null)} className="absolute top-4 right-4">

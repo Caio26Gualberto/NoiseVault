@@ -65,5 +65,13 @@
     "published": "publicou um evento",
     "cancelled": "Cancelado",
     "ended": "Já rolou"
+  },
+  "archive": {
+    "published": "publicou no mural das antigas",
+    "badge": "Das antigas",
+    "photos_one": "{{count}} foto",
+    "photos_other": "{{count}} fotos",
+    "videos_one": "{{count}} vídeo",
+    "videos_other": "{{count}} vídeos"
   }
 }

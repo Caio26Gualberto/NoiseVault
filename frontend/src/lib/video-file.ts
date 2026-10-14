@@ -50,10 +50,16 @@ function readDuration(file: File): Promise<number | null> {
   })
 }
 
-export async function checkVideoFile(file: File): Promise<VideoCheck> {
+export type VideoLimits = { maxBytes: number; maxSeconds: number }
+
+export const postVideoLimits: VideoLimits = { maxBytes: videoMaxBytes, maxSeconds: videoMaxSeconds }
+export const archiveVideoLimits: VideoLimits = { maxBytes: 4 * 1024 * 1024 * 1024, maxSeconds: 2 * 60 * 60 }
+export const archivePhotoMaxBytes = 40 * 1024 * 1024
+
+export async function checkVideoFile(file: File, limits: VideoLimits = postVideoLimits): Promise<VideoCheck> {
   if (!isVideo(file)) return 'unsupported'
-  if (file.size > videoMaxBytes) return 'tooLarge'
+  if (file.size > limits.maxBytes) return 'tooLarge'
   const duration = await readDuration(file)
-  if (duration !== null && duration > videoMaxSeconds + 1) return 'tooLong'
+  if (duration !== null && duration > limits.maxSeconds + 1) return 'tooLong'
   return 'ok'
 }

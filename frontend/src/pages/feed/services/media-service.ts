@@ -38,8 +38,15 @@ export function deleteMedia(id: number): Promise<void> {
   return apiDelete<void>(`/api/media/${id}`, { toastError: false })
 }
 
-export async function uploadVideo(file: File, onProgress: UploadProgress, signal: AbortSignal): Promise<MediaDto> {
-  const upload = await apiPost<VideoUploadDto>('/api/media/videos', {
+export const archiveVideoStartPath = '/api/admin/archive/media/videos'
+
+export async function uploadVideo(
+  file: File,
+  onProgress: UploadProgress,
+  signal: AbortSignal,
+  startPath = '/api/media/videos',
+): Promise<MediaDto> {
+  const upload = await apiPost<VideoUploadDto>(startPath, {
     sizeBytes: file.size,
     contentType: videoContentType(file),
   })

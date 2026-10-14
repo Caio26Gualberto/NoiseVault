@@ -23,7 +23,7 @@ export function PostEditDialog({ post, open, onOpenChange, onSaved }: PostEditDi
   const [saving, setSaving] = useState(false)
 
   const value = content.trim()
-  const empty = value.length === 0 && post.media.length === 0 && !post.event
+  const empty = value.length === 0 && post.media.length === 0 && !post.event && !post.archive
 
   const change = (next: boolean) => {
     if (next) setContent(post.content)
