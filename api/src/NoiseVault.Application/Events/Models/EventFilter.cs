@@ -6,7 +6,7 @@ namespace NoiseVault.Application.Events.Models
         DateTime Now,
         bool Past = false,
         EMusicGenre? Genre = null,
-        EAbcCity? City = null,
+        int? CityId = null,
         string? Search = null,
         bool InterestedOnly = false,
         int? BandId = null,

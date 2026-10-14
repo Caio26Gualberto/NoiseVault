@@ -5,6 +5,7 @@ using NoiseVault.Application.Notifications.Interfaces;
 using NoiseVault.Application.Abstractions.Repository;
 using NoiseVault.Application.Abstractions.Repository.UnitOfWork;
 using NoiseVault.Application.Bands.Dtos;
+using NoiseVault.Application.Cities.Interfaces;
 using NoiseVault.Application.Bands.Interfaces;
 using NoiseVault.Application.Common.Media;
 using NoiseVault.Application.Events.Interfaces;
@@ -33,6 +34,7 @@ namespace NoiseVault.Application.Bands
         private readonly IEventRepository _eventRepository;
         private readonly ImageReplacement _images;
         private readonly INotificationAppService _notificationAppService;
+        private readonly ICityAppService _cityAppService;
         private readonly IApplicationLogger _logger;
 
         public BandAppService(
@@ -45,6 +47,7 @@ namespace NoiseVault.Application.Bands
             IPostRepository postRepository,
             IEventRepository eventRepository,
             INotificationAppService notificationAppService,
+            ICityAppService cityAppService,
             IApplicationLoggerFactory loggerFactory)
         {
             _eventRepository = eventRepository;
@@ -56,6 +59,7 @@ namespace NoiseVault.Application.Bands
             _fileStorage = fileStorage;
             _images = new ImageReplacement(fileStorage, imageProcessor);
             _notificationAppService = notificationAppService;
+            _cityAppService = cityAppService;
             _logger = loggerFactory.Create(LogContext.Bands);
         }
 
@@ -63,7 +67,7 @@ namespace NoiseVault.Application.Bands
         {
             _logger.SetOperation("CreateBand");
 
-            var (data, error) = Validate(input);
+            var (data, error) = await ValidateAsync(input);
 
             if (error != null)
                 return Result<BandProfileDto>.Fail(error);
@@ -128,7 +132,7 @@ namespace NoiseVault.Application.Bands
         {
             _logger.SetOperation("UpdateBand");
 
-            var (data, error) = Validate(input);
+            var (data, error) = await ValidateAsync(input);
 
             if (error != null)
                 return Result<BandProfileDto>.Fail(error);
@@ -529,14 +533,15 @@ namespace NoiseVault.Application.Bands
         private sealed record ValidBand(
             string Name,
             string? Description,
-            EAbcCity? City,
+            int? CityId,
+            string? CityName,
             List<EMusicGenre> Genres,
             int? FoundedYear,
             string? Instagram,
             string? Youtube,
             string? Spotify);
 
-        private static (ValidBand? Data, Error? Error) Validate(BandInputDto input)
+        private async Task<(ValidBand? Data, Error? Error)> ValidateAsync(BandInputDto input)
         {
             var name = BandRules.NormalizeName(input.Name);
 
@@ -548,8 +553,10 @@ namespace NoiseVault.Application.Bands
             if (description is { Length: > BandRules.DescriptionMaxLength })
                 return (null, Invalid("INVALID_BAND_DESCRIPTION", $"Description must have at most {BandRules.DescriptionMaxLength} characters"));
 
-            if (!ProfileRules.IsValidCity(input.City))
-                return (null, Invalid("INVALID_CITY", "City is not in the supported list"));
+            var city = await _cityAppService.Resolve(input.CityId, input.CityName, required: false);
+
+            if (city.Error != null)
+                return (null, city.Error);
 
             var genres = input.Genres ?? [];
 
@@ -568,14 +575,15 @@ namespace NoiseVault.Application.Bands
                 || !ProfileRules.IsValidSocialLink(ESocialNetwork.Spotify, spotify))
                 return (null, Invalid("INVALID_SOCIAL_LINK", "Each social link must be an http(s) address of its own service"));
 
-            return (new ValidBand(name, description, input.City, genres, input.FoundedYear, instagram, youtube, spotify), null);
+            return (new ValidBand(name, description, city.CityId, city.CityName, genres, input.FoundedYear, instagram, youtube, spotify), null);
         }
 
         private static void Apply(Band band, ValidBand data)
         {
             band.Name = data.Name;
             band.Description = data.Description;
-            band.City = data.City;
+            band.CityId = data.CityId;
+            band.CityName = data.CityName;
             band.FoundedYear = data.FoundedYear;
             band.InstagramUrl = data.Instagram;
             band.YoutubeUrl = data.Youtube;
@@ -604,7 +612,8 @@ namespace NoiseVault.Application.Bands
                 Name = band.Name,
                 Slug = band.Slug,
                 Description = band.Description,
-                City = band.City,
+                City = await _cityAppService.Get(band.CityId),
+                CityName = band.CityName,
                 Genres = band.Genres.Select(g => g.Genre).OrderBy(g => g).ToList(),
                 FoundedYear = band.FoundedYear,
                 AvatarUrl = _fileStorage.PublicUrl(band.AvatarKey),

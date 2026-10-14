@@ -1,3 +1,4 @@
+using NoiseVault.Application.Cities.Dtos;
 using NoiseVault.Application.Bands.Dtos;
 using NoiseVault.Application.PublicProfiles.Dtos;
 using NoiseVault.Domain.Enums.Events;
@@ -13,7 +14,7 @@ namespace NoiseVault.Application.Events.Dtos
         public DateTime StartsAt { get; set; }
         public DateTime? EndsAt { get; set; }
         public string Venue { get; set; } = string.Empty;
-        public EAbcCity City { get; set; }
+        public CityDto? City { get; set; }
         public string? CityName { get; set; }
         public string? BannerUrl { get; set; }
         public int BannerPosition { get; set; }

@@ -1,3 +1,4 @@
+using NoiseVault.Application.Cities.Dtos;
 using NoiseVault.Domain.Enums.Profiles;
 
 namespace NoiseVault.Application.Archive.Models
@@ -15,7 +16,7 @@ namespace NoiseVault.Application.Archive.Models
         public int? Month { get; init; }
         public int? Day { get; init; }
         public string? Venue { get; init; }
-        public EAbcCity? City { get; init; }
+        public CityDto? City { get; init; }
         public string? CityName { get; init; }
         public int? CoverMediaUploadId { get; init; }
         public DateTime CreatedAt { get; init; }

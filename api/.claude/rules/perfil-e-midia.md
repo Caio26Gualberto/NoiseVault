@@ -29,7 +29,7 @@ Validação (imperativa no AppService, mensagens específicas):
 |---|---|---|
 | `name` | `UserNameRules` (2–100) | `INVALID_NAME` |
 | `bio` | até 500 caracteres depois do trim | `INVALID_BIO` |
-| `city` | valor de `EAbcCity` ou nulo | `INVALID_CITY` |
+| `cityId` / `cityName` | município do IBGE, ou texto de fora do Brasil (2–80), ou nenhum; nunca os dois (`cidades.md`) | `INVALID_CITY`, `INVALID_CITY_NAME` |
 | `mainInstrument` | até 60 caracteres | `INVALID_INSTRUMENT` |
 | `genres` | até 10, valores de `EMusicGenre`, sem repetição | `INVALID_GENRE` |
 | `socialLinks.*` | `https://` (ou `http://`), até 300, **host do próprio serviço** (`instagram.com`; `youtube.com`, `youtu.be`; `open.spotify.com`, `spotify.com`, com ou sem `www.`/`m.`) | `INVALID_SOCIAL_LINK` |

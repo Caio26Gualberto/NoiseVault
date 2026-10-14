@@ -31,7 +31,6 @@ namespace NoiseVault.Application.Profiles
             return string.IsNullOrEmpty(trimmed) ? null : trimmed;
         }
 
-        public static bool IsValidCity(EAbcCity? city) => city is null || Enum.IsDefined(city.Value);
 
         public static bool IsValidGenres(IReadOnlyCollection<EMusicGenre> genres) =>
             genres.Count <= MaxGenres

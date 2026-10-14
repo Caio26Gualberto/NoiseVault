@@ -7,6 +7,9 @@ using NoiseVault.Infra.Data.Repositories.Archive;
 using NoiseVault.Application.Notifications;
 using NoiseVault.Application.Notifications.Interfaces;
 using NoiseVault.Infra.Data.Repositories.Notifications;
+using NoiseVault.Application.Cities;
+using NoiseVault.Application.Cities.Interfaces;
+using NoiseVault.Infra.Data.Repositories.Cities;
 using NoiseVault.Application.Support;
 using NoiseVault.Application.Support.Interfaces;
 using NoiseVault.Infra.Data.Repositories.Support;
@@ -198,6 +201,9 @@ namespace NoiseVault.Infra.IoC
             // Notificações
             services.AddScoped<INotificationAppService, NotificationAppService>();
 
+            // Cidades
+            services.AddScoped<ICityAppService, CityAppService>();
+
             // Suporte
             services.AddScoped<ISupportAppService, SupportAppService>();
 
@@ -240,6 +246,7 @@ namespace NoiseVault.Infra.IoC
             services.AddScoped<IArchiveRepository, ArchiveRepository>();
             services.AddScoped<INotificationRepository, NotificationRepository>();
             services.AddScoped<ISupportTicketRepository, SupportTicketRepository>();
+            services.AddScoped<ICityRepository, CityRepository>();
 
             return services;
         }

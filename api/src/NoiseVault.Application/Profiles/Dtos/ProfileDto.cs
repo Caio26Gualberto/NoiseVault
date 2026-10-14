@@ -1,3 +1,4 @@
+using NoiseVault.Application.Cities.Dtos;
 using NoiseVault.Domain.Enums.Profiles;
 
 namespace NoiseVault.Application.Profiles.Dtos
@@ -15,7 +16,8 @@ namespace NoiseVault.Application.Profiles.Dtos
         public int BannerPosition { get; set; }
         public bool EmailOnBandInvite { get; set; }
         public string? Bio { get; set; }
-        public EAbcCity? City { get; set; }
+        public CityDto? City { get; set; }
+        public string? CityName { get; set; }
         public string? MainInstrument { get; set; }
         public List<EMusicGenre> Genres { get; set; } = [];
         public SocialLinksDto SocialLinks { get; set; } = new();

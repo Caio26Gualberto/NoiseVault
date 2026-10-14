@@ -9,7 +9,7 @@ namespace NoiseVault.Application.Events.Dtos
         public DateTime StartsAt { get; set; }
         public DateTime? EndsAt { get; set; }
         public string? Venue { get; set; }
-        public EAbcCity City { get; set; }
+        public int? CityId { get; set; }
         public string? CityName { get; set; }
         public List<EMusicGenre>? Genres { get; set; }
         public string? TicketsUrl { get; set; }

@@ -21,6 +21,7 @@ namespace NoiseVault.Infra.Data.Context
 
         public new DbSet<User> Users => Set<User>();
         public DbSet<UserGenre> UserGenres => Set<UserGenre>();
+        public DbSet<City> Cities => Set<City>();
         public DbSet<Band> Bands => Set<Band>();
         public DbSet<BandGenre> BandGenres => Set<BandGenre>();
         public DbSet<BandMember> BandMembers => Set<BandMember>();
@@ -102,11 +103,30 @@ namespace NoiseVault.Infra.Data.Context
                 b.Property(u => u.BannerKey).HasMaxLength(200);
                 b.Property(u => u.BannerPosition).HasDefaultValue(User.DefaultBannerPosition);
                 b.Property(u => u.EmailOnBandInvite).HasDefaultValue(true);
+                b.Property(u => u.CityName).HasMaxLength(80);
+
+                b.HasOne(u => u.City)
+                    .WithMany()
+                    .HasForeignKey(u => u.CityId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
                 b.HasMany(u => u.Genres)
                     .WithOne()
                     .HasForeignKey(g => g.UserId)
                     .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            builder.Entity<City>(b =>
+            {
+                b.ToTable("Cities");
+                b.HasKey(x => x.Id);
+                b.Property(x => x.Id).ValueGeneratedNever();
+
+                b.Property(x => x.Name).HasMaxLength(80).IsRequired();
+                b.Property(x => x.Uf).HasMaxLength(2).IsRequired();
+                b.Property(x => x.SearchName).HasMaxLength(80).IsRequired();
+
+                b.HasIndex(x => x.SearchName);
             });
 
             builder.Entity<UserGenre>(b =>
@@ -131,6 +151,12 @@ namespace NoiseVault.Infra.Data.Context
                 b.Property(x => x.AvatarKey).HasMaxLength(200);
                 b.Property(x => x.BannerKey).HasMaxLength(200);
                 b.Property(x => x.BannerPosition).HasDefaultValue(Band.DefaultBannerPosition);
+                b.Property(x => x.CityName).HasMaxLength(80);
+
+                b.HasOne(x => x.City)
+                    .WithMany()
+                    .HasForeignKey(x => x.CityId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
                 b.HasMany(x => x.Genres)
                     .WithOne()
@@ -322,6 +348,11 @@ namespace NoiseVault.Infra.Data.Context
                 b.Property(x => x.Description).HasMaxLength(5000);
                 b.Property(x => x.Venue).HasMaxLength(120).IsRequired();
                 b.Property(x => x.CityName).HasMaxLength(80);
+
+                b.HasOne(x => x.City)
+                    .WithMany()
+                    .HasForeignKey(x => x.CityId)
+                    .OnDelete(DeleteBehavior.Restrict);
                 b.Property(x => x.TicketsUrl).HasMaxLength(500);
                 b.Property(x => x.Price).HasPrecision(10, 2);
                 b.Property(x => x.BannerKey).HasMaxLength(200);
@@ -421,6 +452,11 @@ namespace NoiseVault.Infra.Data.Context
                 b.Property(x => x.Description).HasMaxLength(10000);
                 b.Property(x => x.Venue).HasMaxLength(120);
                 b.Property(x => x.CityName).HasMaxLength(80);
+
+                b.HasOne(x => x.City)
+                    .WithMany()
+                    .HasForeignKey(x => x.CityId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
                 b.HasOne(x => x.Author)
                     .WithMany()

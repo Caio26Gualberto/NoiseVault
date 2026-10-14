@@ -1,3 +1,4 @@
+using NoiseVault.Application.Cities.Dtos;
 using NoiseVault.Domain.Enums.Events;
 using NoiseVault.Domain.Enums.Profiles;
 
@@ -17,7 +18,7 @@ namespace NoiseVault.Application.Events.Models
         public DateTime? EndsAt { get; init; }
         public DateTime EndsAtOrDefault { get; init; }
         public string Venue { get; init; } = string.Empty;
-        public EAbcCity City { get; init; }
+        public CityDto? City { get; init; }
         public string? CityName { get; init; }
         public string? TicketsUrl { get; init; }
         public decimal? Price { get; init; }

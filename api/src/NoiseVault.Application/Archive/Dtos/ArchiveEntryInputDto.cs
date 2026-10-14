@@ -10,7 +10,7 @@ namespace NoiseVault.Application.Archive.Dtos
         public int? Month { get; set; }
         public int? Day { get; set; }
         public string? Venue { get; set; }
-        public EAbcCity? City { get; set; }
+        public int? CityId { get; set; }
         public string? CityName { get; set; }
         public List<ArchiveBandInputDto>? Bands { get; set; }
         public List<ArchiveMediaInputDto>? Media { get; set; }

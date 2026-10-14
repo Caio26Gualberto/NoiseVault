@@ -2,6 +2,8 @@ using NoiseVault.Application.Abstractions.Authentication;
 using NoiseVault.Application.Abstractions.Logging;
 using NoiseVault.Application.Abstractions.Repository;
 using NoiseVault.Application.Auth;
+using NoiseVault.Application.Cities;
+using NoiseVault.Application.Cities.Interfaces;
 using NoiseVault.Application.Common.Media;
 using NoiseVault.Application.Interfaces;
 using NoiseVault.Application.Profiles.Dtos;
@@ -19,6 +21,7 @@ namespace NoiseVault.Application.Profiles
         private readonly IAuthenticateService _authService;
         private readonly ICurrentUser _currentUser;
         private readonly IFileStorage _fileStorage;
+        private readonly ICityAppService _cityAppService;
         private readonly ImageReplacement _images;
         private readonly IApplicationLogger _logger;
 
@@ -28,12 +31,14 @@ namespace NoiseVault.Application.Profiles
             ICurrentUser currentUser,
             IFileStorage fileStorage,
             IImageProcessor imageProcessor,
+            ICityAppService cityAppService,
             IApplicationLoggerFactory loggerFactory)
         {
             _userRepository = userRepository;
             _authService = authService;
             _currentUser = currentUser;
             _fileStorage = fileStorage;
+            _cityAppService = cityAppService;
             _images = new ImageReplacement(fileStorage, imageProcessor);
             _logger = loggerFactory.Create(LogContext.Profiles);
         }
@@ -62,8 +67,10 @@ namespace NoiseVault.Application.Profiles
             if (bio is { Length: > ProfileRules.BioMaxLength })
                 return Fail("INVALID_BIO", $"Bio must have at most {ProfileRules.BioMaxLength} characters");
 
-            if (!ProfileRules.IsValidCity(input.City))
-                return Fail("INVALID_CITY", "City is not in the supported list");
+            var city = await _cityAppService.Resolve(input.CityId, input.CityName, required: false);
+
+            if (city.Error != null)
+                return Result<ProfileDto>.Fail(city.Error);
 
             var instrument = ProfileRules.NormalizeOptionalText(input.MainInstrument);
 
@@ -91,7 +98,8 @@ namespace NoiseVault.Application.Profiles
 
             user.Name = name;
             user.Bio = bio;
-            user.City = input.City;
+            user.CityId = city.CityId;
+            user.CityName = city.CityName;
             user.MainInstrument = instrument;
             user.InstagramUrl = instagram;
             user.YoutubeUrl = youtube;
@@ -103,7 +111,7 @@ namespace NoiseVault.Application.Profiles
 
             await _userRepository.UpdateAsync(user);
 
-            return Result<ProfileDto>.Ok(await MapAsync(user), "PROFILE_UPDATED", "Profile updated successfully");
+            return Result<ProfileDto>.Ok(await MapAsync((await FindCurrentAsync(tracked: false))!), "PROFILE_UPDATED", "Profile updated successfully");
         }
 
         public Task<Result<ProfileDto>> SetAvatar(ImageUploadInput? file, CancellationToken cancellationToken = default) =>
@@ -245,7 +253,7 @@ namespace NoiseVault.Application.Profiles
             _userRepository.FirstOrDefaultAsync(new QueryOptions<User>
             {
                 Predicate = u => u.Id == _currentUser.UserId,
-                Includes = [u => u.Genres],
+                Includes = [u => u.Genres, u => u.City!],
                 AsNoTracking = !tracked,
             });
 
@@ -270,7 +278,8 @@ namespace NoiseVault.Application.Profiles
             BannerPosition = user.BannerPosition,
             EmailOnBandInvite = user.EmailOnBandInvite,
             Bio = user.Bio,
-            City = user.City,
+            City = user.City == null ? null : CityAppService.Map(user.City),
+            CityName = user.CityName,
             MainInstrument = user.MainInstrument,
             Genres = user.Genres.Select(g => g.Genre).OrderBy(g => g).ToList(),
             SocialLinks = new SocialLinksDto

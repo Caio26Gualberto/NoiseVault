@@ -15,11 +15,11 @@ Módulo 4 da ordem em `dominio.md`. A agenda serve tanto para o show do porão q
 - **`Event`**:
   - `OrganizerUserId` e `BandId?` (publicado como banda, igual ao post);
   - `Title`, `Description?`, `StartsAt`, `EndsAt?`, `EndsAtOrDefault`;
-  - `Venue`, `City` (`EAbcCity`), `CityName?`;
+  - `Venue`, `CityId?` (município do IBGE) e `CityName?` (fora do Brasil), um dos dois obrigatório (`cidades.md`);
   - `TicketsUrl?`, `Price?`, `Capacity?`;
   - `BannerKey?`, `BannerPosition`, `Status` (`Published` 0, `Cancelled` 1), `CancelledAt?`.
 - **Sem rascunho** (decisão do usuário): publica direto. O `Draft` que `dominio.md` previa saiu.
-- **`CityName`** só existe com `City = Other`. É o show fora do ABC e de SP ("Curitiba"). A lista fechada de cidades continua valendo para o resto.
+- **Cidade**: qualquer município do Brasil (`CityId`) ou o texto livre de fora do Brasil (`CityName`). Sem nenhum dos dois → `CITY_REQUIRED`. Até 14/10/2026 era a lista fechada do ABC com "Outra" (`cidades.md`).
 - **`Price`** é "a partir de": show grande tem vários setores, então vale o menor preço. Nulo quer dizer entrada franca.
 - **`EndsAtOrDefault`** é gravado pelo AppService: `EndsAt`, ou `StartsAt + 6 h` quando não há término. Ele existe para "próximo" e "já rolou" virarem uma comparação indexada (`EndsAtOrDefault >= agora`) em vez de uma expressão no `WHERE`.
 - **`EventGenre (EventId, Genre)`**: até 5, mesmo desenho de `BandGenre`.
@@ -63,7 +63,7 @@ A checagem fica no `WHERE` (`OrganizerUserId == eu` ou `Band.Members.Any(Owner =
 | término depois do início e no máximo 7 dias depois (festival) | `INVALID_EVENT_DATES` |
 | ao criar, começa no futuro, com 1 h de tolerância | `EVENT_IN_PAST` |
 | local 2–120 | `INVALID_EVENT_VENUE` |
-| cidade da lista; `Other` exige nome de 2 a 80 caracteres | `INVALID_CITY`, `INVALID_EVENT_CITY_NAME` |
+| município existente, ou nome de fora do Brasil com 2 a 80 caracteres; nunca os dois | `INVALID_CITY`, `INVALID_CITY_NAME`, `CITY_REQUIRED` |
 | até 5 gêneros | `INVALID_GENRE` |
 | link de ingresso http(s), até 500 | `INVALID_TICKETS_URL` |
 | preço de 0 a 100.000 (2 casas) | `INVALID_EVENT_PRICE` |
@@ -123,7 +123,7 @@ Interesse e comentário não logam: são volume alto e o dado está no banco.
 
 Com a API no ar; conta A (admin, Owner da Serra Negra), conta B (integrante Member) e conta C (fã). O script `events-api.mjs` (fora do repositório) cobre:
 
-1. **Validação.** Data no passado → `EVENT_IN_PAST`; término antes ou mais de 7 dias depois → `INVALID_EVENT_DATES`; `Other` sem nome → `INVALID_EVENT_CITY_NAME`; banda inexistente ou repetida no line-up → `LINEUP_BAND_NOT_FOUND` / `INVALID_LINEUP`; link sem http → `INVALID_TICKETS_URL`; C como banda → `NOT_BAND_MEMBER`.
+1. **Validação.** Data no passado → `EVENT_IN_PAST`; término antes ou mais de 7 dias depois → `INVALID_EVENT_DATES`; sem cidade → `CITY_REQUIRED`; banda inexistente ou repetida no line-up → `LINEUP_BAND_NOT_FOUND` / `INVALID_LINEUP`; link sem http → `INVALID_TICKETS_URL`; C como banda → `NOT_BAND_MEMBER`.
 2. **Criar.** B cria "Iron Maiden" como Serra Negra com line-up `[Iron Maiden (nome), Serra Negra (banda)]` → `EVENT_CREATED`. O feed de C traz o post automático com `event` preenchido e texto vazio.
 3. **Listas.**
    - A busca por "maiden", "serra negra" e "curitiba" acha os eventos certos; `city=7` só traz SP.

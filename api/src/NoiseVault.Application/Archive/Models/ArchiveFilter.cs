@@ -8,7 +8,7 @@ namespace NoiseVault.Application.Archive.Models
         int? Decade = null,
         string? Search = null,
         int? BandId = null,
-        EAbcCity? City = null,
+        int? CityId = null,
         EMediaKind? Kind = null,
         bool OldestFirst = false);
 }

@@ -1,3 +1,4 @@
+using NoiseVault.Application.Cities.Dtos;
 using Microsoft.EntityFrameworkCore;
 using NoiseVault.Application.Events.Interfaces;
 using NoiseVault.Application.Events.Models;
@@ -25,8 +26,8 @@ namespace NoiseVault.Infra.Data.Repositories.Events
             if (filter.Genre != null)
                 query = query.Where(e => e.Genres.Any(g => g.Genre == filter.Genre));
 
-            if (filter.City != null)
-                query = query.Where(e => e.City == filter.City);
+            if (filter.CityId != null)
+                query = query.Where(e => e.CityId == filter.CityId);
 
             if (!string.IsNullOrWhiteSpace(filter.Search))
             {
@@ -34,6 +35,7 @@ namespace NoiseVault.Infra.Data.Repositories.Events
                 query = query.Where(e => e.Title.ToLower().Contains(term)
                     || e.Venue.ToLower().Contains(term)
                     || (e.CityName != null && e.CityName.ToLower().Contains(term))
+                    || (e.City != null && e.City.Name.ToLower().Contains(term))
                     || e.Lineup.Any(l => !l.IsDeleted
                         && ((l.Name != null && l.Name.ToLower().Contains(term))
                             || (l.Band != null && l.Band.Name.ToLower().Contains(term)))));
@@ -156,7 +158,7 @@ namespace NoiseVault.Infra.Data.Repositories.Events
                 EndsAt = e.EndsAt,
                 EndsAtOrDefault = e.EndsAtOrDefault,
                 Venue = e.Venue,
-                City = e.City,
+                City = e.City == null ? null : new CityDto { Id = e.City.Id, Name = e.City.Name, Uf = e.City.Uf },
                 CityName = e.CityName,
                 TicketsUrl = e.TicketsUrl,
                 Price = e.Price,

@@ -1,3 +1,4 @@
+using NoiseVault.Application.Cities.Interfaces;
 using NoiseVault.Application.Abstractions.Authentication;
 using NoiseVault.Application.Abstractions.Authorization;
 using NoiseVault.Application.Abstractions.Logging;
@@ -30,8 +31,6 @@ namespace NoiseVault.Application.Archive
     public class ArchiveAppService : IArchiveAppService
     {
         private const int LineupNameMaxLength = 100;
-        private const int CityNameMinLength = 2;
-        private const int CityNameMaxLength = 80;
 
         private readonly IArchiveRepository _archiveRepository;
         private readonly IRepository<ArchiveBandEntry> _bandEntryRepository;
@@ -45,6 +44,7 @@ namespace NoiseVault.Application.Archive
         private readonly IPostAppService _postAppService;
         private readonly IFileStorage _fileStorage;
         private readonly INotificationAppService _notificationAppService;
+        private readonly ICityAppService _cityAppService;
         private readonly IApplicationLogger _logger;
 
         public ArchiveAppService(
@@ -60,8 +60,10 @@ namespace NoiseVault.Application.Archive
             IPostAppService postAppService,
             IFileStorage fileStorage,
             INotificationAppService notificationAppService,
+            ICityAppService cityAppService,
             IApplicationLoggerFactory loggerFactory)
         {
+            _cityAppService = cityAppService;
             _archiveRepository = archiveRepository;
             _bandEntryRepository = bandEntryRepository;
             _archiveMediaRepository = archiveMediaRepository;
@@ -299,7 +301,7 @@ namespace NoiseVault.Application.Archive
                 Year: query.Year,
                 Decade: query.Decade is { } decade ? decade - decade % 10 : null,
                 Search: query.Search,
-                City: query.City,
+                CityId: query.CityId,
                 Kind: kind,
                 OldestFirst: string.Equals(query.Sort, "oldest", StringComparison.OrdinalIgnoreCase)));
 
@@ -318,7 +320,7 @@ namespace NoiseVault.Application.Archive
             int? Month,
             int? Day,
             string? Venue,
-            EAbcCity? City,
+            int? CityId,
             string? CityName,
             List<ArchiveBandInputDto> Bands,
             List<ArchiveMediaInputDto> Media,
@@ -344,13 +346,10 @@ namespace NoiseVault.Application.Archive
             if (venue is { Length: < ArchiveRules.VenueMinLength or > ArchiveRules.VenueMaxLength })
                 return Invalid("INVALID_ARCHIVE_VENUE", $"Venue must have between {ArchiveRules.VenueMinLength} and {ArchiveRules.VenueMaxLength} characters");
 
-            if (!ProfileRules.IsValidCity(input.City))
-                return Invalid("INVALID_CITY", "City is not in the supported list");
+            var city = await _cityAppService.Resolve(input.CityId, input.CityName, required: false);
 
-            var cityName = input.City == EAbcCity.Other ? ProfileRules.NormalizeOptionalText(input.CityName) : null;
-
-            if (input.City == EAbcCity.Other && cityName is not { Length: >= CityNameMinLength and <= CityNameMaxLength })
-                return Invalid("INVALID_ARCHIVE_CITY_NAME", $"Tell the city name, between {CityNameMinLength} and {CityNameMaxLength} characters");
+            if (city.Error != null)
+                return (null, city.Error);
 
             var (bands, bandsError) = await ValidateBandsAsync(input.Bands ?? []);
 
@@ -383,7 +382,7 @@ namespace NoiseVault.Application.Archive
 
             var cover = input.CoverMediaId is { } coverId && media.Any(m => m.MediaId == coverId) ? coverId : media[0].MediaId;
 
-            return (new ValidEntry(title, description, input.Year, input.Month, input.Day, venue, input.City, cityName, bands!, media, cover), null);
+            return (new ValidEntry(title, description, input.Year, input.Month, input.Day, venue, city.CityId, city.CityName, bands!, media, cover), null);
         }
 
         private async Task<(List<ArchiveBandInputDto>? Bands, Error? Error)> ValidateBandsAsync(List<ArchiveBandInputDto> input)
@@ -423,7 +422,7 @@ namespace NoiseVault.Application.Archive
             entry.Day = data.Day;
             entry.SortDate = ArchiveRules.SortDate(data.Year, data.Month, data.Day);
             entry.Venue = data.Venue;
-            entry.City = data.City;
+            entry.CityId = data.CityId;
             entry.CityName = data.CityName;
             entry.CoverMediaUploadId = data.CoverMediaId;
         }

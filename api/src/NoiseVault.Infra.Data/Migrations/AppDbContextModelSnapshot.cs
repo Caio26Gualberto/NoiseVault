@@ -257,7 +257,7 @@ namespace NoiseVault.Infra.Data.Migrations
                     b.Property<int>("AuthorUserId")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("City")
+                    b.Property<int?>("CityId")
                         .HasColumnType("integer");
 
                     b.Property<string>("CityName")
@@ -316,6 +316,8 @@ namespace NoiseVault.Infra.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AuthorUserId");
+
+                    b.HasIndex("CityId");
 
                     b.HasIndex("SortDate");
 
@@ -638,8 +640,12 @@ namespace NoiseVault.Infra.Data.Migrations
                         .HasColumnType("integer")
                         .HasDefaultValue(50);
 
-                    b.Property<int?>("City")
+                    b.Property<int?>("CityId")
                         .HasColumnType("integer");
+
+                    b.Property<string>("CityName")
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -695,6 +701,8 @@ namespace NoiseVault.Infra.Data.Migrations
                         .HasColumnType("character varying(300)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CityId");
 
                     b.HasIndex("CreatedAt");
 
@@ -836,6 +844,33 @@ namespace NoiseVault.Infra.Data.Migrations
                     b.ToTable("BandMembers", (string)null);
                 });
 
+            modelBuilder.Entity("NoiseVault.Domain.Entities.City", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<string>("SearchName")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<string>("Uf")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SearchName");
+
+                    b.ToTable("Cities", (string)null);
+                });
+
             modelBuilder.Entity("NoiseVault.Domain.Entities.Comment", b =>
                 {
                     b.Property<int>("Id")
@@ -911,7 +946,7 @@ namespace NoiseVault.Infra.Data.Migrations
                     b.Property<int?>("Capacity")
                         .HasColumnType("integer");
 
-                    b.Property<int>("City")
+                    b.Property<int?>("CityId")
                         .HasColumnType("integer");
 
                     b.Property<string>("CityName")
@@ -977,6 +1012,8 @@ namespace NoiseVault.Infra.Data.Migrations
                         .HasColumnType("character varying(120)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CityId");
 
                     b.HasIndex("OrganizerUserId");
 
@@ -1642,8 +1679,12 @@ namespace NoiseVault.Infra.Data.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
-                    b.Property<int?>("City")
+                    b.Property<int?>("CityId")
                         .HasColumnType("integer");
+
+                    b.Property<string>("CityName")
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -1707,6 +1748,8 @@ namespace NoiseVault.Infra.Data.Migrations
                         .HasColumnType("character varying(300)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CityId");
 
                     b.HasIndex("Email")
                         .IsUnique();
@@ -1997,7 +2040,14 @@ namespace NoiseVault.Infra.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("NoiseVault.Domain.Entities.City", "City")
+                        .WithMany()
+                        .HasForeignKey("CityId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("Author");
+
+                    b.Navigation("City");
                 });
 
             modelBuilder.Entity("NoiseVault.Domain.Entities.ArchiveLike", b =>
@@ -2042,6 +2092,16 @@ namespace NoiseVault.Infra.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("RequestedByUser");
+                });
+
+            modelBuilder.Entity("NoiseVault.Domain.Entities.Band", b =>
+                {
+                    b.HasOne("NoiseVault.Domain.Entities.City", "City")
+                        .WithMany()
+                        .HasForeignKey("CityId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("City");
                 });
 
             modelBuilder.Entity("NoiseVault.Domain.Entities.BandGenre", b =>
@@ -2125,6 +2185,11 @@ namespace NoiseVault.Infra.Data.Migrations
                         .HasForeignKey("BandId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("NoiseVault.Domain.Entities.City", "City")
+                        .WithMany()
+                        .HasForeignKey("CityId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("NoiseVault.Domain.Entities.User", "Organizer")
                         .WithMany()
                         .HasForeignKey("OrganizerUserId")
@@ -2132,6 +2197,8 @@ namespace NoiseVault.Infra.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Band");
+
+                    b.Navigation("City");
 
                     b.Navigation("Organizer");
                 });
@@ -2397,6 +2464,16 @@ namespace NoiseVault.Infra.Data.Migrations
                         .HasForeignKey("SupportTicketId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("NoiseVault.Domain.Entities.User", b =>
+                {
+                    b.HasOne("NoiseVault.Domain.Entities.City", "City")
+                        .WithMany()
+                        .HasForeignKey("CityId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("City");
                 });
 
             modelBuilder.Entity("NoiseVault.Domain.Entities.UserGenre", b =>

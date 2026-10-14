@@ -21,7 +21,7 @@ No lugar entra o **mural das antigas**: o arquivo da cena do ABC, com fotos e fi
   - `AuthorUserId` (quem publicou, sempre alguém com permissão), `Title` (3–150), `Description?` (até 10.000, para contar a história);
   - data aproximada: `Year` (1950 até o ano atual), `Month?` e `Day?`. Dia exige mês, e o dia tem que existir no mês. É a **precisão** da memória: "1987", "agosto de 1987" ou "15 de agosto de 1987";
   - `SortDate`, gravado pelo AppService (o dia 1 completa o que falta), para ordenar;
-  - `Venue?`, `City?` (`EAbcCity`) e `CityName?` (obrigatório com `Other`);
+  - `Venue?`, `CityId?` (município do IBGE) ou `CityName?` (fora do Brasil), opcionais (`cidades.md`);
   - `CoverMediaUploadId`: a capa. Se não for escolhida, ou se a mídia escolhida sair do registro, é a primeira mídia.
 - **`ArchiveBandEntry`** (`BandId?`, `Name?`, `Order`): banda cadastrada ou nome livre, até 30. Mesmo desenho do line-up de evento (`eventos.md`).
 - **`ArchiveMedia`** (`MediaUploadId` único, `Order`, `Caption?` até 500): de 1 a **100** mídias por registro, fotos e vídeos misturados, com legenda em cada uma ("Andreas na guitarra").
@@ -65,7 +65,7 @@ O upload é feito por `POST /api/admin/archive/media/photos|videos` (`Archive.Cr
 - `GET /api/archive` é paginado, com os filtros:
   - `year`, ou `decade` (1980 = 1980–1989);
   - `search` (título, história, local, cidade livre, banda cadastrada ou nome livre);
-  - `city` e `kind` (`photo`/`video`: tem pelo menos uma mídia do tipo);
+  - `cityId` e `kind` (`photo`/`video`: tem pelo menos uma mídia do tipo);
   - `sort` (`newest` padrão, `oldest`), pela `SortDate` com desempate por `Id`.
 - `GET /api/archive/years` → `[{ year, count }]` em ordem crescente, que alimenta a linha do tempo.
 - `GET /api/archive/{id}`: o detalhe traz as mídias com legenda e as 5 primeiras pessoas de "quem estava lá". `GET …/attendees` pagina o resto.
@@ -92,7 +92,7 @@ O upload é feito por `POST /api/admin/archive/media/photos|videos` (`Archive.Cr
 - Registro: `ARCHIVE_ENTRY_NOT_FOUND`.
 - Validação do formulário:
   - `INVALID_ARCHIVE_TITLE`, `INVALID_ARCHIVE_DESCRIPTION`, `INVALID_ARCHIVE_DATE`;
-  - `INVALID_ARCHIVE_VENUE`, `INVALID_ARCHIVE_CITY_NAME`, `INVALID_ARCHIVE_CAPTION`.
+  - `INVALID_ARCHIVE_VENUE`, `INVALID_ARCHIVE_CAPTION`, e os de cidade (`INVALID_CITY`, `INVALID_CITY_NAME`).
 - Mídia: `ARCHIVE_MEDIA_REQUIRED` e `TOO_MANY_ARCHIVE_MEDIA`.
 - Comentário: `ARCHIVE_COMMENT_NOT_FOUND` e `ARCHIVE_COMMENT_FORBIDDEN`.
 - Reaproveitados: `INVALID_LINEUP`, `LINEUP_BAND_NOT_FOUND`, `MEDIA_NOT_ATTACHABLE`, `INVALID_CITY`, `INVALID_COMMENT_TEXT`, `IMAGE_TOO_LARGE`, `VIDEO_TOO_LARGE`.

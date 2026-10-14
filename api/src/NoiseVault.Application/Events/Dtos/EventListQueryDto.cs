@@ -7,7 +7,7 @@ namespace NoiseVault.Application.Events.Dtos
     {
         public string? Scope { get; set; }
         public EMusicGenre? Genre { get; set; }
-        public EAbcCity? City { get; set; }
+        public int? CityId { get; set; }
         public string? Search { get; set; }
         public bool Interested { get; set; }
     }

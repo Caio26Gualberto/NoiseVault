@@ -7,8 +7,6 @@ namespace NoiseVault.Application.Events
         public const int DescriptionMaxLength = 5000;
         public const int VenueMinLength = 2;
         public const int VenueMaxLength = 120;
-        public const int CityNameMinLength = 2;
-        public const int CityNameMaxLength = 80;
         public const int TicketsUrlMaxLength = 500;
         public const decimal MaxPrice = 100_000m;
         public const int MaxCapacity = 200_000;

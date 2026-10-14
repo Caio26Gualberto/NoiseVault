@@ -1,3 +1,4 @@
+using NoiseVault.Application.Cities.Dtos;
 using Microsoft.EntityFrameworkCore;
 using NoiseVault.Application.Archive.Interfaces;
 using NoiseVault.Application.Archive.Models;
@@ -23,8 +24,8 @@ namespace NoiseVault.Infra.Data.Repositories.Archive
             if (filter.Decade != null)
                 query = query.Where(e => e.Year >= filter.Decade && e.Year < filter.Decade + 10);
 
-            if (filter.City != null)
-                query = query.Where(e => e.City == filter.City);
+            if (filter.CityId != null)
+                query = query.Where(e => e.CityId == filter.CityId);
 
             if (filter.Kind != null)
                 query = query.Where(e => e.Media.Any(m => !m.IsDeleted && m.MediaUpload!.Kind == filter.Kind));
@@ -39,6 +40,7 @@ namespace NoiseVault.Infra.Data.Repositories.Archive
                     || (e.Description != null && e.Description.ToLower().Contains(term))
                     || (e.Venue != null && e.Venue.ToLower().Contains(term))
                     || (e.CityName != null && e.CityName.ToLower().Contains(term))
+                    || (e.City != null && e.City.Name.ToLower().Contains(term))
                     || e.Bands.Any(b => !b.IsDeleted
                         && ((b.Name != null && b.Name.ToLower().Contains(term))
                             || (b.Band != null && b.Band.Name.ToLower().Contains(term)))));
@@ -151,7 +153,7 @@ namespace NoiseVault.Infra.Data.Repositories.Archive
                 Month = e.Month,
                 Day = e.Day,
                 Venue = e.Venue,
-                City = e.City,
+                City = e.City == null ? null : new CityDto { Id = e.City.Id, Name = e.City.Name, Uf = e.City.Uf },
                 CityName = e.CityName,
                 CoverMediaUploadId = e.CoverMediaUploadId,
                 CreatedAt = e.CreatedAt,

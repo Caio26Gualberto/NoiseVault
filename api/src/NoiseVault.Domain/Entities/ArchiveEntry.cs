@@ -1,5 +1,3 @@
-using NoiseVault.Domain.Enums.Profiles;
-
 namespace NoiseVault.Domain.Entities
 {
     public class ArchiveEntry : EntityBase
@@ -12,7 +10,8 @@ namespace NoiseVault.Domain.Entities
         public int? Day { get; set; }
         public DateTime SortDate { get; set; }
         public string? Venue { get; set; }
-        public EAbcCity? City { get; set; }
+        public int? CityId { get; set; }
+        public City? City { get; set; }
         public string? CityName { get; set; }
         public int? CoverMediaUploadId { get; set; }
 

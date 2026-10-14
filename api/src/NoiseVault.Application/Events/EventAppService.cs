@@ -1,3 +1,4 @@
+using NoiseVault.Application.Cities.Interfaces;
 using NoiseVault.Application.Abstractions.Authentication;
 using NoiseVault.Application.Abstractions.Logging;
 using NoiseVault.Application.Notifications;
@@ -39,6 +40,7 @@ namespace NoiseVault.Application.Events
         private readonly IFileStorage _fileStorage;
         private readonly ImageReplacement _images;
         private readonly INotificationAppService _notificationAppService;
+        private readonly ICityAppService _cityAppService;
         private readonly IApplicationLogger _logger;
 
         public EventAppService(
@@ -52,8 +54,10 @@ namespace NoiseVault.Application.Events
             IFileStorage fileStorage,
             IImageProcessor imageProcessor,
             INotificationAppService notificationAppService,
+            ICityAppService cityAppService,
             IApplicationLoggerFactory loggerFactory)
         {
+            _cityAppService = cityAppService;
             _eventRepository = eventRepository;
             _lineupRepository = lineupRepository;
             _unitOfWork = unitOfWork;
@@ -411,7 +415,7 @@ namespace NoiseVault.Application.Events
                 DateTime.UtcNow,
                 Past: string.Equals(query.Scope, "past", StringComparison.OrdinalIgnoreCase),
                 Genre: query.Genre,
-                City: query.City,
+                CityId: query.CityId,
                 Search: query.Search,
                 InterestedOnly: query.Interested));
 
@@ -464,7 +468,7 @@ namespace NoiseVault.Application.Events
             DateTime StartsAt,
             DateTime? EndsAt,
             string Venue,
-            EAbcCity City,
+            int? CityId,
             string? CityName,
             List<EMusicGenre> Genres,
             string? TicketsUrl,
@@ -498,13 +502,10 @@ namespace NoiseVault.Application.Events
             if (venue.Length is < EventRules.VenueMinLength or > EventRules.VenueMaxLength)
                 return Invalid("INVALID_EVENT_VENUE", $"Venue must have between {EventRules.VenueMinLength} and {EventRules.VenueMaxLength} characters");
 
-            if (!Enum.IsDefined(input.City))
-                return Invalid("INVALID_CITY", "City is not in the supported list");
+            var city = await _cityAppService.Resolve(input.CityId, input.CityName, required: true);
 
-            var cityName = input.City == EAbcCity.Other ? ProfileRules.NormalizeOptionalText(input.CityName) : null;
-
-            if (input.City == EAbcCity.Other && cityName is not { Length: >= EventRules.CityNameMinLength and <= EventRules.CityNameMaxLength })
-                return Invalid("INVALID_EVENT_CITY_NAME", $"Tell the city name, between {EventRules.CityNameMinLength} and {EventRules.CityNameMaxLength} characters");
+            if (city.Error != null)
+                return (null, city.Error);
 
             var genres = input.Genres ?? [];
 
@@ -533,8 +534,8 @@ namespace NoiseVault.Application.Events
                 startsAt,
                 endsAt,
                 venue,
-                input.City,
-                cityName,
+                city.CityId,
+                city.CityName,
                 genres,
                 ticketsUrl,
                 input.Price is { } price ? Math.Round(price, 2) : null,
@@ -578,7 +579,7 @@ namespace NoiseVault.Application.Events
             entity.EndsAt = data.EndsAt;
             entity.EndsAtOrDefault = EventRules.EndsAtOrDefault(data.StartsAt, data.EndsAt);
             entity.Venue = data.Venue;
-            entity.City = data.City;
+            entity.CityId = data.CityId;
             entity.CityName = data.CityName;
             entity.TicketsUrl = data.TicketsUrl;
             entity.Price = data.Price;

@@ -1,3 +1,4 @@
+using NoiseVault.Application.Cities;
 using NoiseVault.Application.Abstractions.Repository;
 using NoiseVault.Application.Auth;
 using NoiseVault.Application.Bands.Interfaces;
@@ -36,7 +37,7 @@ namespace NoiseVault.Application.PublicProfiles
             var user = await _userRepository.FirstOrDefaultAsync(new QueryOptions<User>
             {
                 Predicate = u => u.Nickname == normalized && u.IsActive,
-                Includes = [u => u.Genres],
+                Includes = [u => u.Genres, u => u.City!],
                 AsNoTracking = true,
             });
 
@@ -52,7 +53,8 @@ namespace NoiseVault.Application.PublicProfiles
                 BannerUrl = _fileStorage.PublicUrl(user.BannerKey),
                 BannerPosition = user.BannerPosition,
                 Bio = user.Bio,
-                City = user.City,
+                City = user.City == null ? null : CityAppService.Map(user.City),
+                CityName = user.CityName,
                 MainInstrument = user.MainInstrument,
                 Genres = user.Genres.Select(g => g.Genre).OrderBy(g => g).ToList(),
                 SocialLinks = new SocialLinksDto

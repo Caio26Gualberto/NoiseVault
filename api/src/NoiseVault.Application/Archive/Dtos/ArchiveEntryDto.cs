@@ -1,3 +1,4 @@
+using NoiseVault.Application.Cities.Dtos;
 using NoiseVault.Application.Media.Dtos;
 using NoiseVault.Application.PublicProfiles.Dtos;
 using NoiseVault.Domain.Enums.Profiles;
@@ -13,7 +14,7 @@ namespace NoiseVault.Application.Archive.Dtos
         public int? Month { get; set; }
         public int? Day { get; set; }
         public string? Venue { get; set; }
-        public EAbcCity? City { get; set; }
+        public CityDto? City { get; set; }
         public string? CityName { get; set; }
         public ProfileSummaryDto Author { get; set; } = new();
         public List<ArchiveBandDto> Bands { get; set; } = [];

@@ -46,6 +46,7 @@ namespace NoiseVault.Infra.Data.Context.Seeding
         {
             await SeedRolesAsync();
             await SeedRolePermissionsAsync(Roles.User, RoleDefaultPermissions.User);
+            await CitySeed.SeedAsync(_context);
 
             if (includeAdminAccount)
                 await SeedUserAsync(AdminEmail, AdminName, Roles.Admin);

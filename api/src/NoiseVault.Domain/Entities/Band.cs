@@ -1,5 +1,3 @@
-using NoiseVault.Domain.Enums.Profiles;
-
 namespace NoiseVault.Domain.Entities
 {
     public class Band : EntityBase
@@ -9,7 +7,9 @@ namespace NoiseVault.Domain.Entities
         public string Name { get; set; } = string.Empty;
         public string Slug { get; set; } = string.Empty;
         public string? Description { get; set; }
-        public EAbcCity? City { get; set; }
+        public int? CityId { get; set; }
+        public City? City { get; set; }
+        public string? CityName { get; set; }
         public int? FoundedYear { get; set; }
         public string? InstagramUrl { get; set; }
         public string? YoutubeUrl { get; set; }

@@ -1,5 +1,4 @@
 using NoiseVault.Domain.Enums.Events;
-using NoiseVault.Domain.Enums.Profiles;
 
 namespace NoiseVault.Domain.Entities
 {
@@ -15,7 +14,8 @@ namespace NoiseVault.Domain.Entities
         public DateTime? EndsAt { get; set; }
         public DateTime EndsAtOrDefault { get; set; }
         public string Venue { get; set; } = string.Empty;
-        public EAbcCity City { get; set; }
+        public int? CityId { get; set; }
+        public City? City { get; set; }
         public string? CityName { get; set; }
         public string? TicketsUrl { get; set; }
         public decimal? Price { get; set; }

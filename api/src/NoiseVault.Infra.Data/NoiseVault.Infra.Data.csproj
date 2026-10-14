@@ -10,6 +10,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Context\Seeding\ibge-municipios.json" LogicalName="NoiseVault.Infra.Data.Context.Seeding.ibge-municipios.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AWSSDK.S3" Version="4.0.104.3" />
     <PackageReference Include="MailKit" Version="4.18.1" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.9" />
