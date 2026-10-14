@@ -2,8 +2,7 @@ import { z } from 'zod'
 
 import { nameSchema } from '@/auth/validators'
 import { instrumentMaxLength, isValidSocialLink, maxGenres } from '@/pages/minha-conta/profile-validators'
-import { allAbcCities } from '@/pages/perfil/cities'
-import type { AbcCity } from '@/pages/perfil/cities'
+import { cityValueSchema, emptyCityValue, toCityInput, toCityValue } from '@/pages/perfil/city'
 import { allMusicGenres } from '@/pages/perfil/genres'
 import type { MusicGenre } from '@/pages/perfil/genres'
 
@@ -21,7 +20,7 @@ const socialLink = (network: 'instagram' | 'youtube' | 'spotify') =>
 export const bandFormSchema = z.object({
   name: nameSchema,
   description: z.string().trim().max(bandDescriptionMaxLength, 'validation.bandDescriptionLength'),
-  city: z.string().refine((value) => value === '' || allAbcCities.includes(Number(value) as never), 'validation.required'),
+  city: cityValueSchema,
   foundedYear: z
     .string()
     .trim()
@@ -46,7 +45,7 @@ const orNull = (value: string) => (value === '' ? null : value)
 export const emptyBandForm: BandFormValues = {
   name: '',
   description: '',
-  city: '',
+  city: emptyCityValue,
   foundedYear: '',
   instrument: '',
   genres: [],
@@ -59,7 +58,7 @@ export function toBandForm(band: BandProfileDto): BandFormValues {
   return {
     name: band.name,
     description: band.description ?? '',
-    city: band.city === null ? '' : String(band.city),
+    city: toCityValue(band),
     foundedYear: band.foundedYear === null ? '' : String(band.foundedYear),
     instrument: '',
     genres: band.genres,
@@ -73,7 +72,7 @@ export function toBandInput(values: BandFormValues): BandInput {
   return {
     name: values.name,
     description: orNull(values.description),
-    city: values.city === '' ? null : (Number(values.city) as AbcCity),
+    ...toCityInput(values.city),
     foundedYear: values.foundedYear === '' ? null : Number(values.foundedYear),
     genres: values.genres as MusicGenre[],
     socialLinks: {

@@ -5,17 +5,16 @@ import { Link } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { formatCompact } from '@/lib/format'
 import { MediaKind } from '@/pages/feed/media-kind'
-import { useEventPlace } from '@/pages/eventos/event-place'
+import { formatCity } from '@/pages/perfil/city'
 
 import { archiveDateBadge } from '../archive-date'
 import type { ArchiveEntryDto } from '../services/mural-service'
 
 export function ArchiveCard({ entry }: { entry: ArchiveEntryDto }) {
   const { t } = useTranslation('mural')
-  const place = useEventPlace()
   const badge = archiveDateBadge(entry)
   const coverUrl = entry.cover ? (entry.cover.kind === MediaKind.video ? entry.cover.posterUrl : entry.cover.url) : null
-  const where = [entry.venue, entry.city !== null ? place({ city: entry.city, cityName: entry.cityName }) : null].filter(Boolean).join(' · ')
+  const where = [entry.venue, formatCity(entry)].filter(Boolean).join(' · ')
 
   return (
     <article className="group flex flex-col overflow-hidden rounded-xl border bg-card transition-colors hover:border-primary/50">

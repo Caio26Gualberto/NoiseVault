@@ -4,7 +4,7 @@ import { emptyPage } from '@/api/types'
 import type { PagedResult } from '@/api/types'
 import { defaultPageSize } from '@/components/app-pagination'
 import { useDebouncedValue } from '@/hooks/use-debounced-value'
-import type { AbcCity } from '@/pages/perfil/cities'
+import type { CityDto } from '@/pages/perfil/city'
 import type { MusicGenre } from '@/pages/perfil/genres'
 
 import { addInterest, getEvents, removeInterest } from '../services/eventos-service'
@@ -15,7 +15,7 @@ export function useEventosPage() {
   const [scope, setScope] = useState<EventScope>('upcoming')
   const [interested, setInterested] = useState(false)
   const [genre, setGenre] = useState<MusicGenre | null>(null)
-  const [city, setCity] = useState<AbcCity | null>(null)
+  const [city, setCity] = useState<CityDto | null>(null)
   const [search, setSearch] = useState('')
   const debouncedSearch = useDebouncedValue(search)
   const [result, setResult] = useState<PagedResult<EventDto>>(() => emptyPage(defaultPageSize))
@@ -57,7 +57,7 @@ export function useEventosPage() {
     setPage(1)
   }
 
-  const changeCity = (value: AbcCity | null) => {
+  const changeCity = (value: CityDto | null) => {
     setCity(value)
     setPage(1)
   }

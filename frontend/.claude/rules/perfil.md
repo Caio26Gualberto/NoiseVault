@@ -33,7 +33,7 @@ Rule irmã: `../api/.claude/rules/perfil-e-midia.md` (campos, validação, codes
 
 A seção Perfil de `/minha-conta` envia tudo de uma vez (nome, bio, cidade, instrumento, gêneros, links). Os schemas zod em `pages/minha-conta/profile-validators.ts` espelham `perfil-e-midia.md` (bio 500, instrumento 60, até 10 gêneros, link `http(s)` no host do serviço). ⚠️ Mudou a regra no backend, muda aqui no mesmo commit.
 
-Cidade e gêneros são `Select` e chips de múltipla escolha alimentados por `pages/perfil/cities.ts` e `genres.ts` (numeração igual à do backend).
+A cidade é o `AppCityField` (busca no `GET /api/cities` por `pages/perfil/services/cidades-service.ts`, mais "Fora do Brasil"), e os gêneros são chips de múltipla escolha de `genres.ts` (numeração igual à do backend). Tipo, conversão para o formulário (`toCityValue`, `toCityInput`), schema zod e `formatCity` moram em `pages/perfil/city.ts`.
 
 ## Avatar: escolher, ver, enviar
 

@@ -13,10 +13,10 @@ import { AppAvatarUploader } from '@/components/app-avatar-uploader'
 import { AppBannerEditor } from '@/components/app-banner-editor'
 import { AppButton } from '@/components/app-button'
 import { AppCard } from '@/components/app-card'
-import { AppChipsField, AppField, AppForm, AppPasswordField, AppSelectField, AppTextareaField } from '@/components/app-field'
+import { AppChipsField, AppCityField, AppField, AppForm, AppPasswordField, AppTextareaField } from '@/components/app-field'
 import { AppPageHeader } from '@/components/app-page-header'
-import { allAbcCities, useAbcCityLabel } from '@/pages/perfil/cities'
-import type { AbcCity } from '@/pages/perfil/cities'
+import { toCityInput, toCityValue } from '@/pages/perfil/city'
+import { searchCities } from '@/pages/perfil/services/cidades-service'
 import { allMusicGenres, useMusicGenreLabel } from '@/pages/perfil/genres'
 
 import { NotificationSettings } from './components/notification-settings'
@@ -38,7 +38,7 @@ function toFormValues(user: ProfileDto): ProfileFormValues {
   return {
     name: user.name,
     bio: user.bio ?? '',
-    city: user.city === null ? '' : String(user.city),
+    city: toCityValue(user),
     mainInstrument: user.mainInstrument ?? '',
     genres: user.genres,
     instagram: user.socialLinks.instagram ?? '',
@@ -53,7 +53,6 @@ export function MinhaContaPage() {
   const { t } = useTranslation('conta')
   const { t: tAuth } = useTranslation('auth')
   const { user, replaceUser } = useAuth()
-  const cityLabel = useAbcCityLabel()
   const genreLabel = useMusicGenreLabel()
   const [savingProfile, setSavingProfile] = useState(false)
   const [savingPassword, setSavingPassword] = useState(false)
@@ -76,7 +75,7 @@ export function MinhaContaPage() {
       const updated = await updateProfile({
         name: values.name,
         bio: orNull(values.bio),
-        city: values.city === '' ? null : (Number(values.city) as AbcCity),
+        ...toCityInput(values.city),
         mainInstrument: orNull(values.mainInstrument),
         genres: values.genres as ProfileDto['genres'],
         socialLinks: {
@@ -162,13 +161,14 @@ export function MinhaContaPage() {
             description={t('profile.bioHint', { max: bioMaxLength })}
           />
           <div className="grid gap-4 md:grid-cols-2">
-            <AppSelectField
+            <AppCityField
               name="city"
               label={t('profile.city')}
               placeholder={t('profile.cityPlaceholder')}
-              emptyLabel={t('profile.cityNone')}
+              clearLabel={t('profile.cityNone')}
               hint={t('profile.cityTooltip')}
-              options={allAbcCities.map((city) => ({ value: String(city), label: cityLabel(city) }))}
+              search={searchCities}
+              allowAbroad
             />
             <AppField name="mainInstrument" label={t('profile.instrument')} placeholder={t('profile.instrumentPlaceholder')} />
           </div>

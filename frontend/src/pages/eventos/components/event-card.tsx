@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils'
 import { dayParts, formatPrice, formatTime } from '@/lib/format'
 
 import { EventStatus } from '../event-status'
-import { useEventPlace } from '../event-place'
+import { formatCity } from '@/pages/perfil/city'
 import type { EventDto } from '../services/eventos-service'
 
 type EventCardProps = {
@@ -19,7 +19,6 @@ type EventCardProps = {
 
 export function EventCard({ event, onToggleInterest }: EventCardProps) {
   const { t } = useTranslation('eventos')
-  const place = useEventPlace()
   const { day, month } = dayParts(event.startsAt)
   const price = formatPrice(event.price)
   const cancelled = event.status === EventStatus.cancelled
@@ -50,7 +49,7 @@ export function EventCard({ event, onToggleInterest }: EventCardProps) {
           <p className="app-meta inline-flex items-center gap-1.5">
             <MapPinIcon className="size-3.5 shrink-0" />
             <span className="truncate">
-              {event.venue} · {place(event)} · {formatTime(event.startsAt)}
+              {event.venue} · {formatCity(event)} · {formatTime(event.startsAt)}
             </span>
           </p>
           {event.lineup.length > 0 ? (

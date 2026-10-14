@@ -1,4 +1,4 @@
-import type { AbcCity } from '@/pages/perfil/cities'
+import type { CityDto } from '@/pages/perfil/city'
 import type { MusicGenre } from '@/pages/perfil/genres'
 import type { SocialLinksDto } from '@/pages/perfil/services/perfil-service'
 
@@ -62,7 +62,8 @@ export type ProfileDto = {
   bannerPosition: number
   emailOnBandInvite: boolean
   bio: string | null
-  city: AbcCity | null
+  city: CityDto | null
+  cityName: string | null
   mainInstrument: string | null
   genres: MusicGenre[]
   socialLinks: SocialLinksDto

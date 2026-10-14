@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 import { nameSchema } from '@/auth/validators'
-import { allAbcCities } from '@/pages/perfil/cities'
+import { cityValueSchema } from '@/pages/perfil/city'
 import { allMusicGenres } from '@/pages/perfil/genres'
 
 export const bioMaxLength = 500
@@ -39,7 +39,7 @@ const socialLinkSchema = (network: SocialNetwork) =>
 export const profileFormSchema = z.object({
   name: nameSchema,
   bio: z.string().trim().max(bioMaxLength, 'validation.bioLength'),
-  city: z.string().refine((value) => value === '' || allAbcCities.includes(Number(value) as never), 'validation.required'),
+  city: cityValueSchema,
   mainInstrument: z.string().trim().max(instrumentMaxLength, 'validation.instrumentLength'),
   genres: z
     .array(z.number().refine((value) => allMusicGenres.includes(value as never)))

@@ -43,17 +43,6 @@
     "postMetal": "Post-Metal",
     "other": "Outros"
   },
-  "cities": {
-    "santoAndre": "Santo André",
-    "saoBernardo": "São Bernardo do Campo",
-    "saoCaetano": "São Caetano do Sul",
-    "diadema": "Diadema",
-    "maua": "Mauá",
-    "ribeiraoPires": "Ribeirão Pires",
-    "rioGrandeDaSerra": "Rio Grande da Serra",
-    "saoPaulo": "São Paulo",
-    "other": "Outra cidade"
-  },
   "bands": {
     "title": "Bandas",
     "create": "Criar banda",

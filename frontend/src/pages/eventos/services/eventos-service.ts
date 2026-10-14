@@ -1,6 +1,6 @@
 import { apiDelete, apiGet, apiPatch, apiPost, apiPostForm, apiPut } from '@/api/base-service'
 import type { PagedRequest, PagedResult } from '@/api/types'
-import type { AbcCity } from '@/pages/perfil/cities'
+import type { CityDto } from '@/pages/perfil/city'
 import type { MusicGenre } from '@/pages/perfil/genres'
 import type { BandSummaryDto } from '@/pages/bandas/services/bandas-service'
 import type { ProfileSummaryDto } from '@/pages/perfil/services/perfil-service'
@@ -19,7 +19,7 @@ export type EventDto = {
   startsAt: string
   endsAt: string | null
   venue: string
-  city: AbcCity
+  city: CityDto | null
   cityName: string | null
   bannerUrl: string | null
   bannerPosition: number
@@ -47,7 +47,7 @@ export type EventSummaryDto = {
   bannerPosition: number
   startsAt: string
   venue: string
-  city: AbcCity
+  city: CityDto | null
   cityName: string | null
   status: EventStatus
   hasEnded: boolean
@@ -58,7 +58,7 @@ export type EventScope = 'upcoming' | 'past'
 export type EventListQuery = PagedRequest & {
   scope: EventScope
   genre: MusicGenre | null
-  city: AbcCity | null
+  city: CityDto | null
   search: string
   interested: boolean
 }
@@ -74,7 +74,7 @@ export type EventInputDto = {
   startsAt: string
   endsAt: string | null
   venue: string
-  city: AbcCity
+  cityId: number | null
   cityName: string | null
   genres: MusicGenre[]
   ticketsUrl: string | null
@@ -101,7 +101,7 @@ function listParams(query: EventListQuery) {
     pageSize: query.pageSize,
     scope: query.scope,
     genre: query.genre ?? undefined,
-    city: query.city ?? undefined,
+    cityId: query.city?.id,
     search: query.search || undefined,
     interested: query.interested || undefined,
   }

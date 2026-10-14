@@ -28,7 +28,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { cn } from '@/lib/utils'
 import { formatDuration, formatRelative } from '@/lib/format'
 import { CommentComposer } from '@/pages/eventos/components/comment-composer'
-import { useEventPlace } from '@/pages/eventos/event-place'
+import { formatCity } from '@/pages/perfil/city'
 import { MediaKind } from '@/pages/feed/media-kind'
 import { MediaStatus } from '@/pages/feed/media-status'
 
@@ -42,7 +42,6 @@ export function MuralDetalhePage() {
   const { id = '' } = useParams()
   const navigate = useNavigate()
   const confirm = useAppConfirm()
-  const place = useEventPlace()
   const detail = useArchiveDetail(Number(id))
   const [viewerIndex, setViewerIndex] = useState<number | null>(null)
   const [attendeesOpen, setAttendeesOpen] = useState(false)
@@ -57,7 +56,7 @@ export function MuralDetalhePage() {
   }
 
   const { entry } = state
-  const where = [entry.venue, entry.city !== null ? place({ city: entry.city, cityName: entry.cityName }) : null].filter(Boolean).join(' · ')
+  const where = [entry.venue, formatCity(entry)].filter(Boolean).join(' · ')
   const ready = entry.media.filter((item) => item.media.status === MediaStatus.ready && item.media.url)
   const viewerItems: ViewerItem[] = ready.map((item) => ({
     id: item.media.id,

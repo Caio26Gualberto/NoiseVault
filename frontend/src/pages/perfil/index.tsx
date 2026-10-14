@@ -18,7 +18,7 @@ import { AppSocialLinks } from '@/components/app-social-links'
 import { formatDate } from '@/lib/format'
 import { OwnerPosts } from '@/pages/feed/components/owner-posts'
 
-import { useAbcCityLabel } from './cities'
+import { formatCity } from './city'
 import { getUserProfile } from './services/perfil-service'
 import type { UserProfileDto } from './services/perfil-service'
 
@@ -28,7 +28,6 @@ export function PerfilPage() {
   const { t } = useTranslation('perfil')
   const { nickname = '' } = useParams()
   const { user } = useAuth()
-  const cityLabel = useAbcCityLabel()
   const [state, setState] = useState<LoadState>({ status: 'loading' })
 
   useEffect(() => {
@@ -101,10 +100,10 @@ export function PerfilPage() {
         }
       >
         <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
-          {profile.city !== null ? (
+          {formatCity(profile) ? (
             <span className="inline-flex items-center gap-1.5">
               <MapPinIcon className="size-4" />
-              {cityLabel(profile.city)}
+              {formatCity(profile)}
             </span>
           ) : null}
           {profile.mainInstrument ? (

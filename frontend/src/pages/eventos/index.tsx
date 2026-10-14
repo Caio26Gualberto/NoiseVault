@@ -10,9 +10,9 @@ import { AppSkeleton } from '@/components/app-skeleton'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
-import { allAbcCities, useAbcCityLabel } from '@/pages/perfil/cities'
+import { AppCitySelect } from '@/components/app-city-select'
+import { searchCities } from '@/pages/perfil/services/cidades-service'
 import { allMusicGenres, useMusicGenreLabel } from '@/pages/perfil/genres'
-import type { AbcCity } from '@/pages/perfil/cities'
 import type { MusicGenre } from '@/pages/perfil/genres'
 
 import { EventCard } from './components/event-card'
@@ -25,7 +25,6 @@ export function EventosPage() {
   const { t } = useTranslation('eventos')
   const page = useEventosPage()
   const genreLabel = useMusicGenreLabel()
-  const cityLabel = useAbcCityLabel()
 
   return (
     <div className="app-page-enter flex flex-col">
@@ -91,22 +90,15 @@ export function EventosPage() {
             ))}
           </SelectContent>
         </Select>
-        <Select
-          value={page.city === null ? all : String(page.city)}
-          onValueChange={(value) => page.changeCity(value === all ? null : (Number(value) as AbcCity))}
-        >
-          <SelectTrigger className="h-10 md:w-56" aria-label={t('filters.city')}>
-            <SelectValue placeholder={t('filters.city')} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={all}>{t('filters.allCities')}</SelectItem>
-            {allAbcCities.map((city) => (
-              <SelectItem key={city} value={String(city)}>
-                {cityLabel(city)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <AppCitySelect
+          value={{ city: page.city, cityName: '' }}
+          onChange={(value) => page.changeCity(value.city)}
+          search={searchCities}
+          placeholder={t('filters.allCities')}
+          clearLabel={t('filters.allCities')}
+          ariaLabel={t('filters.city')}
+          className="h-10 md:h-10 md:w-56"
+        />
       </div>
 
       {page.loading ? (

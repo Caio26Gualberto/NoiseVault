@@ -9,7 +9,7 @@ import { useAuth } from '@/auth/use-auth'
 import { AppBannerEditor } from '@/components/app-banner-editor'
 import { AppButton } from '@/components/app-button'
 import { AppCard } from '@/components/app-card'
-import { AppField, AppForm, AppTextareaField } from '@/components/app-field'
+import { AppCityField, AppField, AppForm, AppTextareaField } from '@/components/app-field'
 import { AppPageHeader } from '@/components/app-page-header'
 import { AppSkeleton } from '@/components/app-skeleton'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -17,7 +17,8 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { getMyBands } from '@/pages/bandas/services/bandas-service'
 import type { BandSummaryDto } from '@/pages/bandas/services/bandas-service'
-import { AbcCity, allAbcCities, useAbcCityLabel } from '@/pages/perfil/cities'
+import { cityValueSchema, emptyCityValue, toCityInput, toCityValue } from '@/pages/perfil/city'
+import { searchCities } from '@/pages/perfil/services/cidades-service'
 import { allMusicGenres, useMusicGenreLabel } from '@/pages/perfil/genres'
 import type { MusicGenre } from '@/pages/perfil/genres'
 
@@ -44,14 +45,13 @@ const schema = z
     startsAt: z.string().min(1, 'validation.required'),
     endsAt: z.string(),
     venue: z.string().trim().min(2, 'validation.required').max(120),
-    city: z.number(),
-    cityName: z.string().trim().max(80),
+    city: cityValueSchema,
     genres: z.array(z.number()).max(maxGenres),
     ticketsUrl: z.string().trim().max(500).refine((value) => !value || /^https?:\/\//i.test(value), 'validation.url'),
     price: z.string().trim().refine((value) => !value || !Number.isNaN(Number(value.replace(',', '.'))), 'validation.number'),
     capacity: z.string().trim().refine((value) => !value || /^\d+$/.test(value), 'validation.number'),
   })
-  .refine((values) => values.city !== AbcCity.other || values.cityName.length >= 2, { path: ['cityName'], message: 'validation.required' })
+  .refine((values) => values.city.city !== null || values.city.cityName.length >= 2, { path: ['city'], message: 'validation.cityRequired' })
   .refine((values) => !values.endsAt || new Date(values.endsAt) > new Date(values.startsAt), { path: ['endsAt'], message: 'validation.endsAfterStart' })
 
 type FormValues = z.infer<typeof schema>
@@ -72,8 +72,7 @@ function toInput(values: FormValues, lineup: LineupItem[]): EventInputDto {
     startsAt: new Date(values.startsAt).toISOString(),
     endsAt: values.endsAt ? new Date(values.endsAt).toISOString() : null,
     venue: values.venue,
-    city: values.city as AbcCity,
-    cityName: values.city === AbcCity.other ? values.cityName : null,
+    ...toCityInput(values.city),
     genres: values.genres as MusicGenre[],
     ticketsUrl: values.ticketsUrl || null,
     price: values.price ? Number(values.price.replace(',', '.')) : null,
@@ -96,7 +95,6 @@ export function EventoFormPage() {
   const [banner, setBanner] = useState<{ url: string | null; position: number }>({ url: null, position: 50 })
   const [pending, setPending] = useState<PendingBanner | null>(null)
   const genreLabel = useMusicGenreLabel()
-  const cityLabel = useAbcCityLabel()
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -106,8 +104,7 @@ export function EventoFormPage() {
       startsAt: '',
       endsAt: '',
       venue: '',
-      city: AbcCity.santoAndre,
-      cityName: '',
+      city: emptyCityValue,
       genres: [],
       ticketsUrl: '',
       price: '',
@@ -144,8 +141,7 @@ export function EventoFormPage() {
           startsAt: toLocalInput(event.startsAt),
           endsAt: toLocalInput(event.endsAt),
           venue: event.venue,
-          city: event.city,
-          cityName: event.cityName ?? '',
+          city: toCityValue(event),
           genres: event.genres,
           ticketsUrl: event.ticketsUrl ?? '',
           price: event.price?.toString().replace('.', ',') ?? '',
@@ -168,7 +164,6 @@ export function EventoFormPage() {
   }, [pending])
 
   const genres = useWatch({ control: form.control, name: 'genres' })
-  const city = useWatch({ control: form.control, name: 'city' })
 
   const submit = async (values: FormValues) => {
     setSaving(true)
@@ -275,23 +270,14 @@ export function EventoFormPage() {
           </div>
           <div className="grid gap-4 md:grid-cols-2">
             <AppField name="venue" label={t('form.fields.venue')} placeholder={t('form.venuePlaceholder')} />
-            <div className="flex flex-col gap-1.5">
-              <Label>{t('form.fields.city')}</Label>
-              <Select value={String(city)} onValueChange={(value) => form.setValue('city', Number(value), { shouldValidate: true })}>
-                <SelectTrigger className="h-11 md:h-10" aria-label={t('form.fields.city')}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {allAbcCities.map((option) => (
-                    <SelectItem key={option} value={String(option)}>
-                      {option === AbcCity.other ? t('form.otherCity') : cityLabel(option)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <AppCityField
+              name="city"
+              label={t('form.fields.city')}
+              placeholder={t('form.cityPlaceholder')}
+              search={searchCities}
+              allowAbroad
+            />
           </div>
-          {city === AbcCity.other ? <AppField name="cityName" label={t('form.fields.cityName')} placeholder={t('form.cityNamePlaceholder')} /> : null}
 
           <LineupEditor value={lineup} onChange={setLineup} />
 

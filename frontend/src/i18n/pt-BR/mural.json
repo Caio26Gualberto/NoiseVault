@@ -80,7 +80,7 @@
     "dateHint": "Só o ano já basta. Mês e dia são opcionais.",
     "unknown": "Não sei",
     "unknownShort": "—",
-    "otherCity": "Outra cidade",
+    "cityPlaceholder": "Busque a cidade",
     "venuePlaceholder": "Ex.: Ginásio Pedro Dell'Antonia",
     "descriptionPlaceholder": "Quem estava, o que rolou, de onde veio a fita…",
     "bandsHint": "Busque bandas do Noise Vault ou digite qualquer nome.",
@@ -95,7 +95,6 @@
       "day": "Dia",
       "venue": "Local (opcional)",
       "city": "Cidade",
-      "cityName": "Nome da cidade",
       "description": "A história (opcional)",
       "bands": "Bandas"
     },

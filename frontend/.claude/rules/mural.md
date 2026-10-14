@@ -51,7 +51,7 @@ Rule irmã: `../api/.claude/rules/mural.md`. A regra é do backend; a tela só r
 ## Formulário
 
 - **Data**: ano (obrigatório, 1950 até hoje), mês ("Não sei" por padrão) e dia (vazio). O zod espelha a API: dia exige mês e tem que existir no mês.
-- **Cidade**: "Não sei" ou uma cidade da lista; "Outra cidade" mostra o campo de nome.
+- **Cidade**: `AppCityField` com busca do IBGE, "Fora do Brasil" e "Não sei" para limpar. O filtro da grade é um `AppCitySelect` com "Todas as cidades".
 - **Bandas**: o `LineupEditor` dos eventos, com `legend` e `hint` próprios, importado pelo caminho da página dona (`pages/eventos/components`).
 - **Mídias** (`components/media-manager.tsx`, com o estado em `managed-media.ts`):
   - "Adicionar fotos" (várias) e "Adicionar vídeos" (vários); o envio começa ao escolher;

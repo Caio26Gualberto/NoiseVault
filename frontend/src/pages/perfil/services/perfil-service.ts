@@ -2,7 +2,7 @@ import { apiGet } from '@/api/base-service'
 import type { PagedResult } from '@/api/types'
 import type { BandSummaryDto } from '@/pages/bandas/services/bandas-service'
 
-import type { AbcCity } from '../cities'
+import type { CityDto } from '../city'
 import type { MusicGenre } from '../genres'
 
 export type ProfileSummaryDto = {
@@ -22,7 +22,8 @@ export type UserProfileDto = ProfileSummaryDto & {
   bannerUrl: string | null
   bannerPosition: number
   bio: string | null
-  city: AbcCity | null
+  city: CityDto | null
+  cityName: string | null
   mainInstrument: string | null
   genres: MusicGenre[]
   socialLinks: SocialLinksDto

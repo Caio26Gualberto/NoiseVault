@@ -34,7 +34,19 @@
     "archiveDay": "Esse dia não existe nesse mês.",
     "supportTitle": "Resuma em 5 a 120 caracteres.",
     "supportDescription": "Conte com pelo menos 20 caracteres (até 5000).",
-    "supportTags": "Marque pelo menos um tipo."
+    "supportTags": "Marque pelo menos um tipo.",
+    "cityRequired": "Escolha a cidade ou informe uma fora do Brasil."
+  },
+  "city": {
+    "searchPlaceholder": "Buscar cidade…",
+    "typeMore": "Digite pelo menos 2 letras do nome da cidade.",
+    "loading": "Buscando…",
+    "empty": "Nenhuma cidade encontrada.",
+    "abroad": "Fora do Brasil",
+    "abroadLabel": "Cidade fora do Brasil",
+    "abroadPlaceholder": "Ex.: Lisboa, Portugal",
+    "abroadUse": "Usar esta cidade",
+    "backToBrazil": "Voltar para o Brasil"
   },
   "field": {
     "hint": "Saiba mais sobre {{label}}"

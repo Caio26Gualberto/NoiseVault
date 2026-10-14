@@ -1,6 +1,6 @@
 import { apiDelete, apiGet, apiPatch, apiPost, apiPostForm, apiPut } from '@/api/base-service'
 import type { PagedRequest, PagedResult } from '@/api/types'
-import type { AbcCity } from '@/pages/perfil/cities'
+import type { CityDto } from '@/pages/perfil/city'
 import type { MusicGenre } from '@/pages/perfil/genres'
 import type { ProfileSummaryDto, SocialLinksDto } from '@/pages/perfil/services/perfil-service'
 
@@ -28,7 +28,8 @@ export type BandProfileDto = {
   name: string
   slug: string
   description: string | null
-  city: AbcCity | null
+  city: CityDto | null
+  cityName: string | null
   genres: MusicGenre[]
   foundedYear: number | null
   avatarUrl: string | null
@@ -45,7 +46,8 @@ export type BandProfileDto = {
 export type BandInput = {
   name: string
   description: string | null
-  city: AbcCity | null
+  cityId: number | null
+  cityName: string | null
   genres: MusicGenre[]
   foundedYear: number | null
   socialLinks: SocialLinksDto

@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { emptyPage } from '@/api/types'
 import type { PagedResult } from '@/api/types'
 import { useDebouncedValue } from '@/hooks/use-debounced-value'
-import type { AbcCity } from '@/pages/perfil/cities'
+import type { CityDto } from '@/pages/perfil/city'
 
 import type { TimelineSelection } from '../components/timeline'
 import { getArchive, getArchiveYears } from '../services/mural-service'
@@ -16,7 +16,7 @@ export function useMuralPage() {
   const [selection, setSelection] = useState<TimelineSelection>({ year: null, decade: null })
   const [search, setSearch] = useState('')
   const debouncedSearch = useDebouncedValue(search)
-  const [city, setCity] = useState<AbcCity | null>(null)
+  const [city, setCity] = useState<CityDto | null>(null)
   const [kind, setKind] = useState<ArchiveKind | null>(null)
   const [sort, setSort] = useState<ArchiveSort>('newest')
   const [years, setYears] = useState<ArchiveYearDto[]>([])

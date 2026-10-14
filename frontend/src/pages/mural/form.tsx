@@ -7,14 +7,15 @@ import { z } from 'zod'
 
 import { AppButton } from '@/components/app-button'
 import { AppCard } from '@/components/app-card'
-import { AppField, AppForm, AppTextareaField } from '@/components/app-field'
+import { AppCityField, AppField, AppForm, AppTextareaField } from '@/components/app-field'
 import { AppPageHeader } from '@/components/app-page-header'
 import { AppSkeleton } from '@/components/app-skeleton'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { LineupEditor } from '@/pages/eventos/components/lineup-editor'
 import type { LineupItem } from '@/pages/eventos/components/lineup-editor'
-import { AbcCity, allAbcCities, useAbcCityLabel } from '@/pages/perfil/cities'
+import { cityValueSchema, emptyCityValue, toCityInput, toCityValue } from '@/pages/perfil/city'
+import { searchCities } from '@/pages/perfil/services/cidades-service'
 
 import { MediaManager } from './components/media-manager'
 import { fromSaved } from './managed-media'
@@ -36,8 +37,7 @@ const schema = z
     month: z.string(),
     day: z.string().trim().refine((value) => !value || /^\d{1,2}$/.test(value), 'validation.number'),
     venue: z.string().trim().max(120),
-    city: z.string(),
-    cityName: z.string().trim().max(80),
+    city: cityValueSchema,
   })
   .refine((values) => Number(values.year) >= minYear && Number(values.year) <= currentYear, { path: ['year'], message: 'validation.archiveYear' })
   .refine((values) => !values.day || values.month !== none, { path: ['day'], message: 'validation.archiveDayNeedsMonth' })
@@ -45,7 +45,6 @@ const schema = z
     (values) => !values.day || values.month === none || Number(values.day) <= new Date(Date.UTC(Number(values.year), Number(values.month), 0)).getUTCDate(),
     { path: ['day'], message: 'validation.archiveDay' },
   )
-  .refine((values) => values.city !== String(AbcCity.other) || values.cityName.length >= 2, { path: ['cityName'], message: 'validation.required' })
 
 type FormValues = z.infer<typeof schema>
 
@@ -54,7 +53,6 @@ export function MuralFormPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const entryId = id ? Number(id) : null
-  const cityLabel = useAbcCityLabel()
   const [loading, setLoading] = useState(entryId !== null)
   const [saving, setSaving] = useState(false)
   const [bands, setBands] = useState<LineupItem[]>([])
@@ -64,7 +62,7 @@ export function MuralFormPage() {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { title: '', description: '', year: '', month: none, day: '', venue: '', city: none, cityName: '' },
+    defaultValues: { title: '', description: '', year: '', month: none, day: '', venue: '', city: emptyCityValue },
   })
 
   useEffect(() => {
@@ -84,8 +82,7 @@ export function MuralFormPage() {
           month: entry.month ? String(entry.month) : none,
           day: entry.day ? String(entry.day) : '',
           venue: entry.venue ?? '',
-          city: entry.city === null ? none : String(entry.city),
-          cityName: entry.cityName ?? '',
+          city: toCityValue(entry),
         })
         setBands(entry.bands.map((band) => ({ key: crypto.randomUUID(), band: band.band, name: band.name })))
         const saved = entry.media.map((item) => fromSaved(item.media, item.caption))
@@ -101,7 +98,6 @@ export function MuralFormPage() {
     }
   }, [entryId, form, navigate])
 
-  const city = useWatch({ control: form.control, name: 'city' })
   const month = useWatch({ control: form.control, name: 'month' })
   const uploading = media.some((item) => item.state === 'uploading')
 
@@ -120,8 +116,7 @@ export function MuralFormPage() {
       month: values.month === none ? null : Number(values.month),
       day: values.day ? Number(values.day) : null,
       venue: values.venue || null,
-      city: values.city === none ? null : (Number(values.city) as AbcCity),
-      cityName: values.city === String(AbcCity.other) ? values.cityName : null,
+      ...toCityInput(values.city),
       bands: bands.map((item) => (item.band ? { bandId: item.band.id, name: null } : { bandId: null, name: item.name })),
       media: ready.map((item) => ({ mediaId: item.mediaId!, caption: item.caption.trim() || null })),
       coverMediaId: cover.mediaId,
@@ -178,24 +173,15 @@ export function MuralFormPage() {
 
             <div className="grid gap-4 md:grid-cols-2">
               <AppField name="venue" label={t('form.fields.venue')} placeholder={t('form.venuePlaceholder')} />
-              <div className="flex flex-col gap-1.5">
-                <Label>{t('form.fields.city')}</Label>
-                <Select value={city} onValueChange={(value) => form.setValue('city', value, { shouldValidate: true })}>
-                  <SelectTrigger className="h-11 md:h-10" aria-label={t('form.fields.city')}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={none}>{t('form.unknown')}</SelectItem>
-                    {allAbcCities.map((option) => (
-                      <SelectItem key={option} value={String(option)}>
-                        {option === AbcCity.other ? t('form.otherCity') : cityLabel(option)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              <AppCityField
+                name="city"
+                label={t('form.fields.city')}
+                placeholder={t('form.cityPlaceholder')}
+                clearLabel={t('form.unknown')}
+                search={searchCities}
+                allowAbroad
+              />
             </div>
-            {city === String(AbcCity.other) ? <AppField name="cityName" label={t('form.fields.cityName')} /> : null}
 
             <AppTextareaField name="description" label={t('form.fields.description')} rows={8} placeholder={t('form.descriptionPlaceholder')} />
 

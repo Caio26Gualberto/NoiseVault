@@ -11,8 +11,8 @@ import { AppPagination } from '@/components/app-pagination'
 import { AppSkeleton } from '@/components/app-skeleton'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
-import { allAbcCities, useAbcCityLabel } from '@/pages/perfil/cities'
-import type { AbcCity } from '@/pages/perfil/cities'
+import { AppCitySelect } from '@/components/app-city-select'
+import { searchCities } from '@/pages/perfil/services/cidades-service'
 
 import { ArchiveCard } from './components/archive-card'
 import { Timeline } from './components/timeline'
@@ -25,7 +25,6 @@ export function MuralPage() {
   const { t } = useTranslation('mural')
   const can = useCan()
   const page = useMuralPage()
-  const cityLabel = useAbcCityLabel()
   const filtered = page.selection.year !== null || page.selection.decade !== null || page.search || page.city !== null || page.kind !== null
 
   return (
@@ -71,19 +70,15 @@ export function MuralPage() {
             <SelectItem value="video">{t('filters.videos')}</SelectItem>
           </SelectContent>
         </Select>
-        <Select value={page.city === null ? all : String(page.city)} onValueChange={(value) => page.changeCity(value === all ? null : (Number(value) as AbcCity))}>
-          <SelectTrigger className="h-10 md:w-52" aria-label={t('filters.city')}>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={all}>{t('filters.allCities')}</SelectItem>
-            {allAbcCities.map((option) => (
-              <SelectItem key={option} value={String(option)}>
-                {cityLabel(option)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <AppCitySelect
+          value={{ city: page.city, cityName: '' }}
+          onChange={(value) => page.changeCity(value.city)}
+          search={searchCities}
+          placeholder={t('filters.allCities')}
+          clearLabel={t('filters.allCities')}
+          ariaLabel={t('filters.city')}
+          className="h-10 md:h-10 md:w-52"
+        />
         <Select value={page.sort} onValueChange={(value) => page.changeSort(value as ArchiveSort)}>
           <SelectTrigger className="h-10 md:w-44" aria-label={t('filters.sort')}>
             <SelectValue />

@@ -3,9 +3,9 @@ import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
 import { AppButton } from '@/components/app-button'
-import { AppChipsField, AppField, AppForm, AppSelectField, AppTextareaField } from '@/components/app-field'
+import { AppChipsField, AppCityField, AppField, AppForm, AppTextareaField } from '@/components/app-field'
 import { maxGenres } from '@/pages/minha-conta/profile-validators'
-import { allAbcCities, useAbcCityLabel } from '@/pages/perfil/cities'
+import { searchCities } from '@/pages/perfil/services/cidades-service'
 import { allMusicGenres, useMusicGenreLabel } from '@/pages/perfil/genres'
 
 import { bandDescriptionMaxLength, bandFormSchema } from '../band-validators'
@@ -21,7 +21,6 @@ type BandFormProps = {
 
 export function BandForm({ defaultValues, withInstrument = false, submitLabel, saving, onSubmit }: BandFormProps) {
   const { t } = useTranslation('bandas')
-  const cityLabel = useAbcCityLabel()
   const genreLabel = useMusicGenreLabel()
 
   const form = useForm<BandFormValues>({
@@ -46,12 +45,13 @@ export function BandForm({ defaultValues, withInstrument = false, submitLabel, s
         description={t('form.descriptionHint', { max: bandDescriptionMaxLength })}
       />
       <div className="grid gap-4 md:grid-cols-2">
-        <AppSelectField
+        <AppCityField
           name="city"
           label={t('form.city')}
           placeholder={t('form.cityPlaceholder')}
-          emptyLabel={t('form.cityNone')}
-          options={allAbcCities.map((city) => ({ value: String(city), label: cityLabel(city) }))}
+          clearLabel={t('form.cityNone')}
+          search={searchCities}
+          allowAbroad
         />
         <AppField name="foundedYear" inputMode="numeric" label={t('form.foundedYear')} placeholder={t('form.foundedYearPlaceholder')} />
       </div>

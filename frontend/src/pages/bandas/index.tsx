@@ -17,7 +17,7 @@ import { formatDate } from '@/lib/format'
 import { BandEvents } from '@/pages/eventos/components/band-events'
 import { BandArchive } from '@/pages/mural/components/band-archive'
 import { OwnerPosts } from '@/pages/feed/components/owner-posts'
-import { useAbcCityLabel } from '@/pages/perfil/cities'
+import { formatCity } from '@/pages/perfil/city'
 
 import { BandMemberRole } from './band-member-role'
 import { useBand } from './hooks/use-band'
@@ -29,7 +29,6 @@ export function BandasPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const confirm = useAppConfirm()
-  const cityLabel = useAbcCityLabel()
   const { state, reload } = useBand(slug)
 
   if (state.status === 'loading') {
@@ -106,10 +105,10 @@ export function BandasPage() {
         }
       >
         <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
-          {band.city !== null ? (
+          {formatCity(band) ? (
             <span className="inline-flex items-center gap-1.5">
               <MapPinIcon className="size-4" />
-              {cityLabel(band.city)}
+              {formatCity(band)}
             </span>
           ) : null}
           {band.foundedYear !== null ? (

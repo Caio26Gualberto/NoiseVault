@@ -1,13 +1,13 @@
 import { apiDelete, apiPatch, apiPostForm, apiPut } from '@/api/base-service'
 import type { ProfileDto } from '@/api/types'
-import type { AbcCity } from '@/pages/perfil/cities'
 import type { MusicGenre } from '@/pages/perfil/genres'
 import type { SocialLinksDto } from '@/pages/perfil/services/perfil-service'
 
 export type UpdateProfileInput = {
   name: string
   bio: string | null
-  city: AbcCity | null
+  cityId: number | null
+  cityName: string | null
   mainInstrument: string | null
   genres: MusicGenre[]
   socialLinks: SocialLinksDto

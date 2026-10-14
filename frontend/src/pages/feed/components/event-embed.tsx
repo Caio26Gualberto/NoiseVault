@@ -6,12 +6,11 @@ import { AppBadge } from '@/components/app-badge'
 import { cn } from '@/lib/utils'
 import { dayParts, formatTime, formatWeekday } from '@/lib/format'
 import { EventStatus } from '@/pages/eventos/event-status'
-import { useEventPlace } from '@/pages/eventos/event-place'
+import { formatCity } from '@/pages/perfil/city'
 import type { EventSummaryDto } from '@/pages/eventos/services/eventos-service'
 
 export function EventEmbed({ event }: { event: EventSummaryDto }) {
   const { t } = useTranslation('feed')
-  const place = useEventPlace()
   const { day, month } = dayParts(event.startsAt)
   const cancelled = event.status === EventStatus.cancelled
   const closed = cancelled || event.hasEnded
@@ -53,7 +52,7 @@ export function EventEmbed({ event }: { event: EventSummaryDto }) {
         <span className="app-meta inline-flex items-center gap-1.5">
           <MapPinIcon className="size-3.5 shrink-0" />
           <span className="truncate">
-            {event.venue} · {place(event)}
+            {event.venue} · {formatCity(event)}
           </span>
         </span>
       </div>

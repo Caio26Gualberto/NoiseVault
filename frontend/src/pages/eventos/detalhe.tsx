@@ -28,7 +28,7 @@ import { formatDateTime, formatPrice, formatRelative, formatTime, formatWeekday 
 
 import { CommentComposer } from './components/comment-composer'
 import { EventStatus } from './event-status'
-import { useEventPlace } from './event-place'
+import { formatCity } from '@/pages/perfil/city'
 import { useEventDetail } from './hooks/use-event-detail'
 import { deleteEvent } from './services/eventos-service'
 
@@ -37,7 +37,6 @@ export function EventoDetalhePage() {
   const { id = '' } = useParams()
   const navigate = useNavigate()
   const confirm = useAppConfirm()
-  const place = useEventPlace()
   const detail = useEventDetail(Number(id))
   const { state, comments } = detail
 
@@ -57,7 +56,7 @@ export function EventoDetalhePage() {
   const facts = [
     { icon: CalendarIcon, label: t('facts.when'), value: formatWeekday(event.startsAt) },
     { icon: ClockIcon, label: t('facts.time'), value: event.endsAt ? `${formatTime(event.startsAt)} – ${formatTime(event.endsAt)}` : formatTime(event.startsAt) },
-    { icon: MapPinIcon, label: t('facts.where'), value: `${event.venue} · ${place(event)}` },
+    { icon: MapPinIcon, label: t('facts.where'), value: `${event.venue} · ${formatCity(event)}` },
     { icon: TicketIcon, label: t('facts.price'), value: price ? t('priceFrom', { price }) : t('free') },
     ...(event.capacity ? [{ icon: UsersIcon, label: t('facts.capacity'), value: t('facts.people', { count: event.capacity }) }] : []),
   ]

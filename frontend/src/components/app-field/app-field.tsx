@@ -4,6 +4,8 @@ import type { ComponentProps, ReactNode } from 'react'
 import { Controller, useFormContext } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
+import { AppCitySelect } from '@/components/app-city-select'
+import type { AppCity, AppCityValue } from '@/components/app-city-select'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -277,6 +279,45 @@ export function AppChipsField<T extends string | number>({ name, label, options,
               </div>
             )
           }}
+        />
+      )}
+    </FieldShell>
+  )
+}
+
+export type AppCityFieldProps = {
+  name: string
+  label: string
+  placeholder: string
+  search: (term: string) => Promise<AppCity[]>
+  clearLabel?: string
+  allowAbroad?: boolean
+  description?: ReactNode
+  hint?: string
+}
+
+export function AppCityField({ name, label, placeholder, search, clearLabel, allowAbroad, description, hint }: AppCityFieldProps) {
+  const { control } = useFormContext()
+
+  return (
+    <FieldShell name={name} label={label} description={description} hint={hint}>
+      {({ id, invalid, describedBy }) => (
+        <Controller
+          control={control}
+          name={name}
+          render={({ field }) => (
+            <AppCitySelect
+              id={id}
+              invalid={invalid}
+              describedBy={describedBy}
+              value={field.value as AppCityValue}
+              onChange={field.onChange}
+              search={search}
+              placeholder={placeholder}
+              clearLabel={clearLabel}
+              allowAbroad={allowAbroad}
+            />
+          )}
         />
       )}
     </FieldShell>

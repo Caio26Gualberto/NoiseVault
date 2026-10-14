@@ -2,7 +2,7 @@ import { apiDelete, apiGet, apiPost, apiPostForm, apiPut } from '@/api/base-serv
 import type { PagedRequest, PagedResult } from '@/api/types'
 import type { BandSummaryDto } from '@/pages/bandas/services/bandas-service'
 import type { MediaDto } from '@/pages/feed/services/media-service'
-import type { AbcCity } from '@/pages/perfil/cities'
+import type { CityDto } from '@/pages/perfil/city'
 import type { ProfileSummaryDto } from '@/pages/perfil/services/perfil-service'
 
 export type ArchiveBandDto = {
@@ -26,7 +26,7 @@ export type ArchiveEntryDto = ArchiveDate & {
   title: string
   description: string | null
   venue: string | null
-  city: AbcCity | null
+  city: CityDto | null
   cityName: string | null
   author: ProfileSummaryDto
   bands: ArchiveBandDto[]
@@ -65,7 +65,7 @@ export type ArchiveListQuery = PagedRequest & {
   year: number | null
   decade: number | null
   search: string
-  city: AbcCity | null
+  city: CityDto | null
   kind: ArchiveKind | null
   sort: ArchiveSort
 }
@@ -74,7 +74,7 @@ export type ArchiveEntryInput = ArchiveDate & {
   title: string
   description: string | null
   venue: string | null
-  city: AbcCity | null
+  cityId: number | null
   cityName: string | null
   bands: { bandId: number | null; name: string | null }[]
   media: { mediaId: number; caption: string | null }[]
@@ -96,7 +96,7 @@ function listParams(query: ArchiveListQuery) {
     year: query.year ?? undefined,
     decade: query.decade ?? undefined,
     search: query.search || undefined,
-    city: query.city ?? undefined,
+    cityId: query.city?.id,
     kind: query.kind ?? undefined,
     sort: query.sort,
   }
