@@ -4,6 +4,7 @@ using NoiseVault.Api.RateLimiting;
 using NoiseVault.Application.Common.Media;
 using NoiseVault.Application.Media.Dtos;
 using NoiseVault.Application.Media.Interfaces;
+using NoiseVault.Domain.Enums.Media;
 
 namespace NoiseVault.Api.Controllers
 {
@@ -27,7 +28,7 @@ namespace NoiseVault.Api.Controllers
         {
             await using var stream = file?.OpenReadStream();
             var input = stream is null ? null : new ImageUploadInput(stream, file!.Length);
-            var result = await _mediaAppService.UploadPhoto(input, cancellationToken);
+            var result = await _mediaAppService.UploadPhoto(input, EMediaProfile.Post, cancellationToken);
             return ToResponse(result);
         }
 
@@ -35,7 +36,7 @@ namespace NoiseVault.Api.Controllers
         [HttpPost("videos")]
         public async Task<ActionResult> StartVideo([FromBody] StartVideoUploadInputDto input)
         {
-            var result = await _mediaAppService.StartVideo(input);
+            var result = await _mediaAppService.StartVideo(input, EMediaProfile.Post);
             return ToResponse(result);
         }
 

@@ -35,6 +35,12 @@ namespace NoiseVault.Infra.Data.Context
         public DbSet<EventLineupEntry> EventLineupEntries => Set<EventLineupEntry>();
         public DbSet<EventInterest> EventInterests => Set<EventInterest>();
         public DbSet<EventComment> EventComments => Set<EventComment>();
+        public DbSet<ArchiveEntry> ArchiveEntries => Set<ArchiveEntry>();
+        public DbSet<ArchiveBandEntry> ArchiveBandEntries => Set<ArchiveBandEntry>();
+        public DbSet<ArchiveMedia> ArchiveMedia => Set<ArchiveMedia>();
+        public DbSet<ArchiveLike> ArchiveLikes => Set<ArchiveLike>();
+        public DbSet<ArchiveAttendance> ArchiveAttendances => Set<ArchiveAttendance>();
+        public DbSet<ArchiveComment> ArchiveComments => Set<ArchiveComment>();
         public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
         public DbSet<AuthorizationAuditLog> AuthorizationAuditLogs => Set<AuthorizationAuditLog>();
         public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
@@ -229,6 +235,15 @@ namespace NoiseVault.Infra.Data.Context
                     .IsUnique()
                     .HasFilter(DatabaseProvider.NotNullIndexFilter(this, nameof(Post.EventId)));
 
+                b.HasOne(x => x.ArchiveEntry)
+                    .WithMany()
+                    .HasForeignKey(x => x.ArchiveEntryId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasIndex(x => x.ArchiveEntryId)
+                    .IsUnique()
+                    .HasFilter(DatabaseProvider.NotNullIndexFilter(this, nameof(Post.ArchiveEntryId)));
+
                 b.HasIndex(x => x.PublishedAt);
                 b.HasIndex(x => new { x.AuthorUserId, x.PublishedAt });
                 b.HasIndex(x => new { x.BandId, x.PublishedAt });
@@ -388,6 +403,121 @@ namespace NoiseVault.Infra.Data.Context
                     .OnDelete(DeleteBehavior.Restrict);
 
                 b.HasIndex(x => new { x.EventId, x.CreatedAt });
+            });
+
+            builder.Entity<ArchiveEntry>(b =>
+            {
+                b.ToTable("ArchiveEntries");
+                b.HasKey(x => x.Id);
+
+                b.Property(x => x.Title).HasMaxLength(150).IsRequired();
+                b.Property(x => x.Description).HasMaxLength(10000);
+                b.Property(x => x.Venue).HasMaxLength(120);
+                b.Property(x => x.CityName).HasMaxLength(80);
+
+                b.HasOne(x => x.Author)
+                    .WithMany()
+                    .HasForeignKey(x => x.AuthorUserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasIndex(x => x.SortDate);
+                b.HasIndex(x => x.Year);
+            });
+
+            builder.Entity<ArchiveBandEntry>(b =>
+            {
+                b.ToTable("ArchiveBandEntries");
+                b.HasKey(x => x.Id);
+
+                b.Property(x => x.Name).HasMaxLength(100);
+
+                b.HasOne(x => x.ArchiveEntry)
+                    .WithMany(x => x.Bands)
+                    .HasForeignKey(x => x.ArchiveEntryId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasOne(x => x.Band)
+                    .WithMany()
+                    .HasForeignKey(x => x.BandId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasIndex(x => new { x.ArchiveEntryId, x.Order });
+                b.HasIndex(x => x.BandId);
+            });
+
+            builder.Entity<ArchiveMedia>(b =>
+            {
+                b.ToTable("ArchiveMedia");
+                b.HasKey(x => x.Id);
+
+                b.Property(x => x.Caption).HasMaxLength(500);
+
+                b.HasOne(x => x.ArchiveEntry)
+                    .WithMany(x => x.Media)
+                    .HasForeignKey(x => x.ArchiveEntryId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasOne(x => x.MediaUpload)
+                    .WithOne(x => x.ArchiveAttachment)
+                    .HasForeignKey<ArchiveMedia>(x => x.MediaUploadId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasIndex(x => x.MediaUploadId).IsUnique();
+                b.HasIndex(x => new { x.ArchiveEntryId, x.Order });
+            });
+
+            builder.Entity<ArchiveLike>(b =>
+            {
+                b.ToTable("ArchiveLikes");
+                b.HasKey(x => new { x.ArchiveEntryId, x.UserId });
+
+                b.HasOne<ArchiveEntry>()
+                    .WithMany(x => x.Likes)
+                    .HasForeignKey(x => x.ArchiveEntryId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasOne<User>()
+                    .WithMany()
+                    .HasForeignKey(x => x.UserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            builder.Entity<ArchiveAttendance>(b =>
+            {
+                b.ToTable("ArchiveAttendances");
+                b.HasKey(x => new { x.ArchiveEntryId, x.UserId });
+
+                b.HasOne<ArchiveEntry>()
+                    .WithMany(x => x.Attendances)
+                    .HasForeignKey(x => x.ArchiveEntryId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasOne(x => x.User)
+                    .WithMany()
+                    .HasForeignKey(x => x.UserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasIndex(x => new { x.ArchiveEntryId, x.CreatedAt });
+            });
+
+            builder.Entity<ArchiveComment>(b =>
+            {
+                b.ToTable("ArchiveComments");
+                b.HasKey(x => x.Id);
+
+                b.Property(x => x.Text).HasMaxLength(2000).IsRequired();
+
+                b.HasOne(x => x.ArchiveEntry)
+                    .WithMany(x => x.Comments)
+                    .HasForeignKey(x => x.ArchiveEntryId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasOne(x => x.Author)
+                    .WithMany()
+                    .HasForeignKey(x => x.AuthorUserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasIndex(x => new { x.ArchiveEntryId, x.CreatedAt });
             });
 
             builder.Entity<ApplicationUser>(b =>

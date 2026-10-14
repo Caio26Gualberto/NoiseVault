@@ -61,6 +61,10 @@ Módulo 3 da ordem em `dominio.md`. A mídia (fotos e vídeo) é de `midia-e-vid
 
 **Exceção registrada à regra "injete o AppService dono":** `PublicProfileAppService` e `BandAppService` leem a contagem de posts direto do `IPostRepository` (`CountPublishedByAuthorAsync`, `CountPublishedByBandAsync`). Injetar `IPostAppService` fecharia um ciclo de DI, porque o `PostAppService` já depende dos dois.
 
+## Post de arquivo
+
+`Post.ArchiveEntryId` (único) é o post automático do mural das antigas (`mural.md`), com o mesmo desenho do post de evento: texto pode ser vazio, `PostDto.archive` (`ArchiveSummaryDto`) é lido ao vivo e em lote pelo `IArchiveRepository`, e apagar o registro apaga o post.
+
 ## Post de evento
 
 `Post.EventId` (único) marca o post automático que nasce ao publicar um evento (`eventos.md`). Ele pode ter texto vazio (o `POST_EMPTY` considera o evento), e o `PostDto.event` traz o resumo **ao vivo** do evento, lido em lote por `IEventRepository.ListByIdsAsync`, para o card mostrar "Cancelado" ou "Já rolou" sem mexer no post. Apagar o evento apaga o post.

@@ -9,6 +9,7 @@ namespace NoiseVault.Application.Posts.Models
         public string? AuthorAvatarKey { get; init; }
         public int? BandId { get; init; }
         public int? EventId { get; init; }
+        public int? ArchiveEntryId { get; init; }
         public string Content { get; init; } = string.Empty;
         public DateTime CreatedAt { get; init; }
         public DateTime? PublishedAt { get; init; }

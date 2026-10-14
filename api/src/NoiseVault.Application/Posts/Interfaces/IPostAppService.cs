@@ -21,5 +21,7 @@ namespace NoiseVault.Application.Posts.Interfaces
         Task ProcessVideo(int mediaUploadId, bool finalAttempt);
         Task CreateForEvent(int eventId, int authorUserId, int? bandId);
         Task DeleteForEvent(int eventId);
+        Task CreateForArchive(int archiveEntryId, int authorUserId);
+        Task DeleteForArchive(int archiveEntryId);
     }
 }

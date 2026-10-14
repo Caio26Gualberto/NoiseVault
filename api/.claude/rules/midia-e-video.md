@@ -21,6 +21,19 @@ Substitui o desenho de `dominio.md`, que previa `StorageKey` e dimensões em `Po
 
 `ExpiresAt` é o prazo **da etapa atual**: 6 h para terminar o envio (`Uploading`), 2 h para converter (`Processing`) e 24 h para entrar num post (`Ready`/`Failed` solta).
 
+## Perfis: feed e arquivo
+
+`MediaUpload.Profile` (`EMediaProfile`: `Post` 0, `Archive` 1) define os limites (`MediaRules.For`):
+
+| Perfil | Vídeo | Foto | Prazo de processamento | Quem sobe |
+|---|---|---|---|---|
+| `Post` | 500 MB, 10 min | 15 MB, lado maior até 2048 | 2 h | qualquer pessoa (`/api/media`) |
+| `Archive` | 4 GB, 2 h | 40 MB, lado maior até 3072 | 8 h | `Archive.Create` (`/api/admin/archive/media`, `mural.md`) |
+
+- A mídia só entra no lugar do próprio perfil (`ListAttachable` filtra o perfil): foto de feed não vai para o mural, e vice-versa.
+- `MediaUpload.ArchiveAttachment` é o vínculo com o mural. A limpeza e o `DELETE /api/media/{id}` tratam esse vínculo como "em uso", igual ao `Attachment` do post.
+- O teto de cada processo do ffmpeg é `Video:ProcessTimeoutMinutes` (padrão 240), para caber uma fita inteira.
+
 ## Foto: pela API
 
 `POST /api/media/photos` (form, `[RequestSizeLimit]` 16 MB) usa o `ImageReplacement` com o preset `Post`: até 15 MB na entrada, mínimo 64 px, maior lado até 2048, WebP 82, **metadados removidos** (o GPS do celular não vaza). Chave `users/{userId}/photos/{guid}.webp`. Nasce `Ready`.
@@ -57,7 +70,8 @@ Sem conversão, vídeo de iPhone (`.mov`/HEVC) não toca no Chrome e o arquivo s
    - **fps do original, até 60** (`-fpsmax 60`); acima de 30 fps o teto de bitrate sobe 50%. O `master.m3u8` ganha `FRAME-RATE` em cada variante, que o player usa para mostrar "1080p60";
    - H.264 (`yuv420p`, high, `veryfast`) com **CRF 23 limitado por `maxrate`/`bufsize`** por rendição: qualidade constante, sem passar do teto da rede. AAC 128k estéreo em todas as variantes (se o original tiver áudio);
    - segmentos de **4 s** (`.ts`), keyframe forçado a cada 2 s em todas as rendições, para a troca de qualidade cair sempre em fronteira de segmento; `-hls_playlist_type vod` e `independent_segments`;
-   - o `ffprobe` lê a rotação do celular (`side_data`) para decidir a escada pelo lado certo.
+   - o `ffprobe` lê a rotação do celular (`side_data`) para decidir a escada pelo lado certo;
+   - **desentrelaçamento**: quando o `field_order` do original não é `progressive`, o caso de VHS e câmera de fita digitalizados, o filtro começa com `bwdif=mode=send_frame` (também no poster). Sem isso aparecem os "pentes" nas cenas de movimento. O log `VIDEO_TRANSCODED` traz `Deinterlaced` e `Profile`. VHS (480 linhas) gera só 360p e 480p.
 3. Frame de 1 s (ou 0 em vídeo curto), reduzido a no máximo 720p, vira o poster, processado pelo `ImageSharpProcessor` (preset `Post`, WebP).
 4. Sobe a pasta inteira em `users/{userId}/videos/{guid}/` (`master.m3u8`, uma pasta por rendição `360p/`, `480p/`… com `index.m3u8` e os segmentos, e `poster.webp`), 4 arquivos em paralelo, com `Content-Type` por extensão (`application/vnd.apple.mpegurl`, `video/mp2t`). Se algum arquivo falhar, apaga o que subiu e relança (retry do job). `StorageKey` aponta para o `master.m3u8`; largura e altura são as da maior rendição; `SizeBytes` é a soma da pasta. Marca `Ready`, apaga o original e publica os posts que esperavam (`feed.md`).
    - Apagar mídia de vídeo HLS apaga **o prefixo da pasta** (`IFileStorage.DeletePrefixAsync`, `ListObjectsV2` + `DeleteObjects`), não chave a chave.

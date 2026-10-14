@@ -126,6 +126,274 @@ namespace NoiseVault.Infra.Data.Migrations
                     b.ToTable("UserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("NoiseVault.Domain.Entities.ArchiveAttendance", b =>
+                {
+                    b.Property<int>("ArchiveEntryId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("ArchiveEntryId", "UserId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("ArchiveEntryId", "CreatedAt");
+
+                    b.ToTable("ArchiveAttendances", (string)null);
+                });
+
+            modelBuilder.Entity("NoiseVault.Domain.Entities.ArchiveBandEntry", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ArchiveEntryId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("BandId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("CreatedBy")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("DeletedBy")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("UpdatedBy")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BandId");
+
+                    b.HasIndex("ArchiveEntryId", "Order");
+
+                    b.ToTable("ArchiveBandEntries", (string)null);
+                });
+
+            modelBuilder.Entity("NoiseVault.Domain.Entities.ArchiveComment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ArchiveEntryId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("AuthorUserId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("CreatedBy")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("DeletedBy")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("UpdatedBy")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuthorUserId");
+
+                    b.HasIndex("ArchiveEntryId", "CreatedAt");
+
+                    b.ToTable("ArchiveComments", (string)null);
+                });
+
+            modelBuilder.Entity("NoiseVault.Domain.Entities.ArchiveEntry", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AuthorUserId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("City")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("CityName")
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<int?>("CoverMediaUploadId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("CreatedBy")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("Day")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("DeletedBy")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(10000)
+                        .HasColumnType("character varying(10000)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<int?>("Month")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("SortDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("UpdatedBy")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Venue")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuthorUserId");
+
+                    b.HasIndex("SortDate");
+
+                    b.HasIndex("Year");
+
+                    b.ToTable("ArchiveEntries", (string)null);
+                });
+
+            modelBuilder.Entity("NoiseVault.Domain.Entities.ArchiveLike", b =>
+                {
+                    b.Property<int>("ArchiveEntryId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("ArchiveEntryId", "UserId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ArchiveLikes", (string)null);
+                });
+
+            modelBuilder.Entity("NoiseVault.Domain.Entities.ArchiveMedia", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ArchiveEntryId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Caption")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("CreatedBy")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("DeletedBy")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("MediaUploadId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("UpdatedBy")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MediaUploadId")
+                        .IsUnique();
+
+                    b.HasIndex("ArchiveEntryId", "Order");
+
+                    b.ToTable("ArchiveMedia", (string)null);
+                });
+
             modelBuilder.Entity("NoiseVault.Domain.Entities.AuditLog", b =>
                 {
                     b.Property<long>("Id")
@@ -904,6 +1172,9 @@ namespace NoiseVault.Infra.Data.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
+                    b.Property<int>("Profile")
+                        .HasColumnType("integer");
+
                     b.Property<long>("SizeBytes")
                         .HasColumnType("bigint");
 
@@ -939,6 +1210,9 @@ namespace NoiseVault.Infra.Data.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("ArchiveEntryId")
+                        .HasColumnType("integer");
 
                     b.Property<int>("AuthorUserId")
                         .HasColumnType("integer");
@@ -982,6 +1256,10 @@ namespace NoiseVault.Infra.Data.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ArchiveEntryId")
+                        .IsUnique()
+                        .HasFilter("\"ArchiveEntryId\" IS NOT NULL AND \"IsDeleted\" = false");
 
                     b.HasIndex("EventId")
                         .IsUnique()
@@ -1375,6 +1653,105 @@ namespace NoiseVault.Infra.Data.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("NoiseVault.Domain.Entities.ArchiveAttendance", b =>
+                {
+                    b.HasOne("NoiseVault.Domain.Entities.ArchiveEntry", null)
+                        .WithMany("Attendances")
+                        .HasForeignKey("ArchiveEntryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("NoiseVault.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("NoiseVault.Domain.Entities.ArchiveBandEntry", b =>
+                {
+                    b.HasOne("NoiseVault.Domain.Entities.ArchiveEntry", "ArchiveEntry")
+                        .WithMany("Bands")
+                        .HasForeignKey("ArchiveEntryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("NoiseVault.Domain.Entities.Band", "Band")
+                        .WithMany()
+                        .HasForeignKey("BandId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("ArchiveEntry");
+
+                    b.Navigation("Band");
+                });
+
+            modelBuilder.Entity("NoiseVault.Domain.Entities.ArchiveComment", b =>
+                {
+                    b.HasOne("NoiseVault.Domain.Entities.ArchiveEntry", "ArchiveEntry")
+                        .WithMany("Comments")
+                        .HasForeignKey("ArchiveEntryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("NoiseVault.Domain.Entities.User", "Author")
+                        .WithMany()
+                        .HasForeignKey("AuthorUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ArchiveEntry");
+
+                    b.Navigation("Author");
+                });
+
+            modelBuilder.Entity("NoiseVault.Domain.Entities.ArchiveEntry", b =>
+                {
+                    b.HasOne("NoiseVault.Domain.Entities.User", "Author")
+                        .WithMany()
+                        .HasForeignKey("AuthorUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Author");
+                });
+
+            modelBuilder.Entity("NoiseVault.Domain.Entities.ArchiveLike", b =>
+                {
+                    b.HasOne("NoiseVault.Domain.Entities.ArchiveEntry", null)
+                        .WithMany("Likes")
+                        .HasForeignKey("ArchiveEntryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("NoiseVault.Domain.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("NoiseVault.Domain.Entities.ArchiveMedia", b =>
+                {
+                    b.HasOne("NoiseVault.Domain.Entities.ArchiveEntry", "ArchiveEntry")
+                        .WithMany("Media")
+                        .HasForeignKey("ArchiveEntryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("NoiseVault.Domain.Entities.MediaUpload", "MediaUpload")
+                        .WithOne("ArchiveAttachment")
+                        .HasForeignKey("NoiseVault.Domain.Entities.ArchiveMedia", "MediaUploadId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ArchiveEntry");
+
+                    b.Navigation("MediaUpload");
+                });
+
             modelBuilder.Entity("NoiseVault.Domain.Entities.BackgroundJobRun", b =>
                 {
                     b.HasOne("NoiseVault.Domain.Entities.User", "RequestedByUser")
@@ -1551,6 +1928,11 @@ namespace NoiseVault.Infra.Data.Migrations
 
             modelBuilder.Entity("NoiseVault.Domain.Entities.Post", b =>
                 {
+                    b.HasOne("NoiseVault.Domain.Entities.ArchiveEntry", "ArchiveEntry")
+                        .WithMany()
+                        .HasForeignKey("ArchiveEntryId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("NoiseVault.Domain.Entities.User", "Author")
                         .WithMany()
                         .HasForeignKey("AuthorUserId")
@@ -1566,6 +1948,8 @@ namespace NoiseVault.Infra.Data.Migrations
                         .WithMany()
                         .HasForeignKey("EventId")
                         .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("ArchiveEntry");
 
                     b.Navigation("Author");
 
@@ -1639,6 +2023,19 @@ namespace NoiseVault.Infra.Data.Migrations
                     b.Navigation("ApplicationUser");
                 });
 
+            modelBuilder.Entity("NoiseVault.Domain.Entities.ArchiveEntry", b =>
+                {
+                    b.Navigation("Attendances");
+
+                    b.Navigation("Bands");
+
+                    b.Navigation("Comments");
+
+                    b.Navigation("Likes");
+
+                    b.Navigation("Media");
+                });
+
             modelBuilder.Entity("NoiseVault.Domain.Entities.Band", b =>
                 {
                     b.Navigation("Genres");
@@ -1659,6 +2056,8 @@ namespace NoiseVault.Infra.Data.Migrations
 
             modelBuilder.Entity("NoiseVault.Domain.Entities.MediaUpload", b =>
                 {
+                    b.Navigation("ArchiveAttachment");
+
                     b.Navigation("Attachment");
                 });
 

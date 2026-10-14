@@ -13,6 +13,10 @@ export const Permissions = {
   authorizationRolesManagePermissions: 'Authorization.Roles.ManagePermissions',
   authorizationAuditView: 'Authorization.Audit.View',
 
+  archiveCreate: 'Archive.Create',
+  archiveEdit: 'Archive.Edit',
+  archiveDelete: 'Archive.Delete',
+
   systemJobsView: 'System.Jobs.View',
   systemJobsManage: 'System.Jobs.Manage',
   systemAuditView: 'System.Audit.View',

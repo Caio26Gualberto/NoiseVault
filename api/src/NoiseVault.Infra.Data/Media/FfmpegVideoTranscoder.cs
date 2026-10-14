@@ -34,7 +34,7 @@ namespace NoiseVault.Infra.Data.Media
             var run = await RunAsync(_settings.FfprobePath,
             [
                 "-v", "error",
-                "-show_entries", "format=duration:stream=codec_type,width,height,avg_frame_rate:stream_side_data=rotation",
+                "-show_entries", "format=duration:stream=codec_type,width,height,avg_frame_rate,field_order:stream_side_data=rotation",
                 "-of", "json",
                 inputPath,
             ], cancellationToken);
@@ -69,7 +69,10 @@ namespace NoiseVault.Infra.Data.Media
                     if (IsQuarterTurn(stream))
                         (width, height) = (height, width);
 
-                    return new VideoProbe(width > 0 && height > 0, hasAudio, duration, width, height, FrameRateOf(stream));
+                    var fieldOrder = stream.TryGetProperty("field_order", out var order) ? order.GetString() : null;
+                    var interlaced = fieldOrder is not null and not "progressive" and not "unknown";
+
+                    return new VideoProbe(width > 0 && height > 0, hasAudio, duration, width, height, FrameRateOf(stream), interlaced);
                 }
 
                 return new VideoProbe(false, hasAudio, duration, 0, 0, 0);
@@ -91,7 +94,8 @@ namespace NoiseVault.Infra.Data.Media
             var hlsDirectory = Path.Combine(outputDirectory, "hls");
             Directory.CreateDirectory(hlsDirectory);
 
-            var filter = $"[0:v]split={steps.Count}" + string.Concat(steps.Select((_, i) => $"[s{i}]")) + ";"
+            var deinterlace = source.Interlaced ? "bwdif=mode=send_frame," : string.Empty;
+            var filter = $"[0:v]{deinterlace}split={steps.Count}" + string.Concat(steps.Select((_, i) => $"[s{i}]")) + ";"
                 + string.Join(";", steps.Select((step, i) =>
                 {
                     var side = step.ShortSide.ToString(CultureInfo.InvariantCulture);
@@ -164,13 +168,14 @@ namespace NoiseVault.Infra.Data.Media
 
             var posterPath = Path.Combine(outputDirectory, "poster.jpg");
             var posterSide = Math.Min(steps[^1].ShortSide, 720).ToString(CultureInfo.InvariantCulture);
+            var posterDeinterlace = source.Interlaced ? "bwdif=mode=send_frame," : string.Empty;
             var poster = await RunAsync(_settings.FfmpegPath,
             [
                 "-hide_banner", "-loglevel", "error", "-y",
                 "-ss", source.DurationSeconds >= 2 ? "1" : "0",
                 "-i", inputPath,
                 "-frames:v", "1",
-                "-vf", $"scale=w='if(gt(iw,ih),-2,{posterSide})':h='if(gt(iw,ih),{posterSide},-2)'",
+                "-vf", $"{posterDeinterlace}scale=w='if(gt(iw,ih),-2,{posterSide})':h='if(gt(iw,ih),{posterSide},-2)'",
                 "-q:v", "3",
                 posterPath,
             ], cancellationToken);
@@ -184,7 +189,8 @@ namespace NoiseVault.Infra.Data.Media
                 top.Width,
                 top.Height,
                 (int)Math.Round(source.DurationSeconds, MidpointRounding.AwayFromZero),
-                renditions);
+                renditions,
+                source.Interlaced);
         }
 
         private List<(int ShortSide, int BitrateKbps)> PlanLadder(int sourceShortSide)

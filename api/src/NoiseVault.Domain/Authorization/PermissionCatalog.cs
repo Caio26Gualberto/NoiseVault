@@ -9,6 +9,7 @@ namespace NoiseVault.Domain.Authorization
             public const string Admin = "Admin";
             public const string Authorization = "Authorization";
             public const string System = "System";
+            public const string Archive = "Archive";
         }
 
         public static readonly IReadOnlyList<PermissionGroupDefinition> GroupDefinitions = new List<PermissionGroupDefinition>
@@ -16,6 +17,7 @@ namespace NoiseVault.Domain.Authorization
             new(Groups.Admin, "Geral"),
             new(Groups.Authorization, "Equipe e acesso"),
             new(Groups.System, "Sistema"),
+            new(Groups.Archive, "Mural das antigas"),
         };
 
         public static readonly IReadOnlyList<PermissionDefinition> All = new List<PermissionDefinition>
@@ -34,6 +36,10 @@ namespace NoiseVault.Domain.Authorization
             new(Permissions.Authorization.RolesDelete, "Excluir papéis", "Permite excluir papéis personalizados sem usuários vinculados.", Groups.Authorization, Permissions.Authorization.RolesView),
             new(Permissions.Authorization.RolesManagePermissions, "Gerenciar permissões de papel", "Permite alterar as permissões concedidas por um papel.", Groups.Authorization, Permissions.Authorization.RolesView),
             new(Permissions.Authorization.AuditView, "Ver auditoria de acesso", "Permite visualizar o registro de alterações de acesso.", Groups.Authorization),
+
+            new(Permissions.Archive.Create, "Publicar no mural das antigas", "Permite subir fotos e vídeos com perfil de arquivo e criar registros no mural.", Groups.Archive),
+            new(Permissions.Archive.Edit, "Editar registros do mural", "Permite editar dados, bandas, legendas, ordem e capa de qualquer registro do mural.", Groups.Archive),
+            new(Permissions.Archive.Delete, "Apagar registros do mural", "Permite apagar registros do mural e comentários feitos neles.", Groups.Archive),
 
             new(Permissions.System.JobsView, "Ver jobs", "Permite visualizar os jobs em execução.", Groups.System),
             new(Permissions.System.JobsManage, "Gerenciar jobs", "Permite disparar jobs manualmente.", Groups.System, Permissions.System.JobsView),

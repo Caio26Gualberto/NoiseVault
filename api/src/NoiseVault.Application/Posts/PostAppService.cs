@@ -1,4 +1,6 @@
 using NoiseVault.Application.Abstractions.Authentication;
+using NoiseVault.Application.Archive.Dtos;
+using NoiseVault.Application.Archive.Interfaces;
 using NoiseVault.Application.Abstractions.Logging;
 using NoiseVault.Application.Abstractions.Repository;
 using NoiseVault.Application.Abstractions.Repository.UnitOfWork;
@@ -32,6 +34,8 @@ namespace NoiseVault.Application.Posts
         private readonly IMediaUploadAppService _mediaAppService;
         private readonly IFileStorage _fileStorage;
         private readonly IEventRepository _eventRepository;
+        private readonly IArchiveRepository _archiveRepository;
+        private readonly IRepository<MediaUpload> _mediaRepository;
         private readonly IApplicationLogger _logger;
 
         public PostAppService(
@@ -44,8 +48,12 @@ namespace NoiseVault.Application.Posts
             IMediaUploadAppService mediaAppService,
             IFileStorage fileStorage,
             IEventRepository eventRepository,
+            IArchiveRepository archiveRepository,
+            IRepository<MediaUpload> mediaRepository,
             IApplicationLoggerFactory loggerFactory)
         {
+            _archiveRepository = archiveRepository;
+            _mediaRepository = mediaRepository;
             _eventRepository = eventRepository;
             _postRepository = postRepository;
             _postMediaRepository = postMediaRepository;
@@ -123,7 +131,7 @@ namespace NoiseVault.Application.Posts
             }
 
             var me = _currentUser.UserId;
-            var media = await _mediaAppService.ListAttachable(mediaIds, me);
+            var media = await _mediaAppService.ListAttachable(mediaIds, me, EMediaProfile.Post);
 
             if (media.Count != mediaIds.Count)
                 return Fail(new Error("MEDIA_NOT_ATTACHABLE", "Some attachments are not available anymore; upload them again", ErrorType.Conflict));
@@ -192,7 +200,7 @@ namespace NoiseVault.Application.Posts
             if (post == null)
                 return Fail(await DeniedAsync(id));
 
-            if (content.Length == 0 && post.Media.Count == 0 && post.EventId == null)
+            if (content.Length == 0 && post.Media.Count == 0 && post.EventId == null && post.ArchiveEntryId == null)
                 return Fail(Invalid("POST_EMPTY", "Write something or attach a photo or video"));
 
             if (content != post.Content)
@@ -270,6 +278,23 @@ namespace NoiseVault.Application.Posts
                 PublishedAt = DateTime.UtcNow,
             });
 
+        public Task CreateForArchive(int archiveEntryId, int authorUserId) =>
+            _postRepository.AddAsync(new Post
+            {
+                AuthorUserId = authorUserId,
+                ArchiveEntryId = archiveEntryId,
+                Content = string.Empty,
+                PublishedAt = DateTime.UtcNow,
+            });
+
+        public async Task DeleteForArchive(int archiveEntryId)
+        {
+            var post = await _postRepository.FirstOrDefaultAsync(new QueryOptions<Post> { Predicate = p => p.ArchiveEntryId == archiveEntryId });
+
+            if (post != null)
+                await _postRepository.SoftDelete(post);
+        }
+
         public async Task DeleteForEvent(int eventId)
         {
             var post = await _postRepository.FirstOrDefaultAsync(new QueryOptions<Post> { Predicate = p => p.EventId == eventId });
@@ -329,6 +354,8 @@ namespace NoiseVault.Application.Posts
 
             var bands = await _bandAppService.SummariesByIds(bandIds);
 
+            var archives = await ArchiveSummariesAsync(rows);
+
             var eventIds = rows.Where(r => r.EventId != null).Select(r => r.EventId!.Value).Distinct().ToList();
             var now = DateTime.UtcNow;
             var events = eventIds.Count == 0
@@ -369,6 +396,7 @@ namespace NoiseVault.Application.Posts
                 },
                 Band = r.BandId != null && bands.TryGetValue(r.BandId.Value, out var band) ? band : null,
                 Event = r.EventId != null && events.TryGetValue(r.EventId.Value, out var linkedEvent) ? linkedEvent : null,
+                Archive = r.ArchiveEntryId != null && archives.TryGetValue(r.ArchiveEntryId.Value, out var linkedArchive) ? linkedArchive : null,
                 Content = r.Content,
                 Media = media[r.Id].Select(pm => _mediaAppService.Describe(pm.MediaUpload!)).ToList(),
                 LikeCount = r.LikeCount,
@@ -382,6 +410,31 @@ namespace NoiseVault.Application.Posts
                 CanEdit = r.AuthorUserId == me,
                 CanDelete = r.AuthorUserId == me || r.ViewerOwnsBand,
             }).ToList();
+        }
+
+        private async Task<Dictionary<int, ArchiveSummaryDto>> ArchiveSummariesAsync(List<PostReadModel> rows)
+        {
+            var ids = rows.Where(r => r.ArchiveEntryId != null).Select(r => r.ArchiveEntryId!.Value).Distinct().ToList();
+
+            if (ids.Count == 0)
+                return [];
+
+            var entries = await _archiveRepository.ListByIdsAsync(ids, _currentUser.UserId);
+            var coverIds = entries.Where(e => e.CoverMediaUploadId != null).Select(e => e.CoverMediaUploadId!.Value).ToList();
+            var covers = (await _mediaRepository.ListAsync(new QueryOptions<MediaUpload> { Predicate = m => coverIds.Contains(m.Id), AsNoTracking = true }))
+                .ToDictionary(m => m.Id);
+
+            return entries.ToDictionary(e => e.Id, e => new ArchiveSummaryDto
+            {
+                Id = e.Id,
+                Title = e.Title,
+                Year = e.Year,
+                Month = e.Month,
+                Day = e.Day,
+                Cover = e.CoverMediaUploadId != null && covers.TryGetValue(e.CoverMediaUploadId.Value, out var cover) ? _mediaAppService.Describe(cover) : null,
+                PhotoCount = e.PhotoCount,
+                VideoCount = e.VideoCount,
+            });
         }
 
         private static Result<PostDto> Fail(Error error) => Result<PostDto>.Fail(error);

@@ -96,6 +96,9 @@ Duas guardas: `CANNOT_DELETE_SELF` e `LAST_ADMIN_PROTECTED`.
 
 ## Papéis e permissões: Admin é implícito, o resto é claim
 
+O primeiro uso de negócio das permissões do catálogo é o mural das antigas: `Archive.Create`, `Archive.Edit` e `Archive.Delete` (grupo "Mural das antigas"). Nenhum papel padrão as recebe; quem publica é o `Admin` ou um papel criado pelo painel (`mural.md`).
+
+
 `Admin` tem todas as permissões **sem claim** (`PermissionChecker` devolve o catálogo inteiro). `User` nasce sem nenhuma: usa a API pelos endpoints de dono. Papel de sistema (`IsSystem`) não é editável nem excluível; papel com usuários não é excluível (`ROLE_IN_USE`). O cache de permissões (`HybridCache`) é invalidado em toda escrita de papel/permissão e no seed.
 
 ## Eventos de log (contexto `Auth`)

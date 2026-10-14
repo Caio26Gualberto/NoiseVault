@@ -49,12 +49,12 @@ namespace NoiseVault.Application.Media
             _logger = loggerFactory.Create(LogContext.Media);
         }
 
-        public async Task<Result<MediaDto>> UploadPhoto(ImageUploadInput? file, CancellationToken cancellationToken = default)
+        public async Task<Result<MediaDto>> UploadPhoto(ImageUploadInput? file, EMediaProfile profile, CancellationToken cancellationToken = default)
         {
             _logger.SetOperation("UploadPhoto");
 
             var me = _currentUser.UserId;
-            var upload = await _images.UploadAsync(file, EImagePreset.Post, $"users/{me}/photos", cancellationToken);
+            var upload = await _images.UploadAsync(file, MediaRules.For(profile).PhotoPreset, $"users/{me}/photos", cancellationToken);
 
             if (!upload.Succeeded)
                 return Result<MediaDto>.Fail(upload.Error!);
@@ -63,6 +63,7 @@ namespace NoiseVault.Application.Media
             {
                 OwnerUserId = me,
                 Kind = EMediaKind.Photo,
+                Profile = profile,
                 Status = EMediaStatus.Ready,
                 StorageKey = upload.Key,
                 Width = upload.Width,
@@ -76,12 +77,14 @@ namespace NoiseVault.Application.Media
             return Result<MediaDto>.Ok(Describe(media), "PHOTO_UPLOADED", "Photo uploaded");
         }
 
-        public async Task<Result<VideoUploadDto>> StartVideo(StartVideoUploadInputDto input)
+        public async Task<Result<VideoUploadDto>> StartVideo(StartVideoUploadInputDto input, EMediaProfile profile)
         {
             _logger.SetOperation("StartVideoUpload");
 
-            if (input.SizeBytes <= 0 || input.SizeBytes > MediaRules.VideoMaxBytes)
-                return Result<VideoUploadDto>.Fail(new Error("VIDEO_TOO_LARGE", $"Video must have at most {MediaRules.VideoMaxBytes / (1024 * 1024)} MB", ErrorType.Validation));
+            var limits = MediaRules.For(profile);
+
+            if (input.SizeBytes <= 0 || input.SizeBytes > limits.VideoMaxBytes)
+                return Result<VideoUploadDto>.Fail(VideoTooLarge(limits));
 
             if (!MediaRules.IsVideoContentType(input.ContentType))
                 return Result<VideoUploadDto>.Fail(new Error("VIDEO_UNSUPPORTED", "Send a video file", ErrorType.Validation));
@@ -109,6 +112,7 @@ namespace NoiseVault.Application.Media
             {
                 OwnerUserId = me,
                 Kind = EMediaKind.Video,
+                Profile = profile,
                 Status = EMediaStatus.Uploading,
                 OriginalKey = key,
                 MultipartUploadId = uploadId,
@@ -168,19 +172,21 @@ namespace NoiseVault.Application.Media
 
             var size = await _fileStorage.SizeAsync(media.OriginalKey!);
 
-            if (size is null or <= 0 or > MediaRules.VideoMaxBytes)
+            var limits = MediaRules.For(media.Profile);
+
+            if (size is null or <= 0 || size > limits.VideoMaxBytes)
             {
                 await _fileStorage.DeleteAsync(media.OriginalKey!);
                 await _mediaRepository.DeleteAsync(media);
                 return Result<MediaDto>.Fail(size is null or <= 0
                     ? Incomplete()
-                    : new Error("VIDEO_TOO_LARGE", $"Video must have at most {MediaRules.VideoMaxBytes / (1024 * 1024)} MB", ErrorType.Validation));
+                    : VideoTooLarge(limits));
             }
 
             media.SizeBytes = size.Value;
             media.Status = EMediaStatus.Processing;
             media.MultipartUploadId = null;
-            media.ExpiresAt = DateTime.UtcNow.Add(MediaRules.ProcessingLifetime);
+            media.ExpiresAt = DateTime.UtcNow.Add(limits.ProcessingLifetime);
             await _mediaRepository.UpdateAsync(media);
 
             try
@@ -221,13 +227,13 @@ namespace NoiseVault.Application.Media
             var media = await _mediaRepository.FirstOrDefaultAsync(new QueryOptions<MediaUpload>
             {
                 Predicate = m => m.Id == id && m.OwnerUserId == me,
-                Includes = [m => m.Attachment!],
+                Includes = [m => m.Attachment!, m => m.ArchiveAttachment!],
             });
 
             if (media == null)
                 return Result.Fail(MediaNotFound());
 
-            if (media.Attachment != null)
+            if (media.Attachment != null || media.ArchiveAttachment != null)
                 return Result.Fail(new Error("MEDIA_IN_USE", "This media belongs to a post; delete the post instead", ErrorType.Conflict));
 
             await DiscardAsync(media);
@@ -235,7 +241,7 @@ namespace NoiseVault.Application.Media
             return Result.Ok("MEDIA_DELETED", "Media deleted");
         }
 
-        public Task<List<MediaUpload>> ListAttachable(IReadOnlyCollection<int> ids, int ownerUserId)
+        public Task<List<MediaUpload>> ListAttachable(IReadOnlyCollection<int> ids, int ownerUserId, EMediaProfile profile)
         {
             var now = DateTime.UtcNow;
 
@@ -243,7 +249,9 @@ namespace NoiseVault.Application.Media
             {
                 Predicate = m => ids.Contains(m.Id)
                     && m.OwnerUserId == ownerUserId
+                    && m.Profile == profile
                     && m.Attachment == null
+                    && m.ArchiveAttachment == null
                     && ((m.Status == EMediaStatus.Ready && m.ExpiresAt > now) || m.Status == EMediaStatus.Processing),
                 AsNoTracking = true,
             });
@@ -280,6 +288,17 @@ namespace NoiseVault.Application.Media
             }
         }
 
+        public async Task Discard(IReadOnlyCollection<int> mediaIds)
+        {
+            if (mediaIds.Count == 0)
+                return;
+
+            var media = await _mediaRepository.ListAsync(new QueryOptions<MediaUpload> { Predicate = m => mediaIds.Contains(m.Id) });
+
+            foreach (var item in media)
+                await DiscardAsync(item);
+        }
+
         public async Task<EMediaStatus?> ProcessVideo(int mediaId, bool finalAttempt)
         {
             _logger.SetOperation("TranscodeVideo");
@@ -311,7 +330,7 @@ namespace NoiseVault.Application.Media
                 if (!probe.HasVideo)
                     return await RejectAsync(media, FailureNoVideoStream);
 
-                if (probe.DurationSeconds > MediaRules.VideoMaxDurationSeconds + MediaRules.VideoDurationToleranceSeconds)
+                if (probe.DurationSeconds > MediaRules.For(media.Profile).VideoMaxDurationSeconds + MediaRules.VideoDurationToleranceSeconds)
                     return await RejectAsync(media, FailureTooLong);
 
                 var video = await _videoTranscoder.TranscodeAsync(inputPath, workDirectory);
@@ -335,7 +354,7 @@ namespace NoiseVault.Application.Media
                 await _fileStorage.DeleteAsync(originalKey);
 
                 _logger.Info("VIDEO_TRANSCODED", "Video transcoded", userId: media.OwnerUserId,
-                    extra: new { MediaId = media.Id, media.Width, media.Height, media.DurationSeconds, media.SizeBytes, Renditions = string.Join(",", video.Renditions.Select(r => r.Name)) });
+                    extra: new { MediaId = media.Id, media.Profile, media.Width, media.Height, media.DurationSeconds, media.SizeBytes, Renditions = string.Join(",", video.Renditions.Select(r => r.Name)), video.Deinterlaced });
 
                 return EMediaStatus.Ready;
             }
@@ -389,7 +408,8 @@ namespace NoiseVault.Application.Media
             {
                 Predicate = m => (m.Status == EMediaStatus.Ready || m.Status == EMediaStatus.Failed)
                     && m.ExpiresAt <= now
-                    && m.Attachment == null,
+                    && m.Attachment == null
+                    && m.ArchiveAttachment == null,
             });
 
             foreach (var media in unattached)
@@ -400,8 +420,8 @@ namespace NoiseVault.Application.Media
 
             var ofDeletedPosts = await _mediaRepository.ListAsync(new QueryOptions<MediaUpload>
             {
-                Predicate = m => m.Attachment != null
-                    && m.Attachment.Post!.IsDeleted
+                Predicate = m => ((m.Attachment != null && m.Attachment.Post!.IsDeleted)
+                        || (m.ArchiveAttachment != null && m.ArchiveAttachment.ArchiveEntry!.IsDeleted))
                     && (m.StorageKey != null || m.PosterKey != null || m.OriginalKey != null),
             });
 
@@ -532,6 +552,9 @@ namespace NoiseVault.Application.Media
                 _logger.Warning("MEDIA_TEMP_CLEANUP_FAILED", "Temporary video folder was left behind", extra: new { Error = ex.GetType().Name, ex.Message });
             }
         }
+
+        private static Error VideoTooLarge(MediaProfileLimits limits) =>
+            new("VIDEO_TOO_LARGE", $"Video must have at most {limits.VideoMaxBytes / (1024 * 1024)} MB", ErrorType.Validation);
 
         private static Error MediaNotFound() => new("MEDIA_NOT_FOUND", "Media not found", ErrorType.NotFound);
 

@@ -8,7 +8,7 @@ namespace NoiseVault.Infra.Data.Media
         public string FfprobePath { get; init; } = "ffprobe";
         public int MaxShortSide { get; init; } = 1080;
         public int Crf { get; init; } = 23;
-        public TimeSpan ProcessTimeout { get; init; } = TimeSpan.FromMinutes(30);
+        public TimeSpan ProcessTimeout { get; init; } = TimeSpan.FromHours(4);
 
         public static VideoSettings FromConfiguration(IConfiguration config) => new()
         {
@@ -16,6 +16,7 @@ namespace NoiseVault.Infra.Data.Media
             FfprobePath = config["Video:FfprobePath"] is { Length: > 0 } ffprobe ? ffprobe : "ffprobe",
             MaxShortSide = int.TryParse(config["Video:MaxShortSide"], out var side) ? side : 1080,
             Crf = int.TryParse(config["Video:Crf"], out var crf) ? crf : 23,
+            ProcessTimeout = int.TryParse(config["Video:ProcessTimeoutMinutes"], out var minutes) ? TimeSpan.FromMinutes(minutes) : TimeSpan.FromHours(4),
         };
     }
 }

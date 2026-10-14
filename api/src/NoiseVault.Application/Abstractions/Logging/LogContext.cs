@@ -12,6 +12,7 @@ namespace NoiseVault.Application.Abstractions.Logging
         Bands,
         Posts,
         Media,
-        Events
+        Events,
+        Archive
     }
 }

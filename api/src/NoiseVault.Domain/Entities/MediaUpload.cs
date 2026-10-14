@@ -6,6 +6,7 @@ namespace NoiseVault.Domain.Entities
     {
         public int OwnerUserId { get; set; }
         public EMediaKind Kind { get; set; }
+        public EMediaProfile Profile { get; set; }
         public EMediaStatus Status { get; set; }
         public string? StorageKey { get; set; }
         public string? OriginalKey { get; set; }
@@ -20,5 +21,6 @@ namespace NoiseVault.Domain.Entities
 
         public User? Owner { get; set; }
         public PostMedia? Attachment { get; set; }
+        public ArchiveMedia? ArchiveAttachment { get; set; }
     }
 }
