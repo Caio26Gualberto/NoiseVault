@@ -14,6 +14,7 @@
 NoiseVault/
 ├── CLAUDE.md            ← este arquivo: o que atravessa api e frontend
 ├── README.md            ← pré-requisitos e os comandos para subir tudo
+├── IDEIAS.md            ← backlog de produto para os próximos módulos (nada ali é decisão até virar rule)
 ├── docker-compose.yml   ← Postgres 17 na porta 5436, Mailpit (SMTP 1025, caixa em http://localhost:8025) e LocalStack S3 (http://localhost:4566)
 ├── infra/localstack/    ← init hook do bucket noisevault-media (leitura pública, CORS do PUT pré-assinado, lifecycle de multipart)
 ├── .github/workflows/   ← CI (build da API, lint + typecheck + build do frontend)
