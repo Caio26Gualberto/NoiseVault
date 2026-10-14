@@ -65,5 +65,6 @@
     "title": "Publicações",
     "emptyMine": "Você ainda não publicou nada. Comece pelo feed.",
     "empty": "{{name}} ainda não publicou nada."
-  }
+  },
+  "postsLabel_zero": "publicações"
 }

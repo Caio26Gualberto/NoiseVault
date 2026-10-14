@@ -1,4 +1,4 @@
-import { CalendarDaysIcon, PlusIcon, SearchIcon } from 'lucide-react'
+import { CalendarDaysIcon, PlusIcon, SearchIcon, StarIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
@@ -8,6 +8,8 @@ import { AppPageHeader } from '@/components/app-page-header'
 import { AppPagination } from '@/components/app-pagination'
 import { AppSkeleton } from '@/components/app-skeleton'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { cn } from '@/lib/utils'
 import { allAbcCities, useAbcCityLabel } from '@/pages/perfil/cities'
 import { allMusicGenres, useMusicGenreLabel } from '@/pages/perfil/genres'
 import type { AbcCity } from '@/pages/perfil/cities'
@@ -15,6 +17,7 @@ import type { MusicGenre } from '@/pages/perfil/genres'
 
 import { EventCard } from './components/event-card'
 import { useEventosPage } from './hooks/use-eventos-page'
+import type { EventScope } from './services/eventos-service'
 
 const all = 'all'
 
@@ -38,6 +41,27 @@ export function EventosPage() {
           </AppButton>
         }
       />
+
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <Tabs value={page.scope} onValueChange={(value) => page.changeScope(value as EventScope)}>
+          <TabsList>
+            <TabsTrigger value="upcoming">{t('scope.upcoming')}</TabsTrigger>
+            <TabsTrigger value="past">{t('scope.past')}</TabsTrigger>
+          </TabsList>
+        </Tabs>
+        <button
+          type="button"
+          onClick={() => page.changeInterested(!page.interested)}
+          aria-pressed={page.interested}
+          className={cn(
+            'inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-sm transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none',
+            page.interested && 'border-primary bg-primary/15 text-primary hover:bg-primary/20',
+          )}
+        >
+          <StarIcon className={cn('size-4', page.interested && 'fill-current')} />
+          {t('filters.going')}
+        </button>
+      </div>
 
       <div className="mb-6 flex flex-col gap-3 md:flex-row">
         <div className="relative flex-1">
@@ -88,11 +112,15 @@ export function EventosPage() {
       {page.loading ? (
         <AppSkeleton preset="card" count={3} className="grid gap-4 md:grid-cols-2 xl:grid-cols-3" />
       ) : page.items.length === 0 ? (
-        <AppEmptyState icon={CalendarDaysIcon} title={t('empty.title')} description={t('empty.description')} />
+        <AppEmptyState
+          icon={CalendarDaysIcon}
+          title={page.interested ? t('empty.goingTitle') : page.scope === 'past' ? t('empty.pastTitle') : t('empty.title')}
+          description={page.interested ? t('empty.goingDescription') : t('empty.description')}
+        />
       ) : (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {page.items.map((event) => (
-            <EventCard key={event.id} event={event} onToggleInterest={(id) => void page.toggle(id)} />
+            <EventCard key={event.id} event={event} onToggleInterest={(target) => void page.toggle(target)} />
           ))}
         </div>
       )}

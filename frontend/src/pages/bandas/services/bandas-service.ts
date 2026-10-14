@@ -39,6 +39,7 @@ export type BandProfileDto = {
   members: BandMemberDto[]
   myRole: BandMemberRole | null
   postCount: number
+  upcomingEventCount: number
 }
 
 export type BandInput = {
@@ -71,6 +72,12 @@ export function getBandProfile(slug: string) {
 
 export function getSuggestedBands() {
   return apiGet<BandSummaryDto[]>('/api/bands/suggested')
+}
+
+export const bandSearchMinLength = 2
+
+export function searchBands(search: string, pageSize = 6) {
+  return apiGet<PagedResult<BandSummaryDto>>('/api/bands/search', { search, page: 1, pageSize }, { toastError: false })
 }
 
 export function getMyBands() {

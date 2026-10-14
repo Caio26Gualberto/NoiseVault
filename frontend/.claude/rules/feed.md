@@ -48,6 +48,7 @@ Rules irmãs: `../api/.claude/rules/feed.md` (post, curtida, comentário, quem p
 
 ## Post na tela
 
+- **Post de evento**: quando `post.event` vem preenchido, o card mostra "publicou um evento" no meta e o `EventEmbed` (banner 21:9, pílula de data, título, data e local, "Cancelado"/"Já rolou") com link para `/eventos/:id`. O texto pode ser vazio. Detalhes em `eventos.md`.
 - **Cabeçalho**: post de banda mostra o avatar (com selo de verificada) e o nome da banda, e embaixo "por @nickname", tempo relativo e "editado". Post de pessoa fica como antes.
 - **Menu "…"**: aparece só com `canEdit` ou `canDelete` vindos da API.
   - "Editar texto" abre `PostEditDialog`: só o texto, sem trocar a mídia, como a API.

@@ -22,6 +22,7 @@ import { MediaKind } from '../media-kind'
 import { MediaStatus } from '../media-status'
 import { PostStatus } from '../post-status'
 import { deletePost } from '../services/feed-service'
+import { EventEmbed } from './event-embed'
 import type { PostDto } from '../services/feed-service'
 import type { MediaDto } from '../services/media-service'
 import { PostEditDialog } from './post-edit-dialog'
@@ -99,6 +100,12 @@ export function PostCard({ post, onLike, onUpdated, onDeleted, detail = false }:
                 <span aria-hidden>·</span>
               </>
             ) : null}
+            {post.event ? (
+              <>
+                <span>{t('event.published')}</span>
+                <span aria-hidden>·</span>
+              </>
+            ) : null}
             <Link to={`/feed/${post.id}`} className="hover:underline">
               <time dateTime={post.createdAt}>{formatRelative(post.createdAt)}</time>
             </Link>
@@ -143,6 +150,8 @@ export function PostCard({ post, onLike, onUpdated, onDeleted, detail = false }:
       ) : null}
 
       <AppMediaGrid items={post.media.map(toMediaItem)} />
+
+      {post.event ? <EventEmbed event={post.event} /> : null}
 
       {published ? (
         <footer className="flex items-center gap-1 border-t pt-2">

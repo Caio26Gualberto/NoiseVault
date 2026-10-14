@@ -5,7 +5,8 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
 import { z } from 'zod'
 
-import { feedback } from '@/api/feedback-sink'
+import { useAuth } from '@/auth/use-auth'
+import { AppBannerEditor } from '@/components/app-banner-editor'
 import { AppButton } from '@/components/app-button'
 import { AppCard } from '@/components/app-card'
 import { AppField, AppForm, AppTextareaField } from '@/components/app-field'
@@ -14,27 +15,48 @@ import { AppSkeleton } from '@/components/app-skeleton'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { getMyBands } from '@/pages/bandas/services/bandas-service'
+import type { BandSummaryDto } from '@/pages/bandas/services/bandas-service'
 import { AbcCity, allAbcCities, useAbcCityLabel } from '@/pages/perfil/cities'
 import { allMusicGenres, useMusicGenreLabel } from '@/pages/perfil/genres'
 import type { MusicGenre } from '@/pages/perfil/genres'
 
-import { createEvent, getEvent, updateEvent } from './services/eventos-service'
+import { LineupEditor } from './components/lineup-editor'
+import type { LineupItem } from './components/lineup-editor'
+import { EventStatus } from './event-status'
+import {
+  createEvent,
+  getEvent,
+  removeEventBanner,
+  updateEvent,
+  updateEventBannerPosition,
+  uploadEventBanner,
+} from './services/eventos-service'
 import type { EventInputDto } from './services/eventos-service'
 
-const schema = z.object({
-  title: z.string().trim().min(3, 'validation.required').max(120),
-  description: z.string().trim().min(10, 'validation.required'),
-  startsAt: z.string().min(1, 'validation.required'),
-  endsAt: z.string(),
-  venue: z.string().trim().min(2, 'validation.required'),
-  city: z.number(),
-  genres: z.array(z.number()).min(1, 'validation.required'),
-  ticketsUrl: z.string().trim(),
-  price: z.string().trim(),
-  capacity: z.string().trim(),
-})
+const maxGenres = 5
+const asSelf = 'self'
+
+const schema = z
+  .object({
+    title: z.string().trim().min(3, 'validation.required').max(120),
+    description: z.string().trim().max(5000),
+    startsAt: z.string().min(1, 'validation.required'),
+    endsAt: z.string(),
+    venue: z.string().trim().min(2, 'validation.required').max(120),
+    city: z.number(),
+    cityName: z.string().trim().max(80),
+    genres: z.array(z.number()).max(maxGenres),
+    ticketsUrl: z.string().trim().max(500).refine((value) => !value || /^https?:\/\//i.test(value), 'validation.url'),
+    price: z.string().trim().refine((value) => !value || !Number.isNaN(Number(value.replace(',', '.'))), 'validation.number'),
+    capacity: z.string().trim().refine((value) => !value || /^\d+$/.test(value), 'validation.number'),
+  })
+  .refine((values) => values.city !== AbcCity.other || values.cityName.length >= 2, { path: ['cityName'], message: 'validation.required' })
+  .refine((values) => !values.endsAt || new Date(values.endsAt) > new Date(values.startsAt), { path: ['endsAt'], message: 'validation.endsAfterStart' })
 
 type FormValues = z.infer<typeof schema>
+
+type PendingBanner = { file: File; position: number; previewUrl: string }
 
 function toLocalInput(iso: string | null): string {
   if (!iso) return ''
@@ -43,18 +65,20 @@ function toLocalInput(iso: string | null): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
 }
 
-function toInput(values: FormValues): EventInputDto {
+function toInput(values: FormValues, lineup: LineupItem[]): EventInputDto {
   return {
     title: values.title,
-    description: values.description,
+    description: values.description || null,
     startsAt: new Date(values.startsAt).toISOString(),
     endsAt: values.endsAt ? new Date(values.endsAt).toISOString() : null,
     venue: values.venue,
     city: values.city as AbcCity,
+    cityName: values.city === AbcCity.other ? values.cityName : null,
     genres: values.genres as MusicGenre[],
     ticketsUrl: values.ticketsUrl || null,
     price: values.price ? Number(values.price.replace(',', '.')) : null,
     capacity: values.capacity ? Number(values.capacity) : null,
+    lineup: lineup.map((item) => (item.band ? { bandId: item.band.id, name: null } : { bandId: null, name: item.name })),
   }
 }
 
@@ -62,9 +86,15 @@ export function EventoFormPage() {
   const { t } = useTranslation('eventos')
   const { id } = useParams()
   const navigate = useNavigate()
+  const { user } = useAuth()
   const eventId = id ? Number(id) : null
   const [loading, setLoading] = useState(eventId !== null)
   const [saving, setSaving] = useState(false)
+  const [lineup, setLineup] = useState<LineupItem[]>([])
+  const [bands, setBands] = useState<BandSummaryDto[]>([])
+  const [publishAs, setPublishAs] = useState(asSelf)
+  const [banner, setBanner] = useState<{ url: string | null; position: number }>({ url: null, position: 50 })
+  const [pending, setPending] = useState<PendingBanner | null>(null)
   const genreLabel = useMusicGenreLabel()
   const cityLabel = useAbcCityLabel()
 
@@ -77,6 +107,7 @@ export function EventoFormPage() {
       endsAt: '',
       venue: '',
       city: AbcCity.santoAndre,
+      cityName: '',
       genres: [],
       ticketsUrl: '',
       price: '',
@@ -85,51 +116,117 @@ export function EventoFormPage() {
   })
 
   useEffect(() => {
+    if (eventId !== null) return
+    let cancelled = false
+    getMyBands()
+      .then((data) => {
+        if (!cancelled) setBands(data)
+      })
+      .catch(() => undefined)
+    return () => {
+      cancelled = true
+    }
+  }, [eventId])
+
+  useEffect(() => {
     if (eventId === null) return
     let cancelled = false
     getEvent(eventId)
       .then((event) => {
-        if (cancelled || !event) return
+        if (cancelled) return
+        if (!event.canManage || event.status === EventStatus.cancelled) {
+          navigate(`/eventos/${event.id}`, { replace: true })
+          return
+        }
         form.reset({
           title: event.title,
-          description: event.description,
+          description: event.description ?? '',
           startsAt: toLocalInput(event.startsAt),
           endsAt: toLocalInput(event.endsAt),
           venue: event.venue,
           city: event.city,
+          cityName: event.cityName ?? '',
           genres: event.genres,
           ticketsUrl: event.ticketsUrl ?? '',
-          price: event.price?.toString() ?? '',
+          price: event.price?.toString().replace('.', ',') ?? '',
           capacity: event.capacity?.toString() ?? '',
         })
+        setLineup(event.lineup.map((item) => ({ key: crypto.randomUUID(), band: item.band, name: item.name })))
+        setBanner({ url: event.bannerUrl, position: event.bannerPosition })
       })
+      .catch(() => navigate('/eventos', { replace: true }))
       .finally(() => {
         if (!cancelled) setLoading(false)
       })
     return () => {
       cancelled = true
     }
-  }, [eventId, form])
+  }, [eventId, form, navigate])
+
+  useEffect(() => () => {
+    if (pending) URL.revokeObjectURL(pending.previewUrl)
+  }, [pending])
+
+  const genres = useWatch({ control: form.control, name: 'genres' })
+  const city = useWatch({ control: form.control, name: 'city' })
 
   const submit = async (values: FormValues) => {
     setSaving(true)
     try {
-      const input = toInput(values)
-      const saved = eventId === null ? await createEvent(input) : await updateEvent(eventId, input)
-      if (!saved) return
-      feedback.success('', t(eventId === null ? 'form.created' : 'form.updated'))
-      navigate(`/eventos/${saved.id}`, { replace: true })
+      const input = toInput(values, lineup)
+      if (eventId === null) {
+        const created = await createEvent({ ...input, bandSlug: publishAs === asSelf ? null : publishAs })
+        if (pending) await uploadEventBanner(created.id, pending.file, pending.position).catch(() => undefined)
+        navigate(`/eventos/${created.id}`, { replace: true })
+      } else {
+        await updateEvent(eventId, input)
+        navigate(`/eventos/${eventId}`, { replace: true })
+      }
+    } catch {
+      return
     } finally {
       setSaving(false)
     }
   }
 
-  const genres = useWatch({ control: form.control, name: 'genres' })
-  const city = useWatch({ control: form.control, name: 'city' })
+  const bannerHandlers =
+    eventId === null
+      ? {
+          onUpload: async (file: File, position: number) => {
+            setPending({ file, position, previewUrl: URL.createObjectURL(file) })
+            return { bannerPosition: position }
+          },
+          onPosition: async (position: number) => {
+            setPending((current) => (current ? { ...current, position } : current))
+            return { bannerPosition: position }
+          },
+          onRemove: async () => {
+            setPending(null)
+            return { bannerPosition: 50 }
+          },
+        }
+      : {
+          onUpload: async (file: File, position: number) => {
+            const saved = await uploadEventBanner(eventId, file, position)
+            setBanner({ url: saved.bannerUrl, position: saved.bannerPosition })
+            return saved
+          },
+          onPosition: async (position: number) => {
+            const saved = await updateEventBannerPosition(eventId, position)
+            setBanner({ url: saved.bannerUrl, position: saved.bannerPosition })
+            return saved
+          },
+          onRemove: async () => {
+            const saved = await removeEventBanner(eventId)
+            setBanner({ url: saved.bannerUrl, position: saved.bannerPosition })
+            return saved
+          },
+        }
 
   if (loading) {
     return <AppSkeleton preset="lines" count={8} className="app-page-enter mx-auto max-w-2xl" />
   }
+
   const genreError = form.formState.errors.genres?.message
 
   const toggleGenre = (genre: MusicGenre, checked: boolean) => {
@@ -141,8 +238,35 @@ export function EventoFormPage() {
     <div className="app-page-enter mx-auto flex max-w-2xl flex-col gap-6">
       <AppPageHeader title={t(eventId === null ? 'form.createTitle' : 'form.editTitle')} description={t('form.description')} />
 
+      <AppCard title={t('form.bannerTitle')} description={t('form.bannerHint')}>
+        <AppBannerEditor
+          bannerUrl={eventId === null ? (pending?.previewUrl ?? null) : banner.url}
+          bannerPosition={eventId === null ? (pending?.position ?? 50) : banner.position}
+          {...bannerHandlers}
+        />
+      </AppCard>
+
       <AppCard>
         <AppForm form={form} onSubmit={submit}>
+          {eventId === null && bands.length > 0 && user ? (
+            <div className="flex flex-col gap-1.5">
+              <Label>{t('form.fields.publishAs')}</Label>
+              <Select value={publishAs} onValueChange={setPublishAs}>
+                <SelectTrigger className="h-11 md:h-10" aria-label={t('form.fields.publishAs')}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={asSelf}>{t('form.asSelf', { name: user.name })}</SelectItem>
+                  {bands.map((band) => (
+                    <SelectItem key={band.slug} value={band.slug}>
+                      {t('form.asBand', { name: band.name })}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          ) : null}
+
           <AppField name="title" label={t('form.fields.title')} />
           <AppTextareaField name="description" label={t('form.fields.description')} rows={5} />
           <div className="grid gap-4 md:grid-cols-2">
@@ -150,30 +274,38 @@ export function EventoFormPage() {
             <AppField name="endsAt" label={t('form.fields.endsAt')} type="datetime-local" />
           </div>
           <div className="grid gap-4 md:grid-cols-2">
-            <AppField name="venue" label={t('form.fields.venue')} />
+            <AppField name="venue" label={t('form.fields.venue')} placeholder={t('form.venuePlaceholder')} />
             <div className="flex flex-col gap-1.5">
               <Label>{t('form.fields.city')}</Label>
-              <Select value={String(city)} onValueChange={(value) => form.setValue('city', Number(value))}>
-                <SelectTrigger className="h-11 md:h-10">
+              <Select value={String(city)} onValueChange={(value) => form.setValue('city', Number(value), { shouldValidate: true })}>
+                <SelectTrigger className="h-11 md:h-10" aria-label={t('form.fields.city')}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {allAbcCities.map((option) => (
                     <SelectItem key={option} value={String(option)}>
-                      {cityLabel(option)}
+                      {option === AbcCity.other ? t('form.otherCity') : cityLabel(option)}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
           </div>
+          {city === AbcCity.other ? <AppField name="cityName" label={t('form.fields.cityName')} placeholder={t('form.cityNamePlaceholder')} /> : null}
+
+          <LineupEditor value={lineup} onChange={setLineup} />
 
           <fieldset className="flex flex-col gap-2">
             <legend className="text-sm font-medium">{t('form.fields.genres')}</legend>
+            <p className="app-meta">{t('form.genresHint', { max: maxGenres })}</p>
             <div className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3">
               {allMusicGenres.map((genre) => (
                 <label key={genre} className="flex items-center gap-2 text-sm">
-                  <Checkbox checked={genres.includes(genre)} onCheckedChange={(checked) => toggleGenre(genre, checked === true)} />
+                  <Checkbox
+                    checked={genres.includes(genre)}
+                    disabled={!genres.includes(genre) && genres.length >= maxGenres}
+                    onCheckedChange={(checked) => toggleGenre(genre, checked === true)}
+                  />
                   {genreLabel(genre)}
                 </label>
               ))}
@@ -186,7 +318,7 @@ export function EventoFormPage() {
           </fieldset>
 
           <div className="grid gap-4 md:grid-cols-3">
-            <AppField name="price" label={t('form.fields.price')} inputMode="decimal" placeholder="0,00" />
+            <AppField name="price" label={t('form.fields.price')} inputMode="decimal" placeholder={t('form.pricePlaceholder')} />
             <AppField name="capacity" label={t('form.fields.capacity')} inputMode="numeric" />
             <AppField name="ticketsUrl" label={t('form.fields.ticketsUrl')} type="url" placeholder="https://" />
           </div>

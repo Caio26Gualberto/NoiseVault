@@ -25,7 +25,10 @@
     "genresMax": "Escolha no máximo 10 gêneros.",
     "socialLink": "Use o endereço completo do perfil nesse serviço (https://...).",
     "bandDescriptionLength": "A descrição pode ter no máximo 1000 caracteres.",
-    "foundedYear": "Use um ano entre 1950 e o ano atual."
+    "foundedYear": "Use um ano entre 1950 e o ano atual.",
+    "url": "Use um link que comece com http:// ou https://.",
+    "number": "Use só números.",
+    "endsAfterStart": "O término precisa ser depois do início."
   },
   "password": {
     "show": "Mostrar senha",

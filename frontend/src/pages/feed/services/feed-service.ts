@@ -1,6 +1,7 @@
 import { apiDelete, apiGet, apiPost, apiPut } from '@/api/base-service'
 import type { PagedRequest, PagedResult } from '@/api/types'
 import type { BandSummaryDto } from '@/pages/bandas/services/bandas-service'
+import type { EventSummaryDto } from '@/pages/eventos/services/eventos-service'
 import type { ProfileSummaryDto } from '@/pages/perfil/services/perfil-service'
 
 import type { PostStatus } from '../post-status'
@@ -10,6 +11,7 @@ export type PostDto = {
   id: number
   author: ProfileSummaryDto
   band: BandSummaryDto | null
+  event: EventSummaryDto | null
   content: string
   media: MediaDto[]
   likeCount: number

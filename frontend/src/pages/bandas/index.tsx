@@ -14,6 +14,7 @@ import { AppProfileHero } from '@/components/app-profile-hero'
 import { AppSkeleton } from '@/components/app-skeleton'
 import { AppSocialLinks } from '@/components/app-social-links'
 import { formatDate } from '@/lib/format'
+import { BandEvents } from '@/pages/eventos/components/band-events'
 import { OwnerPosts } from '@/pages/feed/components/owner-posts'
 import { useAbcCityLabel } from '@/pages/perfil/cities'
 
@@ -81,6 +82,7 @@ export function BandasPage() {
         stats={[
           { label: t('membersLabel', { count: band.members.length }), value: band.members.length },
           { label: t('postsLabel', { count: band.postCount }), value: band.postCount },
+          { label: t('showsLabel', { count: band.upcomingEventCount }), value: band.upcomingEventCount },
         ]}
         actions={
           <>
@@ -143,6 +145,8 @@ export function BandasPage() {
           ))}
         </ul>
       </section>
+
+      <BandEvents slug={band.slug} />
 
       <div className="mx-auto w-full max-w-2xl">
         <OwnerPosts

@@ -97,5 +97,10 @@
     "title": "Publicações",
     "empty": "A banda ainda não publicou nada.",
     "emptyMember": "Publique pelo feed escolhendo \"Publicar como\" a banda."
-  }
+  },
+  "showsLabel_one": "show marcado",
+  "showsLabel_other": "shows marcados",
+  "membersLabel_zero": "integrantes",
+  "postsLabel_zero": "publicações",
+  "showsLabel_zero": "shows marcados"
 }

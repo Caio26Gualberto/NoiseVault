@@ -60,5 +60,10 @@
     "like": "Curtir",
     "unlike": "Remover curtida",
     "comments": "Comentários"
+  },
+  "event": {
+    "published": "publicou um evento",
+    "cancelled": "Cancelado",
+    "ended": "Já rolou"
   }
 }

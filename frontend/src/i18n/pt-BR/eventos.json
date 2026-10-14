@@ -1,20 +1,21 @@
 {
   "title": "Eventos",
-  "description": "Shows, festivais e ensaios abertos no ABC.",
+  "description": "Shows, festivais e ensaios abertos no ABC e além.",
   "create": "Criar evento",
   "edit": "Editar",
   "tickets": "Ingressos",
   "free": "Entrada franca",
-  "interested_one": "{{count}} interessado",
-  "interested_other": "{{count}} interessados",
+  "interested_one": "{{count}} vai",
+  "interested_other": "{{count}} vão",
   "organizedBy": "Organizado por",
   "lineup": "Line-up",
-  "searchPlaceholder": "Buscar por nome ou casa de show",
+  "searchPlaceholder": "Buscar por nome, local ou banda",
   "filters": {
     "genre": "Gênero",
     "allGenres": "Todos os gêneros",
     "city": "Cidade",
-    "allCities": "Todas as cidades"
+    "allCities": "Todas as cidades",
+    "going": "Vou"
   },
   "facts": {
     "when": "Quando",
@@ -27,7 +28,10 @@
   },
   "empty": {
     "title": "Nenhum evento com esses filtros",
-    "description": "Tente outro gênero ou cidade, ou crie o próximo show."
+    "pastTitle": "Nada por aqui ainda",
+    "description": "Tente outro gênero ou cidade, ou crie o próximo show.",
+    "goingTitle": "Você ainda não marcou nenhum evento",
+    "goingDescription": "Toque em \"Vou\" nos eventos que pretende ir para eles aparecerem aqui."
   },
   "notFound": {
     "title": "Evento não encontrado",
@@ -37,27 +41,74 @@
     "title_zero": "Comentários",
     "title_one": "{{count}} comentário",
     "title_other": "{{count}} comentários",
-    "empty": "Seja a primeira pessoa a comentar."
+    "empty": "Seja a primeira pessoa a comentar.",
+    "delete": "Apagar comentário",
+    "deleteTitle": "Apagar este comentário?"
   },
   "form": {
     "createTitle": "Novo evento",
     "editTitle": "Editar evento",
-    "description": "Preencha o essencial. Banner e line-up entram com o módulo de eventos.",
-    "created": "Evento criado.",
-    "updated": "Evento atualizado.",
+    "description": "Show do porão ou turnê no estádio: o que importa é a galera saber.",
     "submitCreate": "Publicar evento",
     "submitEdit": "Salvar alterações",
     "fields": {
       "title": "Nome do evento",
-      "description": "Descrição",
+      "description": "Descrição (opcional)",
       "startsAt": "Começa em",
       "endsAt": "Termina em (opcional)",
       "venue": "Local",
       "city": "Cidade",
       "genres": "Gêneros",
-      "price": "Ingresso (R$)",
+      "price": "Ingresso a partir de (R$)",
       "capacity": "Lotação",
-      "ticketsUrl": "Link dos ingressos"
-    }
+      "ticketsUrl": "Link dos ingressos",
+      "publishAs": "Publicar como",
+      "cityName": "Nome da cidade",
+      "lineup": "Line-up"
+    },
+    "bannerTitle": "Banner",
+    "bannerHint": "Imagem horizontal, como um cartaz deitado. Arraste para ajustar o enquadramento.",
+    "asSelf": "Você ({{name}})",
+    "asBand": "{{name}} (banda)",
+    "otherCity": "Outra cidade",
+    "cityNamePlaceholder": "Ex.: Curitiba, Rio de Janeiro",
+    "venuePlaceholder": "Ex.: Porão do Rock, Allianz Parque",
+    "pricePlaceholder": "Vazio = entrada franca",
+    "genresHint": "Até {{max}} gêneros.",
+    "lineupHint": "Busque bandas do Noise Vault ou digite qualquer nome, até bandas de fora.",
+    "lineupPlaceholder": "Buscar banda ou digitar um nome",
+    "lineupAddFree": "Adicionar \"{{name}}\" como nome",
+    "lineupLinked": "Banda do Noise Vault",
+    "lineupFree": "Nome livre",
+    "lineupUp": "Subir",
+    "lineupDown": "Descer",
+    "lineupRemove": "Remover do line-up",
+    "lineupFull": "Line-up completo ({{max}} atrações)"
+  },
+  "priceFrom": "A partir de {{price}}",
+  "publishedBy": "publicado por @{{nickname}}",
+  "scope": {
+    "upcoming": "Próximos",
+    "past": "Já rolou"
+  },
+  "status": {
+    "cancelled": "Cancelado",
+    "ended": "Já rolou",
+    "cancelledBanner": "Este evento foi cancelado.",
+    "cancelledAt": "Cancelado em {{date}}."
+  },
+  "manage": {
+    "actions": "Ações do evento",
+    "cancel": "Cancelar evento",
+    "cancelTitle": "Cancelar este evento?",
+    "cancelMessage": "A página continua no ar com a faixa de cancelado, para quem marcou \"Vou\" ficar sabendo. Não dá para desfazer.",
+    "delete": "Apagar evento",
+    "deleteTitle": "Apagar este evento?",
+    "deleteMessage": "Ele some da agenda, do feed e das páginas das bandas. Não dá para desfazer."
+  },
+  "band": {
+    "title": "Shows",
+    "empty": "Nenhum show marcado.",
+    "emptyPast": "Nenhum show registrado ainda."
   }
 }
