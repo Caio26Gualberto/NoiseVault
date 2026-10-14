@@ -52,14 +52,22 @@ Sem conversão, vídeo de iPhone (`.mov`/HEVC) não toca no Chrome e o arquivo s
    - não lê → `UNSUPPORTED`;
    - sem stream de vídeo → `NO_VIDEO_STREAM`;
    - mais de 10 min (+1 s de tolerância) → `TOO_LONG`.
-2. `ffmpeg` gera **MP4 H.264** (`yuv420p`, perfil high, `veryfast`, CRF 23), **AAC 128k estéreo** e `+faststart`. O vídeo é **reduzido até o lado menor ter 720 px**, sem aumentar vídeo menor; vertical continua vertical (1080×1920 vira 720×1280).
-3. Frame de 1 s (ou 0 em vídeo curto) vira o poster, processado pelo `ImageSharpProcessor` (preset `Post`, WebP).
-4. Sobe `users/{userId}/videos/{guid}/video.mp4` e `poster.webp`, grava largura, altura, duração e tamanho, marca `Ready`, apaga o original e publica os posts que esperavam (`feed.md`).
+2. Um único `ffmpeg` gera **HLS adaptativo** (decisão do usuário em 13/10/2026: "igual o YouTube", porque a produção vai precisar converter assim de qualquer jeito):
+   - **escada de resoluções pelo lado menor**: 360p (800 kbps), 480p (1400), 720p (2800) e 1080p (5000). Só entram as que **não passam do original**: um vídeo 720p gera 360/480/720. Original menor que 360p vira uma rendição só, no tamanho dele. Vertical continua vertical (1080×1920 gera 1080p = 1080×1920). Teto em `Video:MaxShortSide` (1080);
+   - **fps do original, até 60** (`-fpsmax 60`); acima de 30 fps o teto de bitrate sobe 50%. O `master.m3u8` ganha `FRAME-RATE` em cada variante, que o player usa para mostrar "1080p60";
+   - H.264 (`yuv420p`, high, `veryfast`) com **CRF 23 limitado por `maxrate`/`bufsize`** por rendição: qualidade constante, sem passar do teto da rede. AAC 128k estéreo em todas as variantes (se o original tiver áudio);
+   - segmentos de **4 s** (`.ts`), keyframe forçado a cada 2 s em todas as rendições, para a troca de qualidade cair sempre em fronteira de segmento; `-hls_playlist_type vod` e `independent_segments`;
+   - o `ffprobe` lê a rotação do celular (`side_data`) para decidir a escada pelo lado certo.
+3. Frame de 1 s (ou 0 em vídeo curto), reduzido a no máximo 720p, vira o poster, processado pelo `ImageSharpProcessor` (preset `Post`, WebP).
+4. Sobe a pasta inteira em `users/{userId}/videos/{guid}/` (`master.m3u8`, uma pasta por rendição `360p/`, `480p/`… com `index.m3u8` e os segmentos, e `poster.webp`), 4 arquivos em paralelo, com `Content-Type` por extensão (`application/vnd.apple.mpegurl`, `video/mp2t`). Se algum arquivo falhar, apaga o que subiu e relança (retry do job). `StorageKey` aponta para o `master.m3u8`; largura e altura são as da maior rendição; `SizeBytes` é a soma da pasta. Marca `Ready`, apaga o original e publica os posts que esperavam (`feed.md`).
+   - Apagar mídia de vídeo HLS apaga **o prefixo da pasta** (`IFileStorage.DeletePrefixAsync`, `ListObjectsV2` + `DeleteObjects`), não chave a chave.
+   - **Vídeos convertidos antes do HLS** (`video.mp4`, 720p) continuam valendo e não foram reconvertidos (decisão do usuário): o player toca MP4 direto, sem menu de qualidade.
 
 - **Retry**: 2 tentativas extras (60 s e 300 s) para falha transitória (download, upload, ffmpeg que quebrou). A **última** tentativa marca `Failed` com `TRANSCODE_FAILED` e loga `VIDEO_TRANSCODE_FAILED` (Error). As anteriores logam `VIDEO_TRANSCODE_RETRY` (Warning) e relançam. O trigger lê o `RetryCount` do Hangfire para saber se é a última.
 - **Isolamento**: a fila `media` roda num segundo servidor do Hangfire (`noisevault-media`, `WorkerCount = 2`). Conversão é CPU pesada; sem isso, 20 vídeos ocupariam todos os workers do servidor principal.
-- **Configuração**: `Video:FfmpegPath` e `Video:FfprobePath` (padrão `ffmpeg`/`ffprobe` no PATH), `Video:ShortSideMax` (720) e `Video:Crf` (23). Cada processo tem teto de 30 min e é morto ao estourar. Os argumentos vão em `ArgumentList`, nunca numa string de shell.
-- **Por que MP4 720p progressivo e não HLS**: toca em qualquer navegador sem player extra, e o `faststart` começa a tocar antes de baixar tudo. HLS adaptativo é a evolução, e é o que o MediaConvert entrega pronto (abaixo). O contrato não muda: a tela recebe `url` e `posterUrl`.
+- **Configuração**: `Video:FfmpegPath` e `Video:FfprobePath` (padrão `ffmpeg`/`ffprobe` no PATH), `Video:MaxShortSide` (1080) e `Video:Crf` (23). Cada processo tem teto de 30 min e é morto ao estourar. Os argumentos vão em `ArgumentList`, nunca numa string de shell.
+- **Custo do HLS**: a conversão leva umas 3 a 4 vezes mais que um MP4 único, e o armazenamento por vídeo mais ou menos dobra. Em troca, quem está no 4G recebe 360p sem travar e quem está no Wi-Fi recebe 1080p, e o player deixa escolher. O contrato não mudou: a tela recebe `url` (agora `.m3u8`) e `posterUrl`.
+- **Por que `.ts` e não fMP4 (CMAF)**: `.ts` toca em todo player HLS, inclusive em Safari antigo. Quando houver DASH ou DRM, CMAF passa a valer a pena; o MediaConvert gera os dois.
 
 ## Limpeza: `media:cleanup` de hora em hora
 
@@ -75,7 +83,7 @@ Sem conversão, vídeo de iPhone (`.mov`/HEVC) não toca no Chrome e o arquivo s
 ## Bucket: CORS e lifecycle
 
 `infra/localstack/ready.d/10-s3.sh` aplica, a cada boot:
-- **CORS**: origem `http://localhost:5173`, métodos `GET`/`PUT`, `ExposeHeaders: ETag`;
+- **CORS**: origem `http://localhost:5173`, métodos `GET`/`PUT`, `ExposeHeaders: ETag`. O `GET` com CORS é também o que deixa o hls.js baixar playlist e segmentos (ele usa XHR, não `<video src>`);
 - **lifecycle**: a regra acima.
 
 Para um LocalStack que já estava de pé: `docker exec noisevault-localstack bash /etc/localstack/init/ready.d/10-s3.sh`.
@@ -84,18 +92,18 @@ Para um LocalStack que já estava de pé: `docker exec noisevault-localstack bas
 
 O ffmpeg no processo da API serve para dev e para o começo. Em produção na AWS, a conversão vai para o **AWS Elemental MediaConvert**. Decisão registrada para quando houver volume, não implementada:
 
-- **Disparo**: o `CompleteVideo` continua igual, mas em vez de enfileirar o job do ffmpeg ele cria um job do MediaConvert (`CreateJob`), com o original em `s3://…/uploads/…` e um template de saída.
-- **Saída**:
-  - HLS adaptativo em 360p, 720p e 1080p (até a resolução do original);
-  - um MP4 720p de fallback;
-  - thumbnails, tudo em `users/{userId}/videos/{guid}/`, servidos pelo **CloudFront**.
-  - `StorageKey` passa a apontar para o `.m3u8`; a tela troca o `<video src>` por um player HLS (hls.js), porque o Chrome não toca HLS nativo.
+- **Disparo**: o `CompleteVideo` continua igual, mas em vez de enfileirar o job do ffmpeg ele cria um job do MediaConvert (`CreateJob`), com o original em `s3://…/uploads/…` e um **job template** que reproduz a escada de dev.
+- **Saída** (o mesmo layout que o ffmpeg já gera, então tela e banco não mudam):
+  - grupo **Apple HLS** com 360p, 480p, 720p e 1080p (usar "Automated ABR" do MediaConvert para não gerar rendição acima do original), H.264 QVBR com os mesmos tetos de bitrate, segmentos de 4 s, `FramerateControl: INITIALIZE_FROM_SOURCE` limitado a 60;
+  - grupo **File group** com o frame de capa (Frame Capture → JPEG), que a API processa para WebP ou usa direto;
+  - destino `s3://…/users/{userId}/videos/{guid}/`, com `master.m3u8` como nome do manifesto; servido pelo **CloudFront**.
+  - Player: já é o hls.js com menu de qualidade (`frontend/.claude/rules/feed.md`).
 - **Conclusão**: o MediaConvert publica o fim do job no **EventBridge**, que entrega numa fila **SQS**. Um consumidor (job do Hangfire lendo a fila, ou endpoint de webhook com assinatura) marca `Ready`/`Failed` e chama a mesma publicação de posts.
 - **O que muda no código**: `IVideoTranscoder` ganha uma implementação assíncrona (disparar e esperar evento), e o `ProcessVideo` se divide em "disparar" e "concluir". Entidade, estados, DTO e tela continuam iguais.
 - **Infra**:
   - IAM role do MediaConvert com leitura em `uploads/` e escrita em `users/`;
   - fila SQS com DLQ;
-  - CORS do bucket real com o domínio de produção;
+  - CORS do bucket real com o domínio de produção, e uma **Response Headers Policy** no CloudFront com CORS para `GET` (o hls.js baixa `.m3u8` e `.ts` por XHR); cache longo para `.ts` e para o `master.m3u8` (as chaves têm GUID e nunca mudam);
   - a regra de lifecycle de multipart;
   - bucket privado + CloudFront com OAC (`armazenamento.md`); o `PUT` pré-assinado continua indo direto ao S3.
 - **Custo**: MediaConvert cobra por minuto de saída e por resolução. Com 10 min de teto por vídeo, o custo fica previsível. Medir antes de ligar 1080p para todo mundo.

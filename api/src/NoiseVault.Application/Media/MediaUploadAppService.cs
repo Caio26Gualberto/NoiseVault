@@ -19,6 +19,7 @@ namespace NoiseVault.Application.Media
         private const string FailureTooLong = "TOO_LONG";
         private const string FailureTranscode = "TRANSCODE_FAILED";
         private const string FailureTimeout = "PROCESSING_TIMEOUT";
+        private const int StorageUploadConcurrency = 4;
 
         private readonly IRepository<MediaUpload> _mediaRepository;
         private readonly ICurrentUser _currentUser;
@@ -264,6 +265,16 @@ namespace NoiseVault.Application.Media
         {
             foreach (var item in media)
             {
+                if (IsStreamingVideo(item))
+                {
+                    await _fileStorage.DeletePrefixAsync(FolderOf(item.StorageKey!));
+
+                    if (item.OriginalKey != null)
+                        await _fileStorage.DeleteAsync(item.OriginalKey);
+
+                    continue;
+                }
+
                 foreach (var key in StoredKeys(item))
                     await _fileStorage.DeleteAsync(key);
             }
@@ -305,29 +316,26 @@ namespace NoiseVault.Application.Media
 
                 var video = await _videoTranscoder.TranscodeAsync(inputPath, workDirectory);
                 var folder = $"users/{media.OwnerUserId}/videos/{Guid.NewGuid():N}";
-                var videoKey = $"{folder}/video.mp4";
-
-                if (!await _fileStorage.PutFileAsync(videoKey, video.VideoPath, "video/mp4"))
-                    throw new InvalidOperationException("Não foi possível subir o vídeo convertido para o storage.");
+                var size = await UploadDirectoryAsync(video.OutputDirectory, folder);
 
                 var posterKey = await UploadPosterAsync(video.PosterPath, folder);
                 var originalKey = media.OriginalKey!;
 
                 media.Status = EMediaStatus.Ready;
-                media.StorageKey = videoKey;
+                media.StorageKey = $"{folder}/{video.PlaylistFile}";
                 media.PosterKey = posterKey;
                 media.OriginalKey = null;
                 media.Width = video.Width;
                 media.Height = video.Height;
                 media.DurationSeconds = video.DurationSeconds;
-                media.SizeBytes = new FileInfo(video.VideoPath).Length;
+                media.SizeBytes = size;
                 media.ExpiresAt = DateTime.UtcNow.Add(MediaRules.UnattachedLifetime);
                 await _mediaRepository.UpdateAsync(media);
 
                 await _fileStorage.DeleteAsync(originalKey);
 
                 _logger.Info("VIDEO_TRANSCODED", "Video transcoded", userId: media.OwnerUserId,
-                    extra: new { MediaId = media.Id, media.Width, media.Height, media.DurationSeconds, media.SizeBytes });
+                    extra: new { MediaId = media.Id, media.Width, media.Height, media.DurationSeconds, media.SizeBytes, Renditions = string.Join(",", video.Renditions.Select(r => r.Name)) });
 
                 return EMediaStatus.Ready;
             }
@@ -465,6 +473,49 @@ namespace NoiseVault.Application.Media
             await DeleteStoredFiles([media]);
             await _mediaRepository.DeleteAsync(media);
         }
+
+        private async Task<long> UploadDirectoryAsync(string directory, string folder)
+        {
+            var files = Directory.GetFiles(directory, "*", SearchOption.AllDirectories);
+            var total = 0L;
+
+            foreach (var batch in files.Chunk(StorageUploadConcurrency))
+            {
+                var uploads = batch.Select(async path =>
+                {
+                    var relative = Path.GetRelativePath(directory, path).Replace(Path.DirectorySeparatorChar, '/');
+                    var uploaded = await _fileStorage.PutFileAsync($"{folder}/{relative}", path, ContentTypeOf(path));
+                    return (uploaded, new FileInfo(path).Length);
+                });
+
+                foreach (var (uploaded, length) in await Task.WhenAll(uploads))
+                {
+                    if (!uploaded)
+                    {
+                        await _fileStorage.DeletePrefixAsync(folder + "/");
+                        throw new InvalidOperationException("Não foi possível subir o vídeo convertido para o storage.");
+                    }
+
+                    total += length;
+                }
+            }
+
+            return total;
+        }
+
+        private static string ContentTypeOf(string path) => Path.GetExtension(path).ToLowerInvariant() switch
+        {
+            ".m3u8" => "application/vnd.apple.mpegurl",
+            ".ts" => "video/mp2t",
+            ".m4s" => "video/iso.segment",
+            ".mp4" => "video/mp4",
+            _ => "application/octet-stream",
+        };
+
+        private static bool IsStreamingVideo(MediaUpload media) =>
+            media.Kind == EMediaKind.Video && media.StorageKey != null && media.StorageKey.EndsWith(".m3u8", StringComparison.Ordinal);
+
+        private static string FolderOf(string key) => key[..(key.LastIndexOf('/') + 1)];
 
         private static IEnumerable<string> StoredKeys(MediaUpload media) =>
             new[] { media.StorageKey, media.PosterKey, media.OriginalKey }.OfType<string>();

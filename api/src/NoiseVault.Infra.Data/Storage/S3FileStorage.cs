@@ -76,6 +76,38 @@ namespace NoiseVault.Infra.Data.Storage
             }
         }
 
+        public async Task<bool> DeletePrefixAsync(string prefix, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(prefix) || !prefix.EndsWith('/'))
+                throw new ArgumentException("O prefixo precisa terminar em / para não apagar chaves vizinhas.", nameof(prefix));
+
+            try
+            {
+                var request = new ListObjectsV2Request { BucketName = _settings.Bucket, Prefix = prefix };
+                ListObjectsV2Response response;
+
+                do
+                {
+                    response = await _client.ListObjectsV2Async(request, cancellationToken);
+                    var keys = (response.S3Objects ?? []).Select(o => new KeyVersion { Key = o.Key }).ToList();
+
+                    if (keys.Count > 0)
+                        await _client.DeleteObjectsAsync(new DeleteObjectsRequest { BucketName = _settings.Bucket, Objects = keys }, cancellationToken);
+
+                    request.ContinuationToken = response.NextContinuationToken;
+                }
+                while (response.IsTruncated == true);
+
+                return true;
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                _logger.Warning("STORAGE_DELETE_FAILED", "Failed to delete objects under a prefix; they are now orphaned",
+                    extra: new { Prefix = prefix, Error = ex.GetType().Name, ex.Message });
+                return false;
+            }
+        }
+
         public string? PublicUrl(string? key) =>
             string.IsNullOrWhiteSpace(key) ? null : $"{_settings.PublicBaseUrl}/{key}";
 
