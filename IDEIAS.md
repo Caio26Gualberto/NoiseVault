@@ -51,6 +51,18 @@ Virou módulo em 14/10/2026, ampliado pelo usuário para ficar "igual Facebook":
 - Ficou **fora do escopo** no início (`CLAUDE.md`), mas para esse público pode decidir se a pessoa entra ou desiste no cadastro. Senha nova e confirmação de e-mail afastam.
 - Entrar com Facebook especialmente, já que a comunidade vem de lá.
 - Reavaliar antes da divulgação no grupo. Quando entrar, entra no `AuthAppService` e no `IAuthenticateService`, não num serviço paralelo (`api/CLAUDE.md`).
+- **Adiado em 14/10/2026** pelo usuário: ainda não há domínio nem site no ar, e os dois painéis exigem isso para abrir o login a todo mundo.
+- **O que já ficou combinado**:
+  - **sem Firebase**: falar direto com o Google (Google Identity Services, ID token) e com o Facebook (SDK do JavaScript, access token). O front manda o token para `POST /api/auth/external`; a API confere com o provedor, acha ou cria a conta (a tabela `UserLogins` do Identity) e devolve o nosso JWT;
+  - **Facebook primeiro**: quem vem do grupo abre o link no navegador interno do app do Facebook, onde o login do Google é bloqueado (`disallowed_useragent`) e o do Facebook funciona com um toque;
+  - **apelido**: o provedor não tem, então o primeiro login social passa por "Escolha seu apelido" (sugerido pelo nome) antes da boas-vindas;
+  - **segurança**: só vincular por e-mail quando o provedor diz que ele é verificado; senão, pedir a senha da conta existente. Em Minha conta, ver e desvincular os logins e criar senha para quem só entrou pelo Facebook;
+  - **e-mail ausente**: há conta de Facebook sem e-mail (cadastro por celular). Decidir se aceita a conta sem e-mail ou pede o e-mail na hora.
+- **Pré-requisitos**:
+  - domínio e HTTPS;
+  - duas páginas públicas: **Política de privacidade** e **Como apagar seus dados** (o Facebook exige a segunda para o app ir ao ar);
+  - um app no Google Cloud Console (tela de consentimento externa, escopos básicos, ID do cliente "Aplicativo da Web" com as origens do site) e outro no Meta for Developers (caso de uso "Login do Facebook", `public_profile` + `email`, domínios do SDK).
+  - O Client ID e o App ID são públicos (`.env` do front e configuração da API); a chave secreta do Facebook fica só na API, por variável de ambiente.
 
 ### ~~7. Instalável no celular (PWA)~~
 
