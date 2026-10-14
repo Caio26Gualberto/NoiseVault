@@ -1,34 +1,44 @@
 import { BellIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
 
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { cn } from '@/lib/utils'
+import { NotificationsPanel } from '@/pages/notificacoes/components/notifications-panel'
 
 import { useNotifications } from './use-notifications'
 
 export function NotificationsBell() {
   const { t } = useTranslation()
-  const { unreadCount: count } = useNotifications()
+  const { unreadCount: count, panelOpen, setPanelOpen } = useNotifications()
 
   const label = count > 0 ? `${t('layout:bell.label')} · ${t('layout:bell.unread', { count })}` : t('layout:bell.label')
 
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Link
-          to="/notificacoes"
-          aria-label={label}
-          className="relative flex size-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
-        >
-          <BellIcon className="size-5" />
-          {count > 0 ? (
-            <span className="absolute top-1 right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold tabular-nums text-primary-foreground">
-              {count > 9 ? '9+' : count}
-            </span>
-          ) : null}
-        </Link>
-      </TooltipTrigger>
-      <TooltipContent>{label}</TooltipContent>
-    </Tooltip>
+    <>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            type="button"
+            onClick={() => setPanelOpen(true)}
+            aria-label={label}
+            aria-expanded={panelOpen}
+            aria-haspopup="dialog"
+            className={cn(
+              'relative flex size-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none',
+              panelOpen && 'bg-muted text-foreground',
+            )}
+          >
+            <BellIcon className={cn('size-5', panelOpen && 'fill-current')} />
+            {count > 0 ? (
+              <span className="absolute top-1 right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold tabular-nums text-primary-foreground">
+                {count > 9 ? '9+' : count}
+              </span>
+            ) : null}
+          </button>
+        </TooltipTrigger>
+        <TooltipContent>{label}</TooltipContent>
+      </Tooltip>
+      <NotificationsPanel />
+    </>
   )
 }

@@ -9,7 +9,7 @@ import type { NotificationDto } from '../services/notificacoes-service'
 
 const pageSize = 20
 
-export function useNotificacoesPage() {
+export function useNotificationsPanel() {
   const { version } = useNotifications()
   const [page, setPage] = useState(1)
   const [unreadOnly, setUnreadOnly] = useState(false)
@@ -22,7 +22,8 @@ export function useNotificacoesPage() {
     setLoading(true)
     getNotifications({ page, pageSize, unreadOnly })
       .then((data) => {
-        if (!cancelled) setResult(data)
+        if (cancelled) return
+        setResult((previous) => (page === 1 ? data : { ...data, items: [...previous.items, ...data.items] }))
       })
       .catch(() => undefined)
       .finally(() => {
@@ -38,7 +39,10 @@ export function useNotificacoesPage() {
     setPage(1)
   }, [])
 
-  const refresh = useCallback(() => setReload((v) => v + 1), [])
+  const refresh = useCallback(() => {
+    setPage(1)
+    setReload((v) => v + 1)
+  }, [])
 
-  return { result, loading, unreadOnly, changeUnreadOnly, setPage, refresh }
+  return { result, loading, unreadOnly, changeUnreadOnly, loadMore: setPage, refresh }
 }

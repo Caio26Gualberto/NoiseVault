@@ -11,7 +11,7 @@ import type { BandInvitationDto } from '@/pages/bandas/services/bandas-service'
 
 const pageSize = 20
 
-export function BandInvitations() {
+export function BandInvitations({ onNavigate }: { onNavigate?: () => void }) {
   const { t } = useTranslation('notificacoes')
   const navigate = useNavigate()
   const [invitations, setInvitations] = useState<BandInvitationDto[]>([])
@@ -35,6 +35,7 @@ export function BandInvitations() {
     setBusyId(invitation.id)
     try {
       await acceptBandInvitation(invitation.id)
+      onNavigate?.()
       navigate(`/bandas/${invitation.band.slug}`)
     } catch {
       refresh()
@@ -58,23 +59,25 @@ export function BandInvitations() {
   if (invitations.length === 0) return null
 
   return (
-    <section className="mb-6 flex flex-col gap-3">
+    <section className="flex flex-col gap-3">
       <h2 className="app-h3">{t('invitations.title')}</h2>
       <ul className="flex flex-col divide-y rounded-xl border border-primary/40 bg-card">
         {invitations.map((invitation) => (
-          <li key={invitation.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
-            <Link to={`/bandas/${invitation.band.slug}`} className="shrink-0">
-              <AppAvatar name={invitation.band.name} src={invitation.band.avatarUrl} size="lg" verified={invitation.band.isVerified} />
-            </Link>
-            <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-              <p className="text-sm font-medium">
-                {invitation.instrument
-                  ? t('invitations.messageInstrument', { name: invitation.invitedBy.name, instrument: invitation.instrument, band: invitation.band.name })
-                  : t('invitations.message', { name: invitation.invitedBy.name, band: invitation.band.name })}
-              </p>
-              <span className="app-meta">{t('invitations.expires', { date: formatDate(invitation.expiresAt) })}</span>
+          <li key={invitation.id} className="flex flex-col gap-3 p-3">
+            <div className="flex items-center gap-3">
+              <Link to={`/bandas/${invitation.band.slug}`} onClick={onNavigate} className="shrink-0">
+                <AppAvatar name={invitation.band.name} src={invitation.band.avatarUrl} size="lg" verified={invitation.band.isVerified} />
+              </Link>
+              <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                <p className="text-sm font-medium">
+                  {invitation.instrument
+                    ? t('invitations.messageInstrument', { name: invitation.invitedBy.name, instrument: invitation.instrument, band: invitation.band.name })
+                    : t('invitations.message', { name: invitation.invitedBy.name, band: invitation.band.name })}
+                </p>
+                <span className="app-meta">{t('invitations.expires', { date: formatDate(invitation.expiresAt) })}</span>
+              </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 pl-[3.25rem]">
               <AppButton size="sm" loading={busyId === invitation.id} disabled={busyId !== null} onClick={() => void accept(invitation)}>
                 {t('invitations.accept')}
               </AppButton>

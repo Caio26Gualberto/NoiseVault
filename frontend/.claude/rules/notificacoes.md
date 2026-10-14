@@ -18,12 +18,12 @@ Rule irmã: `../api/.claude/rules/notificacoes.md`. A regra é do backend; a tel
   - só WebSocket (`skipNegotiation`) e `withAutomaticReconnect()`.
   - O token vem de `getFreshToken()` (`api/client.ts`): o access token do `localStorage`, renovado pelo mesmo `refreshOnce` do interceptor quando vence em menos de 60 s.
 - **`layout/notifications-provider.tsx`**, montado no `AppShell` (só existe com sessão), guarda o `unreadCount` e uma `version`.
-  - **Mensagem `unread` do hub**: troca o número. Se ele **subiu** e a pessoa não está em `/notificacoes`, busca a notificação não lida mais recente e mostra um toast com a frase e a ação "Ver", que marca como lida e navega.
+  - **Mensagem `unread` do hub**: troca o número. Se ele **subiu** e o painel do sino está fechado, busca a notificação não lida mais recente e mostra um toast com a frase e a ação "Ver", que marca como lida e navega.
   - **Contagem mudou**: a `version` sobe, e a lista e os convites refazem a busca.
   - **Conexão caída**: o provider faz polling da contagem a cada 60 s (`usePolling` com 0 quando conectado) e tenta reconectar a cada 30 s. Ao conectar, busca a contagem de novo.
 - **Busca em segundo plano** (contagem e "a mais recente") usa `toastError: false`: a API fora do ar não pode encher a tela de toast a cada minuto.
 - O toast do push é a exceção registrada à regra "página não chama `toast()`": não é erro de API, é aviso, e não tem dono melhor que o provider.
-- O **sino** (`notifications-bell.tsx`) só lê `useNotifications()`. Ele é a única entrada da página: `/notificacoes` saiu da sidebar e do "Mais" (decisão do usuário em 14/10/2026) e mora em `hiddenRoutes`.
+- O **sino** (`notifications-bell.tsx`) lê `useNotifications()` e abre o painel. Notificação não tem item na sidebar nem no "Mais" (decisão do usuário em 14/10/2026).
 
 ## A frase vem do `kind`
 
@@ -40,17 +40,22 @@ Rule irmã: `../api/.claude/rules/notificacoes.md`. A regra é do backend; a tel
   - envio para o mural: recebido (a curadoria) e publicado → `/mural/:id`; recusado → `/mural/envios`, onde está o motivo.
 - **Suporte**: a frase de `supportTicketStatusChanged` sai do status atual do ticket (`supportTicketResolved`, `…InProgress`, `…Dismissed`, `…Reopened`), e `supportTicketReplied` para quem reportou vira "A equipe respondeu o seu relato" (`supportTicketRepliedToYou`), sem expor quem da equipe respondeu.
 
-## `/notificacoes`
+## Painel do sino, como no Instagram
 
-- A seção **"Convites de banda"** continua no topo, vinda de `GET /api/band-invitations/mine`. É onde se aceita e recusa, e assim um convite nunca fica perdido na página 2.
+Decisão do usuário em 14/10/2026: "clicar no sino e abrir as notificações". A página `/notificacoes` **morreu**; tudo acontece num painel lateral (`components/notifications-panel.tsx`, um `Sheet` à direita), montado pelo próprio sino.
+- **Tamanho**: até 448 px de largura no computador, por cima da página, que continua onde estava; no celular, a tela inteira.
+- **Abrir**: o estado `panelOpen` mora no `NotificationsProvider`, porque o toast também precisa dele. Com o painel aberto não sai toast de push, e o "Ver" de uma notificação sem link (o convite de banda) abre o painel.
+- O painel não põe o foco no primeiro botão ao abrir (`onOpenAutoFocus` com `preventDefault`), senão o tooltip de "Marcar todas como lidas" abria sozinho.
+- A pasta `pages/notificacoes/` não tem mais página: é a dona do service, do hook do painel (`hooks/use-notifications-panel.ts`) e dos componentes, e o `layout/notifications-bell.tsx` importa de lá.
+- A seção **"Convites de banda"** continua no topo do painel, vinda de `GET /api/band-invitations/mine`. É onde se aceita e recusa, e assim um convite nunca fica perdido no fim da lista. Aceitar leva à banda e fecha o painel.
 - Na lista, o item do convite mostra só o estado: "Aguardando sua resposta", "Aceito", "Recusado", "Cancelado" ou "Expirou".
-- Abas "Todas / Não lidas" (`unreadOnly`, voltam para a página 1); paginação de 20.
+- Abas "Todas / Não lidas" (`unreadOnly`, voltam para a página 1); de 20 em 20, com "Carregar mais", que soma.
 - **Item**:
   - avatar do ator (ou da banda), com o ícone do tipo no canto; sem ator, como no lembrete de amanhã, o ícone ocupa o lugar do avatar;
   - a frase, o trecho do post entre aspas e o tempo relativo de `lastActivityAt`;
   - não lida tem ponto e fundo `primary/[0.04]`.
 - **Ações no item**:
-  - clicar no corpo marca como lida e navega para o alvo;
+  - clicar no corpo marca como lida, navega para o alvo e fecha o painel;
   - à direita, "marcar como lida" e excluir (com confirmação).
 - "Marcar todas como lidas" usa o `unreadCount` do provider.
 
@@ -64,6 +69,7 @@ Com a API e o Vite no ar. O script `notifications-ui.mjs` vive fora do repositó
 
 1. **Push com duas abas (1440 px).** A curte um post de C, e o sino de C sobe sem recarregar, com um toast "Admin curtiu seu post". "Ver" leva ao post e a notificação fica lida.
 2. **Agrupamento.** B também curte, e a lista de C mostra "Admin e mais 1 pessoa curtiram seu post".
-3. **Celular (390 px).** O sino aparece no topo. `/notificacoes` mostra o convite no topo e o item com "Aguardando sua resposta". Aceitar leva à banda e zera o contador.
+3. **Celular (390 px).** O sino aparece no topo e abre o painel em tela cheia, com o convite no topo e o item com "Aguardando sua resposta". Aceitar leva à banda, fecha o painel e zera o contador.
+6. **Painel (script `bell-panel-ui.mjs`).** A 1440 e a 390 px: sem "Notificações" na sidebar e no "Mais"; o sino abre o painel sem trocar de rota (448 px no computador, a tela toda no celular); as abas funcionam; clicar num item navega e fecha; `/notificacoes` cai no 404. Resultado em 14/10/2026: as 16 checagens passaram.
 4. **Queda de conexão.** Com a API parada, nenhum toast de erro aparece. Ao voltar, o sino se atualiza sozinho.
 5. **Preferência.** Desmarcar o e-mail de convite em `/minha-conta` persiste ao recarregar.

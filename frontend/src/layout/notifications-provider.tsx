@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { connectNotificationsHub } from '@/api/notifications-hub'
@@ -11,33 +11,32 @@ import { getNotifications, getUnreadCount, markRead } from '@/pages/notificacoes
 
 import { NotificationsContext } from './notifications-context'
 
-const notificationsPath = '/notificacoes'
 const fallbackPollingMs = 60_000
 const reconnectDelayMs = 30_000
 
 export function NotificationsProvider({ children }: { children: ReactNode }) {
   const { t } = useTranslation('notificacoes')
-  const location = useLocation()
   const navigate = useNavigate()
   const [unreadCount, setUnreadCount] = useState(0)
   const [version, setVersion] = useState(0)
   const [connected, setConnected] = useState(false)
   const [attempt, setAttempt] = useState(0)
   const countRef = useRef<number | null>(null)
-  const pathRef = useRef(location.pathname)
+  const [panelOpen, setPanelOpen] = useState(false)
+  const panelOpenRef = useRef(panelOpen)
 
   useEffect(() => {
-    pathRef.current = location.pathname
-  }, [location.pathname])
+    panelOpenRef.current = panelOpen
+  }, [panelOpen])
 
   const announce = useCallback(async () => {
-    if (pathRef.current === notificationsPath) return
+    if (panelOpenRef.current) return
 
     const page = await getNotifications({ page: 1, pageSize: 1, unreadOnly: true }, { toastError: false }).catch(() => null)
     const latest = page?.items[0]
     if (!latest) return
 
-    const link = notificationKinds[latest.kind].link(latest) ?? notificationsPath
+    const link = notificationKinds[latest.kind].link(latest)
 
     toast(notificationPlainText(latest, t), {
       duration: 6000,
@@ -45,7 +44,8 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
         label: t('toast.view'),
         onClick: () => {
           void markRead(latest.id).catch(() => undefined)
-          navigate(link)
+          if (link) navigate(link)
+          else setPanelOpen(true)
         },
       },
     })
@@ -94,7 +94,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
 
   usePolling(refresh, connected ? 0 : fallbackPollingMs)
 
-  const value = useMemo(() => ({ unreadCount, version, refresh }), [unreadCount, version, refresh])
+  const value = useMemo(() => ({ unreadCount, version, refresh, panelOpen, setPanelOpen }), [unreadCount, version, refresh, panelOpen])
 
   return <NotificationsContext.Provider value={value}>{children}</NotificationsContext.Provider>
 }

@@ -25,7 +25,7 @@ Rule irmã: `../api/.claude/rules/suporte.md`. A regra é do backend; a tela só
 
 ## Formulário
 
-- **Pré-marcado, não obrigatório**: "Bug" e o aparelho pela largura da tela (`useIsMobile`: Celular abaixo de 768 px, senão Computador). A página de origem pré-marca a área (`areaFromPath`: `/feed`, `/eventos`, `/mural`, `/perfil`, `/bandas`, `/notificacoes`, `/minha-conta`). Tudo desmarcável.
+- **Pré-marcado, não obrigatório**: "Bug" e o aparelho pela largura da tela (`useIsMobile`: Celular abaixo de 768 px, senão Computador). A página de origem pré-marca a área (`areaFromPath`: `/feed`, `/eventos`, `/mural`, `/perfil`, `/bandas`, `/minha-conta`). Tudo desmarcável.
 - **Página de origem**: `layout/last-location.ts` guarda, num valor de módulo, o último `pathname` do shell que não é `/reportar-problema` (`useRememberLocation` no `AppShell`). Recarregar a página do formulário perde a origem: aceito, porque então ninguém sabe de onde a pessoa veio. O formulário lê uma vez ao montar.
 - **Transparência**: o aviso tracejado no fim diz o que vai junto (o caminho, o navegador e o tamanho da tela). Dado do navegador nunca sai escondido.
 - **Anexos** (`components/report-attachments.tsx`), como o composer do feed: o envio começa ao escolher o arquivo (`/api/support/media/photos` e multipart com `/api/support/media/videos`), até 6 arquivos e 1 vídeo de até 2 min e 200 MB (`supportVideoLimits`), checagem local antes. Remover aborta ou apaga a mídia. "Enviar relato" fica desabilitado com "Enviando anexos…" enquanto houver upload.

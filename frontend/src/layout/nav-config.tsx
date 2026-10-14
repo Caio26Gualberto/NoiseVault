@@ -41,7 +41,6 @@ import { PostDetalhePage } from '../pages/feed/detalhe'
 import { LojaParceiraPage, PodcastsPage } from '../pages/institucional'
 import { SobrePage } from '../pages/institucional/sobre'
 import { MinhaContaPage } from '../pages/minha-conta'
-import { NotificacoesPage } from '../pages/notificacoes'
 import { PerfilPage } from '../pages/perfil'
 import { RedefinirSenhaPage } from '../pages/redefinir-senha'
 import { ReportarProblemaPage } from '../pages/reportar-problema'
@@ -166,7 +165,6 @@ export const navSections: NavSection[] = [
 ]
 
 export const hiddenRoutes: HiddenRoute[] = [
-  { path: '/notificacoes', element: <NotificacoesPage /> },
   { path: '/feed/:id', element: <PostDetalhePage /> },
   { path: '/mural/novo', element: <MuralFormPage />, permission: Permissions.archiveCreate },
   { path: submitArchivePath, element: <MuralFormPage mode="submission" /> },

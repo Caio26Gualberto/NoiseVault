@@ -38,7 +38,7 @@ Rule irmã: `../api/.claude/rules/bandas.md`. A regra é do backend; a tela só 
 
 - **Busca:** a pessoa é escolhida pela busca de pessoas real (`searchPeople` do `perfil-service`, debounce de 350 ms, 2+ caracteres, até 6 resultados, integrantes já filtrados). Escolher alguém trava o campo num cartão com "Trocar". Digitar o nickname inteiro e enviar sem escolher também funciona: a API resolve o nickname e devolve `INVITEE_NOT_FOUND` se não houver ninguém.
 - **Pendentes:** a lista aparece abaixo do formulário (`GET /api/bands/{slug}/invitations`, uma página de 20, que é o limite de pendentes da API), com "Revogar" e a data de vencimento.
-- **Em `/notificacoes`:** a seção "Convites de banda" (`notificacoes/components/band-invitations.tsx`) vem **da API real** (`GET /api/band-invitations/mine`), acima da lista de notificações (real desde o módulo 6, `notificacoes.md`), que mostra o item do convite só com o estado.
+- **No painel do sino** (`notificacoes.md`): a seção "Convites de banda" (`notificacoes/components/band-invitations.tsx`) vem **da API real** (`GET /api/band-invitations/mine`), acima da lista de notificações (real desde o módulo 6, `notificacoes.md`), que mostra o item do convite só com o estado.
   - A seção some quando não há convite.
   - "Aceitar" leva para a página da banda. "Recusar" refaz a lista.
   - Responder é pelo **id do convite**, não da notificação: a notificação vai ser só projeção do convite (`../api/.claude/rules/dominio.md`).
@@ -57,7 +57,7 @@ Com a API, o Docker e o Vite no ar, conta A (admin) e conta B confirmada:
 
 1. **Criar.** A abre o próprio perfil, vê a seção "Bandas" com "Criar banda", cria "Serra Negra" com ano 1991 e "Vocal", e cai em `/bandas/serra-negra/editar` com A como Responsável.
 2. **Convidar.** A digita parte do nickname de B no convite, escolhe a pessoa na lista, põe "Guitarra" e envia: toast "Convite enviado." e B aparece em "Convites pendentes" com a data de vencimento.
-3. **Aceitar no celular.** B, a 390px, abre `/notificacoes`, vê "Admin convidou você para tocar Guitarra na Serra Negra." no topo, toca "Aceitar" e vai para `/bandas/serra-negra` como integrante, com "Sair da banda".
+3. **Aceitar no celular.** B, a 390px, abre o painel do sino, vê "Admin convidou você para tocar Guitarra na Serra Negra." no topo, toca "Aceitar" e vai para `/bandas/serra-negra` como integrante, com "Sair da banda".
 4. **Ver como Owner.** A, a 1440px, abre a banda: dois integrantes, "Editar banda" e "2 integrantes" no hero, sem "Seguir".
 5. **Não encontrada.** `/bandas/nao-existe` mostra o estado vazio "Banda não encontrada"; B abrindo `/bandas/serra-negra/editar` é redirecionado para a página da banda.
 6. **Promover e sair.** A promove B, sai da banda e vai para o próprio perfil. Na página da banda, B passa a ver "Editar banda".
