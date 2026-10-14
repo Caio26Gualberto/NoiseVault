@@ -40,12 +40,14 @@ Rule irmã: `../api/.claude/rules/notificacoes.md`. A regra é do backend; a tel
   - envio para o mural: recebido (a curadoria) e publicado → `/mural/:id`; recusado → `/mural/envios`, onde está o motivo.
 - **Suporte**: a frase de `supportTicketStatusChanged` sai do status atual do ticket (`supportTicketResolved`, `…InProgress`, `…Dismissed`, `…Reopened`), e `supportTicketReplied` para quem reportou vira "A equipe respondeu o seu relato" (`supportTicketRepliedToYou`), sem expor quem da equipe respondeu.
 
-## Painel do sino, como no Instagram
+## Balão do sino, como no Facebook
 
-Decisão do usuário em 14/10/2026: "clicar no sino e abrir as notificações". A página `/notificacoes` **morreu**; tudo acontece num painel lateral (`components/notifications-panel.tsx`, um `Sheet` à direita), montado pelo próprio sino.
-- **Tamanho**: até 448 px de largura no computador, por cima da página, que continua onde estava; no celular, a tela inteira.
+Decisões do usuário em 14/10/2026: "clicar no sino e abrir as notificações", e depois, em vez de gaveta, "um tip abrindo [...] igual do facebook, assim não ocupa a tela inteira". A página `/notificacoes` **morreu**, e a gaveta lateral (`Sheet`) também. Tudo acontece num balão (`components/notifications-panel.tsx`, um `Popover` ancorado no sino, `align="end"`), que embrulha o próprio botão do sino.
+- **Tamanho**: até 384 px de largura (no celular, a largura da tela menos 8 px de cada lado) e no máximo 36rem de altura, ou a tela menos 5rem. A lista rola dentro do balão, e a página continua onde estava.
+- **Confirmação de excluir**: o `AlertDialog` e o toast ficam fora do balão no DOM, então um clique neles contaria como "clique fora" e fecharia o balão. O `onInteractOutside` ignora `[role="alertdialog"]` e o `[data-sonner-toaster]`.
+- O tooltip do sino some enquanto o balão está aberto.
 - **Abrir**: o estado `panelOpen` mora no `NotificationsProvider`, porque o toast também precisa dele. Com o painel aberto não sai toast de push, e o "Ver" de uma notificação sem link (o convite de banda) abre o painel.
-- O painel não põe o foco no primeiro botão ao abrir (`onOpenAutoFocus` com `preventDefault`), senão o tooltip de "Marcar todas como lidas" abria sozinho.
+- O balão não põe o foco no primeiro botão ao abrir (`onOpenAutoFocus` com `preventDefault`), senão o tooltip de "Marcar todas como lidas" abria sozinho.
 - A pasta `pages/notificacoes/` não tem mais página: é a dona do service, do hook do painel (`hooks/use-notifications-panel.ts`) e dos componentes, e o `layout/notifications-bell.tsx` importa de lá.
 - A seção **"Convites de banda"** continua no topo do painel, vinda de `GET /api/band-invitations/mine`. É onde se aceita e recusa, e assim um convite nunca fica perdido no fim da lista. Aceitar leva à banda e fecha o painel.
 - Na lista, o item do convite mostra só o estado: "Aguardando sua resposta", "Aceito", "Recusado", "Cancelado" ou "Expirou".
@@ -69,7 +71,13 @@ Com a API e o Vite no ar. O script `notifications-ui.mjs` vive fora do repositó
 
 1. **Push com duas abas (1440 px).** A curte um post de C, e o sino de C sobe sem recarregar, com um toast "Admin curtiu seu post". "Ver" leva ao post e a notificação fica lida.
 2. **Agrupamento.** B também curte, e a lista de C mostra "Admin e mais 1 pessoa curtiram seu post".
-3. **Celular (390 px).** O sino aparece no topo e abre o painel em tela cheia, com o convite no topo e o item com "Aguardando sua resposta". Aceitar leva à banda, fecha o painel e zera o contador.
-6. **Painel (script `bell-panel-ui.mjs`).** A 1440 e a 390 px: sem "Notificações" na sidebar e no "Mais"; o sino abre o painel sem trocar de rota (448 px no computador, a tela toda no celular); as abas funcionam; clicar num item navega e fecha; `/notificacoes` cai no 404. Resultado em 14/10/2026: as 16 checagens passaram.
+3. **Celular (390 px).** O sino aparece no topo e abre o balão, quase da largura da tela, com o convite no topo e o item com "Aguardando sua resposta". Aceitar leva à banda, fecha o balão e zera o contador.
+6. **Balão (script `bell-panel-ui.mjs`).** A 1440 e a 390 px:
+   - sem "Notificações" na sidebar nem no "Mais";
+   - o sino abre o balão ancorado no topo, sem trocar de rota (384 px no computador, 374 px no celular, sem ocupar a altura toda);
+   - as abas funcionam, e cancelar a confirmação de excluir não fecha o balão;
+   - clicar num item navega e fecha; `/notificacoes` cai no 404.
+
+   Resultado em 14/10/2026: as 20 checagens passaram.
 4. **Queda de conexão.** Com a API parada, nenhum toast de erro aparece. Ao voltar, o sino se atualiza sozinho.
 5. **Preferência.** Desmarcar o e-mail de convite em `/minha-conta` persiste ao recarregar.

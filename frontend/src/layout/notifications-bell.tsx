@@ -9,20 +9,17 @@ import { useNotifications } from './use-notifications'
 
 export function NotificationsBell() {
   const { t } = useTranslation()
-  const { unreadCount: count, panelOpen, setPanelOpen } = useNotifications()
+  const { unreadCount: count, panelOpen } = useNotifications()
 
   const label = count > 0 ? `${t('layout:bell.label')} · ${t('layout:bell.unread', { count })}` : t('layout:bell.label')
 
   return (
-    <>
-      <Tooltip>
+    <Tooltip>
+      <NotificationsPanel>
         <TooltipTrigger asChild>
           <button
             type="button"
-            onClick={() => setPanelOpen(true)}
             aria-label={label}
-            aria-expanded={panelOpen}
-            aria-haspopup="dialog"
             className={cn(
               'relative flex size-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none',
               panelOpen && 'bg-muted text-foreground',
@@ -36,9 +33,8 @@ export function NotificationsBell() {
             ) : null}
           </button>
         </TooltipTrigger>
-        <TooltipContent>{label}</TooltipContent>
-      </Tooltip>
-      <NotificationsPanel />
-    </>
+      </NotificationsPanel>
+      {panelOpen ? null : <TooltipContent>{label}</TooltipContent>}
+    </Tooltip>
   )
 }

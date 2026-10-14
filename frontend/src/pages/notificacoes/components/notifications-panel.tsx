@@ -1,4 +1,5 @@
 import { BellIcon, CheckCheckIcon } from 'lucide-react'
+import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { AppIconButton } from '@/components/app-button'
@@ -6,7 +7,7 @@ import { useAppConfirm } from '@/components/app-confirm'
 import { AppEmptyState } from '@/components/app-empty-state'
 import { AppPagination } from '@/components/app-pagination'
 import { AppSkeleton } from '@/components/app-skeleton'
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useNotifications } from '@/layout/use-notifications'
 
@@ -16,16 +17,30 @@ import type { NotificationDto } from '../services/notificacoes-service'
 import { BandInvitations } from './band-invitations'
 import { NotificationItem } from './notification-item'
 
-export function NotificationsPanel() {
+export function NotificationsPanel({ children }: { children: ReactNode }) {
   const { panelOpen, setPanelOpen } = useNotifications()
 
   return (
-    <Sheet open={panelOpen} onOpenChange={setPanelOpen}>
-      <SheetContent side="right" onOpenAutoFocus={(event) => event.preventDefault()} className="w-full gap-0 p-0 data-[side=right]:w-full data-[side=right]:sm:max-w-md">
+    <Popover open={panelOpen} onOpenChange={setPanelOpen}>
+      <PopoverTrigger asChild>{children}</PopoverTrigger>
+      <PopoverContent
+        align="end"
+        sideOffset={8}
+        collisionPadding={8}
+        onOpenAutoFocus={(event) => event.preventDefault()}
+        onInteractOutside={(event) => {
+          if (keepsOpen(event.target)) event.preventDefault()
+        }}
+        className="max-h-[min(36rem,calc(100dvh-5rem))] w-[min(24rem,calc(100vw-1rem))] gap-0 overflow-hidden p-0"
+      >
         <PanelBody onClose={() => setPanelOpen(false)} />
-      </SheetContent>
-    </Sheet>
+      </PopoverContent>
+    </Popover>
   )
+}
+
+function keepsOpen(target: EventTarget | null) {
+  return target instanceof Element && target.closest('[role="alertdialog"], [data-sonner-toaster]') !== null
 }
 
 function PanelBody({ onClose }: { onClose: () => void }) {
@@ -57,17 +72,14 @@ function PanelBody({ onClose }: { onClose: () => void }) {
 
   return (
     <>
-      <SheetHeader className="flex-row items-center gap-2 border-b pr-12">
-        <div className="flex min-w-0 flex-1 flex-col">
-          <SheetTitle className="app-h3">{t('title')}</SheetTitle>
-          <SheetDescription className="sr-only">{t('description')}</SheetDescription>
-        </div>
+      <div className="flex items-center gap-2 border-b px-4 py-3">
+        <h2 className="app-h3 min-w-0 flex-1">{t('title')}</h2>
         <AppIconButton label={t('markAllRead')} size="sm" disabled={unreadCount === 0} onClick={() => void markAllRead().then(afterChange)}>
           <CheckCheckIcon />
         </AppIconButton>
-      </SheetHeader>
+      </div>
 
-      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4">
+      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-3">
         <BandInvitations onNavigate={onClose} />
 
         <Tabs value={panel.unreadOnly ? 'unread' : 'all'} onValueChange={(value) => panel.changeUnreadOnly(value === 'unread')}>
@@ -86,7 +98,7 @@ function PanelBody({ onClose }: { onClose: () => void }) {
             description={panel.unreadOnly ? t('empty.unreadDescription') : t('empty.description')}
           />
         ) : (
-          <ul className="-mx-4 flex flex-col divide-y border-y">
+          <ul className="-mx-3 flex flex-col divide-y border-y">
             {panel.result.items.map((item) => (
               <NotificationItem key={item.id} item={item} onOpen={onOpen} onMarkRead={onMarkRead} onRemove={onRemove} />
             ))}
