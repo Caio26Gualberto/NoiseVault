@@ -1,6 +1,7 @@
 using NoiseVault.Application.Cities.Dtos;
 using NoiseVault.Application.Media.Dtos;
 using NoiseVault.Application.PublicProfiles.Dtos;
+using NoiseVault.Domain.Enums.Archive;
 using NoiseVault.Domain.Enums.Profiles;
 
 namespace NoiseVault.Application.Archive.Dtos
@@ -28,8 +29,14 @@ namespace NoiseVault.Application.Archive.Dtos
         public bool AttendedByMe { get; set; }
         public List<ProfileSummaryDto> Attendees { get; set; } = [];
         public int CommentCount { get; set; }
+        public EArchiveEntryStatus Status { get; set; }
+        public bool IsSubmission { get; set; }
+        public string? RejectionReason { get; set; }
+        public DateTime? ReviewedAt { get; set; }
+        public bool IsMine { get; set; }
         public bool CanEdit { get; set; }
         public bool CanDelete { get; set; }
+        public bool CanReview { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 }

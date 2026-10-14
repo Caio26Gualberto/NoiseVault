@@ -27,6 +27,7 @@ namespace NoiseVault.Domain.Constants
             public const string Create = "Archive.Create";
             public const string Edit = "Archive.Edit";
             public const string Delete = "Archive.Delete";
+            public const string Review = "Archive.Review";
         }
 
         public static class Support

@@ -22,6 +22,7 @@ using NoiseVault.Application.PublicProfiles.Dtos;
 using NoiseVault.Application.Response;
 using NoiseVault.Domain.Constants;
 using NoiseVault.Domain.Entities;
+using NoiseVault.Domain.Enums.Archive;
 using NoiseVault.Domain.Enums.Notifications;
 using NoiseVault.Domain.Enums.Media;
 using NoiseVault.Domain.Enums.Profiles;
@@ -104,24 +105,218 @@ namespace NoiseVault.Application.Archive
 
         public async Task<Result<ArchiveEntryDto>> Get(int id)
         {
-            var row = await FindVisible(id);
+            var row = await FindReadable(id);
 
             return row == null
                 ? Fail(NotFound())
                 : Result<ArchiveEntryDto>.Ok(await MapDetailAsync(row), "ARCHIVE_ENTRY_FOUND", "Archive entry found");
         }
 
-        public async Task<Result<ArchiveEntryDto>> Create(ArchiveEntryInputDto input)
+        public Task<Result<ArchiveEntryDto>> Create(ArchiveEntryInputDto input)
         {
             _logger.SetOperation("CreateArchiveEntry");
+            return CreateAsync(input, submission: false);
+        }
 
+        public Task<Result<ArchiveEntryDto>> Submit(ArchiveEntryInputDto input)
+        {
+            _logger.SetOperation("SubmitArchiveEntry");
+            return CreateAsync(input, submission: true);
+        }
+
+        public async Task<Result<ArchiveEntryDto>> Update(int id, ArchiveEntryInputDto input)
+        {
+            _logger.SetOperation("UpdateArchiveEntry");
+
+            var entry = await _archiveRepository.FirstOrDefaultAsync(new QueryOptions<ArchiveEntry> { Predicate = e => e.Id == id });
+
+            return entry == null
+                ? Fail(NotFound())
+                : await UpdateAsync(entry, input, "ARCHIVE_ENTRY_UPDATED", "Archive entry updated");
+        }
+
+        public async Task<Result<ArchiveEntryDto>> UpdateSubmission(int id, ArchiveEntryInputDto input)
+        {
+            _logger.SetOperation("UpdateArchiveSubmission");
+
+            var me = _currentUser.UserId;
+            var entry = await _archiveRepository.FirstOrDefaultAsync(new QueryOptions<ArchiveEntry>
+            {
+                Predicate = e => e.Id == id && e.IsSubmission && e.AuthorUserId == me,
+            });
+
+            if (entry == null)
+                return Fail(NotFound());
+
+            if (entry.Status != EArchiveEntryStatus.Pending)
+                return Fail(NotPending());
+
+            return await UpdateAsync(entry, input, "ARCHIVE_SUBMISSION_UPDATED", "Submission updated");
+        }
+
+        public async Task<Result> DeleteSubmission(int id)
+        {
+            _logger.SetOperation("DeleteArchiveSubmission");
+
+            var me = _currentUser.UserId;
+            var entry = await _archiveRepository.FirstOrDefaultAsync(new QueryOptions<ArchiveEntry>
+            {
+                Predicate = e => e.Id == id && e.IsSubmission && e.AuthorUserId == me,
+            });
+
+            if (entry == null)
+                return Result.Fail(NotFound());
+
+            if (entry.Status == EArchiveEntryStatus.Published)
+                return Result.Fail(NotPending());
+
+            await DeleteAsync(entry, "ARCHIVE_SUBMISSION_DELETED", "Archive submission deleted");
+
+            return Result.Ok("ARCHIVE_SUBMISSION_DELETED", "Submission deleted");
+        }
+
+        public async Task<Result<PagedResultDto<ArchiveEntryDto>>> MySubmissions(PagedRequestDto query)
+        {
+            query.Normalize();
+
+            var me = _currentUser.UserId;
+            var (rows, totalCount) = await _archiveRepository.PageSubmissionsAsync(null, me, null, me, query.Skip, query.PageSize);
+
+            return Result<PagedResultDto<ArchiveEntryDto>>.Ok(
+                PagedResultDto<ArchiveEntryDto>.Create(await MapListAsync(rows), query.Page, query.PageSize, totalCount),
+                "ARCHIVE_SUBMISSIONS_FOUND",
+                "Submissions found");
+        }
+
+        public async Task<Result<PagedResultDto<ArchiveEntryDto>>> ListSubmissions(ArchiveSubmissionQueryDto query)
+        {
+            query.Normalize();
+
+            if (query.Status != null && !Enum.IsDefined(query.Status.Value))
+                return Result<PagedResultDto<ArchiveEntryDto>>.Fail(new Error("INVALID_ARCHIVE_STATUS", "Unknown submission status", ErrorType.Validation));
+
+            var (rows, totalCount) = await _archiveRepository.PageSubmissionsAsync(query.Status, null, query.Search, _currentUser.UserId, query.Skip, query.PageSize);
+
+            return Result<PagedResultDto<ArchiveEntryDto>>.Ok(
+                PagedResultDto<ArchiveEntryDto>.Create(await MapListAsync(rows), query.Page, query.PageSize, totalCount),
+                "ARCHIVE_SUBMISSIONS_FOUND",
+                "Submissions found");
+        }
+
+        public async Task<Result<ArchiveSubmissionSummaryDto>> SubmissionSummary()
+        {
+            var counts = await _archiveRepository.CountSubmissionsByStatusAsync();
+
+            return Result<ArchiveSubmissionSummaryDto>.Ok(new ArchiveSubmissionSummaryDto
+            {
+                Pending = counts.GetValueOrDefault(EArchiveEntryStatus.Pending),
+                Published = counts.GetValueOrDefault(EArchiveEntryStatus.Published),
+                Rejected = counts.GetValueOrDefault(EArchiveEntryStatus.Rejected),
+            }, "ARCHIVE_SUBMISSION_SUMMARY_FOUND", "Submission summary found");
+        }
+
+        public async Task<Result<ArchiveEntryDto>> Approve(int id)
+        {
+            _logger.SetOperation("ApproveArchiveSubmission");
+
+            var entry = await FindSubmissionAsync(id);
+
+            if (entry == null)
+                return Fail(NotFound());
+
+            var me = _currentUser.UserId;
+
+            await _unitOfWork.BeginTransactionAsync();
+
+            try
+            {
+                if (!await _archiveRepository.TryReviewAsync(id, EArchiveEntryStatus.Published, me, null, DateTime.UtcNow))
+                {
+                    await _unitOfWork.RollbackAsync();
+                    return Fail(NotPending());
+                }
+
+                await _postAppService.CreateForArchive(id, entry.AuthorUserId);
+                await _unitOfWork.CommitAsync();
+            }
+            catch
+            {
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+
+            _logger.Info("ARCHIVE_SUBMISSION_APPROVED", "Archive submission approved", userId: me, extra: new { EntryId = id, entry.AuthorUserId });
+
+            await _notificationAppService.Notify(entry.AuthorUserId, new NotificationInput(ENotificationKind.ArchiveSubmissionApproved, me, ArchiveEntryId: id));
+
+            return Result<ArchiveEntryDto>.Ok(await MapDetailAsync((await FindAnyAsync(id))!), "ARCHIVE_SUBMISSION_APPROVED", "Submission published");
+        }
+
+        public async Task<Result<ArchiveEntryDto>> Reject(int id, ArchiveRejectInputDto input)
+        {
+            _logger.SetOperation("RejectArchiveSubmission");
+
+            var reason = ProfileRules.NormalizeOptionalText(input.Reason) ?? string.Empty;
+
+            if (reason.Length is < ArchiveRules.RejectionReasonMinLength or > ArchiveRules.RejectionReasonMaxLength)
+                return Fail(new Error("INVALID_ARCHIVE_REJECTION_REASON", $"Reason must have between {ArchiveRules.RejectionReasonMinLength} and {ArchiveRules.RejectionReasonMaxLength} characters", ErrorType.Validation));
+
+            var entry = await FindSubmissionAsync(id);
+
+            if (entry == null)
+                return Fail(NotFound());
+
+            var me = _currentUser.UserId;
+            var media = await _archiveMediaRepository.ListAsync(new QueryOptions<ArchiveMedia> { Predicate = m => m.ArchiveEntryId == id });
+
+            await _unitOfWork.BeginTransactionAsync();
+
+            try
+            {
+                if (!await _archiveRepository.TryReviewAsync(id, EArchiveEntryStatus.Rejected, me, reason, DateTime.UtcNow))
+                {
+                    await _unitOfWork.RollbackAsync();
+                    return Fail(NotPending());
+                }
+
+                foreach (var item in media)
+                    await _archiveMediaRepository.DeleteAsync(item);
+
+                await _unitOfWork.CommitAsync();
+            }
+            catch
+            {
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+
+            await _mediaAppService.Discard(media.Select(m => m.MediaUploadId).ToList());
+
+            _logger.Info("ARCHIVE_SUBMISSION_REJECTED", "Archive submission rejected", userId: me, extra: new { EntryId = id, entry.AuthorUserId, Media = media.Count });
+
+            await _notificationAppService.Notify(entry.AuthorUserId, new NotificationInput(ENotificationKind.ArchiveSubmissionRejected, me, ArchiveEntryId: id));
+
+            return Result<ArchiveEntryDto>.Ok(await MapDetailAsync((await FindAnyAsync(id))!), "ARCHIVE_SUBMISSION_REJECTED", "Submission rejected");
+        }
+
+        private async Task<Result<ArchiveEntryDto>> CreateAsync(ArchiveEntryInputDto input, bool submission)
+        {
             var (data, error) = await ValidateAsync(input, new HashSet<int>());
 
             if (error != null)
                 return Fail(error);
 
             var me = _currentUser.UserId;
-            var entry = new ArchiveEntry { AuthorUserId = me };
+
+            if (submission && await _archiveRepository.CountPendingAsync(me) >= ArchiveRules.MaxPendingSubmissionsPerUser)
+                return Fail(new Error("ARCHIVE_SUBMISSION_LIMIT_REACHED", $"You already have {ArchiveRules.MaxPendingSubmissionsPerUser} submissions waiting for review", ErrorType.Conflict));
+
+            var entry = new ArchiveEntry
+            {
+                AuthorUserId = me,
+                Status = submission ? EArchiveEntryStatus.Pending : EArchiveEntryStatus.Published,
+                IsSubmission = submission,
+            };
             Apply(entry, data!);
 
             await _unitOfWork.BeginTransactionAsync();
@@ -131,7 +326,10 @@ namespace NoiseVault.Application.Archive
                 await _archiveRepository.AddAsync(entry);
                 await AddBandsAsync(entry.Id, data!.Bands);
                 await AddMediaAsync(entry.Id, data.Media);
-                await _postAppService.CreateForArchive(entry.Id, me);
+
+                if (!submission)
+                    await _postAppService.CreateForArchive(entry.Id, me);
+
                 await _unitOfWork.CommitAsync();
             }
             catch
@@ -140,21 +338,20 @@ namespace NoiseVault.Application.Archive
                 throw;
             }
 
-            _logger.Info("ARCHIVE_ENTRY_CREATED", "Archive entry created", userId: me,
+            var code = submission ? "ARCHIVE_SUBMISSION_CREATED" : "ARCHIVE_ENTRY_CREATED";
+
+            _logger.Info(code, submission ? "Archive submission created" : "Archive entry created", userId: me,
                 extra: new { EntryId = entry.Id, entry.Year, Media = data!.Media.Count, Bands = data.Bands.Count });
 
-            return Result<ArchiveEntryDto>.Ok(await MapDetailAsync((await FindVisible(entry.Id))!), "ARCHIVE_ENTRY_CREATED", "Archive entry published");
+            if (submission)
+                await NotifyReviewersAsync(entry.Id, me);
+
+            return Result<ArchiveEntryDto>.Ok(await MapDetailAsync((await FindAnyAsync(entry.Id))!), code, submission ? "Submission sent to the curators" : "Archive entry published");
         }
 
-        public async Task<Result<ArchiveEntryDto>> Update(int id, ArchiveEntryInputDto input)
+        private async Task<Result<ArchiveEntryDto>> UpdateAsync(ArchiveEntry entry, ArchiveEntryInputDto input, string code, string message)
         {
-            _logger.SetOperation("UpdateArchiveEntry");
-
-            var entry = await _archiveRepository.FirstOrDefaultAsync(new QueryOptions<ArchiveEntry> { Predicate = e => e.Id == id });
-
-            if (entry == null)
-                return Fail(NotFound());
-
+            var id = entry.Id;
             var currentMedia = await _archiveMediaRepository.ListAsync(new QueryOptions<ArchiveMedia> { Predicate = m => m.ArchiveEntryId == id });
             var (data, error) = await ValidateAsync(input, currentMedia.Select(m => m.MediaUploadId).ToHashSet());
 
@@ -191,10 +388,10 @@ namespace NoiseVault.Application.Archive
 
             await _mediaAppService.Discard(removedMediaIds);
 
-            _logger.Info("ARCHIVE_ENTRY_UPDATED", "Archive entry updated", userId: _currentUser.UserId,
+            _logger.Info(code, message, userId: _currentUser.UserId,
                 extra: new { EntryId = id, Media = data.Media.Count, RemovedMedia = removedMediaIds.Count });
 
-            return Result<ArchiveEntryDto>.Ok(await MapDetailAsync((await FindVisible(id))!), "ARCHIVE_ENTRY_UPDATED", "Archive entry updated");
+            return Result<ArchiveEntryDto>.Ok(await MapDetailAsync((await FindAnyAsync(id))!), code, message);
         }
 
         public async Task<Result> Delete(int id)
@@ -206,6 +403,14 @@ namespace NoiseVault.Application.Archive
             if (entry == null)
                 return Result.Fail(NotFound());
 
+            await DeleteAsync(entry, "ARCHIVE_ENTRY_DELETED", "Archive entry deleted");
+
+            return Result.Ok("ARCHIVE_ENTRY_DELETED", "Archive entry deleted");
+        }
+
+        private async Task DeleteAsync(ArchiveEntry entry, string eventName, string message)
+        {
+            var id = entry.Id;
             var media = await _archiveMediaRepository.ListAsync(new QueryOptions<ArchiveMedia>
             {
                 Predicate = m => m.ArchiveEntryId == id,
@@ -229,9 +434,7 @@ namespace NoiseVault.Application.Archive
 
             await _mediaAppService.DeleteStoredFiles(media.Select(m => m.MediaUpload!).ToList());
 
-            _logger.Info("ARCHIVE_ENTRY_DELETED", "Archive entry deleted", userId: _currentUser.UserId, extra: new { EntryId = id, Media = media.Count });
-
-            return Result.Ok("ARCHIVE_ENTRY_DELETED", "Archive entry deleted");
+            _logger.Info(eventName, message, userId: _currentUser.UserId, extra: new { EntryId = id, Media = media.Count });
         }
 
         public Task<Result<ArchiveEntryDto>> Like(int id) =>
@@ -270,6 +473,46 @@ namespace NoiseVault.Application.Archive
         public Task<ArchiveReadModel?> FindVisible(int entryId) =>
             _archiveRepository.FindAsync(entryId, _currentUser.UserId);
 
+        public async Task<ArchiveReadModel?> FindReadable(int entryId)
+        {
+            var row = await FindAnyAsync(entryId);
+
+            if (row == null || row.Status == EArchiveEntryStatus.Published || row.AuthorUserId == _currentUser.UserId)
+                return row;
+
+            return await _permissionChecker.IsGrantedAsync(_currentUser.UserId, Permissions.Archive.Review) ? row : null;
+        }
+
+        public async Task<Error> MissingEntryError(int entryId) =>
+            await FindReadable(entryId) != null ? NotPublished() : NotFound();
+
+        private Task<ArchiveReadModel?> FindAnyAsync(int entryId) =>
+            _archiveRepository.FindAsync(entryId, _currentUser.UserId, includeUnpublished: true);
+
+        private Task<ArchiveEntry?> FindSubmissionAsync(int entryId) =>
+            _archiveRepository.FirstOrDefaultAsync(new QueryOptions<ArchiveEntry>
+            {
+                Predicate = e => e.Id == entryId && e.IsSubmission,
+                AsNoTracking = true,
+            });
+
+        private async Task NotifyReviewersAsync(int entryId, int actorUserId)
+        {
+            List<int> reviewers;
+
+            try
+            {
+                reviewers = await _permissionChecker.UsersGrantedAsync(Permissions.Archive.Review);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error("NOTIFICATION_FAILED", "Archive reviewers could not be resolved", exception: ex, userId: actorUserId, extra: new { EntryId = entryId });
+                return;
+            }
+
+            await _notificationAppService.NotifyMany(reviewers, new NotificationInput(ENotificationKind.ArchiveSubmissionReceived, actorUserId, ArchiveEntryId: entryId));
+        }
+
         public Task<List<int>> AttendeeUserIds(int entryId) =>
             _archiveRepository.AttendeeUserIdsAsync(entryId);
 
@@ -278,7 +521,7 @@ namespace NoiseVault.Application.Archive
             var entry = await FindVisible(id);
 
             if (entry == null)
-                return Fail(NotFound());
+                return Fail(await MissingEntryError(id));
 
             if (await act(id) && notify != null)
                 await _notificationAppService.Notify(entry.AuthorUserId, new NotificationInput(notify.Value, _currentUser.UserId, ArchiveEntryId: id));
@@ -442,12 +685,16 @@ namespace NoiseVault.Application.Archive
                 .Select((item, index) => new ArchiveMedia { ArchiveEntryId = entryId, MediaUploadId = item.MediaId, Caption = item.Caption, Order = index })
                 .ToList());
 
-        private async Task<(bool CanEdit, bool CanDelete)> PermissionsAsync()
+        private async Task<ViewerPermissions> PermissionsAsync()
         {
             var me = _currentUser.UserId;
-            return (await _permissionChecker.IsGrantedAsync(me, Permissions.Archive.Edit),
-                await _permissionChecker.IsGrantedAsync(me, Permissions.Archive.Delete));
+            return new ViewerPermissions(
+                await _permissionChecker.IsGrantedAsync(me, Permissions.Archive.Edit),
+                await _permissionChecker.IsGrantedAsync(me, Permissions.Archive.Delete),
+                await _permissionChecker.IsGrantedAsync(me, Permissions.Archive.Review));
         }
+
+        private sealed record ViewerPermissions(bool Edit, bool Delete, bool Review);
 
         private async Task<List<ArchiveEntryDto>> MapListAsync(List<ArchiveReadModel> rows)
         {
@@ -462,9 +709,9 @@ namespace NoiseVault.Application.Archive
             })).ToDictionary(m => m.Id);
 
             var bands = await BandsAsync(rows);
-            var (canEdit, canDelete) = await PermissionsAsync();
+            var permissions = await PermissionsAsync();
 
-            return rows.Select(r => Map(r, bands, canEdit, canDelete, r.CoverMediaUploadId != null && covers.TryGetValue(r.CoverMediaUploadId.Value, out var cover) ? _mediaAppService.Describe(cover) : null)).ToList();
+            return rows.Select(r => Map(r, bands, permissions, r.CoverMediaUploadId != null && covers.TryGetValue(r.CoverMediaUploadId.Value, out var cover) ? _mediaAppService.Describe(cover) : null)).ToList();
         }
 
         private async Task<ArchiveEntryDto> MapDetailAsync(ArchiveReadModel row)
@@ -478,10 +725,10 @@ namespace NoiseVault.Application.Archive
             });
 
             var bands = await BandsAsync([row]);
-            var (canEdit, canDelete) = await PermissionsAsync();
+            var permissions = await PermissionsAsync();
             var coverMedia = media.FirstOrDefault(m => m.MediaUploadId == row.CoverMediaUploadId) ?? media.FirstOrDefault();
 
-            var dto = Map(row, bands, canEdit, canDelete, coverMedia != null ? _mediaAppService.Describe(coverMedia.MediaUpload!) : null);
+            var dto = Map(row, bands, permissions,coverMedia != null ? _mediaAppService.Describe(coverMedia.MediaUpload!) : null);
             dto.Media = media.Select(m => new ArchiveMediaDto { Media = _mediaAppService.Describe(m.MediaUpload!), Caption = m.Caption }).ToList();
 
             var (attendees, _) = await _archiveRepository.PageAttendeesAsync(row.Id, 0, ArchiveRules.AttendeesPreview);
@@ -496,7 +743,7 @@ namespace NoiseVault.Application.Archive
             return await _bandAppService.SummariesByIds(ids);
         }
 
-        private ArchiveEntryDto Map(ArchiveReadModel r, Dictionary<int, BandSummaryDto> bands, bool canEdit, bool canDelete, MediaDto? cover) => new()
+        private ArchiveEntryDto Map(ArchiveReadModel r, Dictionary<int, BandSummaryDto> bands, ViewerPermissions permissions, MediaDto? cover) => new()
         {
             Id = r.Id,
             Title = r.Title,
@@ -528,8 +775,14 @@ namespace NoiseVault.Application.Archive
             AttendanceCount = r.AttendanceCount,
             AttendedByMe = r.AttendedByMe,
             CommentCount = r.CommentCount,
-            CanEdit = canEdit,
-            CanDelete = canDelete,
+            Status = r.Status,
+            IsSubmission = r.IsSubmission,
+            RejectionReason = r.RejectionReason,
+            ReviewedAt = r.ReviewedAt,
+            IsMine = r.AuthorUserId == _currentUser.UserId,
+            CanEdit = permissions.Edit || (r.AuthorUserId == _currentUser.UserId && r.Status == EArchiveEntryStatus.Pending),
+            CanDelete = permissions.Delete,
+            CanReview = permissions.Review && r.Status == EArchiveEntryStatus.Pending,
             CreatedAt = r.CreatedAt,
         };
 
@@ -546,5 +799,9 @@ namespace NoiseVault.Application.Archive
         private static (ValidEntry? Data, Error? Error) Invalid(string code, string message) => (null, new Error(code, message, ErrorType.Validation));
 
         private static Error NotFound() => new("ARCHIVE_ENTRY_NOT_FOUND", "Archive entry not found", ErrorType.NotFound);
+
+        private static Error NotPublished() => new("ARCHIVE_ENTRY_NOT_PUBLISHED", "This entry is waiting for the curators", ErrorType.Conflict);
+
+        private static Error NotPending() => new("ARCHIVE_SUBMISSION_NOT_PENDING", "This submission was already reviewed", ErrorType.Conflict);
     }
 }

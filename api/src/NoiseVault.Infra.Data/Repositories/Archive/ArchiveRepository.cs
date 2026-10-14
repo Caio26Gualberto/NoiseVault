@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using NoiseVault.Application.Archive.Interfaces;
 using NoiseVault.Application.Archive.Models;
 using NoiseVault.Domain.Entities;
+using NoiseVault.Domain.Enums.Archive;
 using NoiseVault.Domain.Enums.Media;
 using NoiseVault.Infra.Data.Context;
 
@@ -57,8 +58,62 @@ namespace NoiseVault.Infra.Data.Repositories.Archive
             return (items, totalCount);
         }
 
-        public Task<ArchiveReadModel?> FindAsync(int entryId, int viewerUserId) =>
-            Project(Visible().Where(e => e.Id == entryId), viewerUserId).FirstOrDefaultAsync();
+        public Task<ArchiveReadModel?> FindAsync(int entryId, int viewerUserId, bool includeUnpublished = false) =>
+            Project((includeUnpublished ? Existing() : Visible()).Where(e => e.Id == entryId), viewerUserId).FirstOrDefaultAsync();
+
+        public async Task<(List<ArchiveReadModel> Items, int TotalCount)> PageSubmissionsAsync(EArchiveEntryStatus? status, int? authorUserId, string? search, int viewerUserId, int skip, int take)
+        {
+            var query = Existing().Where(e => e.IsSubmission);
+
+            if (status != null)
+                query = query.Where(e => e.Status == status);
+
+            if (authorUserId != null)
+                query = query.Where(e => e.AuthorUserId == authorUserId);
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var term = search.Trim().ToLower();
+                query = query.Where(e => e.Title.ToLower().Contains(term)
+                    || e.Author!.Name.ToLower().Contains(term)
+                    || e.Author.Nickname.Contains(term));
+            }
+
+            var totalCount = await query.CountAsync();
+
+            var ordered = status == EArchiveEntryStatus.Pending
+                ? query.OrderBy(e => e.CreatedAt).ThenBy(e => e.Id)
+                : query.OrderByDescending(e => e.CreatedAt).ThenByDescending(e => e.Id);
+
+            var items = await Project(ordered.Skip(skip).Take(take), viewerUserId).ToListAsync();
+
+            return (items, totalCount);
+        }
+
+        public Task<int> CountPendingAsync(int authorUserId) =>
+            Existing().CountAsync(e => e.AuthorUserId == authorUserId && e.Status == EArchiveEntryStatus.Pending);
+
+        public async Task<Dictionary<EArchiveEntryStatus, int>> CountSubmissionsByStatusAsync()
+        {
+            var rows = await Existing()
+                .Where(e => e.IsSubmission)
+                .GroupBy(e => e.Status)
+                .Select(g => new { Status = g.Key, Count = g.Count() })
+                .ToListAsync();
+
+            return rows.ToDictionary(r => r.Status, r => r.Count);
+        }
+
+        public async Task<bool> TryReviewAsync(int entryId, EArchiveEntryStatus status, int reviewerUserId, string? rejectionReason, DateTime reviewedAt) =>
+            await _dbSet
+                .Where(e => e.Id == entryId && !e.IsDeleted && e.Status == EArchiveEntryStatus.Pending)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(e => e.Status, status)
+                    .SetProperty(e => e.ReviewedByUserId, reviewerUserId)
+                    .SetProperty(e => e.ReviewedAt, reviewedAt)
+                    .SetProperty(e => e.RejectionReason, rejectionReason)
+                    .SetProperty(e => e.UpdatedAt, reviewedAt)
+                    .SetProperty(e => e.UpdatedBy, reviewerUserId)) == 1;
 
         public Task<List<ArchiveReadModel>> ListByIdsAsync(IReadOnlyCollection<int> entryIds, int viewerUserId) =>
             Project(Visible().Where(e => entryIds.Contains(e.Id)), viewerUserId).ToListAsync();
@@ -137,6 +192,9 @@ namespace NoiseVault.Infra.Data.Repositories.Archive
         }
 
         private IQueryable<ArchiveEntry> Visible() =>
+            Existing().Where(e => e.Status == EArchiveEntryStatus.Published);
+
+        private IQueryable<ArchiveEntry> Existing() =>
             _dbSet.AsNoTracking().Where(e => !e.IsDeleted && e.Author!.IsActive);
 
         private static IQueryable<ArchiveReadModel> Project(IQueryable<ArchiveEntry> query, int viewerUserId) =>
@@ -144,6 +202,10 @@ namespace NoiseVault.Infra.Data.Repositories.Archive
             {
                 Id = e.Id,
                 AuthorUserId = e.AuthorUserId,
+                Status = e.Status,
+                IsSubmission = e.IsSubmission,
+                RejectionReason = e.RejectionReason,
+                ReviewedAt = e.ReviewedAt,
                 AuthorName = e.Author!.Name,
                 AuthorNickname = e.Author.Nickname,
                 AuthorAvatarKey = e.Author.AvatarKey,

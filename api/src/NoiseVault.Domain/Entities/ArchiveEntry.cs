@@ -1,8 +1,15 @@
+using NoiseVault.Domain.Enums.Archive;
+
 namespace NoiseVault.Domain.Entities
 {
     public class ArchiveEntry : EntityBase
     {
         public int AuthorUserId { get; set; }
+        public EArchiveEntryStatus Status { get; set; }
+        public bool IsSubmission { get; set; }
+        public int? ReviewedByUserId { get; set; }
+        public DateTime? ReviewedAt { get; set; }
+        public string? RejectionReason { get; set; }
         public string Title { get; set; } = string.Empty;
         public string? Description { get; set; }
         public int Year { get; set; }

@@ -39,6 +39,7 @@ Só rate limit não basta porque IP roda barato. Só regra de negócio não bast
 | `event-create` | 10/h por conta | divulgar a agenda da semana cabe; spam de evento não. Somado ao limite de volume de 20 eventos futuros por pessoa (`eventos.md`) |
 | `support-create` | 5/h por conta | relatar bug é raro; cinco por hora cobre quem achou vários de uma vez. Somado ao limite de volume de 10 tickets abertos por pessoa (`suporte.md`) |
 | `city-search` | 60/min por conta | o campo de cidade busca enquanto a pessoa digita, como a busca de pessoas |
+| `archive-submit` | 10/h por conta | enviar para o mural é raro; quem tem uma caixa de fotos manda alguns de uma vez. Somado ao limite de volume de 5 envios pendentes por pessoa (`mural.md`) |
 
 Endpoint novo que **cria**, **envia** ou **chama fora** nasce com política própria e uma linha nesta tabela. Os números são ponto de partida; o projeto ajusta e registra o porquê.
 

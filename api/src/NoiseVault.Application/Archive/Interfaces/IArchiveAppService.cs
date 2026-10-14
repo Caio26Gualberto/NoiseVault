@@ -17,6 +17,14 @@ namespace NoiseVault.Application.Archive.Interfaces
         Task<Result<ArchiveEntryDto>> Create(ArchiveEntryInputDto input);
         Task<Result<ArchiveEntryDto>> Update(int id, ArchiveEntryInputDto input);
         Task<Result> Delete(int id);
+        Task<Result<ArchiveEntryDto>> Submit(ArchiveEntryInputDto input);
+        Task<Result<ArchiveEntryDto>> UpdateSubmission(int id, ArchiveEntryInputDto input);
+        Task<Result> DeleteSubmission(int id);
+        Task<Result<PagedResultDto<ArchiveEntryDto>>> MySubmissions(PagedRequestDto query);
+        Task<Result<PagedResultDto<ArchiveEntryDto>>> ListSubmissions(ArchiveSubmissionQueryDto query);
+        Task<Result<ArchiveSubmissionSummaryDto>> SubmissionSummary();
+        Task<Result<ArchiveEntryDto>> Approve(int id);
+        Task<Result<ArchiveEntryDto>> Reject(int id, ArchiveRejectInputDto input);
         Task<Result<ArchiveEntryDto>> Like(int id);
         Task<Result<ArchiveEntryDto>> Unlike(int id);
         Task<Result<ArchiveEntryDto>> Attend(int id);
@@ -26,6 +34,8 @@ namespace NoiseVault.Application.Archive.Interfaces
         Task<Result<VideoUploadDto>> StartVideo(StartVideoUploadInputDto input);
 
         Task<ArchiveReadModel?> FindVisible(int entryId);
+        Task<ArchiveReadModel?> FindReadable(int entryId);
+        Task<Error> MissingEntryError(int entryId);
         Task<List<int>> AttendeeUserIds(int entryId);
     }
 }

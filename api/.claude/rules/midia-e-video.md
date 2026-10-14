@@ -28,7 +28,7 @@ Substitui o desenho de `dominio.md`, que previa `StorageKey` e dimensões em `Po
 | Perfil | Vídeo | Foto | Prazo de processamento | Quem sobe |
 |---|---|---|---|---|
 | `Post` | 500 MB, 10 min | 15 MB, lado maior até 2048 | 2 h | qualquer pessoa (`/api/media`) |
-| `Archive` | 4 GB, 2 h | 40 MB, lado maior até 3072 | 8 h | `Archive.Create` (`/api/admin/archive/media`, `mural.md`) |
+| `Archive` | 4 GB, 2 h | 40 MB, lado maior até 3072 | 8 h | `Archive.Create` (`/api/admin/archive/media`) e, para o envio da comunidade, qualquer pessoa (`/api/archive/media`, `mural.md`) |
 | `Support` | 200 MB, 2 min | 15 MB, lado maior até 2048 | 2 h | qualquer pessoa (`/api/support/media`, `suporte.md`) |
 
 - A mídia só entra no lugar do próprio perfil (`ListAttachable` filtra o perfil): foto de feed não vai para o mural, e vice-versa.

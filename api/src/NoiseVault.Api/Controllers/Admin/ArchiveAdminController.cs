@@ -46,6 +46,38 @@ namespace NoiseVault.Api.Controllers.Admin
             return ToResponse(result);
         }
 
+        [HttpGet("submissions")]
+        [Authorize(Policy = Permissions.Archive.Review)]
+        public async Task<ActionResult> Submissions([FromQuery] ArchiveSubmissionQueryDto query)
+        {
+            var result = await _archiveAppService.ListSubmissions(query);
+            return ToResponse(result);
+        }
+
+        [HttpGet("submissions/summary")]
+        [Authorize(Policy = Permissions.Archive.Review)]
+        public async Task<ActionResult> SubmissionSummary()
+        {
+            var result = await _archiveAppService.SubmissionSummary();
+            return ToResponse(result);
+        }
+
+        [HttpPost("{id:int}/approve")]
+        [Authorize(Policy = Permissions.Archive.Review)]
+        public async Task<ActionResult> Approve(int id)
+        {
+            var result = await _archiveAppService.Approve(id);
+            return ToResponse(result);
+        }
+
+        [HttpPost("{id:int}/reject")]
+        [Authorize(Policy = Permissions.Archive.Review)]
+        public async Task<ActionResult> Reject(int id, [FromBody] ArchiveRejectInputDto input)
+        {
+            var result = await _archiveAppService.Reject(id, input);
+            return ToResponse(result);
+        }
+
         [HttpPost("media/photos")]
         [Authorize(Policy = Permissions.Archive.Create)]
         [EnableRateLimiting(ApiRateLimitPolicies.MediaPhoto)]

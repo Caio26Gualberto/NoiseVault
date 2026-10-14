@@ -14,6 +14,9 @@ namespace NoiseVault.Application.Archive
         public const int MaxBands = 30;
         public const int MaxMedia = 100;
         public const int AttendeesPreview = 5;
+        public const int MaxPendingSubmissionsPerUser = 5;
+        public const int RejectionReasonMinLength = 3;
+        public const int RejectionReasonMaxLength = 500;
 
         public static bool IsValidDate(int year, int? month, int? day)
         {

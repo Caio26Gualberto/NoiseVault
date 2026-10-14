@@ -289,11 +289,27 @@ namespace NoiseVault.Infra.Data.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("IsSubmission")
+                        .HasColumnType("boolean");
+
                     b.Property<int?>("Month")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("RejectionReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime?>("ReviewedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("ReviewedByUserId")
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("SortDate")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -315,13 +331,15 @@ namespace NoiseVault.Infra.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AuthorUserId");
-
                     b.HasIndex("CityId");
 
                     b.HasIndex("SortDate");
 
                     b.HasIndex("Year");
+
+                    b.HasIndex("AuthorUserId", "Status");
+
+                    b.HasIndex("Status", "CreatedAt");
 
                     b.ToTable("ArchiveEntries", (string)null);
                 });

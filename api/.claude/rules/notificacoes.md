@@ -51,6 +51,9 @@ Por que é assim:
 | `SupportTicketCreated` 17 | quem tem `Support.View` | não | `SupportAppService.Create` |
 | `SupportTicketReplied` 18 | o outro lado da conversa (quem reportou, ou quem tem `Support.View`) | sim | `ReplyAsStaff` / `ReplyAsReporter` |
 | `SupportTicketStatusChanged` 19 | quem reportou | não | `SupportAppService.Update`, só quando o status muda |
+| `ArchiveSubmissionReceived` 20 | quem tem `Archive.Review` (menos quem enviou) | não | `ArchiveAppService.Submit` |
+| `ArchiveSubmissionApproved` 21 | quem enviou | não | `ArchiveAppService.Approve` |
+| `ArchiveSubmissionRejected` 22 | quem enviou | não | `ArchiveAppService.Reject` |
 
 **Regras gerais:**
 - **Ninguém é notificado da própria ação**: o `NotifyMany` tira o ator da lista.

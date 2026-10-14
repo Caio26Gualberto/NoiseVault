@@ -85,7 +85,7 @@ namespace NoiseVault.Application.Archive
             var entry = await _archiveAppService.FindVisible(entryId);
 
             if (entry == null)
-                return Result<ArchiveCommentDto>.Fail(EntryNotFound());
+                return Result<ArchiveCommentDto>.Fail(await _archiveAppService.MissingEntryError(entryId));
 
             var comment = new ArchiveComment { ArchiveEntryId = entryId, AuthorUserId = _currentUser.UserId, Text = text };
             await _commentRepository.AddAsync(comment);

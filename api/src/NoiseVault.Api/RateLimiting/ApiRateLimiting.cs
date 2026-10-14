@@ -27,6 +27,7 @@ namespace NoiseVault.Api.RateLimiting
         public const string EventCreate = "event-create";
         public const string SupportCreate = "support-create";
         public const string CitySearch = "city-search";
+        public const string ArchiveSubmit = "archive-submit";
     }
 
     public static class ApiRateLimiting
@@ -67,6 +68,7 @@ namespace NoiseVault.Api.RateLimiting
                 AddFixedWindow(options, ApiRateLimitPolicies.EventCreate, permitLimit: 10, windowMinutes: 60);
                 AddFixedWindow(options, ApiRateLimitPolicies.SupportCreate, permitLimit: 5, windowMinutes: 60);
                 AddFixedWindow(options, ApiRateLimitPolicies.CitySearch, permitLimit: 60, windowMinutes: 1);
+                AddFixedWindow(options, ApiRateLimitPolicies.ArchiveSubmit, permitLimit: 10, windowMinutes: 60);
 
                 options.OnRejected = async (context, token) =>
                 {

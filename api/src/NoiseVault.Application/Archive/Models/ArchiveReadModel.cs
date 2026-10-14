@@ -1,4 +1,5 @@
 using NoiseVault.Application.Cities.Dtos;
+using NoiseVault.Domain.Enums.Archive;
 using NoiseVault.Domain.Enums.Profiles;
 
 namespace NoiseVault.Application.Archive.Models
@@ -7,6 +8,10 @@ namespace NoiseVault.Application.Archive.Models
     {
         public int Id { get; init; }
         public int AuthorUserId { get; init; }
+        public EArchiveEntryStatus Status { get; init; }
+        public bool IsSubmission { get; init; }
+        public string? RejectionReason { get; init; }
+        public DateTime? ReviewedAt { get; init; }
         public string AuthorName { get; init; } = string.Empty;
         public string AuthorNickname { get; init; } = string.Empty;
         public string? AuthorAvatarKey { get; init; }

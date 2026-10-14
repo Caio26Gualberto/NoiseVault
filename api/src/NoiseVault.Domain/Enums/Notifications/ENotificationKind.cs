@@ -22,5 +22,8 @@ namespace NoiseVault.Domain.Enums.Notifications
         SupportTicketCreated = 17,
         SupportTicketReplied = 18,
         SupportTicketStatusChanged = 19,
+        ArchiveSubmissionReceived = 20,
+        ArchiveSubmissionApproved = 21,
+        ArchiveSubmissionRejected = 22,
     }
 }

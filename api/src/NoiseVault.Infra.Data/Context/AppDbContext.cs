@@ -452,6 +452,7 @@ namespace NoiseVault.Infra.Data.Context
                 b.Property(x => x.Description).HasMaxLength(10000);
                 b.Property(x => x.Venue).HasMaxLength(120);
                 b.Property(x => x.CityName).HasMaxLength(80);
+                b.Property(x => x.RejectionReason).HasMaxLength(500);
 
                 b.HasOne(x => x.City)
                     .WithMany()
@@ -465,6 +466,8 @@ namespace NoiseVault.Infra.Data.Context
 
                 b.HasIndex(x => x.SortDate);
                 b.HasIndex(x => x.Year);
+                b.HasIndex(x => new { x.Status, x.CreatedAt });
+                b.HasIndex(x => new { x.AuthorUserId, x.Status });
             });
 
             builder.Entity<ArchiveBandEntry>(b =>

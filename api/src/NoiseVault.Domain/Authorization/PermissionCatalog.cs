@@ -42,6 +42,7 @@ namespace NoiseVault.Domain.Authorization
             new(Permissions.Archive.Create, "Publicar no mural das antigas", "Permite subir fotos e vídeos com perfil de arquivo e criar registros no mural.", Groups.Archive),
             new(Permissions.Archive.Edit, "Editar registros do mural", "Permite editar dados, bandas, legendas, ordem e capa de qualquer registro do mural.", Groups.Archive),
             new(Permissions.Archive.Delete, "Apagar registros do mural", "Permite apagar registros do mural e comentários feitos neles.", Groups.Archive),
+            new(Permissions.Archive.Review, "Revisar envios para o mural", "Permite ver a fila de envios da comunidade e publicar ou recusar cada um.", Groups.Archive),
 
             new(Permissions.Support.View, "Ver relatos de suporte", "Permite ver a caixa de entrada de suporte, os relatos, as conversas e a nota interna.", Groups.Support),
             new(Permissions.Support.Edit, "Triar relatos de suporte", "Permite mudar status, prioridade e nota interna de qualquer relato.", Groups.Support, Permissions.Support.View),
