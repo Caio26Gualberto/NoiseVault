@@ -5,6 +5,62 @@
   "back": "Voltar ao mural",
   "searchPlaceholder": "Buscar por título, local, banda ou história",
   "publishedBy": "Publicado por",
+  "archiveOf": "Acervo de",
+  "submit": "Enviar para o mural",
+  "mySubmissions": "Meus envios",
+  "status": {
+    "published": "Publicado",
+    "pending": "Aguardando a curadoria",
+    "rejected": "Não publicado"
+  },
+  "review": {
+    "title": "Revisão da curadoria",
+    "description": "Enviado por {{name}}. Ajuste o que precisar antes de publicar: o registro sai no mural e no feed em nome de quem enviou.",
+    "approve": "Publicar no mural",
+    "editFirst": "Editar antes",
+    "reject": "Recusar",
+    "rejectTitle": "Recusar este envio?",
+    "rejectDescription": "Quem enviou vai ver o motivo em Meus envios. As fotos e os vídeos do envio são apagados.",
+    "reason": "Motivo",
+    "reasonPlaceholder": "Ex.: a foto não é de um show do ABC; mande com a data, se lembrar",
+    "rejectConfirm": "Recusar envio",
+    "pendingTitle": "Aguardando a curadoria",
+    "pendingMine": "Só você e a curadoria estão vendo este registro. Ele entra no mural e no feed quando for publicado, e você recebe um aviso.",
+    "pendingOther": "Este envio ainda não está no mural. Só quem enviou e a curadoria conseguem ver.",
+    "rejectedTitle": "Este envio não foi publicado",
+    "rejectedReason": "Motivo da curadoria: {{reason}}"
+  },
+  "submissions": {
+    "title": "Meus envios",
+    "description": "O que você mandou para o mural das antigas e em que pé está a revisão.",
+    "emptyTitle": "Você ainda não enviou nada",
+    "emptyDescription": "Tem fotos ou fitas das antigas? Mande para o mural: a curadoria revisa e publica em seu nome.",
+    "back": "Voltar aos meus envios",
+    "edit": "Editar envio",
+    "withdraw": "Retirar envio",
+    "withdrawTitle": "Retirar este envio?",
+    "withdrawMessage": "Ele sai da fila da curadoria, junto com as fotos e os vídeos. Não dá para desfazer.",
+    "delete": "Apagar",
+    "deleteTitle": "Apagar este envio?",
+    "deleteMessage": "Ele some da sua lista de envios. Não dá para desfazer.",
+    "reason": "Motivo: {{reason}}",
+    "sentAt": "Enviado {{when}}"
+  },
+  "admin": {
+    "title": "Envios para o mural",
+    "description": "O que a comunidade mandou para o mural das antigas. Abra um envio para revisar, ajustar e publicar, ou recusar com o motivo.",
+    "back": "Voltar aos envios",
+    "searchPlaceholder": "Buscar por título, nome ou apelido de quem enviou",
+    "tabs": {
+      "pending": "Na fila",
+      "published": "Publicados",
+      "rejected": "Recusados"
+    },
+    "emptyPendingTitle": "A fila está vazia",
+    "emptyPendingDescription": "Quando alguém enviar um registro, ele aparece aqui e você recebe um aviso.",
+    "emptyTitle": "Nada por aqui",
+    "emptyDescription": "Tente outra aba ou outra busca."
+  },
   "timeline": {
     "label": "Linha do tempo",
     "years": "Anos com registros",
@@ -85,6 +141,9 @@
     "descriptionPlaceholder": "Quem estava, o que rolou, de onde veio a fita…",
     "bandsHint": "Busque bandas do Noise Vault ou digite qualquer nome.",
     "submitCreate": "Publicar no mural",
+    "submitTitle": "Enviar para o mural",
+    "submitDescription": "Uma memória por envio: o show, o ensaio, a viagem. A curadoria revisa antes de publicar, e o registro sai em seu nome. Até 5 envios esperando por vez.",
+    "submitSend": "Enviar para a curadoria",
     "submitEdit": "Salvar alterações",
     "waitUpload": "Enviando mídias…",
     "fields": {

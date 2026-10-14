@@ -31,7 +31,11 @@ Rotas públicas usam `PublicLayout` (fundo escuro, card centralizado, wordmark).
 
 ## Admin dentro do mesmo shell
 
-A seção "Administração" saiu com a moderação (módulo 5 redefinido) e **voltou com o suporte** (14/10/2026): `navSections` tem `admin` com `permission: Support.View` e o item "Suporte" (`/admin/suporte`, sub-rota `/admin/suporte/:id`). Sem a capacidade, a seção some da sidebar e do "Mais". Seção nova de administração entra nesse mesmo bloco, cada item com a sua permissão. Rotas com `permission` em `hiddenRoutes` (`/mural/novo` e `/mural/:id/editar` com `Archive.*`, `/admin/suporte/:id` com `Support.View`) redirecionam para `/feed` sem a capacidade. O gate do front é UX; a proteção é a policy do endpoint.
+A seção "Administração" saiu com a moderação (módulo 5 redefinido) e **voltou com o suporte** (14/10/2026): `navSections` tem `admin` com dois itens: "Envios do mural" (`/admin/mural`, `Archive.Review`) e "Suporte" (`/admin/suporte`, sub-rota `/admin/suporte/:id`, `Support.View`).
+- **A seção não tem permissão própria**: cada item leva a sua, e a sidebar e o "Mais" escondem a seção quando não sobra nenhum item. Assim um curador do mural vê a Administração sem precisar de `Support.View`.
+- Seção nova de administração entra nesse mesmo bloco, cada item com a sua permissão.
+
+Rotas com `permission` em `hiddenRoutes` (`/mural/novo` com `Archive.Create`, `/admin/suporte/:id` com `Support.View`) redirecionam para `/feed` sem a capacidade. O gate do front é UX; a proteção é a policy do endpoint.
 
 ## Roteiro de verificação
 

@@ -1,4 +1,5 @@
 import {
+  ArchiveIcon,
   CalendarCheckIcon,
   CalendarClockIcon,
   CalendarXIcon,
@@ -15,6 +16,7 @@ import {
 import type { LucideIcon } from 'lucide-react'
 import type { TFunction } from 'i18next'
 
+import { mySubmissionsPath } from '@/pages/mural/archive-status'
 import { SupportTicketStatus } from '@/pages/reportar-problema/support-enums'
 import { adminTicketPath, myTicketPath } from '@/pages/reportar-problema/support-paths'
 
@@ -54,6 +56,9 @@ export const notificationKinds: Record<NotificationKind, KindConfig> = {
   [NotificationKind.supportTicketCreated]: { key: 'supportTicketCreated', icon: LifeBuoyIcon, link: ticketLink },
   [NotificationKind.supportTicketReplied]: { key: 'supportTicketReplied', icon: HeadsetIcon, link: ticketLink },
   [NotificationKind.supportTicketStatusChanged]: { key: 'supportTicketStatusChanged', icon: LifeBuoyIcon, link: ticketLink },
+  [NotificationKind.archiveSubmissionReceived]: { key: 'archiveSubmissionReceived', icon: ArchiveIcon, link: archiveLink },
+  [NotificationKind.archiveSubmissionApproved]: { key: 'archiveSubmissionApproved', icon: CassetteTapeIcon, link: archiveLink },
+  [NotificationKind.archiveSubmissionRejected]: { key: 'archiveSubmissionRejected', icon: ArchiveIcon, link: () => mySubmissionsPath },
 }
 
 const ticketStatusKey: Record<SupportTicketStatus, string> = {

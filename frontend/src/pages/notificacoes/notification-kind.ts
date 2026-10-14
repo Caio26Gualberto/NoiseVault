@@ -19,5 +19,8 @@ export const NotificationKind = {
   supportTicketCreated: 17,
   supportTicketReplied: 18,
   supportTicketStatusChanged: 19,
+  archiveSubmissionReceived: 20,
+  archiveSubmissionApproved: 21,
+  archiveSubmissionRejected: 22,
 } as const
 export type NotificationKind = (typeof NotificationKind)[keyof typeof NotificationKind]

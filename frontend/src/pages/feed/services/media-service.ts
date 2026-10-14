@@ -38,8 +38,6 @@ export function deleteMedia(id: number): Promise<void> {
   return apiDelete<void>(`/api/media/${id}`, { toastError: false })
 }
 
-export const archiveVideoStartPath = '/api/admin/archive/media/videos'
-
 export async function uploadVideo(
   file: File,
   onProgress: UploadProgress,

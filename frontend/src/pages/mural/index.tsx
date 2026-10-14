@@ -1,4 +1,4 @@
-import { CassetteTapeIcon, PlusIcon, SearchIcon } from 'lucide-react'
+import { CassetteTapeIcon, InboxIcon, PlusIcon, SearchIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils'
 import { AppCitySelect } from '@/components/app-city-select'
 import { searchCities } from '@/pages/perfil/services/cidades-service'
 
+import { mySubmissionsPath, submitArchivePath } from './archive-status'
 import { ArchiveCard } from './components/archive-card'
 import { Timeline } from './components/timeline'
 import { useMuralPage } from './hooks/use-mural-page'
@@ -24,6 +25,7 @@ const all = 'all'
 export function MuralPage() {
   const { t } = useTranslation('mural')
   const can = useCan()
+  const canCreate = can(Permissions.archiveCreate)
   const page = useMuralPage()
   const filtered = page.selection.year !== null || page.selection.decade !== null || page.search || page.city !== null || page.kind !== null
 
@@ -33,14 +35,20 @@ export function MuralPage() {
         title={t('title')}
         description={t('description')}
         actions={
-          can(Permissions.archiveCreate) ? (
-            <AppButton asChild>
-              <Link to="/mural/novo">
-                <PlusIcon />
-                {t('create')}
+          <>
+            <AppButton intent="ghost" asChild>
+              <Link to={mySubmissionsPath}>
+                <InboxIcon />
+                {t('mySubmissions')}
               </Link>
             </AppButton>
-          ) : null
+            <AppButton asChild>
+              <Link to={canCreate ? '/mural/novo' : submitArchivePath}>
+                <PlusIcon />
+                {t(canCreate ? 'create' : 'submit')}
+              </Link>
+            </AppButton>
+          </>
         }
       />
 
@@ -97,6 +105,16 @@ export function MuralPage() {
           icon={CassetteTapeIcon}
           title={filtered ? t('empty.filteredTitle') : t('empty.title')}
           description={filtered ? t('empty.filteredDescription') : t('empty.description')}
+          action={
+            filtered ? null : (
+              <AppButton intent="neutral" asChild>
+                <Link to={canCreate ? '/mural/novo' : submitArchivePath}>
+                  <PlusIcon />
+                  {t(canCreate ? 'create' : 'submit')}
+                </Link>
+              </AppButton>
+            )
+          }
         />
       ) : (
         <div

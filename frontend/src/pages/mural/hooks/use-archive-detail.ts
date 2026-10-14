@@ -8,6 +8,7 @@ import { maxPageSize } from '@/components/app-pagination'
 import { usePolling } from '@/hooks/use-polling'
 import { MediaStatus } from '@/pages/feed/media-status'
 
+import { ArchiveEntryStatus } from '../archive-status'
 import {
   addArchiveComment,
   attendArchive,
@@ -50,7 +51,10 @@ export function useArchiveDetail(entryId: number) {
     }
   }, [entryId, version])
 
+  const published = state.status === 'found' && state.entry.status === ArchiveEntryStatus.published
+
   useEffect(() => {
+    if (!published) return
     let cancelled = false
     getArchiveComments(entryId, { page: commentPage, pageSize: maxPageSize })
       .then((data) => {
@@ -61,7 +65,7 @@ export function useArchiveDetail(entryId: number) {
     return () => {
       cancelled = true
     }
-  }, [entryId, commentPage, version])
+  }, [entryId, commentPage, version, published])
 
   const entry = state.status === 'found' ? state.entry : null
   const processing = entry?.media.some((item) => item.media.status === MediaStatus.processing || item.media.status === MediaStatus.uploading) ?? false
@@ -84,6 +88,8 @@ export function useArchiveDetail(entryId: number) {
   return {
     state,
     comments,
+    replace,
+    reload,
     toggleLike: async (target: ArchiveEntryDto) => replace(await (target.likedByMe ? unlikeArchive(target.id) : likeArchive(target.id))),
     toggleAttendance: async (target: ArchiveEntryDto) => replace(await (target.attendedByMe ? unattendArchive(target.id) : attendArchive(target.id))),
     comment: async (text: string) => {

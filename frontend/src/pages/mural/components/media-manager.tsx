@@ -7,11 +7,12 @@ import { AppButton, AppIconButton } from '@/components/app-button'
 import { acceptedImageTypes, checkImageFile } from '@/lib/image-file'
 import { cn } from '@/lib/utils'
 import { archivePhotoMaxBytes, archiveVideoLimits, checkVideoFile } from '@/lib/video-file'
-import { archiveVideoStartPath, deleteMedia, uploadVideo } from '@/pages/feed/services/media-service'
+import { deleteMedia, uploadVideo } from '@/pages/feed/services/media-service'
 
 import { archiveMaxMedia } from '../managed-media'
 import type { ManagedMedia } from '../managed-media'
-import { uploadArchivePhoto } from '../services/mural-service'
+import { archiveUploadPaths, uploadArchivePhoto } from '../services/mural-service'
+import type { ArchiveUploadTarget } from '../services/mural-service'
 
 const captionMaxLength = 500
 
@@ -20,9 +21,10 @@ type MediaManagerProps = {
   onChange: (update: (previous: ManagedMedia[]) => ManagedMedia[]) => void
   coverKey: string | null
   onCoverChange: (key: string) => void
+  target: ArchiveUploadTarget
 }
 
-export function MediaManager({ value, onChange, coverKey, onCoverChange }: MediaManagerProps) {
+export function MediaManager({ value, onChange, coverKey, onCoverChange, target }: MediaManagerProps) {
   const { t } = useTranslation('mural')
   const photoInput = useRef<HTMLInputElement>(null)
   const videoInput = useRef<HTMLInputElement>(null)
@@ -64,7 +66,7 @@ export function MediaManager({ value, onChange, coverKey, onCoverChange }: Media
         ...previous,
         { key, kind: 'photo', previewUrl: URL.createObjectURL(file), localUrl: true, mediaId: null, caption: '', state: 'uploading', progress: null, saved: false, controller: null },
       ])
-      uploadArchivePhoto(file)
+      uploadArchivePhoto(file, target)
         .then((media) => patch(key, { state: 'ready', mediaId: media.id }))
         .catch(() => patch(key, { state: 'error' }))
     }
@@ -87,7 +89,7 @@ export function MediaManager({ value, onChange, coverKey, onCoverChange }: Media
         ...previous,
         { key, kind: 'video', previewUrl: null, localUrl: false, mediaId: null, caption: '', state: 'uploading', progress: 0, saved: false, controller },
       ])
-      uploadVideo(file, (loaded, total) => patch(key, { progress: Math.round((loaded / total) * 100) }), controller.signal, archiveVideoStartPath)
+      uploadVideo(file, (loaded, total) => patch(key, { progress: Math.round((loaded / total) * 100) }), controller.signal, archiveUploadPaths[target].videos)
         .then((media) => patch(key, { state: 'ready', mediaId: media.id, progress: 100, controller: null }))
         .catch(() => {
           if (!controller.signal.aborted) patch(key, { state: 'error', controller: null })

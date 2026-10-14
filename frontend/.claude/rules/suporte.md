@@ -20,7 +20,7 @@ Rule irmã: `../api/.claude/rules/suporte.md`. A regra é do backend; a tela só
 | `/admin/suporte` | caixa de entrada: abas por status com contagem, busca, filtros de tipo, página e prioridade, ordenação | `Support.View` |
 | `/admin/suporte/:id` | ticket, conversa, triagem (status, prioridade, nota interna) e contexto do navegador | `Support.View` (triagem só com `Support.Edit`, resposta só com `Support.Reply`) |
 
-- O item "Reportar problema" (Institucional) marca também `/suporte` e `/suporte/:id` (`subRoutes`). A seção **"Administração"** voltou à sidebar com "Suporte", atrás de `Support.View` (`shell-e-navegacao.md`).
+- O item "Reportar problema" (Institucional) marca também `/suporte` e `/suporte/:id` (`subRoutes`). A seção **"Administração"** voltou à sidebar com "Suporte", atrás de `Support.View` no próprio item; a seção não tem permissão (`shell-e-navegacao.md`).
 - Os caminhos ficam em `reportar-problema/support-paths.ts`, e os enums, rótulos, tons e o mapa caminho → página em `reportar-problema/support-enums.ts`. A dona dos DTOs e do service do usuário é `reportar-problema`; `suporte/` e `admin/suporte/` importam do caminho dela. Conversa, resumo e os hooks de detalhe e mensagens moram em `suporte/` e o admin importa de lá.
 
 ## Formulário

@@ -2,6 +2,7 @@ import {
   ArrowLeftIcon,
   CalendarIcon,
   CircleAlertIcon,
+  ClockIcon,
   EllipsisIcon,
   HeartIcon,
   LoaderCircleIcon,
@@ -33,9 +34,11 @@ import { MediaKind } from '@/pages/feed/media-kind'
 import { MediaStatus } from '@/pages/feed/media-status'
 
 import { formatArchiveDate } from './archive-date'
+import { ArchiveEntryStatus, adminArchivePath, mySubmissionsPath } from './archive-status'
 import { AttendeesDialog } from './components/attendees-dialog'
+import { ReviewPanel } from './components/review-panel'
 import { useArchiveDetail } from './hooks/use-archive-detail'
-import { deleteArchiveEntry } from './services/mural-service'
+import { deleteArchiveEntry, deleteArchiveSubmission } from './services/mural-service'
 
 export function MuralDetalhePage() {
   const { t } = useTranslation('mural')
@@ -66,15 +69,24 @@ export function MuralDetalhePage() {
     caption: item.caption,
   }))
 
+  const published = entry.status === ArchiveEntryStatus.published
+  const canWithdraw = entry.isMine && !published && !entry.canDelete
+  const backPath = published ? '/mural' : entry.isMine ? mySubmissionsPath : adminArchivePath
+
   const remove = () =>
     confirm({
-      title: t('manage.deleteTitle'),
-      message: t('manage.deleteMessage'),
-      confirmLabel: t('manage.delete'),
+      title: t(canWithdraw ? 'submissions.withdrawTitle' : 'manage.deleteTitle'),
+      message: t(canWithdraw ? 'submissions.withdrawMessage' : 'manage.deleteMessage'),
+      confirmLabel: t(canWithdraw ? 'submissions.withdraw' : 'manage.delete'),
       danger: true,
       onConfirm: async () => {
+        if (canWithdraw) {
+          await deleteArchiveSubmission(entry.id)
+          navigate(mySubmissionsPath, { replace: true })
+          return
+        }
         await deleteArchiveEntry(entry.id)
-        navigate('/mural', { replace: true })
+        navigate(published ? '/mural' : adminArchivePath, { replace: true })
       },
     })
 
@@ -91,9 +103,9 @@ export function MuralDetalhePage() {
   return (
     <div className="app-page-enter mx-auto flex max-w-5xl flex-col gap-6">
       <AppButton intent="ghost" size="sm" className="self-start" asChild>
-        <Link to="/mural">
+        <Link to={backPath}>
           <ArrowLeftIcon />
-          {t('back')}
+          {t(published ? 'back' : entry.isMine ? 'submissions.back' : 'admin.back')}
         </Link>
       </AppButton>
 
@@ -112,7 +124,7 @@ export function MuralDetalhePage() {
               </p>
             ) : null}
           </div>
-          {entry.canEdit || entry.canDelete ? (
+          {entry.canEdit || entry.canDelete || canWithdraw ? (
             <DropdownMenu>
               <DropdownMenuTrigger
                 aria-label={t('manage.actions')}
@@ -129,10 +141,10 @@ export function MuralDetalhePage() {
                     </Link>
                   </DropdownMenuItem>
                 ) : null}
-                {entry.canDelete ? (
+                {entry.canDelete || canWithdraw ? (
                   <DropdownMenuItem variant="destructive" onSelect={remove}>
                     <Trash2Icon />
-                    {t('manage.delete')}
+                    {t(canWithdraw ? 'submissions.withdraw' : 'manage.delete')}
                   </DropdownMenuItem>
                 ) : null}
               </DropdownMenuContent>
@@ -157,6 +169,22 @@ export function MuralDetalhePage() {
           </ul>
         ) : null}
       </header>
+
+      {!published ? (
+        <div className={cn('flex gap-3 rounded-xl border p-4', entry.status === ArchiveEntryStatus.pending ? 'border-warning/40 bg-warning/[0.06]' : 'bg-muted/40')}>
+          {entry.status === ArchiveEntryStatus.pending ? <ClockIcon className="mt-0.5 size-5 shrink-0 text-warning" /> : <CircleAlertIcon className="mt-0.5 size-5 shrink-0 text-muted-foreground" />}
+          <div className="flex flex-col gap-1">
+            <p className="font-medium">{t(entry.status === ArchiveEntryStatus.pending ? 'review.pendingTitle' : 'review.rejectedTitle')}</p>
+            <p className="text-sm text-muted-foreground">
+              {entry.status === ArchiveEntryStatus.pending
+                ? t(entry.isMine ? 'review.pendingMine' : 'review.pendingOther')
+                : t('review.rejectedReason', { reason: entry.rejectionReason ?? '' })}
+            </p>
+          </div>
+        </div>
+      ) : null}
+
+      {entry.canReview ? <ReviewPanel entry={entry} onReviewed={detail.replace} /> : null}
 
       <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
         {entry.media.map((item) => {
@@ -204,46 +232,48 @@ export function MuralDetalhePage() {
       </ul>
 
       <section className="flex flex-col gap-4 rounded-xl border bg-card p-4 md:p-6">
-        <div className="flex flex-wrap items-center gap-3">
-          <AppButton
-            intent={entry.attendedByMe ? 'primary' : 'neutral'}
-            aria-pressed={entry.attendedByMe}
-            onClick={() => void detail.toggleAttendance(entry)}
-          >
-            <UsersRoundIcon />
-            {entry.attendedByMe ? t('attendance.attended') : t('attendance.action')}
-          </AppButton>
-          <AppButton
-            intent="ghost"
-            aria-pressed={entry.likedByMe}
-            onClick={() => void detail.toggleLike(entry)}
-            className={cn('tabular-nums', entry.likedByMe && 'text-primary')}
-          >
-            <HeartIcon className={cn(entry.likedByMe && 'fill-current')} />
-            {entry.likeCount}
-          </AppButton>
-          {entry.attendanceCount > 0 ? (
-            <button
-              type="button"
-              onClick={() => setAttendeesOpen(true)}
-              className="flex items-center gap-2 rounded-full py-1 pr-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+        {published ? (
+          <div className="flex flex-wrap items-center gap-3">
+            <AppButton
+              intent={entry.attendedByMe ? 'primary' : 'neutral'}
+              aria-pressed={entry.attendedByMe}
+              onClick={() => void detail.toggleAttendance(entry)}
             >
-              <span className="flex -space-x-2">
-                {entry.attendees.map((person) => (
-                  <AppAvatar key={person.id} name={person.name} src={person.avatarUrl} size="sm" className="ring-2 ring-card" />
-                ))}
-              </span>
-              {others > 0
-                ? t('attendance.summaryMore', { names: entry.attendees.slice(0, 2).map((person) => person.name.split(' ')[0]).join(', '), count: others })
-                : t('attendance.summary', { names: entry.attendees.map((person) => person.name.split(' ')[0]).join(', '), count: entry.attendanceCount })}
-            </button>
-          ) : null}
-        </div>
+              <UsersRoundIcon />
+              {entry.attendedByMe ? t('attendance.attended') : t('attendance.action')}
+            </AppButton>
+            <AppButton
+              intent="ghost"
+              aria-pressed={entry.likedByMe}
+              onClick={() => void detail.toggleLike(entry)}
+              className={cn('tabular-nums', entry.likedByMe && 'text-primary')}
+            >
+              <HeartIcon className={cn(entry.likedByMe && 'fill-current')} />
+              {entry.likeCount}
+            </AppButton>
+            {entry.attendanceCount > 0 ? (
+              <button
+                type="button"
+                onClick={() => setAttendeesOpen(true)}
+                className="flex items-center gap-2 rounded-full py-1 pr-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <span className="flex -space-x-2">
+                  {entry.attendees.map((person) => (
+                    <AppAvatar key={person.id} name={person.name} src={person.avatarUrl} size="sm" className="ring-2 ring-card" />
+                  ))}
+                </span>
+                {others > 0
+                  ? t('attendance.summaryMore', { names: entry.attendees.slice(0, 2).map((person) => person.name.split(' ')[0]).join(', '), count: others })
+                  : t('attendance.summary', { names: entry.attendees.map((person) => person.name.split(' ')[0]).join(', '), count: entry.attendanceCount })}
+              </button>
+            ) : null}
+          </div>
+        ) : null}
 
         {entry.description ? <p className="whitespace-pre-line text-[15px] leading-relaxed">{entry.description}</p> : null}
 
         <p className="app-meta">
-          {t('publishedBy')}{' '}
+          {t(entry.isSubmission ? 'archiveOf' : 'publishedBy')}{' '}
           <Link to={`/perfil/${entry.author.nickname}`} className="hover:underline">
             @{entry.author.nickname}
           </Link>{' '}
@@ -251,37 +281,39 @@ export function MuralDetalhePage() {
         </p>
       </section>
 
-      <AppCard title={t('comments.title', { count: comments.totalCount })}>
-        <div className="flex flex-col gap-4">
-          <CommentComposer onSubmit={detail.comment} />
-          {comments.items.length === 0 ? (
-            <p className="text-sm text-muted-foreground">{t('comments.empty')}</p>
-          ) : (
-            <ul className="flex flex-col gap-4">
-              {comments.items.map((comment) => (
-                <li key={comment.id} className="flex gap-3">
-                  <AppAvatar name={comment.author.name} src={comment.author.avatarUrl} size="md" />
-                  <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                    <span className="text-sm">
-                      <Link to={`/perfil/${comment.author.nickname}`} className="font-medium hover:underline">
-                        {comment.author.name}
-                      </Link>{' '}
-                      <span className="app-meta">{formatRelative(comment.createdAt)}</span>
-                    </span>
-                    <p className="whitespace-pre-line text-sm break-words">{comment.text}</p>
-                  </div>
-                  {comment.canDelete ? (
-                    <AppIconButton label={t('comments.delete')} size="sm" onClick={() => removeComment(comment.id)}>
-                      <Trash2Icon />
-                    </AppIconButton>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          )}
-          <AppPagination page={comments.page} totalPages={comments.totalPages} totalCount={comments.totalCount} onChange={detail.loadMoreComments} mode="loadMore" />
-        </div>
-      </AppCard>
+      {published ? (
+        <AppCard title={t('comments.title', { count: comments.totalCount })}>
+          <div className="flex flex-col gap-4">
+            <CommentComposer onSubmit={detail.comment} />
+            {comments.items.length === 0 ? (
+              <p className="text-sm text-muted-foreground">{t('comments.empty')}</p>
+            ) : (
+              <ul className="flex flex-col gap-4">
+                {comments.items.map((comment) => (
+                  <li key={comment.id} className="flex gap-3">
+                    <AppAvatar name={comment.author.name} src={comment.author.avatarUrl} size="md" />
+                    <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                      <span className="text-sm">
+                        <Link to={`/perfil/${comment.author.nickname}`} className="font-medium hover:underline">
+                          {comment.author.name}
+                        </Link>{' '}
+                        <span className="app-meta">{formatRelative(comment.createdAt)}</span>
+                      </span>
+                      <p className="whitespace-pre-line text-sm break-words">{comment.text}</p>
+                    </div>
+                    {comment.canDelete ? (
+                      <AppIconButton label={t('comments.delete')} size="sm" onClick={() => removeComment(comment.id)}>
+                        <Trash2Icon />
+                      </AppIconButton>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            )}
+            <AppPagination page={comments.page} totalPages={comments.totalPages} totalCount={comments.totalCount} onChange={detail.loadMoreComments} mode="loadMore" />
+          </div>
+        </AppCard>
+      ) : null}
 
       <AppMediaViewer items={viewerItems} index={viewerIndex} onIndexChange={setViewerIndex} />
       <AttendeesDialog entryId={entry.id} open={attendeesOpen} onOpenChange={setAttendeesOpen} />

@@ -5,6 +5,8 @@ import type { MediaDto } from '@/pages/feed/services/media-service'
 import type { CityDto } from '@/pages/perfil/city'
 import type { ProfileSummaryDto } from '@/pages/perfil/services/perfil-service'
 
+import type { ArchiveEntryStatus } from '../archive-status'
+
 export type ArchiveBandDto = {
   band: BandSummaryDto | null
   name: string
@@ -40,8 +42,14 @@ export type ArchiveEntryDto = ArchiveDate & {
   attendedByMe: boolean
   attendees: ProfileSummaryDto[]
   commentCount: number
+  status: ArchiveEntryStatus
+  isSubmission: boolean
+  rejectionReason: string | null
+  reviewedAt: string | null
+  isMine: boolean
   canEdit: boolean
   canDelete: boolean
+  canReview: boolean
   createdAt: string
 }
 
@@ -150,10 +158,33 @@ export function unattendArchive(id: number): Promise<ArchiveEntryDto> {
   return apiDelete<ArchiveEntryDto>(`/api/archive/${id}/attendance`)
 }
 
-export function uploadArchivePhoto(file: File): Promise<MediaDto> {
+export type ArchiveUploadTarget = 'curation' | 'submission'
+
+export const archiveUploadPaths: Record<ArchiveUploadTarget, { photos: string; videos: string }> = {
+  curation: { photos: '/api/admin/archive/media/photos', videos: '/api/admin/archive/media/videos' },
+  submission: { photos: '/api/archive/media/photos', videos: '/api/archive/media/videos' },
+}
+
+export function uploadArchivePhoto(file: File, target: ArchiveUploadTarget): Promise<MediaDto> {
   const form = new FormData()
   form.append('file', file)
-  return apiPostForm<MediaDto>('/api/admin/archive/media/photos', form)
+  return apiPostForm<MediaDto>(archiveUploadPaths[target].photos, form)
+}
+
+export function submitArchiveEntry(input: ArchiveEntryInput): Promise<ArchiveEntryDto> {
+  return apiPost<ArchiveEntryDto>('/api/archive/submissions', input, { toastSuccess: true })
+}
+
+export function updateArchiveSubmission(id: number, input: ArchiveEntryInput): Promise<ArchiveEntryDto> {
+  return apiPut<ArchiveEntryDto>(`/api/archive/submissions/${id}`, input, { toastSuccess: true })
+}
+
+export function deleteArchiveSubmission(id: number): Promise<void> {
+  return apiDelete<void>(`/api/archive/submissions/${id}`, { toastSuccess: true })
+}
+
+export function getMySubmissions(query: PagedRequest): Promise<PagedResult<ArchiveEntryDto>> {
+  return apiGet<PagedResult<ArchiveEntryDto>>('/api/archive/submissions', query)
 }
 
 export function getArchiveComments(id: number, query: PagedRequest): Promise<PagedResult<ArchiveCommentDto>> {

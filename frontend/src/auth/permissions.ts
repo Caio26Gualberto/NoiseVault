@@ -16,6 +16,7 @@ export const Permissions = {
   archiveCreate: 'Archive.Create',
   archiveEdit: 'Archive.Edit',
   archiveDelete: 'Archive.Delete',
+  archiveReview: 'Archive.Review',
 
   supportView: 'Support.View',
   supportEdit: 'Support.Edit',

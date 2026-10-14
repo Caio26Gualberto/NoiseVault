@@ -73,7 +73,10 @@
     "supportTicketReopened": "O seu relato <b>{{ticket}}</b> foi reaberto",
     "supportTicketInProgress": "O seu relato <b>{{ticket}}</b> está em análise",
     "supportTicketResolved": "O seu relato <b>{{ticket}}</b> foi resolvido",
-    "supportTicketDismissed": "O seu relato <b>{{ticket}}</b> foi encerrado"
+    "supportTicketDismissed": "O seu relato <b>{{ticket}}</b> foi encerrado",
+    "archiveSubmissionReceived": "<b>{{actor}}</b> enviou <b>{{archive}}</b> para o mural",
+    "archiveSubmissionApproved": "O seu envio <b>{{archive}}</b> foi publicado no mural",
+    "archiveSubmissionRejected": "O seu envio <b>{{archive}}</b> não foi publicado. Veja o motivo em Meus envios"
   },
   "invitations": {
     "title": "Convites de banda",

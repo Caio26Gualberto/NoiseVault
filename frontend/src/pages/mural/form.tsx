@@ -5,6 +5,8 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
 import { z } from 'zod'
 
+import { Permissions } from '@/auth/permissions'
+import { useCan } from '@/auth/use-can'
 import { AppButton } from '@/components/app-button'
 import { AppCard } from '@/components/app-card'
 import { AppCityField, AppField, AppForm, AppTextareaField } from '@/components/app-field'
@@ -17,10 +19,11 @@ import type { LineupItem } from '@/pages/eventos/components/lineup-editor'
 import { cityValueSchema, emptyCityValue, toCityInput, toCityValue } from '@/pages/perfil/city'
 import { searchCities } from '@/pages/perfil/services/cidades-service'
 
+import { ArchiveEntryStatus, mySubmissionsPath } from './archive-status'
 import { MediaManager } from './components/media-manager'
 import { fromSaved } from './managed-media'
 import type { ManagedMedia } from './managed-media'
-import { createArchiveEntry, getArchiveEntry, updateArchiveEntry } from './services/mural-service'
+import { createArchiveEntry, getArchiveEntry, submitArchiveEntry, updateArchiveEntry, updateArchiveSubmission } from './services/mural-service'
 import type { ArchiveEntryInput } from './services/mural-service'
 
 const none = 'none'
@@ -48,8 +51,9 @@ const schema = z
 
 type FormValues = z.infer<typeof schema>
 
-export function MuralFormPage() {
+export function MuralFormPage({ mode = 'curation' }: { mode?: 'curation' | 'submission' }) {
   const { t } = useTranslation('mural')
+  const can = useCan()
   const { id } = useParams()
   const navigate = useNavigate()
   const entryId = id ? Number(id) : null
@@ -59,6 +63,9 @@ export function MuralFormPage() {
   const [media, setMedia] = useState<ManagedMedia[]>([])
   const [coverKey, setCoverKey] = useState<string | null>(null)
   const [mediaError, setMediaError] = useState<string | null>(null)
+  const [editAsAuthor, setEditAsAuthor] = useState(false)
+  const submitting = mode === 'submission'
+  const uploadTarget = can(Permissions.archiveCreate) ? 'curation' : 'submission'
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -88,6 +95,7 @@ export function MuralFormPage() {
         const saved = entry.media.map((item) => fromSaved(item.media, item.caption))
         setMedia(saved)
         setCoverKey(entry.cover ? `saved-${entry.cover.id}` : null)
+        setEditAsAuthor(entry.isMine && entry.status === ArchiveEntryStatus.pending && !can(Permissions.archiveEdit))
       })
       .catch(() => navigate('/mural', { replace: true }))
       .finally(() => {
@@ -96,7 +104,7 @@ export function MuralFormPage() {
     return () => {
       cancelled = true
     }
-  }, [entryId, form, navigate])
+  }, [entryId, form, navigate, can])
 
   const month = useWatch({ control: form.control, name: 'month' })
   const uploading = media.some((item) => item.state === 'uploading')
@@ -123,9 +131,12 @@ export function MuralFormPage() {
     }
     setSaving(true)
     try {
-      const saved = entryId === null ? await createArchiveEntry(input) : await updateArchiveEntry(entryId, input)
+      const saved =
+        entryId !== null
+          ? await (editAsAuthor ? updateArchiveSubmission : updateArchiveEntry)(entryId, input)
+          : await (submitting ? submitArchiveEntry : createArchiveEntry)(input)
       setMedia((previous) => previous.map((item) => ({ ...item, saved: true })))
-      navigate(`/mural/${saved.id}`, { replace: true })
+      navigate(entryId === null && submitting ? mySubmissionsPath : `/mural/${saved.id}`, { replace: true })
     } catch {
       return
     } finally {
@@ -139,7 +150,10 @@ export function MuralFormPage() {
 
   return (
     <div className="app-page-enter mx-auto flex max-w-3xl flex-col gap-6">
-      <AppPageHeader title={t(entryId === null ? 'form.createTitle' : 'form.editTitle')} description={t('form.description')} />
+      <AppPageHeader
+        title={t(entryId !== null ? 'form.editTitle' : submitting ? 'form.submitTitle' : 'form.createTitle')}
+        description={t(submitting ? 'form.submitDescription' : 'form.description')}
+      />
 
       <AppForm form={form} onSubmit={submit}>
         <AppCard>
@@ -190,13 +204,13 @@ export function MuralFormPage() {
         </AppCard>
 
         <AppCard>
-          <MediaManager value={media} onChange={setMedia} coverKey={coverKey} onCoverChange={setCoverKey} />
+          <MediaManager value={media} onChange={setMedia} coverKey={coverKey} onCoverChange={setCoverKey} target={uploadTarget} />
           {mediaError ? <p className="mt-2 text-sm text-destructive">{mediaError}</p> : null}
         </AppCard>
 
         <div className="flex gap-2">
           <AppButton type="submit" loading={saving} disabled={uploading}>
-            {uploading ? t('form.waitUpload') : t(entryId === null ? 'form.submitCreate' : 'form.submitEdit')}
+            {uploading ? t('form.waitUpload') : t(entryId !== null ? 'form.submitEdit' : submitting ? 'form.submitSend' : 'form.submitCreate')}
           </AppButton>
           <AppButton intent="ghost" type="button" onClick={() => navigate(-1)}>
             {t('common:actions.cancel')}

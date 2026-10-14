@@ -3,6 +3,7 @@ import {
   BellIcon,
   HeadsetIcon,
   CalendarDaysIcon,
+  ArchiveIcon,
   CassetteTapeIcon,
   HeadphonesIcon,
   HeartHandshakeIcon,
@@ -52,6 +53,9 @@ import { SuporteDetalhePage } from '../pages/suporte/detalhe'
 import { MuralPage } from '../pages/mural'
 import { MuralDetalhePage } from '../pages/mural/detalhe'
 import { MuralFormPage } from '../pages/mural/form'
+import { MuralEnviosPage } from '../pages/mural/envios'
+import { MuralAdminPage } from '../pages/admin/mural'
+import { adminArchivePath, mySubmissionsPath, submitArchivePath } from '../pages/mural/archive-status'
 
 export type PublicRoute = {
   path: string
@@ -103,7 +107,7 @@ export const navSections: NavSection[] = [
         icon: CassetteTapeIcon,
         element: <MuralPage />,
         mobile: true,
-        subRoutes: ['/mural/novo', '/mural/:id/editar', '/mural/:id'],
+        subRoutes: ['/mural/novo', submitArchivePath, mySubmissionsPath, '/mural/:id/editar', '/mural/:id'],
       },
       {
         path: '/eventos',
@@ -143,8 +147,14 @@ export const navSections: NavSection[] = [
   {
     id: 'admin',
     labelKey: 'layout:nav.admin',
-    permission: Permissions.supportView,
     items: [
+      {
+        path: adminArchivePath,
+        labelKey: 'layout:nav.archiveInbox',
+        icon: ArchiveIcon,
+        element: <MuralAdminPage />,
+        permission: Permissions.archiveReview,
+      },
       {
         path: '/admin/suporte',
         labelKey: 'layout:nav.supportInbox',
@@ -160,7 +170,9 @@ export const navSections: NavSection[] = [
 export const hiddenRoutes: HiddenRoute[] = [
   { path: '/feed/:id', element: <PostDetalhePage /> },
   { path: '/mural/novo', element: <MuralFormPage />, permission: Permissions.archiveCreate },
-  { path: '/mural/:id/editar', element: <MuralFormPage />, permission: Permissions.archiveEdit },
+  { path: submitArchivePath, element: <MuralFormPage mode="submission" /> },
+  { path: mySubmissionsPath, element: <MuralEnviosPage /> },
+  { path: '/mural/:id/editar', element: <MuralFormPage /> },
   { path: '/mural/:id', element: <MuralDetalhePage /> },
   { path: '/eventos/novo', element: <EventoFormPage /> },
   { path: '/eventos/:id/editar', element: <EventoFormPage /> },
