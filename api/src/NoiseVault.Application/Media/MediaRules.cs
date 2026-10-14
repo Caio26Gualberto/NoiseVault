@@ -32,10 +32,17 @@ namespace NoiseVault.Application.Media
             PhotoPreset: EImagePreset.Archive,
             ProcessingLifetime: TimeSpan.FromHours(8));
 
+        private static readonly MediaProfileLimits SupportLimits = new(
+            VideoMaxBytes: 200L * 1024 * 1024,
+            VideoMaxDurationSeconds: 2 * 60,
+            PhotoPreset: EImagePreset.Post,
+            ProcessingLifetime: TimeSpan.FromHours(2));
+
         public static MediaProfileLimits For(EMediaProfile profile) => profile switch
         {
             EMediaProfile.Post => PostLimits,
             EMediaProfile.Archive => ArchiveLimits,
+            EMediaProfile.Support => SupportLimits,
             _ => throw new ArgumentOutOfRangeException(nameof(profile), profile, "Perfil de mídia desconhecido."),
         };
 

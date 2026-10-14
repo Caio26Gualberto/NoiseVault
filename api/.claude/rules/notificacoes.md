@@ -21,7 +21,7 @@ Módulo 6 da ordem em `dominio.md`. Decisões do usuário em 14/10/2026:
 **`Notification`**, uma linha por destinatário:
 - `UserId`, `Kind` (`ENotificationKind`);
 - `ActorUserId?` (o último que agiu) e `ActorCount`;
-- os alvos `PostId?`, `EventId?`, `ArchiveEntryId?`, `BandId?`, `BandInvitationId?`;
+- os alvos `PostId?`, `EventId?`, `ArchiveEntryId?`, `BandId?`, `BandInvitationId?`, `SupportTicketId?` (módulo 7, `suporte.md`);
 - `CreatedAt`, `LastActivityAt` e `ReadAt?`.
 
 Por que é assim:
@@ -48,6 +48,9 @@ Por que é assim:
 | `BandInviteAccepted` 12 / `BandInviteDeclined` 13 | quem convidou | não | `Accept` / `Decline` |
 | `BandPromoted` 14 / `BandRemoved` 15 | o integrante | não | `BandAppService.PromoteMember` / `RemoveMember` |
 | `BandMemberLeft` 16 | os Owners que ficaram | não | `BandAppService.Leave` |
+| `SupportTicketCreated` 17 | quem tem `Support.View` | não | `SupportAppService.Create` |
+| `SupportTicketReplied` 18 | o outro lado da conversa (quem reportou, ou quem tem `Support.View`) | sim | `ReplyAsStaff` / `ReplyAsReporter` |
+| `SupportTicketStatusChanged` 19 | quem reportou | não | `SupportAppService.Update`, só quando o status muda |
 
 **Regras gerais:**
 - **Ninguém é notificado da própria ação**: o `NotifyMany` tira o ator da lista.
@@ -109,6 +112,7 @@ O job `notifications:purge` (diário às 4 h) apaga as linhas com `LastActivityA
   - `id`, `kind`, `actor` (`ProfileSummaryDto?`), `actorCount`;
   - `post { id, excerpt }` (80 caracteres), `event { id, title, startsAt }`, `archive { id, title }`;
   - `band` (`BandSummaryDto`), `invitation { id, status, instrument, expiresAt }`;
+  - `ticket { id, protocol, title, status, mine }`: `mine` diz se o destinatário é quem reportou, e o front escolhe `/suporte/:id` ou `/admin/suporte/:id`;
   - `readAt`, `lastActivityAt`.
 - **Limites**: sem política própria. Ler e marcar ficam no limite global, e quem cria notificação são ações que já têm o seu limite.
 

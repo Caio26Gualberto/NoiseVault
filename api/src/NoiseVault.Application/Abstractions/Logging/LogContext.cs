@@ -14,6 +14,7 @@ namespace NoiseVault.Application.Abstractions.Logging
         Media,
         Events,
         Archive,
-        Notifications
+        Notifications,
+        Support
     }
 }

@@ -12,6 +12,7 @@ namespace NoiseVault.Application.Abstractions.Authorization
     {
         Task<bool> IsGrantedAsync(int userId, string permission, CancellationToken ct = default);
         Task<UserPermissionsSnapshot?> GetUserPermissionsAsync(int userId, CancellationToken ct = default);
+        Task<List<int>> UsersGrantedAsync(string permission, CancellationToken ct = default);
         Task InvalidateUserAsync(int userId, CancellationToken ct = default);
         Task InvalidateRoleAsync(int roleId, CancellationToken ct = default);
     }

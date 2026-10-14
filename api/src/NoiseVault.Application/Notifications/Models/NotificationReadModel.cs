@@ -1,6 +1,7 @@
 using NoiseVault.Domain.Enums.Bands;
 using NoiseVault.Domain.Enums.Notifications;
 using NoiseVault.Domain.Enums.Profiles;
+using NoiseVault.Domain.Enums.Support;
 
 namespace NoiseVault.Application.Notifications.Models
 {
@@ -38,5 +39,10 @@ namespace NoiseVault.Application.Notifications.Models
         public EBandInvitationStatus? InvitationStatus { get; init; }
         public string? InvitationInstrument { get; init; }
         public DateTime? InvitationExpiresAt { get; init; }
+
+        public int? TicketId { get; init; }
+        public string? TicketTitle { get; init; }
+        public ESupportTicketStatus? TicketStatus { get; init; }
+        public bool TicketMine { get; init; }
     }
 }

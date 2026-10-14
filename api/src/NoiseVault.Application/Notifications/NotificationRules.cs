@@ -16,6 +16,7 @@ namespace NoiseVault.Application.Notifications
             ENotificationKind.ArchiveCommented,
             ENotificationKind.ArchiveAttended,
             ENotificationKind.ArchiveCommentedWhereAttended,
+            ENotificationKind.SupportTicketReplied,
         ];
 
         public static bool IsGroupable(ENotificationKind kind) => Groupable.Contains(kind);

@@ -49,6 +49,25 @@ namespace NoiseVault.Infra.Data.Identity.Authorization
             return snapshot;
         }
 
+        public async Task<List<int>> UsersGrantedAsync(string permission, CancellationToken ct = default)
+        {
+            if (!PermissionCatalog.Exists(permission))
+                return [];
+
+            var roleIds = _context.Roles
+                .Where(r => r.Name == Roles.Admin
+                    || _context.RoleClaims.Any(c => c.RoleId == r.Id && c.ClaimType == CustomClaimTypes.Permission && c.ClaimValue == permission))
+                .Select(r => r.Id);
+
+            return await _context.Set<ApplicationUser>()
+                .Where(au => au.User!.IsActive
+                    && (_context.UserRoles.Any(ur => ur.UserId == au.Id && roleIds.Contains(ur.RoleId))
+                        || _context.UserClaims.Any(c => c.UserId == au.Id && c.ClaimType == CustomClaimTypes.Permission && c.ClaimValue == permission)))
+                .Select(au => au.UserId)
+                .Distinct()
+                .ToListAsync(ct);
+        }
+
         public async Task InvalidateUserAsync(int userId, CancellationToken ct = default)
         {
             await _cacheClient.RemoveAsync(AuthorizationCacheKeys.UserKey(userId), ct);

@@ -7,6 +7,9 @@ using NoiseVault.Infra.Data.Repositories.Archive;
 using NoiseVault.Application.Notifications;
 using NoiseVault.Application.Notifications.Interfaces;
 using NoiseVault.Infra.Data.Repositories.Notifications;
+using NoiseVault.Application.Support;
+using NoiseVault.Application.Support.Interfaces;
+using NoiseVault.Infra.Data.Repositories.Support;
 using NoiseVault.Application.Events;
 using NoiseVault.Application.Events.Interfaces;
 using NoiseVault.Infra.Data.Repositories.Events;
@@ -195,6 +198,9 @@ namespace NoiseVault.Infra.IoC
             // Notificações
             services.AddScoped<INotificationAppService, NotificationAppService>();
 
+            // Suporte
+            services.AddScoped<ISupportAppService, SupportAppService>();
+
             // External services
             var emailSettings = EmailSettings.FromConfiguration(config);
             services.AddSingleton(emailSettings);
@@ -233,6 +239,7 @@ namespace NoiseVault.Infra.IoC
             services.AddScoped<IEventRepository, EventRepository>();
             services.AddScoped<IArchiveRepository, ArchiveRepository>();
             services.AddScoped<INotificationRepository, NotificationRepository>();
+            services.AddScoped<ISupportTicketRepository, SupportTicketRepository>();
 
             return services;
         }

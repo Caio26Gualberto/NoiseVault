@@ -23,15 +23,16 @@ Substitui o desenho de `dominio.md`, que previa `StorageKey` e dimensões em `Po
 
 ## Perfis: feed e arquivo
 
-`MediaUpload.Profile` (`EMediaProfile`: `Post` 0, `Archive` 1) define os limites (`MediaRules.For`):
+`MediaUpload.Profile` (`EMediaProfile`: `Post` 0, `Archive` 1, `Support` 2) define os limites (`MediaRules.For`):
 
 | Perfil | Vídeo | Foto | Prazo de processamento | Quem sobe |
 |---|---|---|---|---|
 | `Post` | 500 MB, 10 min | 15 MB, lado maior até 2048 | 2 h | qualquer pessoa (`/api/media`) |
 | `Archive` | 4 GB, 2 h | 40 MB, lado maior até 3072 | 8 h | `Archive.Create` (`/api/admin/archive/media`, `mural.md`) |
+| `Support` | 200 MB, 2 min | 15 MB, lado maior até 2048 | 2 h | qualquer pessoa (`/api/support/media`, `suporte.md`) |
 
 - A mídia só entra no lugar do próprio perfil (`ListAttachable` filtra o perfil): foto de feed não vai para o mural, e vice-versa.
-- `MediaUpload.ArchiveAttachment` é o vínculo com o mural. A limpeza e o `DELETE /api/media/{id}` tratam esse vínculo como "em uso", igual ao `Attachment` do post.
+- `MediaUpload.ArchiveAttachment` é o vínculo com o mural, e `MediaUpload.SupportAttachment`, com o ticket de suporte. A limpeza e o `DELETE /api/media/{id}` tratam os dois como "em uso", igual ao `Attachment` do post. Ticket nunca é apagado, então a mídia dele não tem o caso "anexada a algo apagado".
 - O teto de cada processo do ffmpeg é `Video:ProcessTimeoutMinutes` (padrão 240), para caber uma fita inteira.
 
 ## Foto: pela API

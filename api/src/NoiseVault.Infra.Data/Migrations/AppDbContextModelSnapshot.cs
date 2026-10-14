@@ -1244,6 +1244,9 @@ namespace NoiseVault.Infra.Data.Migrations
                     b.Property<DateTime?>("ReadAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int?>("SupportTicketId")
+                        .HasColumnType("integer");
+
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
 
@@ -1262,6 +1265,8 @@ namespace NoiseVault.Infra.Data.Migrations
                     b.HasIndex("LastActivityAt");
 
                     b.HasIndex("PostId");
+
+                    b.HasIndex("SupportTicketId");
 
                     b.HasIndex("UserId", "ReadAt", "LastActivityAt");
 
@@ -1403,6 +1408,213 @@ namespace NoiseVault.Infra.Data.Migrations
                     b.HasIndex("PostId", "Order");
 
                     b.ToTable("PostMedia", (string)null);
+                });
+
+            modelBuilder.Entity("NoiseVault.Domain.Entities.SupportTicket", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("ClosedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("CreatedBy")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("DeletedBy")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(5000)
+                        .HasColumnType("character varying(5000)");
+
+                    b.Property<string>("InternalNote")
+                        .HasMaxLength(5000)
+                        .HasColumnType("character varying(5000)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("LastActivityAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("OriginPath")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ReporterUserId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("UpdatedBy")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("UserAgent")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int?>("ViewportHeight")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("ViewportWidth")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReporterUserId", "LastActivityAt");
+
+                    b.HasIndex("Status", "LastActivityAt");
+
+                    b.ToTable("SupportTickets", (string)null);
+                });
+
+            modelBuilder.Entity("NoiseVault.Domain.Entities.SupportTicketArea", b =>
+                {
+                    b.Property<int>("SupportTicketId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Area")
+                        .HasColumnType("integer");
+
+                    b.HasKey("SupportTicketId", "Area");
+
+                    b.ToTable("SupportTicketAreas", (string)null);
+                });
+
+            modelBuilder.Entity("NoiseVault.Domain.Entities.SupportTicketMedia", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("CreatedBy")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("DeletedBy")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("MediaUploadId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SupportTicketId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("UpdatedBy")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MediaUploadId")
+                        .IsUnique();
+
+                    b.HasIndex("SupportTicketId", "Order");
+
+                    b.ToTable("SupportTicketMedia", (string)null);
+                });
+
+            modelBuilder.Entity("NoiseVault.Domain.Entities.SupportTicketMessage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AuthorUserId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("CreatedBy")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("DeletedBy")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("FromStaff")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("SupportTicketId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("UpdatedBy")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuthorUserId");
+
+                    b.HasIndex("SupportTicketId", "CreatedAt");
+
+                    b.ToTable("SupportTicketMessages", (string)null);
+                });
+
+            modelBuilder.Entity("NoiseVault.Domain.Entities.SupportTicketTag", b =>
+                {
+                    b.Property<int>("SupportTicketId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Tag")
+                        .HasColumnType("integer");
+
+                    b.HasKey("SupportTicketId", "Tag");
+
+                    b.ToTable("SupportTicketTags", (string)null);
                 });
 
             modelBuilder.Entity("NoiseVault.Domain.Entities.User", b =>
@@ -2028,6 +2240,11 @@ namespace NoiseVault.Infra.Data.Migrations
                         .HasForeignKey("PostId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("NoiseVault.Domain.Entities.SupportTicket", "SupportTicket")
+                        .WithMany()
+                        .HasForeignKey("SupportTicketId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("NoiseVault.Domain.Entities.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
@@ -2045,6 +2262,8 @@ namespace NoiseVault.Infra.Data.Migrations
                     b.Navigation("Event");
 
                     b.Navigation("Post");
+
+                    b.Navigation("SupportTicket");
                 });
 
             modelBuilder.Entity("NoiseVault.Domain.Entities.Post", b =>
@@ -2111,6 +2330,73 @@ namespace NoiseVault.Infra.Data.Migrations
                     b.Navigation("MediaUpload");
 
                     b.Navigation("Post");
+                });
+
+            modelBuilder.Entity("NoiseVault.Domain.Entities.SupportTicket", b =>
+                {
+                    b.HasOne("NoiseVault.Domain.Entities.User", "Reporter")
+                        .WithMany()
+                        .HasForeignKey("ReporterUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Reporter");
+                });
+
+            modelBuilder.Entity("NoiseVault.Domain.Entities.SupportTicketArea", b =>
+                {
+                    b.HasOne("NoiseVault.Domain.Entities.SupportTicket", null)
+                        .WithMany("Areas")
+                        .HasForeignKey("SupportTicketId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("NoiseVault.Domain.Entities.SupportTicketMedia", b =>
+                {
+                    b.HasOne("NoiseVault.Domain.Entities.MediaUpload", "MediaUpload")
+                        .WithOne("SupportAttachment")
+                        .HasForeignKey("NoiseVault.Domain.Entities.SupportTicketMedia", "MediaUploadId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("NoiseVault.Domain.Entities.SupportTicket", "SupportTicket")
+                        .WithMany("Media")
+                        .HasForeignKey("SupportTicketId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("MediaUpload");
+
+                    b.Navigation("SupportTicket");
+                });
+
+            modelBuilder.Entity("NoiseVault.Domain.Entities.SupportTicketMessage", b =>
+                {
+                    b.HasOne("NoiseVault.Domain.Entities.User", "Author")
+                        .WithMany()
+                        .HasForeignKey("AuthorUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("NoiseVault.Domain.Entities.SupportTicket", "SupportTicket")
+                        .WithMany("Messages")
+                        .HasForeignKey("SupportTicketId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Author");
+
+                    b.Navigation("SupportTicket");
+                });
+
+            modelBuilder.Entity("NoiseVault.Domain.Entities.SupportTicketTag", b =>
+                {
+                    b.HasOne("NoiseVault.Domain.Entities.SupportTicket", null)
+                        .WithMany("Tags")
+                        .HasForeignKey("SupportTicketId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("NoiseVault.Domain.Entities.UserGenre", b =>
@@ -2180,6 +2466,8 @@ namespace NoiseVault.Infra.Data.Migrations
                     b.Navigation("ArchiveAttachment");
 
                     b.Navigation("Attachment");
+
+                    b.Navigation("SupportAttachment");
                 });
 
             modelBuilder.Entity("NoiseVault.Domain.Entities.Post", b =>
@@ -2189,6 +2477,17 @@ namespace NoiseVault.Infra.Data.Migrations
                     b.Navigation("Likes");
 
                     b.Navigation("Media");
+                });
+
+            modelBuilder.Entity("NoiseVault.Domain.Entities.SupportTicket", b =>
+                {
+                    b.Navigation("Areas");
+
+                    b.Navigation("Media");
+
+                    b.Navigation("Messages");
+
+                    b.Navigation("Tags");
                 });
 
             modelBuilder.Entity("NoiseVault.Domain.Entities.User", b =>

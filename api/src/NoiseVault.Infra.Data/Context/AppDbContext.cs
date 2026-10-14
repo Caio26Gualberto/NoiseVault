@@ -42,6 +42,11 @@ namespace NoiseVault.Infra.Data.Context
         public DbSet<ArchiveAttendance> ArchiveAttendances => Set<ArchiveAttendance>();
         public DbSet<ArchiveComment> ArchiveComments => Set<ArchiveComment>();
         public DbSet<Notification> Notifications => Set<Notification>();
+        public DbSet<SupportTicket> SupportTickets => Set<SupportTicket>();
+        public DbSet<SupportTicketTag> SupportTicketTags => Set<SupportTicketTag>();
+        public DbSet<SupportTicketArea> SupportTicketAreas => Set<SupportTicketArea>();
+        public DbSet<SupportTicketMedia> SupportTicketMedia => Set<SupportTicketMedia>();
+        public DbSet<SupportTicketMessage> SupportTicketMessages => Set<SupportTicketMessage>();
         public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
         public DbSet<AuthorizationAuditLog> AuthorizationAuditLogs => Set<AuthorizationAuditLog>();
         public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
@@ -562,8 +567,94 @@ namespace NoiseVault.Infra.Data.Context
                     .HasForeignKey(x => x.BandInvitationId)
                     .OnDelete(DeleteBehavior.Restrict);
 
+                b.HasOne(x => x.SupportTicket)
+                    .WithMany()
+                    .HasForeignKey(x => x.SupportTicketId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
                 b.HasIndex(x => new { x.UserId, x.ReadAt, x.LastActivityAt });
                 b.HasIndex(x => x.LastActivityAt);
+            });
+
+            builder.Entity<SupportTicket>(b =>
+            {
+                b.ToTable("SupportTickets");
+                b.HasKey(x => x.Id);
+
+                b.Property(x => x.Title).HasMaxLength(120).IsRequired();
+                b.Property(x => x.Description).HasMaxLength(5000).IsRequired();
+                b.Property(x => x.OriginPath).HasMaxLength(300);
+                b.Property(x => x.UserAgent).HasMaxLength(500);
+                b.Property(x => x.InternalNote).HasMaxLength(5000);
+
+                b.HasOne(x => x.Reporter)
+                    .WithMany()
+                    .HasForeignKey(x => x.ReporterUserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasIndex(x => new { x.ReporterUserId, x.LastActivityAt });
+                b.HasIndex(x => new { x.Status, x.LastActivityAt });
+            });
+
+            builder.Entity<SupportTicketTag>(b =>
+            {
+                b.ToTable("SupportTicketTags");
+                b.HasKey(x => new { x.SupportTicketId, x.Tag });
+
+                b.HasOne<SupportTicket>()
+                    .WithMany(x => x.Tags)
+                    .HasForeignKey(x => x.SupportTicketId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            builder.Entity<SupportTicketArea>(b =>
+            {
+                b.ToTable("SupportTicketAreas");
+                b.HasKey(x => new { x.SupportTicketId, x.Area });
+
+                b.HasOne<SupportTicket>()
+                    .WithMany(x => x.Areas)
+                    .HasForeignKey(x => x.SupportTicketId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            builder.Entity<SupportTicketMedia>(b =>
+            {
+                b.ToTable("SupportTicketMedia");
+                b.HasKey(x => x.Id);
+
+                b.HasOne(x => x.SupportTicket)
+                    .WithMany(x => x.Media)
+                    .HasForeignKey(x => x.SupportTicketId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasOne(x => x.MediaUpload)
+                    .WithOne(x => x.SupportAttachment)
+                    .HasForeignKey<SupportTicketMedia>(x => x.MediaUploadId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasIndex(x => x.MediaUploadId).IsUnique();
+                b.HasIndex(x => new { x.SupportTicketId, x.Order });
+            });
+
+            builder.Entity<SupportTicketMessage>(b =>
+            {
+                b.ToTable("SupportTicketMessages");
+                b.HasKey(x => x.Id);
+
+                b.Property(x => x.Text).HasMaxLength(2000).IsRequired();
+
+                b.HasOne(x => x.SupportTicket)
+                    .WithMany(x => x.Messages)
+                    .HasForeignKey(x => x.SupportTicketId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasOne(x => x.Author)
+                    .WithMany()
+                    .HasForeignKey(x => x.AuthorUserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasIndex(x => new { x.SupportTicketId, x.CreatedAt });
             });
 
             builder.Entity<ApplicationUser>(b =>

@@ -19,5 +19,8 @@ namespace NoiseVault.Domain.Enums.Notifications
         BandPromoted = 14,
         BandRemoved = 15,
         BandMemberLeft = 16,
+        SupportTicketCreated = 17,
+        SupportTicketReplied = 18,
+        SupportTicketStatusChanged = 19,
     }
 }

@@ -2,6 +2,7 @@ using NoiseVault.Application.Bands.Dtos;
 using NoiseVault.Application.PublicProfiles.Dtos;
 using NoiseVault.Domain.Enums.Bands;
 using NoiseVault.Domain.Enums.Notifications;
+using NoiseVault.Domain.Enums.Support;
 
 namespace NoiseVault.Application.Notifications.Dtos
 {
@@ -16,6 +17,7 @@ namespace NoiseVault.Application.Notifications.Dtos
         public NotificationArchiveDto? Archive { get; set; }
         public BandSummaryDto? Band { get; set; }
         public NotificationInvitationDto? Invitation { get; set; }
+        public NotificationTicketDto? Ticket { get; set; }
         public DateTime? ReadAt { get; set; }
         public DateTime LastActivityAt { get; set; }
     }
@@ -37,6 +39,15 @@ namespace NoiseVault.Application.Notifications.Dtos
     {
         public int Id { get; set; }
         public string Title { get; set; } = string.Empty;
+    }
+
+    public class NotificationTicketDto
+    {
+        public int Id { get; set; }
+        public string Protocol { get; set; } = string.Empty;
+        public string Title { get; set; } = string.Empty;
+        public ESupportTicketStatus Status { get; set; }
+        public bool Mine { get; set; }
     }
 
     public class NotificationInvitationDto

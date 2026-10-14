@@ -22,5 +22,6 @@ namespace NoiseVault.Domain.Entities
         public User? Owner { get; set; }
         public PostMedia? Attachment { get; set; }
         public ArchiveMedia? ArchiveAttachment { get; set; }
+        public SupportTicketMedia? SupportAttachment { get; set; }
     }
 }

@@ -25,6 +25,7 @@ namespace NoiseVault.Api.RateLimiting
         public const string PostCreate = "post-create";
         public const string CommentCreate = "comment-create";
         public const string EventCreate = "event-create";
+        public const string SupportCreate = "support-create";
     }
 
     public static class ApiRateLimiting
@@ -63,6 +64,7 @@ namespace NoiseVault.Api.RateLimiting
                 AddFixedWindow(options, ApiRateLimitPolicies.PostCreate, permitLimit: 30, windowMinutes: 60);
                 AddFixedWindow(options, ApiRateLimitPolicies.CommentCreate, permitLimit: 60, windowMinutes: 60);
                 AddFixedWindow(options, ApiRateLimitPolicies.EventCreate, permitLimit: 10, windowMinutes: 60);
+                AddFixedWindow(options, ApiRateLimitPolicies.SupportCreate, permitLimit: 5, windowMinutes: 60);
 
                 options.OnRejected = async (context, token) =>
                 {

@@ -4,7 +4,7 @@
 
 **Noise Vault** — API da cena do ABC Paulista (metal, punk, hardcore e afins): feed de posts, mural das antigas, eventos, perfis de pessoas e de bandas. Os usuários são fãs e músicos da região; o painel admin é a mesma API com permissão. Reescrita do zero do projeto legado "NewLevel", que não serve de referência de código — só de inventário de funcionalidades.
 
-**Estado da entrega atual:** existem de verdade o módulo **Auth** (registro com confirmação de e-mail, login, refresh, logout, esqueci/redefinir senha, troca de senha), o módulo **Perfil e mídia** (campos do perfil, avatar e capa no S3, perfil público, busca de pessoas — `perfil-e-midia.md`, `armazenamento.md`), o módulo **Bandas e convites** (criar e editar banda, integrantes, convites com aceite atômico — `bandas.md`) e o módulo **Feed** (posts de pessoa e de banda, fotos, vídeo com upload multipart direto ao S3 e conversão por ffmpeg num job, curtidas, comentários — `feed.md`, `midia-e-video.md`) e o módulo **Eventos** (agenda com line-up misto, interesse, comentários, cancelamento e post automático no feed — `eventos.md`). O módulo **Mural das antigas** (arquivo de fotos e fitas com permissão `Archive.*`, linha do tempo, "Eu estava lá" — `mural.md`) substituiu a galeria com moderação. O módulo **Notificações** (curtidas, comentários, eventos, mural e banda, agrupadas; push por SignalR; e-mail só no convite de banda — `notificacoes.md`) também. Suporte é mock no frontend e entra no módulo 7 — o mapa e a ordem estão em `.claude/rules/dominio.md`. Fora de escopo: loja, podcasts, app nativo, login social.
+**Estado da entrega atual:** existem de verdade o módulo **Auth** (registro com confirmação de e-mail, login, refresh, logout, esqueci/redefinir senha, troca de senha), o módulo **Perfil e mídia** (campos do perfil, avatar e capa no S3, perfil público, busca de pessoas — `perfil-e-midia.md`, `armazenamento.md`), o módulo **Bandas e convites** (criar e editar banda, integrantes, convites com aceite atômico — `bandas.md`) e o módulo **Feed** (posts de pessoa e de banda, fotos, vídeo com upload multipart direto ao S3 e conversão por ffmpeg num job, curtidas, comentários — `feed.md`, `midia-e-video.md`) e o módulo **Eventos** (agenda com line-up misto, interesse, comentários, cancelamento e post automático no feed — `eventos.md`). O módulo **Mural das antigas** (arquivo de fotos e fitas com permissão `Archive.*`, linha do tempo, "Eu estava lá" — `mural.md`) substituiu a galeria com moderação. O módulo **Notificações** (curtidas, comentários, eventos, mural e banda, agrupadas; push por SignalR; e-mail só no convite de banda — `notificacoes.md`) também. O módulo **Suporte** (ticket com tags, páginas, fotos e vídeo de até 2 min, caixa de entrada com permissão `Support.*`, conversa com quem reportou — `suporte.md`) fecha a ordem de `.claude/rules/dominio.md`. Fora de escopo: loja, podcasts, app nativo, login social.
 
 ## Como trabalhar neste repositório
 
@@ -21,6 +21,7 @@ As **decisões** — o porquê de cada regra — vivem em `.claude/rules/`, um a
 | `.claude/rules/feed.md` | post de pessoa e de banda, visibilidade do post em processamento, quem edita e apaga, curtida, comentário, contadores |
 | `.claude/rules/mural.md` | mural das antigas: registro com data aproximada, mídias de arquivo (4 GB/2 h, 40 MB), permissões `Archive.*`, "Eu estava lá", linha do tempo, post no feed |
 | `.claude/rules/notificacoes.md` | notificação como dado estruturado, quem recebe cada tipo, agrupamento, SignalR com token na query, e-mail do convite de banda, retenção, jobs |
+| `.claude/rules/suporte.md` | ticket de suporte com tags, páginas e contexto do navegador, mídia `Support` (2 min, 200 MB), caixa de entrada com `Support.*`, conversa e ciclo de status, notificações do ticket |
 | `.claude/rules/eventos.md` | evento com line-up de banda cadastrada ou nome livre, cidade fora do ABC, próximo/já rolou, cancelar, interesse, comentários, post automático no feed |
 | `.claude/rules/midia-e-video.md` | `MediaUpload`, foto de post, vídeo em multipart pré-assinado, conversão ffmpeg no Hangfire, limpeza, CORS/lifecycle do bucket, plano do MediaConvert em produção |
 | `.claude/rules/armazenamento.md` | S3 (LocalStack em dev, CloudFront em produção), processamento de imagem, chaves, ordem sobe-grava-apaga |
@@ -32,7 +33,7 @@ As **decisões** — o porquê de cada regra — vivem em `.claude/rules/`, um a
 
 **Rule nova entra nesta tabela no mesmo commit.** Rule fora do índice é rule que ninguém lê ao planejar.
 
-O que é do negócio nasce em rules novas. `User`, auth, permissões, jobs e logging não são negócio: são o esqueleto, herdado do boilerplate. `Controllers/Admin/`, `Users/` e `Authorizations/` ficam porque o painel de administração (papéis, verificação de banda) e o mural das antigas (`Controllers/Admin/ArchiveAdminController.cs`) usam essa superfície.
+O que é do negócio nasce em rules novas. `User`, auth, permissões, jobs e logging não são negócio: são o esqueleto, herdado do boilerplate. `Controllers/Admin/`, `Users/` e `Authorizations/` ficam porque o painel de administração (papéis, verificação de banda) o mural das antigas (`Controllers/Admin/ArchiveAdminController.cs`) e a caixa de entrada de suporte (`Controllers/Admin/SupportAdminController.cs`) usam essa superfície.
 
 ## Stack e projetos
 
@@ -64,7 +65,7 @@ Dependência entre camadas: `Api → Application → Domain`; `Infra.Data` imple
 Uma única superfície HTTP: todo controller herda `ApiBaseController` (`[ApiController] [Authorize]`) e vive em `src/NoiseVault.Api/Controllers/`. A organização é por **escopo de acesso**, não por tipo de usuário:
 
 - `Controllers/*.cs` — `/api/...`: o que qualquer usuário autenticado faz sobre o que é dele (`auth`, `profile`). Sem `[Authorize(Policy)]`; o filtro de dono é `UserId == _currentUser.UserId` no `WHERE`.
-- `Controllers/Admin/*.cs` — `/api/admin/...`: o que exige permissão do catálogo (`users`, `authorization`, `audit`, `jobs`, `archive`). **Toda action tem `[Authorize(Policy = Permissions.X.Y)]`.**
+- `Controllers/Admin/*.cs` — `/api/admin/...`: o que exige permissão do catálogo (`users`, `authorization`, `audit`, `jobs`, `archive`, `support`). **Toda action tem `[Authorize(Policy = Permissions.X.Y)]`.**
 
 O mesmo token serve para os dois; o que separa é a permissão. Superfície nova de verdade (webhook de provedor, integração servidor-a-servidor) ganha pasta própria, base controller próprio e validação própria — não reutilize `ApiBaseController` para request que não tem usuário.
 

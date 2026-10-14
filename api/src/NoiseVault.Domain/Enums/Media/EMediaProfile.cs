@@ -4,5 +4,6 @@ namespace NoiseVault.Domain.Enums.Media
     {
         Post = 0,
         Archive = 1,
+        Support = 2,
     }
 }

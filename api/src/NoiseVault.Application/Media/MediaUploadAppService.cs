@@ -227,13 +227,13 @@ namespace NoiseVault.Application.Media
             var media = await _mediaRepository.FirstOrDefaultAsync(new QueryOptions<MediaUpload>
             {
                 Predicate = m => m.Id == id && m.OwnerUserId == me,
-                Includes = [m => m.Attachment!, m => m.ArchiveAttachment!],
+                Includes = [m => m.Attachment!, m => m.ArchiveAttachment!, m => m.SupportAttachment!],
             });
 
             if (media == null)
                 return Result.Fail(MediaNotFound());
 
-            if (media.Attachment != null || media.ArchiveAttachment != null)
+            if (media.Attachment != null || media.ArchiveAttachment != null || media.SupportAttachment != null)
                 return Result.Fail(new Error("MEDIA_IN_USE", "This media belongs to a post; delete the post instead", ErrorType.Conflict));
 
             await DiscardAsync(media);
@@ -252,6 +252,7 @@ namespace NoiseVault.Application.Media
                     && m.Profile == profile
                     && m.Attachment == null
                     && m.ArchiveAttachment == null
+                    && m.SupportAttachment == null
                     && ((m.Status == EMediaStatus.Ready && m.ExpiresAt > now) || m.Status == EMediaStatus.Processing),
                 AsNoTracking = true,
             });
@@ -409,7 +410,8 @@ namespace NoiseVault.Application.Media
                 Predicate = m => (m.Status == EMediaStatus.Ready || m.Status == EMediaStatus.Failed)
                     && m.ExpiresAt <= now
                     && m.Attachment == null
-                    && m.ArchiveAttachment == null,
+                    && m.ArchiveAttachment == null
+                    && m.SupportAttachment == null,
             });
 
             foreach (var media in unattached)

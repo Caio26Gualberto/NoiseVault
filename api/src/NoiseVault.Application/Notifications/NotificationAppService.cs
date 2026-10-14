@@ -9,6 +9,7 @@ using NoiseVault.Application.Notifications.Models;
 using NoiseVault.Application.Pagination;
 using NoiseVault.Application.PublicProfiles.Dtos;
 using NoiseVault.Application.Response;
+using NoiseVault.Application.Support;
 using NoiseVault.Domain.Entities;
 
 namespace NoiseVault.Application.Notifications
@@ -124,6 +125,7 @@ namespace NoiseVault.Application.Notifications
                         ArchiveEntryId = input.ArchiveEntryId,
                         BandId = input.BandId,
                         BandInvitationId = input.BandInvitationId,
+                        SupportTicketId = input.SupportTicketId,
                         CreatedAt = now,
                         LastActivityAt = now,
                     })
@@ -139,7 +141,7 @@ namespace NoiseVault.Application.Notifications
                     "Notification could not be stored",
                     exception: ex,
                     userId: input.ActorUserId,
-                    extra: new { input.Kind, Recipients = recipients.Count, input.PostId, input.EventId, input.ArchiveEntryId, input.BandId, input.BandInvitationId });
+                    extra: new { input.Kind, Recipients = recipients.Count, input.PostId, input.EventId, input.ArchiveEntryId, input.BandId, input.BandInvitationId, input.SupportTicketId });
                 return;
             }
 
@@ -220,6 +222,16 @@ namespace NoiseVault.Application.Notifications
                     Status = row.InvitationStatus!.Value,
                     Instrument = row.InvitationInstrument,
                     ExpiresAt = row.InvitationExpiresAt ?? default,
+                },
+            Ticket = row.TicketId == null
+                ? null
+                : new NotificationTicketDto
+                {
+                    Id = row.TicketId.Value,
+                    Protocol = SupportRules.Protocol(row.TicketId.Value),
+                    Title = row.TicketTitle ?? string.Empty,
+                    Status = row.TicketStatus ?? default,
+                    Mine = row.TicketMine,
                 },
         };
 
