@@ -328,7 +328,7 @@ Uma rule que contradiz este arquivo está dizendo que aquele domínio é exceç�
 Sem projeto de teste: verificação é por execução real.
 
 1. `dotnet build` limpo.
-2. Subir a API (`ASPNETCORE_ENVIRONMENT=Development`; `Database:MigrateOnStartup` aplica a migration e o seed cria `admin@noisevault.local` com `Seed:AdminPassword`).
+2. Subir a API (`ASPNETCORE_ENVIRONMENT=Development`; `Database:MigrateOnStartup` aplica a migration e o seed cria `caiogualbertodev@outlook.com` com `Seed:AdminPassword`).
 3. Seguir o `## Roteiro de verificação` da rule do domínio, com resultado esperado por passo (codes, status HTTP, linha de log).
 4. Para 500: conferir a linha `UNHANDLED_EXCEPTION`/`REQUEST_FAILED` com `Action`, `user=`, `caused-by=` e o `X-Trace-Id` na resposta.
 

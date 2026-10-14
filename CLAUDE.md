@@ -37,7 +37,7 @@ Cada pasta tem o seu `CLAUDE.md` (leia primeiro) e `.claude/rules/`. Os dois nas
 ## Como subir
 
 1. `docker compose up -d` (Postgres em `localhost:5436`, banco `noisevault`, `postgres`/`postgres`; Mailpit em `http://localhost:8025`; LocalStack S3 em `http://localhost:4566`, bucket `noisevault-media` criado no boot). Produção é **AWS** (S3 + CloudFront, SES depois); o LocalStack emula só o que já usamos — ver `api/.claude/rules/armazenamento.md`.
-2. ffmpeg instalado (`winget install Gyan.FFmpeg`) para a conversão de vídeo. `cd api && dotnet run --project src/NoiseVault.Api` → `http://localhost:5041` (`/health`, `/swagger`, `/hangfire`). Migration e seed rodam no boot; admin de dev `admin@noisevault.local` / `12341234`.
+2. ffmpeg instalado (`winget install Gyan.FFmpeg`) para a conversão de vídeo. `cd api && dotnet run --project src/NoiseVault.Api` → `http://localhost:5041` (`/health`, `/swagger`, `/hangfire`). Migration e seed rodam no boot; admin de dev `caiogualbertodev@outlook.com` / `12341234`.
 3. `cd frontend && npm install && npm run dev` → `http://localhost:5173`.
 
 Verificação de cada lado: roteiros nas rules (`api/.claude/rules/auth-e-contas.md`, `frontend/.claude/rules/auth.md` e `shell-e-navegacao.md`).

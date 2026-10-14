@@ -17,11 +17,13 @@ cd api && dotnet run --project src/NoiseVault.Api     # http://localhost:5041 �
 cd frontend && npm install && npm run dev             # http://localhost:5173
 ```
 
+⚠️ O LocalStack Community guarda os arquivos em memória: parar o container apaga avatares, capas e mídias, mas o banco continua apontando para eles. Imagem de dev é descartável; depois de um restart, limpe o banco ou suba as imagens de novo (`api/.claude/rules/armazenamento.md`).
+
 O LocalStack está fixado na 4.14.0, que roda sem conta. Ao atualizar a imagem para uma versão mais nova, crie uma conta gratuita em https://app.localstack.cloud, copie o auth token e coloque em `LOCALSTACK_AUTH_TOKEN` num `.env` na raiz (veja `.env.example`; o `.env` não vai para o Git).
 
 Se o LocalStack já estava rodando antes de uma mudança em `infra/localstack/ready.d/10-s3.sh`, reaplique com `docker exec noisevault-localstack bash /etc/localstack/init/ready.d/10-s3.sh`.
 
-Migration e seed rodam no boot da API em Development. Admin de dev: `admin@noisevault.local` / `12341234`. E-mails de confirmação e de redefinição de senha caem no Mailpit.
+Migration e seed rodam no boot da API em Development. Admin de dev: `caiogualbertodev@outlook.com` / `12341234`. E-mails de confirmação e de redefinição de senha caem no Mailpit.
 
 ## Documentação
 
