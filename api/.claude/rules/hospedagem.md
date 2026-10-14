@@ -38,6 +38,21 @@ Com o ffmpeg no mesmo servidor, uma conversão longa (fita de 2 h do mural) disp
 
 A diferença vem só do MediaConvert e do S3, que crescem com o uso. Em troca, cada requisição chega uns 110 a 130 ms mais rápido para quem está no ABC, e os dados ficam no Brasil. Com o banco no RDS em vez de dentro do Lightsail, São Paulo vai a 129,20 USD no cenário do PDF. **Fica fora** até a operação do banco pesar.
 
+## Domínio: `noisevault.net`
+
+Comprado pelo usuário em 14/10/2026. O `.com` já tinha dono, o `.com.br` o usuário não quis, e o `.net` ganhou do `.social` pela confiança (e-mail chegando fora do spam), pela facilidade de falar e digitar e pela renovação mais barata.
+
+| Endereço | Aponta para | Observação |
+|---|---|---|
+| `noisevault.net` | o front (Amplify) | o site; `Frontend:BaseUrl`, o CORS da API e o CORS do bucket usam este |
+| `www.noisevault.net` | redireciona para `noisevault.net` | um endereço só, para cache, cookies e prévia não se dividirem |
+| `api.noisevault.net` | o Lightsail (Caddy com HTTPS) | API, SignalR (`/hubs`) e a rota de prévia `/s/...` (que o Amplify repassa) |
+| `media.noisevault.net` | o CloudFront do bucket | `Storage:PublicBaseUrl` |
+| e-mail `nao-responda@noisevault.net` | SES | o domínio verificado no SES, com SPF, DKIM e DMARC no DNS, para confirmação e redefinição de senha não caírem no spam |
+
+- Quem guarda o DNS ainda não foi decidido. O caminho mais simples é o **Route 53**, junto do resto da AWS; se o domínio ficar em outro registrador, ele aponta os servidores de nome para o Route 53.
+- O login social (`IDEIAS.md`, item 6) volta a ser possível com o site em `https://noisevault.net`: as origens do Google e os domínios do SDK do Facebook são esses.
+
 ## Pendências antes do primeiro deploy
 
 - **Credenciais**: o Lightsail não tem IAM role como o EC2. Um usuário IAM com chave em variável de ambiente (`Storage__AccessKey`, `Storage__SecretKey`; o `StorageSettings` já aceita), com o mínimo:
@@ -47,11 +62,11 @@ A diferença vem só do MediaConvert e do S3, que crescem com o uso. Em troca, c
 - **Postgres no servidor**: `pg_dump` diário para o S3 (prefixo próprio, retenção definida no deploy) e snapshot automático do Lightsail. Restaurar um backup faz parte do roteiro de verificação do deploy, não fica para quando precisar.
 - **Data Protection**: persistir as chaves antes de subir (`auth-e-contas.md`), senão cada restart do container invalida os links de confirmação e de redefinição.
 - **Hangfire**: o dashboard já não é mapeado em `Production` (`jobs-hangfire.md`).
-- **Prévia de link**: rewrite `/s/<*>` → `https://<api>/s/<*>` (200, proxy) no Amplify, **antes** do rewrite da SPA (`compartilhamento.md`). Sem ele, o link do botão "Compartilhar" cai na SPA e a prévia some.
+- **Prévia de link**: rewrite `/s/<*>` → `https://api.noisevault.net/s/<*>` (200, proxy) no Amplify, **antes** do rewrite da SPA (`compartilhamento.md`). Sem ele, o link do botão "Compartilhar" cai na SPA e a prévia some.
 - **PWA**: o `sw.js` vai com `Cache-Control: no-cache` no Amplify ou no CloudFront, e o `manifest.webmanifest` com `application/manifest+json` (`frontend/.claude/rules/pwa.md`). Com cache longo no `sw.js`, a versão nova do site demora a chegar em quem instalou.
 - **Licença do ImageSharp**: o build em `Release` **falha** sem chave da Six Labors ("No Six Labors license found"; o `Debug` só avisa). Visto em 14/10/2026. A licença Split é gratuita abaixo de US$ 1 milhão de receita (`armazenamento.md`), mas a chave precisa existir no build da imagem (`SixLaborsLicenseKey` por variável, nunca no Git).
 - **SignalR**: uma instância, sem backplane. O Caddy repassa WebSocket; o keep-alive de 15 s sobra para qualquer idle timeout (`notificacoes.md`).
-- **CORS**: `Cors:AllowedOrigins` e o CORS do bucket com o domínio de produção (`midia-e-video.md`).
+- **CORS**: `Cors:AllowedOrigins` e o CORS do bucket com `https://noisevault.net` (`midia-e-video.md`).
 - **E-mail**: com provedor real, o envio do esqueci-senha vai para a fila `emails` (o risco aceito de tempo de resposta em `auth-e-contas.md`).
 
 ## Front e a prévia de links

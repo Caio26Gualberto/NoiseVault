@@ -59,7 +59,7 @@ Virou módulo em 14/10/2026, ampliado pelo usuário para ficar "igual Facebook":
   - **segurança**: só vincular por e-mail quando o provedor diz que ele é verificado; senão, pedir a senha da conta existente. Em Minha conta, ver e desvincular os logins e criar senha para quem só entrou pelo Facebook;
   - **e-mail ausente**: há conta de Facebook sem e-mail (cadastro por celular). Decidir se aceita a conta sem e-mail ou pede o e-mail na hora.
 - **Pré-requisitos**:
-  - domínio e HTTPS;
+  - ~~domínio~~ (`noisevault.net`, comprado em 14/10/2026) e HTTPS;
   - duas páginas públicas: **Política de privacidade** e **Como apagar seus dados** (o Facebook exige a segunda para o app ir ao ar);
   - um app no Google Cloud Console (tela de consentimento externa, escopos básicos, ID do cliente "Aplicativo da Web" com as origens do site) e outro no Meta for Developers (caso de uso "Login do Facebook", `public_profile` + `email`, domínios do SDK).
   - O Client ID e o App ID são públicos (`.env` do front e configuração da API); a chave secreta do Facebook fica só na API, por variável de ambiente.
