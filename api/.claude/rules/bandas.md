@@ -66,7 +66,7 @@ Módulo 2 da ordem em `dominio.md`. Banda é entidade própria, **sem login**; q
   - Antes da transação há duas guardas de mensagem: `ALREADY_BAND_MEMBER` e `BAND_LIMIT_REACHED`.
 - **Recusar** usa a mesma transição, para `Declined`. **Revogar** (`DELETE /api/band-invitations/{id}`) é `Pending → Revoked`, só para Owner da banda do convite.
 - `ExecuteUpdateAsync` não passa pelo `ChangeTracker`, então a transição grava `UpdatedAt`/`UpdatedBy` por conta própria. A trilha da transição é o evento de log (abaixo).
-- **E-mail e notificação de convite não existem neste módulo.** A pessoa vê o convite em `/notificacoes` (`GET /api/band-invitations/mine`). O e-mail entra com o módulo de notificações (`email.md`).
+- ~~**E-mail e notificação de convite não existem neste módulo.**~~ O módulo 6 acrescentou os dois: o convite gera a notificação `BandInvite` e um e-mail por job; aceitar, recusar, promover, remover e sair também notificam (`notificacoes.md`). A pessoa continua respondendo em `/notificacoes` (`GET /api/band-invitations/mine`).
 
 ## Endpoints
 

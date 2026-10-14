@@ -12,5 +12,6 @@ namespace NoiseVault.Application.Bands.Interfaces
         Task<Result<BandInvitationDto>> Accept(int invitationId);
         Task<Result<BandInvitationDto>> Decline(int invitationId);
         Task<Result<BandInvitationDto>> Revoke(int invitationId);
+        Task SendInviteEmail(int invitationId);
     }
 }

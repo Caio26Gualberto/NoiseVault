@@ -1,6 +1,8 @@
 using NoiseVault.Application.Abstractions.Authentication;
 using NoiseVault.Application.Abstractions.Authorization;
 using NoiseVault.Application.Abstractions.Logging;
+using NoiseVault.Application.Notifications;
+using NoiseVault.Application.Notifications.Interfaces;
 using NoiseVault.Application.Abstractions.Repository;
 using NoiseVault.Application.Abstractions.Repository.UnitOfWork;
 using NoiseVault.Application.Archive.Dtos;
@@ -19,6 +21,7 @@ using NoiseVault.Application.PublicProfiles.Dtos;
 using NoiseVault.Application.Response;
 using NoiseVault.Domain.Constants;
 using NoiseVault.Domain.Entities;
+using NoiseVault.Domain.Enums.Notifications;
 using NoiseVault.Domain.Enums.Media;
 using NoiseVault.Domain.Enums.Profiles;
 
@@ -41,6 +44,7 @@ namespace NoiseVault.Application.Archive
         private readonly IMediaUploadAppService _mediaAppService;
         private readonly IPostAppService _postAppService;
         private readonly IFileStorage _fileStorage;
+        private readonly INotificationAppService _notificationAppService;
         private readonly IApplicationLogger _logger;
 
         public ArchiveAppService(
@@ -55,6 +59,7 @@ namespace NoiseVault.Application.Archive
             IMediaUploadAppService mediaAppService,
             IPostAppService postAppService,
             IFileStorage fileStorage,
+            INotificationAppService notificationAppService,
             IApplicationLoggerFactory loggerFactory)
         {
             _archiveRepository = archiveRepository;
@@ -68,6 +73,7 @@ namespace NoiseVault.Application.Archive
             _mediaAppService = mediaAppService;
             _postAppService = postAppService;
             _fileStorage = fileStorage;
+            _notificationAppService = notificationAppService;
             _logger = loggerFactory.Create(LogContext.Archive);
         }
 
@@ -227,16 +233,16 @@ namespace NoiseVault.Application.Archive
         }
 
         public Task<Result<ArchiveEntryDto>> Like(int id) =>
-            ReactAsync(id, entry => _archiveRepository.AddLikeAsync(entry, _currentUser.UserId), "ARCHIVE_LIKED", "Liked");
+            ReactAsync(id, entry => _archiveRepository.AddLikeAsync(entry, _currentUser.UserId), ENotificationKind.ArchiveLiked, "ARCHIVE_LIKED", "Liked");
 
         public Task<Result<ArchiveEntryDto>> Unlike(int id) =>
-            ReactAsync(id, async entry => { await _archiveRepository.RemoveLikeAsync(entry, _currentUser.UserId); return true; }, "ARCHIVE_UNLIKED", "Like removed");
+            ReactAsync(id, async entry => { await _archiveRepository.RemoveLikeAsync(entry, _currentUser.UserId); return true; }, null, "ARCHIVE_UNLIKED", "Like removed");
 
         public Task<Result<ArchiveEntryDto>> Attend(int id) =>
-            ReactAsync(id, entry => _archiveRepository.AddAttendanceAsync(entry, _currentUser.UserId), "ARCHIVE_ATTENDED", "Marked as attended");
+            ReactAsync(id, entry => _archiveRepository.AddAttendanceAsync(entry, _currentUser.UserId), ENotificationKind.ArchiveAttended, "ARCHIVE_ATTENDED", "Marked as attended");
 
         public Task<Result<ArchiveEntryDto>> Unattend(int id) =>
-            ReactAsync(id, async entry => { await _archiveRepository.RemoveAttendanceAsync(entry, _currentUser.UserId); return true; }, "ARCHIVE_UNATTENDED", "Attendance removed");
+            ReactAsync(id, async entry => { await _archiveRepository.RemoveAttendanceAsync(entry, _currentUser.UserId); return true; }, null, "ARCHIVE_UNATTENDED", "Attendance removed");
 
         public async Task<Result<PagedResultDto<ProfileSummaryDto>>> Attendees(int id, PagedRequestDto query)
         {
@@ -262,12 +268,18 @@ namespace NoiseVault.Application.Archive
         public Task<ArchiveReadModel?> FindVisible(int entryId) =>
             _archiveRepository.FindAsync(entryId, _currentUser.UserId);
 
-        private async Task<Result<ArchiveEntryDto>> ReactAsync(int id, Func<int, Task<bool>> act, string code, string message)
+        public Task<List<int>> AttendeeUserIds(int entryId) =>
+            _archiveRepository.AttendeeUserIdsAsync(entryId);
+
+        private async Task<Result<ArchiveEntryDto>> ReactAsync(int id, Func<int, Task<bool>> act, ENotificationKind? notify, string code, string message)
         {
-            if (await FindVisible(id) == null)
+            var entry = await FindVisible(id);
+
+            if (entry == null)
                 return Fail(NotFound());
 
-            await act(id);
+            if (await act(id) && notify != null)
+                await _notificationAppService.Notify(entry.AuthorUserId, new NotificationInput(notify.Value, _currentUser.UserId, ArchiveEntryId: id));
 
             return Result<ArchiveEntryDto>.Ok(await MapDetailAsync((await FindVisible(id))!), code, message);
         }

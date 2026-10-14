@@ -171,6 +171,14 @@ export const ApiCodes = {
   archiveCommentNotFound: 'ARCHIVE_COMMENT_NOT_FOUND',
   archiveCommentForbidden: 'ARCHIVE_COMMENT_FORBIDDEN',
 
+  notificationsFound: 'NOTIFICATIONS_FOUND',
+  notificationsUnreadCountFound: 'NOTIFICATIONS_UNREAD_COUNT_FOUND',
+  notificationRead: 'NOTIFICATION_READ',
+  notificationsAllRead: 'NOTIFICATIONS_ALL_READ',
+  notificationDeleted: 'NOTIFICATION_DELETED',
+  notificationNotFound: 'NOTIFICATION_NOT_FOUND',
+  notificationSettingsUpdated: 'NOTIFICATION_SETTINGS_UPDATED',
+
   tooManyRequests: 'TOO_MANY_REQUESTS',
   sessionExpired: 'SESSION_EXPIRED',
   networkError: 'NETWORK_ERROR',

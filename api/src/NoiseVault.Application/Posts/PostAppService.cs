@@ -2,6 +2,8 @@ using NoiseVault.Application.Abstractions.Authentication;
 using NoiseVault.Application.Archive.Dtos;
 using NoiseVault.Application.Archive.Interfaces;
 using NoiseVault.Application.Abstractions.Logging;
+using NoiseVault.Application.Notifications;
+using NoiseVault.Application.Notifications.Interfaces;
 using NoiseVault.Application.Abstractions.Repository;
 using NoiseVault.Application.Abstractions.Repository.UnitOfWork;
 using NoiseVault.Application.Bands.Interfaces;
@@ -17,6 +19,7 @@ using NoiseVault.Application.PublicProfiles.Dtos;
 using NoiseVault.Application.PublicProfiles.Interfaces;
 using NoiseVault.Application.Response;
 using NoiseVault.Domain.Entities;
+using NoiseVault.Domain.Enums.Notifications;
 using NoiseVault.Domain.Enums.Bands;
 using NoiseVault.Domain.Enums.Media;
 using NoiseVault.Domain.Enums.Posts;
@@ -36,6 +39,7 @@ namespace NoiseVault.Application.Posts
         private readonly IEventRepository _eventRepository;
         private readonly IArchiveRepository _archiveRepository;
         private readonly IRepository<MediaUpload> _mediaRepository;
+        private readonly INotificationAppService _notificationAppService;
         private readonly IApplicationLogger _logger;
 
         public PostAppService(
@@ -50,6 +54,7 @@ namespace NoiseVault.Application.Posts
             IEventRepository eventRepository,
             IArchiveRepository archiveRepository,
             IRepository<MediaUpload> mediaRepository,
+            INotificationAppService notificationAppService,
             IApplicationLoggerFactory loggerFactory)
         {
             _archiveRepository = archiveRepository;
@@ -63,6 +68,7 @@ namespace NoiseVault.Application.Posts
             _publicProfileAppService = publicProfileAppService;
             _mediaAppService = mediaAppService;
             _fileStorage = fileStorage;
+            _notificationAppService = notificationAppService;
             _logger = loggerFactory.Create(LogContext.Posts);
         }
 
@@ -315,7 +321,10 @@ namespace NoiseVault.Application.Posts
                 return Fail(new Error("POST_NOT_PUBLISHED", "This post is still being processed", ErrorType.Conflict));
 
             if (like)
-                await _postRepository.AddLikeAsync(id, me);
+            {
+                if (await _postRepository.AddLikeAsync(id, me))
+                    await _notificationAppService.Notify(post.AuthorUserId, new NotificationInput(ENotificationKind.PostLiked, me, PostId: id));
+            }
             else
                 await _postRepository.RemoveLikeAsync(id, me);
 

@@ -25,5 +25,6 @@ namespace NoiseVault.Application.Events.Interfaces
         Task<Result<EventDto>> RemoveBanner(int id);
 
         Task<EventReadModel?> FindVisible(int eventId);
+        Task<int> RemindTomorrow();
     }
 }

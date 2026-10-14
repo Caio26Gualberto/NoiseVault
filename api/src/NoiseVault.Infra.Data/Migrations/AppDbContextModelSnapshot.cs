@@ -1203,6 +1203,71 @@ namespace NoiseVault.Infra.Data.Migrations
                     b.ToTable("MediaUploads", (string)null);
                 });
 
+            modelBuilder.Entity("NoiseVault.Domain.Entities.Notification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ActorCount")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("ActorUserId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("ArchiveEntryId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("BandId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("BandInvitationId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("EventId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("LastActivityAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("PostId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("ReadAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActorUserId");
+
+                    b.HasIndex("ArchiveEntryId");
+
+                    b.HasIndex("BandId");
+
+                    b.HasIndex("BandInvitationId");
+
+                    b.HasIndex("EventId");
+
+                    b.HasIndex("LastActivityAt");
+
+                    b.HasIndex("PostId");
+
+                    b.HasIndex("UserId", "ReadAt", "LastActivityAt");
+
+                    b.ToTable("Notifications", (string)null);
+                });
+
             modelBuilder.Entity("NoiseVault.Domain.Entities.Post", b =>
                 {
                     b.Property<int>("Id")
@@ -1385,6 +1450,11 @@ namespace NoiseVault.Infra.Data.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)")
                         .UseCollation("case_insensitive");
+
+                    b.Property<bool>("EmailOnBandInvite")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
 
                     b.Property<string>("InstagramUrl")
                         .HasMaxLength(300)
@@ -1924,6 +1994,57 @@ namespace NoiseVault.Infra.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Owner");
+                });
+
+            modelBuilder.Entity("NoiseVault.Domain.Entities.Notification", b =>
+                {
+                    b.HasOne("NoiseVault.Domain.Entities.User", "Actor")
+                        .WithMany()
+                        .HasForeignKey("ActorUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("NoiseVault.Domain.Entities.ArchiveEntry", "ArchiveEntry")
+                        .WithMany()
+                        .HasForeignKey("ArchiveEntryId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("NoiseVault.Domain.Entities.Band", "Band")
+                        .WithMany()
+                        .HasForeignKey("BandId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("NoiseVault.Domain.Entities.BandInvitation", "BandInvitation")
+                        .WithMany()
+                        .HasForeignKey("BandInvitationId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("NoiseVault.Domain.Entities.Event", "Event")
+                        .WithMany()
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("NoiseVault.Domain.Entities.Post", "Post")
+                        .WithMany()
+                        .HasForeignKey("PostId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("NoiseVault.Domain.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Actor");
+
+                    b.Navigation("ArchiveEntry");
+
+                    b.Navigation("Band");
+
+                    b.Navigation("BandInvitation");
+
+                    b.Navigation("Event");
+
+                    b.Navigation("Post");
                 });
 
             modelBuilder.Entity("NoiseVault.Domain.Entities.Post", b =>

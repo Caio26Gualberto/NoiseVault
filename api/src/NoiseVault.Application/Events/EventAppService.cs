@@ -1,10 +1,13 @@
 using NoiseVault.Application.Abstractions.Authentication;
 using NoiseVault.Application.Abstractions.Logging;
+using NoiseVault.Application.Notifications;
+using NoiseVault.Application.Notifications.Interfaces;
 using NoiseVault.Application.Abstractions.Repository;
 using NoiseVault.Application.Abstractions.Repository.UnitOfWork;
 using NoiseVault.Application.Bands.Dtos;
 using NoiseVault.Application.Bands.Interfaces;
 using NoiseVault.Application.Common.Media;
+using NoiseVault.Application.Common.Time;
 using NoiseVault.Application.Events.Dtos;
 using NoiseVault.Application.Events.Interfaces;
 using NoiseVault.Application.Events.Models;
@@ -17,6 +20,7 @@ using NoiseVault.Application.PublicProfiles.Dtos;
 using NoiseVault.Application.PublicProfiles.Interfaces;
 using NoiseVault.Application.Response;
 using NoiseVault.Domain.Entities;
+using NoiseVault.Domain.Enums.Notifications;
 using NoiseVault.Domain.Enums.Bands;
 using NoiseVault.Domain.Enums.Events;
 using NoiseVault.Domain.Enums.Profiles;
@@ -34,6 +38,7 @@ namespace NoiseVault.Application.Events
         private readonly IPostAppService _postAppService;
         private readonly IFileStorage _fileStorage;
         private readonly ImageReplacement _images;
+        private readonly INotificationAppService _notificationAppService;
         private readonly IApplicationLogger _logger;
 
         public EventAppService(
@@ -46,6 +51,7 @@ namespace NoiseVault.Application.Events
             IPostAppService postAppService,
             IFileStorage fileStorage,
             IImageProcessor imageProcessor,
+            INotificationAppService notificationAppService,
             IApplicationLoggerFactory loggerFactory)
         {
             _eventRepository = eventRepository;
@@ -57,6 +63,7 @@ namespace NoiseVault.Application.Events
             _postAppService = postAppService;
             _fileStorage = fileStorage;
             _images = new ImageReplacement(fileStorage, imageProcessor);
+            _notificationAppService = notificationAppService;
             _logger = loggerFactory.Create(LogContext.Events);
         }
 
@@ -157,6 +164,8 @@ namespace NoiseVault.Application.Events
 
             _logger.Info("EVENT_CREATED", "Event created", userId: me, extra: new { EventId = entity.Id, BandId = bandId, Lineup = data!.Lineup.Count });
 
+            await NotifyLineupAsync(entity.Id, data!.Lineup, []);
+
             return Result<EventDto>.Ok(await MapOneAsync((await FindVisible(entity.Id))!), "EVENT_CREATED", "Event published");
         }
 
@@ -201,6 +210,8 @@ namespace NoiseVault.Application.Events
 
             _logger.Info("EVENT_UPDATED", "Event updated", userId: _currentUser.UserId, extra: new { EventId = id });
 
+            await NotifyLineupAsync(id, data!.Lineup, current.Where(l => l.BandId != null).Select(l => l.BandId!.Value).ToHashSet());
+
             return Result<EventDto>.Ok(await MapOneAsync((await FindVisible(id))!), "EVENT_UPDATED", "Event updated");
         }
 
@@ -217,6 +228,10 @@ namespace NoiseVault.Application.Events
                 return Fail(Cancelled());
 
             _logger.Info("EVENT_CANCELLED", "Event cancelled", userId: _currentUser.UserId, extra: new { EventId = id });
+
+            await _notificationAppService.NotifyMany(
+                await _eventRepository.InterestedUserIdsAsync(id),
+                new NotificationInput(ENotificationKind.EventCancelled, _currentUser.UserId, EventId: id));
 
             return Result<EventDto>.Ok(await MapOneAsync((await FindVisible(id))!), "EVENT_CANCELLED_OK", "Event cancelled");
         }
@@ -331,6 +346,34 @@ namespace NoiseVault.Application.Events
         public Task<EventReadModel?> FindVisible(int eventId) =>
             _eventRepository.FindAsync(eventId, _currentUser.UserId);
 
+        public async Task<int> RemindTomorrow()
+        {
+            var from = AppTime.TomorrowStartUtc;
+            var to = AppTime.NextDayStartUtc(AppTime.Today.AddDays(1))!.Value;
+
+            var events = await _eventRepository.InterestedStartingBetweenAsync(from, to);
+
+            foreach (var (eventId, userIds) in events)
+                await _notificationAppService.NotifyMany(userIds, new NotificationInput(ENotificationKind.EventTomorrow, null, EventId: eventId));
+
+            _logger.Info("EVENT_REMINDERS_SENT", "Reminders for tomorrow's events sent", extra: new { Events = events.Count, Recipients = events.Sum(e => e.UserIds.Count) });
+
+            return events.Count;
+        }
+
+        private async Task NotifyLineupAsync(int eventId, List<EventLineupInputDto> lineup, HashSet<int> previousBandIds)
+        {
+            var added = lineup
+                .Where(l => l.BandId != null && !previousBandIds.Contains(l.BandId.Value))
+                .Select(l => l.BandId!.Value)
+                .Distinct();
+
+            foreach (var bandId in added)
+                await _notificationAppService.NotifyMany(
+                    await _bandAppService.MemberUserIds(bandId),
+                    new NotificationInput(ENotificationKind.EventLineup, _currentUser.UserId, EventId: eventId, BandId: bandId));
+        }
+
         private async Task<Result<EventDto>> ReactAsync(int id, bool interested)
         {
             var row = await FindVisible(id);
@@ -346,7 +389,8 @@ namespace NoiseVault.Application.Events
                 if (row.EndsAtOrDefault < DateTime.UtcNow)
                     return Fail(new Error("EVENT_ENDED", "This event already happened", ErrorType.Conflict));
 
-                await _eventRepository.AddInterestAsync(id, _currentUser.UserId);
+                if (await _eventRepository.AddInterestAsync(id, _currentUser.UserId))
+                    await _notificationAppService.Notify(row.OrganizerUserId, new NotificationInput(ENotificationKind.EventInterest, _currentUser.UserId, EventId: id));
             }
             else
             {

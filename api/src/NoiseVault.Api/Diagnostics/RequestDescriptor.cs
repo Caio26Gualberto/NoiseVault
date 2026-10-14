@@ -9,6 +9,7 @@ namespace NoiseVault.Api.Diagnostics
 
         private const string AppVersionHeader = "X-App-Version";
         private const string AppPlatformHeader = "X-App-Platform";
+        private const string AccessTokenParameter = "access_token";
 
         public static string? ActionName(HttpContext context)
         {
@@ -27,7 +28,7 @@ namespace NoiseVault.Api.Diagnostics
             data["Status"] = context.Response.StatusCode;
 
             if (context.Request.QueryString.HasValue)
-                data["Query"] = context.Request.QueryString.Value;
+                data["Query"] = MaskedQuery(context.Request.Query);
 
             var routeValues = context.Request.RouteValues
                 .Where(pair => pair.Key is not ("controller" or "action") && pair.Value is not null)
@@ -47,5 +48,11 @@ namespace NoiseVault.Api.Diagnostics
             if (context.Request.Headers.TryGetValue(AppPlatformHeader, out var appPlatform))
                 data["AppPlatform"] = appPlatform.ToString();
         }
+
+        private static string MaskedQuery(IQueryCollection query) =>
+            QueryString.Create(query.SelectMany(pair => pair.Value.Select(value =>
+                new KeyValuePair<string, string?>(
+                    pair.Key,
+                    string.Equals(pair.Key, AccessTokenParameter, StringComparison.OrdinalIgnoreCase) ? "***" : value)))).Value ?? string.Empty;
     }
 }

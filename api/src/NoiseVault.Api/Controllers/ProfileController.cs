@@ -69,6 +69,13 @@ namespace NoiseVault.Api.Controllers
             return ToResponse(result);
         }
 
+        [HttpPut("notification-settings")]
+        public async Task<ActionResult> UpdateNotificationSettings([FromBody] NotificationSettingsInputDto input)
+        {
+            var result = await _profileAppService.UpdateNotificationSettings(input);
+            return ToResponse(result);
+        }
+
         [HttpPatch("banner-position")]
         public async Task<ActionResult> SetBannerPosition([FromBody] BannerPositionInputDto input)
         {

@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text;
 using NoiseVault.Application.Auth.Dtos;
+using NoiseVault.Application.Bands.Dtos;
 using NoiseVault.Application.Common.Time;
 using NoiseVault.Application.Interfaces;
 
@@ -106,6 +107,34 @@ namespace NoiseVault.Infra.Data.Email
                 email,
                 "Convite para a equipe - Noise Vault",
                 Layout("Equipe", "Convite para a equipe", html.ToString(), intro, AutomaticFooter()),
+                text.ToString());
+        }
+
+        public Task<bool> SendBandInviteAsync(BandInviteEmailDto email)
+        {
+            var url = $"{_settings.FrontendBaseUrl}/notificacoes";
+            var role = string.IsNullOrWhiteSpace(email.Instrument) ? string.Empty : $" para tocar {email.Instrument}";
+            var intro = $"{Greeting(email.Name)} {email.InvitedByName} convidou você{role} na {email.BandName}.";
+            var expires = $"O convite vale até {AppTime.ToLocal(email.ExpiresAt):dd/MM/yyyy}. Aceite ou recuse na sua página de notificações.";
+
+            var html = new StringBuilder()
+                .Append(Paragraph(Encode(intro)))
+                .Append(Button("Ver convite", url))
+                .Append(Meta(expires));
+
+            var text = new StringBuilder()
+                .AppendLine("Convite de banda")
+                .AppendLine()
+                .AppendLine(intro)
+                .AppendLine()
+                .AppendLine($"Ver convite: {url}")
+                .AppendLine()
+                .AppendLine(expires);
+
+            return _sender.SendAsync(
+                email.To,
+                "Você recebeu um convite de banda - Noise Vault",
+                Layout("Bandas", "Convite de banda", html.ToString(), intro, AutomaticFooter()),
                 text.ToString());
         }
 

@@ -28,6 +28,7 @@ namespace NoiseVault.Application.Bands.Interfaces
         Task<Dictionary<int, BandSummaryDto>> SummariesByIds(IReadOnlyCollection<int> bandIds);
         Task<(int? BandId, EBandMemberRole? Role)> FindAccess(string slug);
         Task<bool> IsMember(int bandId, int userId);
+        Task<List<int>> MemberUserIds(int bandId, EBandMemberRole? role = null);
         Task<int> CountMemberships(int userId);
         Task AddMember(int bandId, int userId, string? instrument);
     }

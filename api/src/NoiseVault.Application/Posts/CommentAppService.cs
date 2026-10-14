@@ -1,5 +1,7 @@
 using NoiseVault.Application.Abstractions.Authentication;
 using NoiseVault.Application.Abstractions.Logging;
+using NoiseVault.Application.Notifications;
+using NoiseVault.Application.Notifications.Interfaces;
 using NoiseVault.Application.Abstractions.Repository;
 using NoiseVault.Application.Interfaces;
 using NoiseVault.Application.Pagination;
@@ -8,6 +10,7 @@ using NoiseVault.Application.Posts.Interfaces;
 using NoiseVault.Application.PublicProfiles.Dtos;
 using NoiseVault.Application.Response;
 using NoiseVault.Domain.Entities;
+using NoiseVault.Domain.Enums.Notifications;
 
 namespace NoiseVault.Application.Posts
 {
@@ -17,6 +20,7 @@ namespace NoiseVault.Application.Posts
         private readonly IPostAppService _postAppService;
         private readonly ICurrentUser _currentUser;
         private readonly IFileStorage _fileStorage;
+        private readonly INotificationAppService _notificationAppService;
         private readonly IApplicationLogger _logger;
 
         public CommentAppService(
@@ -24,12 +28,14 @@ namespace NoiseVault.Application.Posts
             IPostAppService postAppService,
             ICurrentUser currentUser,
             IFileStorage fileStorage,
+            INotificationAppService notificationAppService,
             IApplicationLoggerFactory loggerFactory)
         {
             _commentRepository = commentRepository;
             _postAppService = postAppService;
             _currentUser = currentUser;
             _fileStorage = fileStorage;
+            _notificationAppService = notificationAppService;
             _logger = loggerFactory.Create(LogContext.Posts);
         }
 
@@ -90,6 +96,8 @@ namespace NoiseVault.Application.Posts
             };
 
             await _commentRepository.AddAsync(comment);
+
+            await _notificationAppService.Notify(post.AuthorUserId, new NotificationInput(ENotificationKind.PostCommented, comment.AuthorUserId, PostId: postId));
 
             var saved = await _commentRepository.FirstOrDefaultAsync(new QueryOptions<Comment>
             {

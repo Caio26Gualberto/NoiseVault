@@ -4,6 +4,9 @@ using NoiseVault.Infra.Data.Repositories.BandInvitations;
 using NoiseVault.Application.Archive;
 using NoiseVault.Application.Archive.Interfaces;
 using NoiseVault.Infra.Data.Repositories.Archive;
+using NoiseVault.Application.Notifications;
+using NoiseVault.Application.Notifications.Interfaces;
+using NoiseVault.Infra.Data.Repositories.Notifications;
 using NoiseVault.Application.Events;
 using NoiseVault.Application.Events.Interfaces;
 using NoiseVault.Infra.Data.Repositories.Events;
@@ -15,6 +18,9 @@ using NoiseVault.Infra.Data.Repositories.Posts;
 using NoiseVault.Workers.Triggers.Enqueued.Media;
 using NoiseVault.Workers.Triggers.Recurring.Media;
 using NoiseVault.Workers.Wrappers.Recurring.Media;
+using NoiseVault.Workers.Triggers.Enqueued.Notifications;
+using NoiseVault.Workers.Triggers.Recurring.Notifications;
+using NoiseVault.Workers.Wrappers.Recurring.Notifications;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -133,6 +139,19 @@ namespace NoiseVault.Infra.IoC
                     ValidateLifetime = true,
                     ClockSkew = TimeSpan.Zero
                 };
+
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        var token = context.Request.Query["access_token"];
+
+                        if (!string.IsNullOrEmpty(token) && context.Request.Path.StartsWithSegments("/hubs"))
+                            context.Token = token;
+
+                        return Task.CompletedTask;
+                    }
+                };
             });
 
             services.AddAuthorization();
@@ -173,6 +192,9 @@ namespace NoiseVault.Infra.IoC
             services.AddScoped<IArchiveAppService, ArchiveAppService>();
             services.AddScoped<IArchiveCommentAppService, ArchiveCommentAppService>();
 
+            // Notificações
+            services.AddScoped<INotificationAppService, NotificationAppService>();
+
             // External services
             var emailSettings = EmailSettings.FromConfiguration(config);
             services.AddSingleton(emailSettings);
@@ -197,6 +219,9 @@ namespace NoiseVault.Infra.IoC
             services.AddScoped<MediaEnqueuedJobsTrigger>();
             services.AddScoped<MediaRecurringJobsTrigger>();
             services.AddScoped<MediaRecurringJobsWrapper>();
+            services.AddScoped<NotificationsEnqueuedJobsTrigger>();
+            services.AddScoped<NotificationsRecurringJobsTrigger>();
+            services.AddScoped<NotificationsRecurringJobsWrapper>();
 
             // Repositories
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
@@ -207,6 +232,7 @@ namespace NoiseVault.Infra.IoC
             services.AddScoped<IPostRepository, PostRepository>();
             services.AddScoped<IEventRepository, EventRepository>();
             services.AddScoped<IArchiveRepository, ArchiveRepository>();
+            services.AddScoped<INotificationRepository, NotificationRepository>();
 
             return services;
         }

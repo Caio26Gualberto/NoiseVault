@@ -7,7 +7,7 @@ paths:
 
 # Decisões — E-mail
 
-Hoje o produto manda três e-mails: **confirmação de cadastro**, **redefinição de senha** e **convite para a equipe**. Todos são transacionais, um destinatário, um botão. Notificação por e-mail (convite de banda, comentário) entra no módulo de notificações como métodos novos no mesmo `IEmailService`.
+Hoje o produto manda quatro e-mails: **confirmação de cadastro**, **redefinição de senha**, **convite para a equipe** e **convite de banda** (`SendBandInviteAsync`, módulo 6). Todos são transacionais, um destinatário, um botão. O convite de banda é o único aviso da comunidade que vai por e-mail, por decisão do usuário: é o único em que alguém precisa agir. Sai por job na fila `notifications`, respeita `User.EmailOnBandInvite` e tem assunto sem nome ("Você recebeu um convite de banda") (`notificacoes.md`).
 
 ## Duas camadas: o que dizer e como mandar
 

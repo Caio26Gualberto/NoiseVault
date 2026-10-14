@@ -6,5 +6,6 @@ namespace NoiseVault.Application.Abstractions.Jobs
     {
         string EnqueueBackgroundJobRun(int backgroundJobRunId, EBackgroundJobType jobType);
         string EnqueueVideoTranscode(int mediaId);
+        string EnqueueBandInviteEmail(int invitationId);
     }
 }

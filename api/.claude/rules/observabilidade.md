@@ -28,7 +28,7 @@ Depois do `await _next(context)`, se a resposta saiu `>= 500` e nenhuma exceçã
 
 ## O que cada linha carrega
 
-`RequestDescriptor.Describe` põe em `data`: `Method`, `Path`, `Action` (`Items.Create`, via `ControllerActionDescriptor`), `Status`, `Query`, `RouteValues`, `Ip`, `AppVersion`/`AppPlatform` (headers `X-App-Version`/`X-App-Platform` que o app manda — é o que identifica requisição **anônima**, como login, onde não há `userId`). O middleware acrescenta `TraceId`, `ElapsedMs`, `AuthenticatedUserId` e `ErrorCode`. O `TraceId` vai no header `X-Trace-Id` da resposta.
+`RequestDescriptor.Describe` põe em `data`: `Method`, `Path`, `Action` (`Items.Create`, via `ControllerActionDescriptor`), `Status`, `Query`, `RouteValues`, `Ip`, `AppVersion`/`AppPlatform` (headers `X-App-Version`/`X-App-Platform` que o app manda — é o que identifica requisição **anônima**, como login, onde não há `userId`). O middleware acrescenta `TraceId`, `ElapsedMs`, `AuthenticatedUserId` e `ErrorCode`. O `TraceId` vai no header `X-Trace-Id` da resposta. 🔴 O parâmetro `access_token` da `Query` sai como `***`: é o JWT do hub de notificações (`auth-e-contas.md`).
 
 Body, headers de auth, cookies e upload nunca entram.
 

@@ -17,6 +17,7 @@ Todo o código de jobs vive em `src/NoiseVault.Workers`, com **duas categorias s
 
 | Fila | Servidor | Quem roda ali |
 |---|---|---|
+| `notifications` | `noisevault-main` | e-mail do convite de banda, `events:remind-tomorrow` e `notifications:purge` (`notificacoes.md`). Vem antes de `default` na lista: é a prioridade. |
 | `default` | `noisevault-main` | ninguém de propósito — está na lista só para um job sem `[Queue]` não ficar invisível. |
 | `media` | `noisevault-media` (`WorkerCount = 2`) | conversão de vídeo e `media:cleanup`. Servidor próprio porque ffmpeg é CPU pesada: no máximo 2 conversões ao mesmo tempo, sem ocupar os workers do principal. |
 
@@ -48,6 +49,9 @@ Copiar `AutomaticRetry(3)` + `DisableConcurrentExecution(300)` em todo job produ
 | Job | Fila | Attempts / delays | Lock wait | Motivo |
 |---|---|---|---|---|
 | `media:cleanup` (recorrente, de hora em hora) | `media` | `2 · 60, 600` | 30s | varredura de conjunto idempotente; a próxima hora pega o que sobrar |
+| `events:remind-tomorrow` (recorrente, diário às 10 h) | `notifications` | `0` | 30s | sem retry: repetir mandaria o lembrete duas vezes para quem já recebeu; se falhar, o log diz e o dia seguinte segue normal |
+| `notifications:purge` (recorrente, diário às 4 h) | `notifications` | `2 · 60, 600` | 30s | `DELETE` idempotente; repetir não faz mal |
+| `SendBandInviteEmailAsync(invitationId)` (enfileirado) | `notifications` | `2 · 60, 600`, `OnAttemptsExceeded = Fail` | — | SMTP fora do ar é transitório; o job relê o convite a cada tentativa, então não manda e-mail de convite já respondido |
 | `TranscodeVideoAsync(mediaId)` (enfileirado) | `media` | `2 · 60, 300`, `OnAttemptsExceeded = Fail` | — | falha transitória (S3, ffmpeg) merece nova tentativa; a **última** marca a mídia `Failed` em vez de relançar (o trigger lê `RetryCount` do `PerformContext`), senão o post ficaria "processando" para sempre. Rejeição definitiva (não é vídeo, longo demais) não relança. |
 
 ⚠️ **`DisableConcurrentExecution(timeoutInSeconds)` é o tempo de espera pelo lock distribuído, não um teto de duração.** Para job periódico o certo é estourar rápido (15–30s) e deixar o `[AutomaticRetry]` reagendar.

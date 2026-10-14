@@ -20,6 +20,7 @@ namespace NoiseVault.Domain.Entities
         public string? AvatarKey { get; set; }
         public string? BannerKey { get; set; }
         public int BannerPosition { get; set; } = DefaultBannerPosition;
+        public bool EmailOnBandInvite { get; set; } = true;
 
         public List<UserGenre> Genres { get; set; } = [];
     }

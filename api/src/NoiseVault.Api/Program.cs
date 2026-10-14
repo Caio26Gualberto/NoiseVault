@@ -3,13 +3,16 @@ using Hangfire.Dashboard;
 using Hangfire.PostgreSql;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
 using NoiseVault.Api.Authentication;
 using NoiseVault.Api.Authorization;
 using NoiseVault.Api.Middlewares;
 using NoiseVault.Api.RateLimiting;
+using NoiseVault.Api.Realtime;
 using NoiseVault.Application.Abstractions.Authentication;
+using NoiseVault.Application.Abstractions.Realtime;
 using NoiseVault.Infra.Data.Context;
 using NoiseVault.Infra.Data.Context.Seeding;
 using NoiseVault.Infra.IoC;
@@ -31,7 +34,7 @@ builder.Services.AddHangfire(config =>
 builder.Services.AddHangfireServer(options =>
 {
     options.ServerName = "noisevault-main";
-    options.Queues = new[] { "default" };
+    options.Queues = new[] { "notifications", "default" };
 });
 
 builder.Services.AddHangfireServer(options =>
@@ -47,6 +50,13 @@ builder.Services.AddControllers(options =>
 });
 builder.Services.AddApiRateLimiting();
 builder.Services.AddScoped<ICurrentUser, CurrentUser>();
+builder.Services.AddSignalR(options =>
+{
+    options.KeepAliveInterval = TimeSpan.FromSeconds(15);
+    options.ClientTimeoutInterval = TimeSpan.FromSeconds(30);
+});
+builder.Services.AddSingleton<IUserIdProvider, UserIdClaimProvider>();
+builder.Services.AddScoped<INotificationPusher, SignalRNotificationPusher>();
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
 builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
 builder.Services.AddEndpointsApiExplorer();
@@ -144,5 +154,6 @@ app.UseRateLimiter();
 
 app.MapHealthChecks("/health").AllowAnonymous();
 app.MapControllers();
+app.MapHub<NotificationsHub>(NotificationsHub.Path);
 
 app.Run();

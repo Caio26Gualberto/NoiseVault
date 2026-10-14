@@ -1,6 +1,9 @@
 using System.Linq.Expressions;
 using NoiseVault.Application.Abstractions.Authentication;
+using NoiseVault.Application.Abstractions.Jobs;
 using NoiseVault.Application.Abstractions.Logging;
+using NoiseVault.Application.Notifications;
+using NoiseVault.Application.Notifications.Interfaces;
 using NoiseVault.Application.Abstractions.Repository;
 using NoiseVault.Application.Abstractions.Repository.UnitOfWork;
 using NoiseVault.Application.Auth;
@@ -12,6 +15,7 @@ using NoiseVault.Application.Profiles;
 using NoiseVault.Application.PublicProfiles.Dtos;
 using NoiseVault.Application.Response;
 using NoiseVault.Domain.Entities;
+using NoiseVault.Domain.Enums.Notifications;
 using NoiseVault.Domain.Enums.Bands;
 
 namespace NoiseVault.Application.Bands
@@ -24,6 +28,9 @@ namespace NoiseVault.Application.Bands
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUser _currentUser;
         private readonly IFileStorage _fileStorage;
+        private readonly INotificationAppService _notificationAppService;
+        private readonly IEnqueuedJobDispatcher _jobDispatcher;
+        private readonly IEmailService _emailService;
         private readonly IApplicationLogger _logger;
 
         public BandInvitationAppService(
@@ -33,6 +40,9 @@ namespace NoiseVault.Application.Bands
             IUnitOfWork unitOfWork,
             ICurrentUser currentUser,
             IFileStorage fileStorage,
+            INotificationAppService notificationAppService,
+            IEnqueuedJobDispatcher jobDispatcher,
+            IEmailService emailService,
             IApplicationLoggerFactory loggerFactory)
         {
             _invitationRepository = invitationRepository;
@@ -41,6 +51,9 @@ namespace NoiseVault.Application.Bands
             _unitOfWork = unitOfWork;
             _currentUser = currentUser;
             _fileStorage = fileStorage;
+            _notificationAppService = notificationAppService;
+            _jobDispatcher = jobDispatcher;
+            _emailService = emailService;
             _logger = loggerFactory.Create(LogContext.Bands);
         }
 
@@ -99,6 +112,11 @@ namespace NoiseVault.Application.Bands
             await _invitationRepository.AddAsync(invitation);
 
             _logger.Info("BAND_INVITATION_SENT", "Band invitation sent", userId: me, extra: new { InvitationId = invitation.Id, BandId = bandId.Value, InvitedUserId = invitee.Id });
+
+            await _notificationAppService.Notify(invitee.Id, new NotificationInput(ENotificationKind.BandInvite, me, BandId: bandId.Value, BandInvitationId: invitation.Id));
+
+            if (invitee.EmailOnBandInvite)
+                EnqueueInviteEmail(invitation.Id);
 
             return Ok(await MapOneAsync(invitation.Id), "BAND_INVITATION_SENT", "Invitation sent");
         }
@@ -166,6 +184,9 @@ namespace NoiseVault.Application.Bands
 
             _logger.Info("BAND_MEMBER_JOINED", "Band invitation accepted", userId: me, extra: new { InvitationId = invitationId, invitation.BandId });
 
+            await _notificationAppService.MarkInvitationRead(me, invitationId);
+            await _notificationAppService.Notify(invitation.InvitedByUserId, new NotificationInput(ENotificationKind.BandInviteAccepted, me, BandId: invitation.BandId, BandInvitationId: invitationId));
+
             return Ok(await MapOneAsync(invitationId), "BAND_INVITATION_ACCEPTED", "Welcome to the band");
         }
 
@@ -182,6 +203,15 @@ namespace NoiseVault.Application.Bands
                 }) > 0 ? NotPending() : InvitationNotFound());
 
             _logger.Info("BAND_INVITATION_DECLINED", "Band invitation declined", userId: me, extra: new { InvitationId = invitationId });
+
+            var declined = await _invitationRepository.FirstOrDefaultAsync(new QueryOptions<BandInvitation>
+            {
+                Predicate = i => i.Id == invitationId,
+                AsNoTracking = true,
+            });
+
+            await _notificationAppService.MarkInvitationRead(me, invitationId);
+            await _notificationAppService.Notify(declined!.InvitedByUserId, new NotificationInput(ENotificationKind.BandInviteDeclined, me, BandId: declined.BandId, BandInvitationId: invitationId));
 
             return Ok(await MapOneAsync(invitationId), "BAND_INVITATION_DECLINED", "Invitation declined");
         }
@@ -210,7 +240,57 @@ namespace NoiseVault.Application.Bands
 
             _logger.Info("BAND_INVITATION_REVOKED", "Band invitation revoked", userId: _currentUser.UserId, extra: new { InvitationId = invitationId, invitation.BandId });
 
+            await _notificationAppService.MarkInvitationRead(invitation.InvitedUserId, invitationId);
+
             return Ok(await MapOneAsync(invitationId), "BAND_INVITATION_REVOKED", "Invitation revoked");
+        }
+
+        public async Task SendInviteEmail(int invitationId)
+        {
+            _logger.SetOperation("SendBandInviteEmail");
+
+            var invitation = await _invitationRepository.FirstOrDefaultAsync(new QueryOptions<BandInvitation>
+            {
+                Predicate = i => i.Id == invitationId,
+                Includes = [i => i.Band!, i => i.InvitedUser!, i => i.InvitedByUser!],
+                AsNoTracking = true,
+            });
+
+            if (invitation == null
+                || invitation.Status != EBandInvitationStatus.Pending
+                || invitation.ExpiresAt <= DateTime.UtcNow
+                || invitation.InvitedUser is not { IsActive: true, EmailOnBandInvite: true })
+                return;
+
+            var sent = await _emailService.SendBandInviteAsync(new BandInviteEmailDto
+            {
+                To = invitation.InvitedUser.Email,
+                Name = invitation.InvitedUser.Name,
+                InvitedByName = invitation.InvitedByUser!.Name,
+                BandName = invitation.Band!.Name,
+                Instrument = invitation.Instrument,
+                ExpiresAt = invitation.ExpiresAt,
+            });
+
+            if (!sent)
+            {
+                _logger.Warning("BAND_INVITE_EMAIL_FAILED", "Band invite email was not accepted by the transport", extra: new { InvitationId = invitationId });
+                throw new InvalidOperationException($"E-mail do convite {invitationId} não foi aceito pelo transporte.");
+            }
+
+            _logger.Info("BAND_INVITE_EMAIL_SENT", "Band invite email sent", userId: invitation.InvitedUserId, extra: new { InvitationId = invitationId });
+        }
+
+        private void EnqueueInviteEmail(int invitationId)
+        {
+            try
+            {
+                _jobDispatcher.EnqueueBandInviteEmail(invitationId);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error("BAND_INVITE_EMAIL_ENQUEUE_FAILED", "Band invite email could not be enqueued", exception: ex, extra: new { InvitationId = invitationId });
+            }
         }
 
         private async Task<(int Value, Error? Error)> OwnedBandIdAsync(string slug)

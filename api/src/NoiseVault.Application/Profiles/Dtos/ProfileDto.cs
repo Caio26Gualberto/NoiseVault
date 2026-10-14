@@ -13,6 +13,7 @@ namespace NoiseVault.Application.Profiles.Dtos
         public string? AvatarUrl { get; set; }
         public string? BannerUrl { get; set; }
         public int BannerPosition { get; set; }
+        public bool EmailOnBandInvite { get; set; }
         public string? Bio { get; set; }
         public EAbcCity? City { get; set; }
         public string? MainInstrument { get; set; }

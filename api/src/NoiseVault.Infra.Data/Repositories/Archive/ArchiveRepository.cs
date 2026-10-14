@@ -84,6 +84,12 @@ namespace NoiseVault.Infra.Data.Repositories.Archive
         public Task RemoveAttendanceAsync(int entryId, int userId) =>
             _context.Set<ArchiveAttendance>().Where(a => a.ArchiveEntryId == entryId && a.UserId == userId).ExecuteDeleteAsync();
 
+        public Task<List<int>> AttendeeUserIdsAsync(int entryId) =>
+            _context.Set<ArchiveAttendance>()
+                .Where(a => a.ArchiveEntryId == entryId)
+                .Select(a => a.UserId)
+                .ToListAsync();
+
         public async Task<(List<User> Users, int TotalCount)> PageAttendeesAsync(int entryId, int skip, int take)
         {
             var query = _context.Set<ArchiveAttendance>()

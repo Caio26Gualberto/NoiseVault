@@ -1,5 +1,7 @@
 using NoiseVault.Application.Abstractions.Authentication;
 using NoiseVault.Application.Abstractions.Logging;
+using NoiseVault.Application.Notifications;
+using NoiseVault.Application.Notifications.Interfaces;
 using NoiseVault.Application.Abstractions.Repository;
 using NoiseVault.Application.Abstractions.Repository.UnitOfWork;
 using NoiseVault.Application.Bands.Dtos;
@@ -14,6 +16,7 @@ using NoiseVault.Application.Profiles.Dtos;
 using NoiseVault.Application.PublicProfiles.Dtos;
 using NoiseVault.Application.Response;
 using NoiseVault.Domain.Entities;
+using NoiseVault.Domain.Enums.Notifications;
 using NoiseVault.Domain.Enums.Bands;
 using NoiseVault.Domain.Enums.Profiles;
 
@@ -29,6 +32,7 @@ namespace NoiseVault.Application.Bands
         private readonly IPostRepository _postRepository;
         private readonly IEventRepository _eventRepository;
         private readonly ImageReplacement _images;
+        private readonly INotificationAppService _notificationAppService;
         private readonly IApplicationLogger _logger;
 
         public BandAppService(
@@ -40,6 +44,7 @@ namespace NoiseVault.Application.Bands
             IImageProcessor imageProcessor,
             IPostRepository postRepository,
             IEventRepository eventRepository,
+            INotificationAppService notificationAppService,
             IApplicationLoggerFactory loggerFactory)
         {
             _eventRepository = eventRepository;
@@ -50,6 +55,7 @@ namespace NoiseVault.Application.Bands
             _currentUser = currentUser;
             _fileStorage = fileStorage;
             _images = new ImageReplacement(fileStorage, imageProcessor);
+            _notificationAppService = notificationAppService;
             _logger = loggerFactory.Create(LogContext.Bands);
         }
 
@@ -278,6 +284,8 @@ namespace NoiseVault.Application.Bands
 
             _logger.Info("BAND_MEMBER_REMOVED", "Band member removed", userId: _currentUser.UserId, extra: new { BandId = band.Id, RemovedUserId = userId });
 
+            await _notificationAppService.Notify(userId, new NotificationInput(ENotificationKind.BandRemoved, _currentUser.UserId, BandId: band.Id));
+
             return Result<BandProfileDto>.Ok(await MapAsync(band), "BAND_MEMBER_REMOVED", "Member removed from the band");
         }
 
@@ -301,6 +309,8 @@ namespace NoiseVault.Application.Bands
                 await _memberRepository.UpdateAsync(member);
 
                 _logger.Info("BAND_MEMBER_PROMOTED", "Band member promoted to owner", userId: _currentUser.UserId, extra: new { BandId = band.Id, PromotedUserId = userId });
+
+                await _notificationAppService.Notify(userId, new NotificationInput(ENotificationKind.BandPromoted, _currentUser.UserId, BandId: band.Id));
             }
 
             return Result<BandProfileDto>.Ok(await MapAsync(band), "BAND_MEMBER_PROMOTED", "Member is now a band owner");
@@ -337,6 +347,10 @@ namespace NoiseVault.Application.Bands
             await _memberRepository.DeleteAsync(member);
 
             _logger.Info("BAND_MEMBER_LEFT", "Band member left", userId: _currentUser.UserId, extra: new { BandId = bandId });
+
+            await _notificationAppService.NotifyMany(
+                await MemberUserIds(bandId.Value, EBandMemberRole.Owner),
+                new NotificationInput(ENotificationKind.BandMemberLeft, _currentUser.UserId, BandId: bandId.Value));
 
             return Result.Ok("BAND_LEFT", "You left the band");
         }
@@ -385,6 +399,17 @@ namespace NoiseVault.Application.Bands
             var member = await FindMemberAsync(band.Id, _currentUser.UserId);
 
             return (band.Id, member?.Role);
+        }
+
+        public async Task<List<int>> MemberUserIds(int bandId, EBandMemberRole? role = null)
+        {
+            var members = await _memberRepository.ListAsync(new QueryOptions<BandMember>
+            {
+                Predicate = m => m.BandId == bandId && (role == null || m.Role == role),
+                AsNoTracking = true,
+            });
+
+            return members.Select(m => m.UserId).ToList();
         }
 
         public async Task<bool> IsMember(int bandId, int userId) =>

@@ -108,6 +108,25 @@ namespace NoiseVault.Infra.Data.Repositories.Events
             return affected == 1;
         }
 
+        public Task<List<int>> InterestedUserIdsAsync(int eventId) =>
+            _context.Set<EventInterest>()
+                .Where(i => i.EventId == eventId)
+                .Select(i => i.UserId)
+                .ToListAsync();
+
+        public async Task<List<(int EventId, List<int> UserIds)>> InterestedStartingBetweenAsync(DateTime fromUtc, DateTime toUtc)
+        {
+            var rows = await _dbSet
+                .Where(e => e.StartsAt >= fromUtc && e.StartsAt < toUtc && e.Status == EEventStatus.Published && !e.IsDeleted)
+                .SelectMany(e => e.Interests.Select(i => new { EventId = e.Id, i.UserId }))
+                .ToListAsync();
+
+            return rows
+                .GroupBy(r => r.EventId)
+                .Select(g => (g.Key, g.Select(r => r.UserId).ToList()))
+                .ToList();
+        }
+
         public Task<int> CountUpcomingByBandAsync(int bandId, DateTime now) =>
             Visible().CountAsync(e => e.Status == EEventStatus.Published
                 && e.EndsAtOrDefault >= now

@@ -2,6 +2,7 @@ using Hangfire;
 using NoiseVault.Application.Abstractions.Jobs;
 using NoiseVault.Domain.Enums.Jobs;
 using NoiseVault.Workers.Triggers.Enqueued.Media;
+using NoiseVault.Workers.Triggers.Enqueued.Notifications;
 
 namespace NoiseVault.Workers.Dispatch
 {
@@ -16,5 +17,8 @@ namespace NoiseVault.Workers.Dispatch
 
         public string EnqueueVideoTranscode(int mediaId) =>
             BackgroundJob.Enqueue<MediaEnqueuedJobsTrigger>(t => t.TranscodeVideoAsync(mediaId, null));
+
+        public string EnqueueBandInviteEmail(int invitationId) =>
+            BackgroundJob.Enqueue<NotificationsEnqueuedJobsTrigger>(t => t.SendBandInviteEmailAsync(invitationId));
     }
 }

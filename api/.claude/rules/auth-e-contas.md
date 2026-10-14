@@ -101,6 +101,10 @@ O primeiro uso de negócio das permissões do catálogo é o mural das antigas: 
 
 `Admin` tem todas as permissões **sem claim** (`PermissionChecker` devolve o catálogo inteiro). `User` nasce sem nenhuma: usa a API pelos endpoints de dono. Papel de sistema (`IsSystem`) não é editável nem excluível; papel com usuários não é excluível (`ROLE_IN_USE`). O cache de permissões (`HybridCache`) é invalidado em toda escrita de papel/permissão e no seed.
 
+## Token na query: só no hub de notificações
+
+O WebSocket do navegador não manda header, então o hub do SignalR recebe o JWT em `?access_token=`. O `OnMessageReceived` do `AddJwtBearer` só lê esse parâmetro em caminhos `/hubs`; no resto da API, token na query é ignorado. O `RequestDescriptor` mascara o valor (`***`) antes de qualquer log (`observabilidade.md`, `notificacoes.md`).
+
 ## Eventos de log (contexto `Auth`)
 
 | Evento | Nível | Quando |

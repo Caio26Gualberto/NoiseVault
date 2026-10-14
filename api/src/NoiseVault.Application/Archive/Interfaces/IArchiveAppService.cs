@@ -26,5 +26,6 @@ namespace NoiseVault.Application.Archive.Interfaces
         Task<Result<VideoUploadDto>> StartVideo(StartVideoUploadInputDto input);
 
         Task<ArchiveReadModel?> FindVisible(int entryId);
+        Task<List<int>> AttendeeUserIds(int entryId);
     }
 }

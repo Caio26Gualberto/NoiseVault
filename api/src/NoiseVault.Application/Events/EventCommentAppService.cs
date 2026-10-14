@@ -1,5 +1,7 @@
 using NoiseVault.Application.Abstractions.Authentication;
 using NoiseVault.Application.Abstractions.Logging;
+using NoiseVault.Application.Notifications;
+using NoiseVault.Application.Notifications.Interfaces;
 using NoiseVault.Application.Abstractions.Repository;
 using NoiseVault.Application.Events.Dtos;
 using NoiseVault.Application.Events.Interfaces;
@@ -10,6 +12,7 @@ using NoiseVault.Application.Posts.Dtos;
 using NoiseVault.Application.PublicProfiles.Dtos;
 using NoiseVault.Application.Response;
 using NoiseVault.Domain.Entities;
+using NoiseVault.Domain.Enums.Notifications;
 using NoiseVault.Domain.Enums.Bands;
 using NoiseVault.Domain.Enums.Events;
 
@@ -21,6 +24,7 @@ namespace NoiseVault.Application.Events
         private readonly IEventAppService _eventAppService;
         private readonly ICurrentUser _currentUser;
         private readonly IFileStorage _fileStorage;
+        private readonly INotificationAppService _notificationAppService;
         private readonly IApplicationLogger _logger;
 
         public EventCommentAppService(
@@ -28,12 +32,14 @@ namespace NoiseVault.Application.Events
             IEventAppService eventAppService,
             ICurrentUser currentUser,
             IFileStorage fileStorage,
+            INotificationAppService notificationAppService,
             IApplicationLoggerFactory loggerFactory)
         {
             _commentRepository = commentRepository;
             _eventAppService = eventAppService;
             _currentUser = currentUser;
             _fileStorage = fileStorage;
+            _notificationAppService = notificationAppService;
             _logger = loggerFactory.Create(LogContext.Events);
         }
 
@@ -85,6 +91,8 @@ namespace NoiseVault.Application.Events
 
             var comment = new EventComment { EventId = eventId, AuthorUserId = _currentUser.UserId, Text = text };
             await _commentRepository.AddAsync(comment);
+
+            await _notificationAppService.Notify(row.OrganizerUserId, new NotificationInput(ENotificationKind.EventCommented, comment.AuthorUserId, EventId: eventId));
 
             var saved = await _commentRepository.FirstOrDefaultAsync(new QueryOptions<EventComment>
             {

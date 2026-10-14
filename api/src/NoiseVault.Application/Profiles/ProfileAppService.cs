@@ -158,6 +158,19 @@ namespace NoiseVault.Application.Profiles
             return Result<ProfileDto>.Ok(await MapAsync(user), "BANNER_POSITION_UPDATED", "Banner position updated");
         }
 
+        public async Task<Result<ProfileDto>> UpdateNotificationSettings(NotificationSettingsInputDto input)
+        {
+            var user = await FindCurrentAsync(tracked: true);
+
+            if (user == null)
+                return Result<ProfileDto>.Fail(UserNotFound());
+
+            user.EmailOnBandInvite = input.EmailOnBandInvite;
+            await _userRepository.UpdateAsync(user);
+
+            return Result<ProfileDto>.Ok(await MapAsync(user), "NOTIFICATION_SETTINGS_UPDATED", "Notification settings updated");
+        }
+
         public Task<Result<ProfileDto>> RemoveAvatar() =>
             RemoveImageAsync(user => user.AvatarKey, user => user.AvatarKey = null, "AVATAR_REMOVED", "Avatar removed");
 
@@ -255,6 +268,7 @@ namespace NoiseVault.Application.Profiles
             AvatarUrl = _fileStorage.PublicUrl(user.AvatarKey),
             BannerUrl = _fileStorage.PublicUrl(user.BannerKey),
             BannerPosition = user.BannerPosition,
+            EmailOnBandInvite = user.EmailOnBandInvite,
             Bio = user.Bio,
             City = user.City,
             MainInstrument = user.MainInstrument,

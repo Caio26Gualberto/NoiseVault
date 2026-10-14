@@ -1,6 +1,8 @@
 using NoiseVault.Application.Abstractions.Authentication;
 using NoiseVault.Application.Abstractions.Authorization;
 using NoiseVault.Application.Abstractions.Logging;
+using NoiseVault.Application.Notifications;
+using NoiseVault.Application.Notifications.Interfaces;
 using NoiseVault.Application.Abstractions.Repository;
 using NoiseVault.Application.Archive.Dtos;
 using NoiseVault.Application.Archive.Interfaces;
@@ -12,6 +14,7 @@ using NoiseVault.Application.PublicProfiles.Dtos;
 using NoiseVault.Application.Response;
 using NoiseVault.Domain.Constants;
 using NoiseVault.Domain.Entities;
+using NoiseVault.Domain.Enums.Notifications;
 
 namespace NoiseVault.Application.Archive
 {
@@ -22,6 +25,7 @@ namespace NoiseVault.Application.Archive
         private readonly ICurrentUser _currentUser;
         private readonly IPermissionChecker _permissionChecker;
         private readonly IFileStorage _fileStorage;
+        private readonly INotificationAppService _notificationAppService;
         private readonly IApplicationLogger _logger;
 
         public ArchiveCommentAppService(
@@ -30,6 +34,7 @@ namespace NoiseVault.Application.Archive
             ICurrentUser currentUser,
             IPermissionChecker permissionChecker,
             IFileStorage fileStorage,
+            INotificationAppService notificationAppService,
             IApplicationLoggerFactory loggerFactory)
         {
             _commentRepository = commentRepository;
@@ -37,6 +42,7 @@ namespace NoiseVault.Application.Archive
             _currentUser = currentUser;
             _permissionChecker = permissionChecker;
             _fileStorage = fileStorage;
+            _notificationAppService = notificationAppService;
             _logger = loggerFactory.Create(LogContext.Archive);
         }
 
@@ -76,11 +82,18 @@ namespace NoiseVault.Application.Archive
             if (text.Length is 0 or > PostRules.CommentMaxLength)
                 return Result<ArchiveCommentDto>.Fail(new Error("INVALID_COMMENT_TEXT", $"Comment must have between 1 and {PostRules.CommentMaxLength} characters", ErrorType.Validation));
 
-            if (await _archiveAppService.FindVisible(entryId) == null)
+            var entry = await _archiveAppService.FindVisible(entryId);
+
+            if (entry == null)
                 return Result<ArchiveCommentDto>.Fail(EntryNotFound());
 
             var comment = new ArchiveComment { ArchiveEntryId = entryId, AuthorUserId = _currentUser.UserId, Text = text };
             await _commentRepository.AddAsync(comment);
+
+            await _notificationAppService.Notify(entry.AuthorUserId, new NotificationInput(ENotificationKind.ArchiveCommented, comment.AuthorUserId, ArchiveEntryId: entryId));
+
+            var attendees = (await _archiveAppService.AttendeeUserIds(entryId)).Where(id => id != entry.AuthorUserId).ToList();
+            await _notificationAppService.NotifyMany(attendees, new NotificationInput(ENotificationKind.ArchiveCommentedWhereAttended, comment.AuthorUserId, ArchiveEntryId: entryId));
 
             var saved = await _commentRepository.FirstOrDefaultAsync(new QueryOptions<ArchiveComment>
             {

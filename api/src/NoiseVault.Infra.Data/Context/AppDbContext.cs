@@ -41,6 +41,7 @@ namespace NoiseVault.Infra.Data.Context
         public DbSet<ArchiveLike> ArchiveLikes => Set<ArchiveLike>();
         public DbSet<ArchiveAttendance> ArchiveAttendances => Set<ArchiveAttendance>();
         public DbSet<ArchiveComment> ArchiveComments => Set<ArchiveComment>();
+        public DbSet<Notification> Notifications => Set<Notification>();
         public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
         public DbSet<AuthorizationAuditLog> AuthorizationAuditLogs => Set<AuthorizationAuditLog>();
         public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
@@ -95,6 +96,7 @@ namespace NoiseVault.Infra.Data.Context
                 b.Property(u => u.AvatarKey).HasMaxLength(200);
                 b.Property(u => u.BannerKey).HasMaxLength(200);
                 b.Property(u => u.BannerPosition).HasDefaultValue(User.DefaultBannerPosition);
+                b.Property(u => u.EmailOnBandInvite).HasDefaultValue(true);
 
                 b.HasMany(u => u.Genres)
                     .WithOne()
@@ -518,6 +520,50 @@ namespace NoiseVault.Infra.Data.Context
                     .OnDelete(DeleteBehavior.Restrict);
 
                 b.HasIndex(x => new { x.ArchiveEntryId, x.CreatedAt });
+            });
+
+            builder.Entity<Notification>(b =>
+            {
+                b.ToTable("Notifications");
+                b.HasKey(x => x.Id);
+
+                b.HasOne<User>()
+                    .WithMany()
+                    .HasForeignKey(x => x.UserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasOne(x => x.Actor)
+                    .WithMany()
+                    .HasForeignKey(x => x.ActorUserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasOne(x => x.Post)
+                    .WithMany()
+                    .HasForeignKey(x => x.PostId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasOne(x => x.Event)
+                    .WithMany()
+                    .HasForeignKey(x => x.EventId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasOne(x => x.ArchiveEntry)
+                    .WithMany()
+                    .HasForeignKey(x => x.ArchiveEntryId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasOne(x => x.Band)
+                    .WithMany()
+                    .HasForeignKey(x => x.BandId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasOne(x => x.BandInvitation)
+                    .WithMany()
+                    .HasForeignKey(x => x.BandInvitationId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasIndex(x => new { x.UserId, x.ReadAt, x.LastActivityAt });
+                b.HasIndex(x => x.LastActivityAt);
             });
 
             builder.Entity<ApplicationUser>(b =>
