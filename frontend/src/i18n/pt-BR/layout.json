@@ -30,7 +30,18 @@
     "themeDark": "Escuro",
     "themeLight": "Claro",
     "themeAuto": "Sistema",
-    "logout": "Sair"
+    "logout": "Sair",
+    "installApp": "Instalar o app"
+  },
+  "pwa": {
+    "updateTitle": "Nova versão do Noise Vault",
+    "updateDescription": "Atualize para usar a versão mais recente.",
+    "updateAction": "Atualizar",
+    "iosTitle": "Instalar o Noise Vault",
+    "iosDescription": "No iPhone, o app é instalado pelo Safari, em dois toques.",
+    "iosStepShare": "Toque em Compartilhar, o quadrado com a seta para cima, na barra do Safari.",
+    "iosStepAdd": "Escolha \"Adicionar à Tela de Início\" e confirme. O ícone do Noise Vault aparece junto dos seus apps.",
+    "iosDone": "Entendi"
   },
   "rail": {
     "upcomingEvents": "Próximos eventos",

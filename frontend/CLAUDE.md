@@ -24,6 +24,7 @@ As **decisões por área** vivem em `.claude/rules/`, com front matter `paths:`,
 | `.claude/rules/feed.md` | feed único, composer com fotos e vídeo (upload multipart direto ao S3), publicar como banda, post em processamento com polling, editar e apagar, comentários, listas no perfil e na banda |
 | `.claude/rules/mural.md` | linha do tempo interativa, envio da comunidade, meus envios, fila e painel da curadoria (`Archive.Review`), grade de registros, detalhe com legendas e "Eu estava lá", formulário com data aproximada e gerenciador de mídias de arquivo, permissões `Archive.*` |
 | `.claude/rules/marcacoes.md` | @menção com autocomplete (`AppMentionTextarea`) e texto com links (`AppRichText`), marcação de pessoas nas fotos no `AppMediaViewer`, notificações de menção e marcação |
+| `.claude/rules/pwa.md` | instalável no celular: manifesto e ícones, service worker gerado no build (só o esqueleto, nunca a API), página sem conexão, aviso de versão nova, "Instalar o app" no menu do usuário e o passo a passo do iPhone |
 | `.claude/rules/notificacoes.md` | SignalR só avisando (`api/notifications-hub.ts` + `layout/notifications-provider.tsx`), toast do push, balão do sino, frase pelo `kind` com plural de agrupamento, convites no topo, preferência de e-mail |
 | `.claude/rules/suporte.md` | formulário com tipos, páginas e anexos, página de origem, "Meus relatos", conversa, caixa de entrada com triagem e contexto, permissões `Support.*` |
 | `.claude/rules/mocks.md` | histórico: a forma do mock por página e o que morreu ao ligar cada módulo (não há mais mock) |
@@ -58,6 +59,7 @@ src/
   main.tsx                 # global.css, i18n, Toaster, TooltipProvider, Router, Auth, AppConfirm
   app.tsx                  # rotas: publicRoutes (PublicLayout) + definir-senha + bem-vindo + shell (RequireAuth > AppShell) + 404
   toast-feedback.ts        # liga o FeedbackSink da API ao sonner
+  pwa/                     # registro do service worker (aviso de versão nova) e o "Instalar o app" (pwa.md)
   api/                     # fronteira HTTP — nada fora daqui usa axios (copiado do boilerplate)
     client.ts · auth-interceptor.ts · base-service.ts · api-codes.ts · feedback-sink.ts · token-storage.ts · types.ts · jwt.ts
     multipart-upload.ts    # PUT das partes de vídeo direto no S3 (axios próprio, sem auth e sem timeout)

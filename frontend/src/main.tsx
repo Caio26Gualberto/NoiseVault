@@ -10,10 +10,14 @@ import { AuthProvider } from './auth/auth-provider'
 import { AppConfirmProvider } from './components/app-confirm'
 import { Toaster } from './components/ui/sonner'
 import { TooltipProvider } from './components/ui/tooltip'
+import { listenInstallPrompt } from './pwa/install-prompt'
+import { registerServiceWorker } from './pwa/register-service-worker'
 import { applyColorScheme, readColorScheme } from './theme/color-scheme'
 import { registerToastFeedback } from './toast-feedback'
 
 registerToastFeedback()
+listenInstallPrompt()
+registerServiceWorker()
 applyColorScheme(readColorScheme())
 
 createRoot(document.getElementById('root')!).render(
