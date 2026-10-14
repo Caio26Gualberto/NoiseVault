@@ -31,7 +31,7 @@ export function MuralAdminPage() {
     <div className="app-page-enter flex flex-col">
       <AppPageHeader title={t('admin.title')} description={t('admin.description')} />
 
-      <Tabs value={String(page.status)} onValueChange={(value) => page.changeStatus(Number(value) as ArchiveEntryStatus)} className="mb-4 max-w-full overflow-x-auto">
+      <Tabs value={String(page.status)} onValueChange={(value) => page.changeStatus(Number(value) as ArchiveEntryStatus)} className="mb-4 max-w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none]">
         <TabsList className="w-max">
           {allArchiveStatuses.map((status) => (
             <TabsTrigger key={status} value={String(status)} className="gap-1.5">
