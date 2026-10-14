@@ -47,6 +47,7 @@ A diferença vem só do MediaConvert e do S3, que crescem com o uso. Em troca, c
 - **Postgres no servidor**: `pg_dump` diário para o S3 (prefixo próprio, retenção definida no deploy) e snapshot automático do Lightsail. Restaurar um backup faz parte do roteiro de verificação do deploy, não fica para quando precisar.
 - **Data Protection**: persistir as chaves antes de subir (`auth-e-contas.md`), senão cada restart do container invalida os links de confirmação e de redefinição.
 - **Hangfire**: o dashboard já não é mapeado em `Production` (`jobs-hangfire.md`).
+- **Prévia de link**: rewrite `/s/<*>` → `https://<api>/s/<*>` (200, proxy) no Amplify, **antes** do rewrite da SPA (`compartilhamento.md`). Sem ele, o link do botão "Compartilhar" cai na SPA e a prévia some.
 - **PWA**: o `sw.js` vai com `Cache-Control: no-cache` no Amplify ou no CloudFront, e o `manifest.webmanifest` com `application/manifest+json` (`frontend/.claude/rules/pwa.md`). Com cache longo no `sw.js`, a versão nova do site demora a chegar em quem instalou.
 - **Licença do ImageSharp**: o build em `Release` **falha** sem chave da Six Labors ("No Six Labors license found"; o `Debug` só avisa). Visto em 14/10/2026. A licença Split é gratuita abaixo de US$ 1 milhão de receita (`armazenamento.md`), mas a chave precisa existir no build da imagem (`SixLaborsLicenseKey` por variável, nunca no Git).
 - **SignalR**: uma instância, sem backplane. O Caddy repassa WebSocket; o keep-alive de 15 s sobra para qualquer idle timeout (`notificacoes.md`).
@@ -60,7 +61,7 @@ O usuário escolheu o **Amplify** para o front (estava na estimativa, 1,77 USD/m
 - o CloudFront do Amplify é gerenciado por ele, e não aceita uma função nossa;
 - os rewrites do Amplify filtram por caminho e país, não por `User-Agent`.
 
-Com o Amplify, a prévia sai por **rota de compartilhamento**: um rewrite `/s/<*>` do Amplify repassa para a API, que devolve o HTML com as tags `og:*` e redireciona a pessoa para a página. Funciona no link do botão "Compartilhar", não no link copiado da barra do navegador.
+Com o Amplify, a prévia sai por **rota de compartilhamento**: um rewrite `/s/<*>` do Amplify repassa para a API, que devolve o HTML com as tags `og:*` e redireciona a pessoa para a página. Funciona no link do botão "Compartilhar", não no link copiado da barra do navegador. **Feita em 14/10/2026** (`compartilhamento.md`); a prévia no link copiado da barra virou o item 1.b do `IDEIAS.md`.
 
 A alternativa que cobre os dois links é o front em **S3 + o mesmo CloudFront da mídia** (sem custo extra no plano flat-rate), com uma CloudFront Function de viewer request que manda os robôs (`facebookexternalhit`, `WhatsApp`, `Twitterbot`, `TelegramBot`, `Discordbot`) para a API com `cf.updateRequestOrigin`. O deploy vira `aws s3 sync` + invalidação no CI. **A escolha fica para quando a ideia 1 virar módulo.**
 

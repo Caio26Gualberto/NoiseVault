@@ -21,6 +21,7 @@ As **decisões** — o porquê de cada regra — vivem em `.claude/rules/`, um a
 | `.claude/rules/feed.md` | post de pessoa e de banda, visibilidade do post em processamento, quem edita e apaga, curtida, comentário, contadores |
 | `.claude/rules/mural.md` | mural das antigas: registro com data aproximada, envio da comunidade com aprovação ou recusa (`Archive.Review`, 5 pendentes por pessoa), mídias de arquivo (4 GB/2 h, 40 MB), permissões `Archive.*`, "Eu estava lá", linha do tempo, post no feed |
 | `.claude/rules/marcacoes.md` | @menção de pessoas e bandas em post e comentários (texto com handle, resolvido na leitura, notificação), marcação de pessoas nas fotos do feed e do mural (`PhotoTag`, quem remove) |
+| `.claude/rules/compartilhamento.md` | prévia do link (Open Graph) pela rota `/s/{seção}/{chave}`: HTML para robô, fora do envelope e sem login; o que cada tipo mostra, risco aceito, limite e rewrite do Amplify |
 | `.claude/rules/notificacoes.md` | notificação como dado estruturado, quem recebe cada tipo, agrupamento, SignalR com token na query, e-mail do convite de banda, retenção, jobs |
 | `.claude/rules/suporte.md` | ticket de suporte com tags, páginas e contexto do navegador, mídia `Support` (2 min, 200 MB), caixa de entrada com `Support.*`, conversa e ciclo de status, notificações do ticket |
 | `.claude/rules/cidades.md` | municípios do IBGE em `City` (snapshot versionado, seed em todo boot), texto livre para fora do Brasil, `Resolve` único, busca sem acento com o ABC primeiro |
@@ -70,7 +71,7 @@ Uma única superfície HTTP: todo controller herda `ApiBaseController` (`[ApiCon
 - `Controllers/*.cs` — `/api/...`: o que qualquer usuário autenticado faz sobre o que é dele (`auth`, `profile`). Sem `[Authorize(Policy)]`; o filtro de dono é `UserId == _currentUser.UserId` no `WHERE`.
 - `Controllers/Admin/*.cs` — `/api/admin/...`: o que exige permissão do catálogo (`users`, `authorization`, `audit`, `jobs`, `archive`, `support`). **Toda action tem `[Authorize(Policy = Permissions.X.Y)]`.**
 
-O mesmo token serve para os dois; o que separa é a permissão. Superfície nova de verdade (webhook de provedor, integração servidor-a-servidor) ganha pasta própria, base controller próprio e validação própria — não reutilize `ApiBaseController` para request que não tem usuário.
+O mesmo token serve para os dois; o que separa é a permissão. A exceção registrada é `Controllers/Share/` (`/s/...`): HTML anônimo para o robô de prévia de link, com `ControllerBase` próprio e sem envelope (`compartilhamento.md`). Superfície nova de verdade (webhook de provedor, integração servidor-a-servidor) ganha pasta própria, base controller próprio e validação própria — não reutilize `ApiBaseController` para request que não tem usuário.
 
 Rotas são explícitas, minúsculas/kebab-case (`/api/items/{id}/archive`), sem `[controller]` token e sem `/v1`.
 

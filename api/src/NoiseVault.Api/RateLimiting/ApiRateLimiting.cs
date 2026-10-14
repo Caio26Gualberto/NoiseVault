@@ -29,6 +29,7 @@ namespace NoiseVault.Api.RateLimiting
         public const string CitySearch = "city-search";
         public const string ArchiveSubmit = "archive-submit";
         public const string PhotoTag = "photo-tag";
+        public const string SharePreview = "share-preview";
     }
 
     public static class ApiRateLimiting
@@ -71,6 +72,7 @@ namespace NoiseVault.Api.RateLimiting
                 AddFixedWindow(options, ApiRateLimitPolicies.CitySearch, permitLimit: 60, windowMinutes: 1);
                 AddFixedWindow(options, ApiRateLimitPolicies.ArchiveSubmit, permitLimit: 10, windowMinutes: 60);
                 AddFixedWindow(options, ApiRateLimitPolicies.PhotoTag, permitLimit: 60, windowMinutes: 60);
+                AddFixedWindow(options, ApiRateLimitPolicies.SharePreview, permitLimit: 120, windowMinutes: 1);
 
                 options.OnRejected = async (context, token) =>
                 {

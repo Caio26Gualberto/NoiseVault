@@ -1,3 +1,5 @@
+using NoiseVault.Application.Share;
+using NoiseVault.Application.Share.Interfaces;
 using NoiseVault.Application.PhotoTags;
 using NoiseVault.Application.PhotoTags.Interfaces;
 using NoiseVault.Infra.Data.Repositories.PhotoTags;
@@ -194,6 +196,7 @@ namespace NoiseVault.Infra.IoC
             services.AddScoped<IMediaUploadAppService, MediaUploadAppService>();
             services.AddScoped<IMentionAppService, MentionAppService>();
             services.AddScoped<IPhotoTagAppService, PhotoTagAppService>();
+            services.AddScoped<ISharePreviewAppService, SharePreviewAppService>();
             services.AddScoped<IPostAppService, PostAppService>();
             services.AddScoped<ICommentAppService, CommentAppService>();
 
