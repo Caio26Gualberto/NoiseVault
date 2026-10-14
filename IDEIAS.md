@@ -12,13 +12,16 @@ O Facebook é ótimo para **postar** e péssimo para **guardar**: em uma semana 
 
 As três primeiras atacam direto o motivo de o pessoal estar no grupo hoje (fotos e vídeos antigos) e transformam cada post no Facebook num convite para cá.
 
-### 1. Prévia bonita ao compartilhar o link
+### ~~1. Prévia bonita ao compartilhar o link~~
 
-- **Problema**: o front é SPA; colar um link do Noise Vault no Facebook ou no WhatsApp não mostra foto nem título, porque o robô não executa o JavaScript.
-- **Ideia**: tags Open Graph (`og:title`, `og:description`, `og:image`) por página. A API responde aos robôs (pelo `User-Agent` ou por uma rota de compartilhamento) com uma página leve só com as tags e o redirecionamento.
-- **Onde vale**: registro do mural, evento, banda, perfil, post.
-- **Depende da hospedagem**: com o front no Amplify, só a rota de compartilhamento (`/s/...`) funciona; com o front em S3 + CloudFront, uma CloudFront Function cobre também o link copiado da barra. Ver "Front e a prévia de links" em `api/.claude/rules/hospedagem.md`.
-- **Por que primeiro**: maior retorno pelo menor custo. Cada post no grupo vira um cartão com foto e título que traz gente de volta.
+Feita em 14/10/2026 pela rota de compartilhamento: o botão "Compartilhar" do post, do evento, do registro do mural, da banda e do perfil gera `/s/...`, que devolve as tags Open Graph para o robô e redireciona a pessoa. Ver `api/.claude/rules/compartilhamento.md` e `frontend/.claude/rules/compartilhamento.md`.
+
+### 1.b Prévia também no link copiado da barra do navegador
+
+- **Problema**: quase todo mundo copia o endereço da barra (`/mural/12`), e não usa o botão. Esse link continua sem foto e sem título.
+- **Ideia**: quem serve o front olha o `User-Agent` e manda os robôs (`facebookexternalhit`, `WhatsApp`, `Twitterbot`, `TelegramBot`, `Discordbot`) para a mesma rota `/s/...` da API; a pessoa recebe a SPA de sempre.
+- **Depende da hospedagem**: o Amplify não deixa pôr função no CloudFront dele. Com o front em S3 + o mesmo CloudFront da mídia, uma CloudFront Function (`cf.updateRequestOrigin`) resolve, sem custo extra no plano. Ver "Front e a prévia de links" em `api/.claude/rules/hospedagem.md`.
+- **Apoio**: a montagem das tags já existe (`SharePreviewAppService`); falta só desviar o robô.
 
 ### ~~2. A comunidade envia para o mural, a curadoria aprova~~
 
@@ -117,7 +120,7 @@ Parte 1 feita em 14/10/2026: ícone na tela inicial, tela cheia, página sem con
 
 ## Ordem sugerida
 
-1. Prévia ao compartilhar (1).
+1. ~~Prévia ao compartilhar (1)~~ (feita pelo botão; o link da barra é o 1.b, quando a hospedagem do front for decidida).
 2. ~~Envio para o mural com aprovação (2)~~ (feito em 14/10/2026).
 3. ~~Marcar pessoas nas fotos (3)~~ (feito em 14/10/2026, com @menções); falta o "pedir remoção" da foto.
 4. "Neste dia" (4) e resumo semanal (5).
