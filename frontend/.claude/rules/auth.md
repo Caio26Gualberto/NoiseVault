@@ -66,9 +66,9 @@ O toast global cobre todo erro de API. **`EMAIL_NOT_CONFIRMED` no login é a exc
 Decisão do usuário em 14/10/2026: o público inclui muita gente das antigas, que não sabe o que é "nickname". Na tela o campo é **Apelido** em todo lugar (cadastro, Minha conta, mensagens de erro, busca de integrante). O código, o DTO e o code da API continuam `nickname` (`INVALID_NICKNAME`, `NICKNAME_TAKEN`): só a palavra que a pessoa lê mudou.
 
 Os tooltips vieram do cadastro do legado e explicam o campo sem tomar espaço no formulário (`hint` do `AppField`):
-- **Apelido**: "Seu apelido como era conhecido na época, seja punk, cabeludo ou qualquer outra coisa", mais o porquê das minúsculas sem espaço (ele vira o endereço do perfil);
+- **Apelido**: como te conhecem (na banda, no rolê ou o das antigas), mais o porquê das minúsculas sem espaço (ele vira o endereço do perfil). O texto do legado falava só das antigas; o usuário ampliou em 14/10/2026 porque o site serve à música em geral;
 - **E-mail**: é a forma de login;
-- **Cidade** (Minha conta, porque o cadastro não pede cidade): "De onde você era, ou a cidade em que costumava ser reconhecido".
+- **Cidade** (Minha conta, porque o cadastro não pede cidade): "A cidade de onde você é, ou onde costumava andar".
 
 ## Validação espelha o Identity
 
