@@ -18,7 +18,7 @@ Hoje o produto manda quatro e-mails: **confirmação de cadastro**, **redefiniç
 ## Dev: Mailpit no docker-compose, SMTP como denominador comum
 
 - O compose sobe `axllent/mailpit` (`noisevault-mailpit`): SMTP em `localhost:1025` sem TLS nem autenticação, caixa de entrada web em **http://localhost:8025**. `appsettings.Development.json` já aponta para ele com `Email:Provider=Smtp`.
-- Escolha: SMTP genérico em vez de emular um provedor específico (SES, Resend) porque **o provedor de produção ainda não foi escolhido**. Qualquer um deles fala SMTP; quando a escolha vier com API própria, entra um segundo `IEmailSender` e o `SmtpEmailSender` continua servindo o dev.
+- Escolha: SMTP genérico em vez de emular um provedor específico. Qualquer provedor fala SMTP; quando a escolha vier com API própria, entra um segundo `IEmailSender` e o `SmtpEmailSender` continua servindo o dev. **O provedor de produção é o SES, por SMTP** (14/10/2026, `hospedagem.md`): o `SmtpEmailSender` serve como está.
 - `SmtpEmailSender`: `SecureSocketOptions.StartTls` quando `Email:Smtp:UseStartTls=true`, `None` caso contrário (Mailpit); autentica só se `Email:Smtp:Username` estiver preenchido; timeout de 10 s. Exceção vira `EMAIL_SEND_FAILED` (Warning) e `false` — nunca sobe para o request.
 - Produção: `Email__Smtp__Host/Port/Username/Password` por variável de ambiente; `Email:From` fica no `appsettings.json` porque não é segredo.
 

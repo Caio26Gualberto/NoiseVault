@@ -105,7 +105,7 @@ Para um LocalStack que já estava de pé: `docker exec noisevault-localstack bas
 
 ## Produção: AWS MediaConvert
 
-O ffmpeg no processo da API serve para dev e para o começo. Em produção na AWS, a conversão vai para o **AWS Elemental MediaConvert**. Decisão registrada para quando houver volume, não implementada:
+O ffmpeg no processo da API serve para dev. Em produção, a conversão vai para o **AWS Elemental MediaConvert** desde o primeiro deploy: o servidor é um Lightsail pequeno, de CPU "burstable", e uma fita de 2 h derrubaria a API (decisão de 14/10/2026, `hospedagem.md`). Ainda não implementado:
 
 - **Disparo**: o `CompleteVideo` continua igual, mas em vez de enfileirar o job do ffmpeg ele cria um job do MediaConvert (`CreateJob`), com o original em `s3://…/uploads/…` e um **job template** que reproduz a escada de dev.
 - **Saída** (o mesmo layout que o ffmpeg já gera, então tela e banco não mudam):
@@ -113,15 +113,17 @@ O ffmpeg no processo da API serve para dev e para o começo. Em produção na AW
   - grupo **File group** com o frame de capa (Frame Capture → JPEG), que a API processa para WebP ou usa direto;
   - destino `s3://…/users/{userId}/videos/{guid}/`, com `master.m3u8` como nome do manifesto; servido pelo **CloudFront**.
   - Player: já é o hls.js com menu de qualidade (`frontend/.claude/rules/feed.md`).
-- **Conclusão**: o MediaConvert publica o fim do job no **EventBridge**, que entrega numa fila **SQS**. Um consumidor (job do Hangfire lendo a fila, ou endpoint de webhook com assinatura) marca `Ready`/`Failed` e chama a mesma publicação de posts.
+- **Conclusão**: um job recorrente do Hangfire consulta `GetJob` das mídias em `Processing` e marca `Ready`/`Failed`, chamando a mesma publicação de posts. Não pede infraestrutura nova, e a consulta não é cobrada. Quando o volume pedir, o fim do job passa a chegar pelo **EventBridge** numa fila **SQS** (com DLQ), lida pelo mesmo Hangfire.
+- **Escolha do motor por configuração**: ffmpeg em dev, MediaConvert em produção, sem `if` de ambiente no código.
 - **O que muda no código**: `IVideoTranscoder` ganha uma implementação assíncrona (disparar e esperar evento), e o `ProcessVideo` se divide em "disparar" e "concluir". Entidade, estados, DTO e tela continuam iguais.
 - **Infra**:
   - IAM role do MediaConvert com leitura em `uploads/` e escrita em `users/`;
-  - fila SQS com DLQ;
+  - permissão do usuário IAM do servidor para `CreateJob`, `GetJob` e `iam:PassRole` dessa role (o Lightsail não tem IAM role, `hospedagem.md`);
   - CORS do bucket real com o domínio de produção, e uma **Response Headers Policy** no CloudFront com CORS para `GET` (o hls.js baixa `.m3u8` e `.ts` por XHR); cache longo para `.ts` e para o `master.m3u8` (as chaves têm GUID e nunca mudam);
   - a regra de lifecycle de multipart;
   - bucket privado + CloudFront com OAC (`armazenamento.md`); o `PUT` pré-assinado continua indo direto ao S3.
-- **Custo**: MediaConvert cobra por minuto de saída e por resolução. Com 10 min de teto por vídeo, o custo fica previsível. Medir antes de ligar 1080p para todo mundo.
+- **Custo**: MediaConvert cobra por minuto de saída e por resolução. Ordem de grandeza: 0,30 a 0,50 USD por vídeo de 10 min em 1080p com as 4 resoluções, e uns 2 USD por fita VHS de 2 h (só 360p e 480p). A estimativa de 13/10/2026 (54 h de saída por mês) dá 43,99 USD em São Paulo. Medir antes de ligar 1080p para todo mundo.
+- **O template precisa reproduzir o ffmpeg**: desentrelaçamento do VHS, `FRAME-RATE` no `master.m3u8` (o player mostra "1080p60") e a capa. Conferir cada um na montagem.
 
 ## Eventos de log (contexto `Media`)
 

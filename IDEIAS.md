@@ -17,6 +17,7 @@ As três primeiras atacam direto o motivo de o pessoal estar no grupo hoje (foto
 - **Problema**: o front é SPA; colar um link do Noise Vault no Facebook ou no WhatsApp não mostra foto nem título, porque o robô não executa o JavaScript.
 - **Ideia**: tags Open Graph (`og:title`, `og:description`, `og:image`) por página. A API responde aos robôs (pelo `User-Agent` ou por uma rota de compartilhamento) com uma página leve só com as tags e o redirecionamento.
 - **Onde vale**: registro do mural, evento, banda, perfil, post.
+- **Depende da hospedagem**: com o front no Amplify, só a rota de compartilhamento (`/s/...`) funciona; com o front em S3 + CloudFront, uma CloudFront Function cobre também o link copiado da barra. Ver "Front e a prévia de links" em `api/.claude/rules/hospedagem.md`.
 - **Por que primeiro**: maior retorno pelo menor custo. Cada post no grupo vira um cartão com foto e título que traz gente de volta.
 
 ### 2. A comunidade envia para o mural, a curadoria aprova

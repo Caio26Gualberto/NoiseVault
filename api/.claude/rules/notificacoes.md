@@ -76,9 +76,9 @@ Por que é assim:
   - É a segunda exceção registrada à regra "segredo nunca em URL" (a primeira é o e-mail do link de redefinição, `email.md`). O token vive 15 min, e o cliente renova antes de conectar.
 - **Cliente só com WebSocket** (`skipNegotiation`): sem a fase de negociação, o balanceador não precisa de sticky session.
 - **Keep-alive**: 15 s; timeout do cliente: 30 s.
-- **Produção (AWS)**:
-  - o ALB aceita WebSocket sem configuração extra;
-  - o idle timeout padrão de 60 s sobra com o keep-alive de 15 s;
+- **Produção (AWS, Lightsail com Caddy na frente, `hospedagem.md`)**:
+  - o Caddy repassa WebSocket sem configuração extra;
+  - o keep-alive de 15 s sobra para qualquer idle timeout de proxy;
   - com **2 ou mais instâncias** da API, entra o backplane (`AddStackExchangeRedis`, ElastiCache), senão o push sai na instância errada. Com uma instância, não precisa.
 
 ## E-mail: só o convite de banda
