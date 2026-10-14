@@ -47,6 +47,7 @@ A diferença vem só do MediaConvert e do S3, que crescem com o uso. Em troca, c
 - **Postgres no servidor**: `pg_dump` diário para o S3 (prefixo próprio, retenção definida no deploy) e snapshot automático do Lightsail. Restaurar um backup faz parte do roteiro de verificação do deploy, não fica para quando precisar.
 - **Data Protection**: persistir as chaves antes de subir (`auth-e-contas.md`), senão cada restart do container invalida os links de confirmação e de redefinição.
 - **Hangfire**: o dashboard já não é mapeado em `Production` (`jobs-hangfire.md`).
+- **PWA**: o `sw.js` vai com `Cache-Control: no-cache` no Amplify ou no CloudFront, e o `manifest.webmanifest` com `application/manifest+json` (`frontend/.claude/rules/pwa.md`). Com cache longo no `sw.js`, a versão nova do site demora a chegar em quem instalou.
 - **Licença do ImageSharp**: o build em `Release` **falha** sem chave da Six Labors ("No Six Labors license found"; o `Debug` só avisa). Visto em 14/10/2026. A licença Split é gratuita abaixo de US$ 1 milhão de receita (`armazenamento.md`), mas a chave precisa existir no build da imagem (`SixLaborsLicenseKey` por variável, nunca no Git).
 - **SignalR**: uma instância, sem backplane. O Caddy repassa WebSocket; o keep-alive de 15 s sobra para qualquer idle timeout (`notificacoes.md`).
 - **CORS**: `Cors:AllowedOrigins` e o CORS do bucket com o domínio de produção (`midia-e-video.md`).
