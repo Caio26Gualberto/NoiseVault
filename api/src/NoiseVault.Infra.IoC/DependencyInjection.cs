@@ -191,6 +191,8 @@ namespace NoiseVault.Infra.IoC
             services.AddScoped<IUserAppService, UserAppService>();
             services.AddScoped<IAuditLogAppService, AuditLogAppService>();
             services.AddScoped<SeedData>();
+            services.AddScoped<DevSeedMedia>();
+            services.AddScoped<DevSeed>();
 
             // Bandas
             services.AddScoped<IBandAppService, BandAppService>();

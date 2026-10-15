@@ -35,6 +35,7 @@ As **decisões** — o porquê de cada regra — vivem em `.claude/rules/`, um a
 | `.claude/rules/jobs-hangfire.md` | filas, Wrapper + Trigger, jobs enfileirados com linha de status |
 | `.claude/rules/observabilidade.md` | as quatro categorias de falha, `UNHANDLED_EXCEPTION`/`REQUEST_FAILED`/`RATE_LIMIT_REJECTED`, cadeia de exceções |
 | `.claude/rules/abuso-e-limites.md` | rate limit por IP/conta e limites de volume por regra de negócio |
+| `.claude/rules/seed-de-desenvolvimento.md` | `DevSeed` (só Development, `Seed:DevData`): contas, bandas, feed, eventos, mural, Ensaio, suporte e notificações de exemplo; mídia real de thrash do Wikimedia Commons em `%LOCALAPPDATA%\NoiseVault\seed-media` (script `scripts/baixar-midia-seed.ps1`) com chave `seed-`, reenviada ao LocalStack a cada boot |
 
 **Rule nova entra nesta tabela no mesmo commit.** Rule fora do índice é rule que ninguém lê ao planejar.
 
@@ -170,6 +171,7 @@ Arquivo de referência: `src/NoiseVault.Application/Auth/AuthAppService.cs` (e `
 | Colação case-insensitive de e-mail | só Postgres (`Database.IsNpgsql()` no `OnModelCreating`); SQL Server já é CI por default |
 | `timestamp with time zone` vs `datetime2` | EF mapeia sozinho; o código sempre grava `DateTime.UtcNow` |
 | `ExecuteUpdateAsync`, `text[]`, `RETURNING` | evite `PrimitiveCollection` e SQL cru; se precisar, isole no repositório específico e trate os dois providers |
+| Query com mais de uma coleção no `Include` | `DatabaseProvider.Configure` liga `UseQuerySplittingBehavior(SplitQuery)` nos dois providers: uma consulta por coleção em vez do produto cartesiano (a ficha do Ensaio carrega instrumentos, gêneros, disponibilidade e links de uma vez). Sem isso o EF avisa `MultipleCollectionIncludeWarning` a cada compilação de query. Leitura que precise de instantâneo único (raro) pede `AsSingleQuery()` na própria consulta |
 
 🔴 **Migration é gerada por provider.** Trocar o provider depois da primeira migration exige regerar a pasta `Migrations/` do zero. Um projeto escolhe o banco no dia 1.
 
@@ -333,7 +335,7 @@ Uma rule que contradiz este arquivo está dizendo que aquele domínio é exceç�
 Sem projeto de teste: verificação é por execução real.
 
 1. `dotnet build` limpo.
-2. Subir a API (`ASPNETCORE_ENVIRONMENT=Development`; `Database:MigrateOnStartup` aplica a migration e o seed cria `caiogualbertodev@outlook.com` com `Seed:AdminPassword`).
+2. Subir a API (`ASPNETCORE_ENVIRONMENT=Development`; `Database:MigrateOnStartup` aplica a migration e o seed cria `caiogualbertodev@outlook.com` com `Seed:AdminPassword`; com `Seed:DevData` o `DevSeed` enche o banco com o conjunto de exemplo e reenvia a mídia que o LocalStack perdeu — `seed-de-desenvolvimento.md`).
 3. Seguir o `## Roteiro de verificação` da rule do domínio, com resultado esperado por passo (codes, status HTTP, linha de log).
 4. Para 500: conferir a linha `UNHANDLED_EXCEPTION`/`REQUEST_FAILED` com `Action`, `user=`, `caused-by=` e o `X-Trace-Id` na resposta.
 

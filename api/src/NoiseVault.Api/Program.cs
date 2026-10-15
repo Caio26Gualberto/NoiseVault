@@ -146,6 +146,12 @@ using (var scope = app.Services.CreateScope())
 
     var seeder = scope.ServiceProvider.GetRequiredService<SeedData>();
     await seeder.SeedAsync(includeAdminAccount: !app.Environment.IsProduction());
+
+    if (app.Environment.IsDevelopment() && app.Configuration.GetValue<bool>("Seed:DevData"))
+    {
+        var devSeed = scope.ServiceProvider.GetRequiredService<DevSeed>();
+        await devSeed.SeedAsync();
+    }
 }
 
 app.UseCors(CorsPolicy);

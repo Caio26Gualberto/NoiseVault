@@ -38,10 +38,12 @@ namespace NoiseVault.Infra.Data.Context
             return Resolve(configuration) switch
             {
                 EDatabaseProvider.SqlServer => builder.UseSqlServer(connectionString, b =>
-                    b.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName)),
+                    b.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName)
+                        .UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)),
 
                 _ => builder.UseNpgsql(connectionString, b =>
-                    b.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName)),
+                    b.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName)
+                        .UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)),
             };
         }
 

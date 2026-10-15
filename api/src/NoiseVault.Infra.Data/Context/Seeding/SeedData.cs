@@ -12,7 +12,7 @@ namespace NoiseVault.Infra.Data.Context.Seeding
 {
     public class SeedData
     {
-        private const string AdminEmail = "caiogualbertodev@outlook.com";
+        public const string AdminEmail = "caiogualbertodev@outlook.com";
         private const string AdminName = "Admin";
         private const string AdminNickname = "admin";
         private const string DefaultAdminPassword = "12341234";
