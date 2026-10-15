@@ -9,5 +9,6 @@ namespace NoiseVault.Application.Interfaces
         Task<bool> SendPasswordResetAsync(PasswordResetEmailDto email);
         Task<bool> SendUserInviteEmail(string email, string name, string roleName, string temporaryPassword);
         Task<bool> SendBandInviteAsync(BandInviteEmailDto email);
+        Task<bool> SendBandVerificationRequestedAsync(BandVerificationEmailDto email);
     }
 }

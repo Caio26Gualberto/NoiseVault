@@ -26,6 +26,7 @@ namespace NoiseVault.Infra.Data.Context
         public DbSet<BandGenre> BandGenres => Set<BandGenre>();
         public DbSet<BandMember> BandMembers => Set<BandMember>();
         public DbSet<BandInvitation> BandInvitations => Set<BandInvitation>();
+        public DbSet<BandVerificationRequest> BandVerificationRequests => Set<BandVerificationRequest>();
         public DbSet<MediaUpload> MediaUploads => Set<MediaUpload>();
         public DbSet<Post> Posts => Set<Post>();
         public DbSet<PostMedia> PostMedia => Set<PostMedia>();
@@ -228,6 +229,37 @@ namespace NoiseVault.Infra.Data.Context
                     .HasFilter(DatabaseProvider.ValueIndexFilter(this, nameof(BandInvitation.Status), (int)EBandInvitationStatus.Pending));
 
                 b.HasIndex(x => new { x.InvitedUserId, x.Status });
+            });
+
+            builder.Entity<BandVerificationRequest>(b =>
+            {
+                b.ToTable("BandVerificationRequests");
+                b.HasKey(x => x.Id);
+
+                b.Property(x => x.Message).IsRequired().HasMaxLength(1000);
+                b.Property(x => x.ContactPhone).HasMaxLength(30);
+                b.Property(x => x.RejectionReason).HasMaxLength(500);
+
+                b.HasOne(x => x.Band)
+                    .WithMany()
+                    .HasForeignKey(x => x.BandId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasOne(x => x.RequestedBy)
+                    .WithMany()
+                    .HasForeignKey(x => x.RequestedByUserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasOne(x => x.ReviewedBy)
+                    .WithMany()
+                    .HasForeignKey(x => x.ReviewedByUserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasIndex(x => x.BandId)
+                    .IsUnique()
+                    .HasFilter(DatabaseProvider.ValueIndexFilter(this, nameof(BandVerificationRequest.Status), (int)EBandVerificationStatus.Pending));
+
+                b.HasIndex(x => new { x.Status, x.CreatedAt });
             });
 
             builder.Entity<MediaUpload>(b =>

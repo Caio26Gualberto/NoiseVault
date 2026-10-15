@@ -289,6 +289,28 @@ namespace NoiseVault.Infra.Data.Context.Seeding
 
             await _context.SaveChangesAsync(cancellationToken);
 
+            var verificationPogo = Backdate(new BandVerificationRequest
+            {
+                BandId = pogo.Id,
+                RequestedByUserId = marina.Id,
+                Message = "Sou a Marina, vocal e guitarra da Pogo Mortal desde 2015. O Instagram da banda está no perfil e posto lá toda semana; posso mandar foto do ensaio com a data que vocês pedirem.",
+                ContactPhone = "(11) 99876-5432",
+                Status = EBandVerificationStatus.Pending,
+            }, now.AddHours(-26));
+            var verificationVulto = Backdate(new BandVerificationRequest
+            {
+                BandId = vulto.Id,
+                RequestedByUserId = denis.Id,
+                Message = "Dênis aqui, baixo e voz da Vulto. Banda nova, de 2021, o canal do YouTube é nosso e tem o ensaio gravado na sala.",
+                Status = EBandVerificationStatus.Rejected,
+                ReviewedByUserId = admin.Id,
+                ReviewedAt = now.AddDays(-6),
+                RejectionReason = "O canal do YouTube não tem nenhum vídeo com a banda tocando. Sobe um ensaio ou um show e pede de novo.",
+            }, now.AddDays(-9));
+
+            _context.BandVerificationRequests.AddRange(verificationPogo, verificationVulto);
+            await _context.SaveChangesAsync(cancellationToken);
+
             var ticketPhoto = NewTicket(paty, "Foto não abre no celular", "Quando toco na foto do post do admin no celular, ela abre em branco e fica só o fundo escuro. No computador funciona normal. Android 14, Chrome atualizado.",
                 ESupportTicketStatus.Open, ESupportTicketPriority.Normal, [ESupportTag.Bug, ESupportTag.Mobile], [ESupportArea.Feed], "/feed",
                 "Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Mobile Safari/537.36", 412, 915, now.AddDays(-1), null, [supportPhoto]);
@@ -319,6 +341,8 @@ namespace NoiseVault.Infra.Data.Context.Seeding
                 NewNotification(admin, ENotificationKind.BandOpeningInterest, jorge, now.AddHours(-30), bandId: ferrugem.Id, bandOpeningId: openingFerrugem.Id),
                 NewNotification(admin, ENotificationKind.ArchiveSubmissionReceived, paty, now.AddDays(-1), archiveEntryId: entryPending.Id),
                 NewNotification(admin, ENotificationKind.SupportTicketCreated, paty, now.AddDays(-1), supportTicketId: ticketPhoto.Id),
+                NewNotification(admin, ENotificationKind.BandVerificationRequested, marina, now.AddHours(-26), bandId: pogo.Id),
+                NewNotification(denis, ENotificationKind.BandVerificationRejected, admin, now.AddDays(-6), bandId: vulto.Id, readAt: now.AddDays(-5)),
                 NewNotification(admin, ENotificationKind.PostCommented, lucia, now.AddHours(-20), postId: postRehearsalVideo.Id),
                 NewNotification(jorge, ENotificationKind.BandInvite, admin, now.AddDays(-2), bandId: ferrugem.Id, bandInvitationId: inviteJorge.Id),
                 NewNotification(jorge, ENotificationKind.ArchiveSubmissionRejected, admin, now.AddDays(-2), archiveEntryId: entryRejected.Id),

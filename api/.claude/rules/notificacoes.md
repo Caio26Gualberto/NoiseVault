@@ -58,6 +58,8 @@ Por que é assim:
 | `BandMentionedInPost` 25 · `BandMentionedInComment` 26 | os Owners da banda mencionada, com `BandId` | não | idem |
 | `PhotoTagged` 27 | a pessoa marcada numa foto | não | `PhotoTagAppService.Add` |
 | `BandOpeningInterest` 28 | os Owners da banda, quando alguém mostra interesse numa vaga (`ensaio.md`) | não | `BandOpeningAppService.ExpressInterest` |
+| `BandVerificationRequested` 29 | quem tem `Bands.Verifications.View` (menos quem pediu), com `BandId`; mais o e-mail para `Email:VerificationInbox` por job | não | `BandVerificationAppService.Request` |
+| `BandVerificationApproved` 30 · `BandVerificationRejected` 31 · `BandVerificationRevoked` 32 | os Owners da banda, com `BandId` (`bandas.md`) | não | `Approve` / `Reject` / `Unverify` |
 
 **Regras gerais:**
 - **Ninguém é notificado da própria ação**: o `NotifyMany` tira o ator da lista.

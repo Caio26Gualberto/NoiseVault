@@ -31,5 +31,9 @@ namespace NoiseVault.Domain.Enums.Notifications
         BandMentionedInComment = 26,
         PhotoTagged = 27,
         BandOpeningInterest = 28,
+        BandVerificationRequested = 29,
+        BandVerificationApproved = 30,
+        BandVerificationRejected = 31,
+        BandVerificationRevoked = 32,
     }
 }

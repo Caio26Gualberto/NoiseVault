@@ -138,6 +138,42 @@ namespace NoiseVault.Infra.Data.Email
                 text.ToString());
         }
 
+        public Task<bool> SendBandVerificationRequestedAsync(BandVerificationEmailDto email)
+        {
+            if (string.IsNullOrWhiteSpace(_settings.VerificationInboxAddress))
+                return Task.FromResult(false);
+
+            var bandUrl = $"{_settings.FrontendBaseUrl}/bandas/{Uri.EscapeDataString(email.BandSlug)}";
+            var queueUrl = $"{_settings.FrontendBaseUrl}/admin/bandas";
+            var intro = $"{email.RequestedByName} (@{email.RequestedByNickname}) pediu a verificação da banda {email.BandName}.";
+            var contact = string.IsNullOrWhiteSpace(email.ContactPhone) ? "Sem telefone de contato." : $"Contato: {email.ContactPhone}.";
+
+            var html = new StringBuilder()
+                .Append(Paragraph(Encode(intro)))
+                .Append(Paragraph(Encode(email.Message).Replace("\n", "<br />")))
+                .Append(Meta(contact))
+                .Append(Button("Abrir a fila de verificação", queueUrl))
+                .Append(Meta($"Página da banda: {bandUrl}"));
+
+            var text = new StringBuilder()
+                .AppendLine("Pedido de verificação de banda")
+                .AppendLine()
+                .AppendLine(intro)
+                .AppendLine()
+                .AppendLine(email.Message)
+                .AppendLine()
+                .AppendLine(contact)
+                .AppendLine()
+                .AppendLine($"Fila de verificação: {queueUrl}")
+                .AppendLine($"Página da banda: {bandUrl}");
+
+            return _sender.SendAsync(
+                _settings.VerificationInboxAddress,
+                "Novo pedido de verificação de banda - Noise Vault",
+                Layout("Bandas", "Pedido de verificação", html.ToString(), intro, AutomaticFooter()),
+                text.ToString());
+        }
+
         private static string AutomaticFooter() =>
             "Mensagem automática do Noise Vault, a comunidade de metal e rock do ABC. Não responda.";
 

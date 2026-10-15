@@ -17,11 +17,13 @@ namespace NoiseVault.Api.Controllers
 
         private readonly IBandAppService _bandAppService;
         private readonly IBandInvitationAppService _invitationAppService;
+        private readonly IBandVerificationAppService _verificationAppService;
 
-        public BandsController(IBandAppService bandAppService, IBandInvitationAppService invitationAppService)
+        public BandsController(IBandAppService bandAppService, IBandInvitationAppService invitationAppService, IBandVerificationAppService verificationAppService)
         {
             _bandAppService = bandAppService;
             _invitationAppService = invitationAppService;
+            _verificationAppService = verificationAppService;
         }
 
         [EnableRateLimiting(ApiRateLimitPolicies.BandCreate)]
@@ -153,6 +155,14 @@ namespace NoiseVault.Api.Controllers
         public async Task<ActionResult> Leave(string slug)
         {
             var result = await _bandAppService.Leave(slug);
+            return ToResponse(result);
+        }
+
+        [EnableRateLimiting(ApiRateLimitPolicies.BandVerification)]
+        [HttpPost("{slug}/verification")]
+        public async Task<ActionResult> RequestVerification(string slug, [FromBody] BandVerificationRequestInputDto input)
+        {
+            var result = await _verificationAppService.Request(slug, input);
             return ToResponse(result);
         }
     }

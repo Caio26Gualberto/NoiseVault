@@ -39,7 +39,7 @@ As **decisões** — o porquê de cada regra — vivem em `.claude/rules/`, um a
 
 **Rule nova entra nesta tabela no mesmo commit.** Rule fora do índice é rule que ninguém lê ao planejar.
 
-O que é do negócio nasce em rules novas. `User`, auth, permissões, jobs e logging não são negócio: são o esqueleto, herdado do boilerplate. `Controllers/Admin/`, `Users/` e `Authorizations/` ficam porque o painel de administração (papéis, verificação de banda) o mural das antigas (`Controllers/Admin/ArchiveAdminController.cs`) e a caixa de entrada de suporte (`Controllers/Admin/SupportAdminController.cs`) usam essa superfície.
+O que é do negócio nasce em rules novas. `User`, auth, permissões, jobs e logging não são negócio: são o esqueleto, herdado do boilerplate. `Controllers/Admin/`, `Users/` e `Authorizations/` ficam porque o painel de administração (papéis, verificação de banda) o mural das antigas (`Controllers/Admin/ArchiveAdminController.cs`), a caixa de entrada de suporte (`Controllers/Admin/SupportAdminController.cs`) e a fila de verificação de bandas (`Controllers/Admin/BandsAdminController.cs`) usam essa superfície.
 
 ## Stack e projetos
 

@@ -15,6 +15,7 @@ using NoiseVault.Infra.Data.Repositories.BandInvitations;
 using NoiseVault.Application.Archive;
 using NoiseVault.Application.Archive.Interfaces;
 using NoiseVault.Infra.Data.Repositories.Archive;
+using NoiseVault.Infra.Data.Repositories.BandVerifications;
 using NoiseVault.Application.Notifications;
 using NoiseVault.Application.Notifications.Interfaces;
 using NoiseVault.Infra.Data.Repositories.Notifications;
@@ -197,6 +198,7 @@ namespace NoiseVault.Infra.IoC
             // Bandas
             services.AddScoped<IBandAppService, BandAppService>();
             services.AddScoped<IBandInvitationAppService, BandInvitationAppService>();
+            services.AddScoped<IBandVerificationAppService, BandVerificationAppService>();
 
             // Ensaio
             services.AddScoped<IMusicianAppService, MusicianAppService>();
@@ -264,6 +266,7 @@ namespace NoiseVault.Infra.IoC
             services.AddScoped<IPostRepository, PostRepository>();
             services.AddScoped<IEventRepository, EventRepository>();
             services.AddScoped<IArchiveRepository, ArchiveRepository>();
+            services.AddScoped<IBandVerificationRepository, BandVerificationRepository>();
             services.AddScoped<IPhotoTagRepository, PhotoTagRepository>();
             services.AddScoped<INotificationRepository, NotificationRepository>();
             services.AddScoped<ISupportTicketRepository, SupportTicketRepository>();

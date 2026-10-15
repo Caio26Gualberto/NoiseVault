@@ -22,6 +22,12 @@ namespace NoiseVault.Domain.Constants
             public const string AuditView = "Authorization.Audit.View";
         }
 
+        public static class Bands
+        {
+            public const string VerificationsView = "Bands.Verifications.View";
+            public const string Verify = "Bands.Verify";
+        }
+
         public static class Archive
         {
             public const string Create = "Archive.Create";

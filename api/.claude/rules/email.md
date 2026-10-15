@@ -7,7 +7,7 @@ paths:
 
 # Decisões — E-mail
 
-Hoje o produto manda quatro e-mails: **confirmação de cadastro**, **redefinição de senha**, **convite para a equipe** e **convite de banda** (`SendBandInviteAsync`, módulo 6). Todos são transacionais, um destinatário, um botão. O convite de banda é o único aviso da comunidade que vai por e-mail, por decisão do usuário: é o único em que alguém precisa agir. Sai por job na fila `notifications`, respeita `User.EmailOnBandInvite` e tem assunto sem nome ("Você recebeu um convite de banda") (`notificacoes.md`).
+Hoje o produto manda cinco e-mails: **confirmação de cadastro**, **redefinição de senha**, **convite para a equipe**, **convite de banda** (`SendBandInviteAsync`, módulo 6) e o **pedido de verificação de banda** (`SendBandVerificationRequestedAsync`, 15/10/2026), que vai para a equipe, não para a comunidade: o destinatário é `Email:VerificationInbox` (no `appsettings.json`, porque é a caixa do projeto, não segredo), com a mensagem e o telefone de quem pediu e os links da fila e da banda; sem o endereço configurado o serviço devolve `false` e o job registra `BAND_VERIFICATION_EMAIL_FAILED`. Todos são transacionais, um destinatário, um botão. O convite de banda é o único aviso da comunidade que vai por e-mail, por decisão do usuário: é o único em que alguém precisa agir. Sai por job na fila `notifications`, respeita `User.EmailOnBandInvite` e tem assunto sem nome ("Você recebeu um convite de banda") (`notificacoes.md`).
 
 ## Duas camadas: o que dizer e como mandar
 

@@ -20,5 +20,8 @@ namespace NoiseVault.Workers.Dispatch
 
         public string EnqueueBandInviteEmail(int invitationId) =>
             BackgroundJob.Enqueue<NotificationsEnqueuedJobsTrigger>(t => t.SendBandInviteEmailAsync(invitationId));
+
+        public string EnqueueBandVerificationEmail(int requestId) =>
+            BackgroundJob.Enqueue<NotificationsEnqueuedJobsTrigger>(t => t.SendBandVerificationEmailAsync(requestId));
     }
 }

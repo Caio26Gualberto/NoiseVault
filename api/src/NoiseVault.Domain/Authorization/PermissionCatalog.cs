@@ -11,6 +11,7 @@ namespace NoiseVault.Domain.Authorization
             public const string System = "System";
             public const string Archive = "Archive";
             public const string Support = "Support";
+            public const string Bands = "Bands";
         }
 
         public static readonly IReadOnlyList<PermissionGroupDefinition> GroupDefinitions = new List<PermissionGroupDefinition>
@@ -20,6 +21,7 @@ namespace NoiseVault.Domain.Authorization
             new(Groups.System, "Sistema"),
             new(Groups.Archive, "Mural das antigas"),
             new(Groups.Support, "Suporte"),
+            new(Groups.Bands, "Bandas"),
         };
 
         public static readonly IReadOnlyList<PermissionDefinition> All = new List<PermissionDefinition>
@@ -47,6 +49,9 @@ namespace NoiseVault.Domain.Authorization
             new(Permissions.Support.View, "Ver relatos de suporte", "Permite ver a caixa de entrada de suporte, os relatos, as conversas e a nota interna.", Groups.Support),
             new(Permissions.Support.Edit, "Triar relatos de suporte", "Permite mudar status, prioridade e nota interna de qualquer relato.", Groups.Support, Permissions.Support.View),
             new(Permissions.Support.Reply, "Responder relatos de suporte", "Permite responder como equipe na conversa de um relato.", Groups.Support, Permissions.Support.View),
+
+            new(Permissions.Bands.VerificationsView, "Ver pedidos de verificação de banda", "Permite ver a fila de pedidos de verificação, com a mensagem e o contato de quem pediu.", Groups.Bands),
+            new(Permissions.Bands.Verify, "Decidir a verificação de banda", "Permite aprovar ou recusar um pedido e tirar o selo de uma banda verificada.", Groups.Bands, Permissions.Bands.VerificationsView),
 
             new(Permissions.System.JobsView, "Ver jobs", "Permite visualizar os jobs em execução.", Groups.System),
             new(Permissions.System.JobsManage, "Gerenciar jobs", "Permite disparar jobs manualmente.", Groups.System, Permissions.System.JobsView),

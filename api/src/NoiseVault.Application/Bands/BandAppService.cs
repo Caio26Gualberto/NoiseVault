@@ -27,6 +27,7 @@ namespace NoiseVault.Application.Bands
     {
         private readonly IRepository<Band> _bandRepository;
         private readonly IRepository<BandMember> _memberRepository;
+        private readonly IRepository<BandVerificationRequest> _verificationRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUser _currentUser;
         private readonly IFileStorage _fileStorage;
@@ -40,6 +41,7 @@ namespace NoiseVault.Application.Bands
         public BandAppService(
             IRepository<Band> bandRepository,
             IRepository<BandMember> memberRepository,
+            IRepository<BandVerificationRequest> verificationRepository,
             IUnitOfWork unitOfWork,
             ICurrentUser currentUser,
             IFileStorage fileStorage,
@@ -54,6 +56,7 @@ namespace NoiseVault.Application.Bands
             _postRepository = postRepository;
             _bandRepository = bandRepository;
             _memberRepository = memberRepository;
+            _verificationRepository = verificationRepository;
             _unitOfWork = unitOfWork;
             _currentUser = currentUser;
             _fileStorage = fileStorage;
@@ -76,6 +79,9 @@ namespace NoiseVault.Application.Bands
 
             if (instrument is { Length: > ProfileRules.InstrumentMaxLength })
                 return Fail("INVALID_INSTRUMENT", $"Instrument must have at most {ProfileRules.InstrumentMaxLength} characters");
+
+            if (await VerifiedNameTakenAsync(data!.Name, null))
+                return Result<BandProfileDto>.Fail(VerifiedNameTaken());
 
             var me = _currentUser.UserId;
 
@@ -141,6 +147,9 @@ namespace NoiseVault.Application.Bands
 
             if (band == null)
                 return Result<BandProfileDto>.Fail(await DeniedAsync(slug));
+
+            if (!band.IsVerified && await VerifiedNameTakenAsync(data!.Name, band.Id))
+                return Result<BandProfileDto>.Fail(VerifiedNameTaken());
 
             Apply(band, data!);
             await _bandRepository.UpdateAsync(band);
@@ -560,6 +569,39 @@ namespace NoiseVault.Application.Bands
         private async Task<bool> SlugTakenAsync(string slug) =>
             await _bandRepository.CountAsync(new QueryOptions<Band> { Predicate = b => b.Slug == slug, IncludeDeleted = true }) > 0;
 
+        private async Task<bool> VerifiedNameTakenAsync(string name, int? exceptBandId)
+        {
+            var normalized = name.ToLowerInvariant();
+
+            return await _bandRepository.CountAsync(new QueryOptions<Band>
+            {
+                Predicate = b => b.IsVerified && b.Id != exceptBandId && b.Name.ToLower() == normalized,
+            }) > 0;
+        }
+
+        private static Error VerifiedNameTaken() =>
+            new("BAND_NAME_RESERVED", "A verified band already uses this name", ErrorType.Conflict);
+
+        private async Task<BandVerificationStateDto?> VerificationStateAsync(int bandId)
+        {
+            var latest = await _verificationRepository.FirstOrDefaultAsync(new QueryOptions<BandVerificationRequest>
+            {
+                Predicate = r => r.BandId == bandId,
+                OrderBy = q => q.OrderByDescending(r => r.CreatedAt).ThenByDescending(r => r.Id),
+                AsNoTracking = true,
+            });
+
+            return latest == null
+                ? null
+                : new BandVerificationStateDto
+                {
+                    Status = latest.Status,
+                    RequestedAt = latest.CreatedAt,
+                    ReviewedAt = latest.ReviewedAt,
+                    RejectionReason = latest.Status == EBandVerificationStatus.Rejected ? latest.RejectionReason : null,
+                };
+        }
+
         private sealed record ValidBand(
             string Name,
             string? Description,
@@ -670,6 +712,7 @@ namespace NoiseVault.Application.Bands
                     JoinedAt = m.JoinedAt,
                 }).ToList(),
                 MyRole = members.FirstOrDefault(m => m.UserId == me)?.Role,
+                Verification = members.Any(m => m.UserId == me && m.Role == EBandMemberRole.Owner) ? await VerificationStateAsync(band.Id) : null,
                 PostCount = await _postRepository.CountPublishedByBandAsync(band.Id),
                 UpcomingEventCount = await _eventRepository.CountUpcomingByBandAsync(band.Id, DateTime.UtcNow),
             };

@@ -10,6 +10,7 @@ namespace NoiseVault.Infra.Data.Email
         public string FromAddress { get; init; } = string.Empty;
         public string FromName { get; init; } = string.Empty;
         public string FrontendBaseUrl { get; init; } = string.Empty;
+        public string VerificationInboxAddress { get; init; } = string.Empty;
         public string SmtpHost { get; init; } = string.Empty;
         public int SmtpPort { get; init; }
         public bool SmtpUseStartTls { get; init; }
@@ -24,6 +25,7 @@ namespace NoiseVault.Infra.Data.Email
             FromAddress = config["Email:From:Address"] ?? "nao-responda@noisevault.local",
             FromName = config["Email:From:Name"] ?? "Noise Vault",
             FrontendBaseUrl = (config["Frontend:BaseUrl"] ?? string.Empty).TrimEnd('/'),
+            VerificationInboxAddress = config["Email:VerificationInbox"] ?? string.Empty,
             SmtpHost = config["Email:Smtp:Host"] ?? string.Empty,
             SmtpPort = int.TryParse(config["Email:Smtp:Port"], out var port) ? port : 587,
             SmtpUseStartTls = !string.Equals(config["Email:Smtp:UseStartTls"], "false", StringComparison.OrdinalIgnoreCase),
