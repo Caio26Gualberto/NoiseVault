@@ -10,6 +10,7 @@ namespace NoiseVault.Application.Musicians
         public const int MaxSampleLinks = 4;
         public const int SampleLinkMaxLength = 300;
         public const int CardGenres = 2;
+        public const int DefaultReachKm = 25;
 
         private static readonly string[] SampleHosts =
         [

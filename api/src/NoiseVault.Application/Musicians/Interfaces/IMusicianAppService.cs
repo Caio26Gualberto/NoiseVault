@@ -1,4 +1,5 @@
 using NoiseVault.Application.Common.Media;
+using NoiseVault.Application.Geo;
 using NoiseVault.Application.Musicians.Dtos;
 using NoiseVault.Application.Pagination;
 using NoiseVault.Application.Response;
@@ -18,5 +19,6 @@ namespace NoiseVault.Application.Musicians.Interfaces
         Task<bool> IsLooking(int userId);
         Task<bool> HasProfile(int userId);
         Task<Dictionary<int, MusicianCardDto>> CardsByUserIds(IReadOnlyCollection<int> userIds);
+        Task<GeoPoint?> ResolveOrigin(int? nearCityId);
     }
 }

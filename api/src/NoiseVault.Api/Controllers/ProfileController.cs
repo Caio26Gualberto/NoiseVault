@@ -72,6 +72,21 @@ namespace NoiseVault.Api.Controllers
             return ToResponse(result);
         }
 
+        [EnableRateLimiting(ApiRateLimitPolicies.LocationUpdate)]
+        [HttpPut("location")]
+        public async Task<ActionResult> SetApproxLocation([FromBody] ApproxLocationInputDto input)
+        {
+            var result = await _profileAppService.SetApproxLocation(input);
+            return ToResponse(result);
+        }
+
+        [HttpDelete("location")]
+        public async Task<ActionResult> ClearApproxLocation()
+        {
+            var result = await _profileAppService.ClearApproxLocation();
+            return ToResponse(result);
+        }
+
         [HttpPut("notification-settings")]
         public async Task<ActionResult> UpdateNotificationSettings([FromBody] NotificationSettingsInputDto input)
         {

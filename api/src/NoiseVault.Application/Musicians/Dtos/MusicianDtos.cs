@@ -31,7 +31,7 @@ namespace NoiseVault.Application.Musicians.Dtos
         public DateTime? LookingSince { get; set; }
         public EMusicianGoal Goal { get; set; }
         public EMusicianCommitment Commitment { get; set; }
-        public EReach Reach { get; set; }
+        public int? ReachKm { get; set; }
         public bool HasGear { get; set; }
         public bool HasTransport { get; set; }
         public bool HasRehearsalSpace { get; set; }
@@ -40,6 +40,7 @@ namespace NoiseVault.Application.Musicians.Dtos
         public List<EMusicGenre> Genres { get; set; } = [];
         public List<AvailabilitySlotDto> Availability { get; set; } = [];
         public List<string> SampleLinks { get; set; } = [];
+        public int? DistanceKm { get; set; }
     }
 
     public class MusicianCardDto
@@ -52,6 +53,7 @@ namespace NoiseVault.Application.Musicians.Dtos
         public List<EMusicGenre> Genres { get; set; } = [];
         public bool HasSamples { get; set; }
         public DateTime? LookingSince { get; set; }
+        public int? DistanceKm { get; set; }
     }
 
     public class MusicianInputDto
@@ -59,7 +61,7 @@ namespace NoiseVault.Application.Musicians.Dtos
         public bool IsLookingForBand { get; set; }
         public EMusicianGoal Goal { get; set; }
         public EMusicianCommitment Commitment { get; set; }
-        public EReach Reach { get; set; }
+        public int? ReachKm { get; set; }
         public bool HasGear { get; set; }
         public bool HasTransport { get; set; }
         public bool HasRehearsalSpace { get; set; }
@@ -78,8 +80,8 @@ namespace NoiseVault.Application.Musicians.Dtos
     public class MusicianSearchQueryDto : PagedRequestDto
     {
         public EInstrument? Instrument { get; set; }
-        public int? CityId { get; set; }
-        public bool? Abc { get; set; }
+        public int? MaxKm { get; set; }
+        public int? NearCityId { get; set; }
         public EMusicGenre? Genre { get; set; }
         public bool? WithSamples { get; set; }
     }

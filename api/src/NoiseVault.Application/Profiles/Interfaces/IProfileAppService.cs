@@ -14,5 +14,7 @@ namespace NoiseVault.Application.Profiles.Interfaces
         Task<Result<ProfileDto>> SetBannerPosition(BannerPositionInputDto input);
         Task<Result<ProfileDto>> RemoveBanner();
         Task<Result<ProfileDto>> UpdateNotificationSettings(NotificationSettingsInputDto input);
+        Task<Result<ProfileDto>> SetApproxLocation(ApproxLocationInputDto input);
+        Task<Result<ProfileDto>> ClearApproxLocation();
     }
 }

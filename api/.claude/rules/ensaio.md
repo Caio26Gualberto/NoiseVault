@@ -20,7 +20,7 @@ Escopo decidido pelo usuário em 14/10/2026: a ficha, a vitrine, as vagas e o in
 - **`MusicianProfile`** (`EntityBase`) é 1:1 com `User`, com índice único filtrado em `UserId`. `User` continua sendo a pessoa (`dominio.md`); a ficha só acrescenta o que interessa para tocar junto. Campos:
   - `IsLookingForBand` e `LookingSince`;
   - `Goal` (autoral, cover, tanto faz) e `Commitment` (só ensaiar, tocar ao vivo, gravar);
-  - `Reach` (minha cidade, ABC, Grande SP, qualquer lugar);
+  - `ReachKm` (até onde a pessoa topa ir, de 1 a 500 km, ou nulo para "onde precisar"; ver "Distância");
   - `HasGear`, `HasTransport`, `HasRehearsalSpace`;
   - `Influences` (até 300).
   - `PhotoKey?`: a **foto do flyer**, uma foto da pessoa tocando ou de show, separada do avatar. Sem ela, o front usa o avatar do perfil.
@@ -67,9 +67,36 @@ Escopo decidido pelo usuário em 14/10/2026: a ficha, a vitrine, as vagas e o in
   - o `GET /api/openings/{id}` mostra a vaga em qualquer status, para o link do post e da notificação não quebrar.
 - **Filtros** (os mesmos na vitrine e nas vagas, paginados):
   - `instrument`;
-  - `cityId`, ou `abc=true` pelo `CityRules.AbcCityIds`. A cidade é a da pessoa na ficha e a da banda na vaga;
+  - `maxKm` e `nearCityId`, a distância (abaixo). Substituíram o `cityId` e o `abc=true` da primeira versão, por decisão do usuário em 15/10/2026 ("igual o Tinder, por quilometragem");
   - `genre`. É o da ficha na vitrine e o da banda na vaga;
   - `withSamples`, só na vitrine.
+
+## Distância, com a localização protegida
+
+Pedido do usuário em 15/10/2026: filtro por quilômetros, com a localização do navegador como opção, "com toda segurança possível".
+
+- **Pontos**:
+  - a pessoa é a localização aproximada dela (`User.ApproxLatitude`/`ApproxLongitude`) ou, sem ela, o centro da cidade do perfil;
+  - a banda é sempre o centro da cidade dela;
+  - quem não tem cidade brasileira nem localização fica fora quando há raio, e aparece em "qualquer distância", sem distância no card.
+- **Coordenadas das cidades**: `City.Latitude`/`Longitude`, de um snapshot próprio (`cidades.md`).
+- **Ponto de partida** (`IMusicianAppService.ResolveOrigin`): o centro de `nearCityId` quando vem; senão o ponto de quem está vendo. **Nunca um ponto arbitrário vindo do cliente**: aceitar "calcule a partir daqui" com coordenadas livres permitiria a trilateração (medir a mesma pessoa a partir de três pontos e achar onde ela está). O `nearCityId` só aceita centros de município.
+- **Filtro e ordem no banco**:
+  - o raio é uma conta equiretangular (`dx² + dy² <= maxKm²`, com o cosseno da latitude de partida calculado antes), que o EF traduz para SQL sem função trigonométrica por linha;
+  - com raio, a lista vem do mais perto para o mais longe; sem raio, a ordem é a de sempre;
+  - `maxKm` vai de 1 a 500 (`GeoRules.MaxSearchKm`).
+- **Mão dupla (só na vitrine)**: com raio, só aparece quem topa ir até o ponto de partida. A conta é a mesma, contra o `ReachKm` da ficha; quem tem `ReachKm` nulo vai a qualquer lugar. A própria ficha não é filtrada pela mão dupla.
+- **Distância exibida em faixas** (`GeoRules.Bucket`): 2, 5, 10, 15, 20, 25, 30, 40, 50, 75 e 100 km, e acima disso arredondada para os 50 mais próximos. O `distanceKm` do DTO já sai na faixa; a distância exata nunca sai da API. A conta é a haversine, em memória, só para a página.
+- **`ReachKm` substituiu o `Reach`** (minha cidade, ABC, Grande SP, onde precisar). A migration `AddDistance` converteu 0 → 10 km, 1 → 30, 2 → 60 e 3 → sem limite. Vale de 1 a 500 ou nulo (`INVALID_MUSICIAN_PREFERENCES`), e o padrão da ficha nova é 25.
+
+### A localização aproximada
+
+- `PUT /api/profile/location { latitude, longitude }` e `DELETE /api/profile/location`, no `ProfileAppService` (dono do `User`), devolvem o `ProfileDto` com `hasApproxLocation`. Codes: `APPROX_LOCATION_SAVED`, `APPROX_LOCATION_REMOVED` e `INVALID_LOCATION`.
+- **A coordenada exata nunca é gravada**: o servidor arredonda para a grade de 0,01° (`GeoRules.Snap`, cerca de 1,1 km). O front já manda arredondada, então a exata nem sai do aparelho; o arredondamento do servidor é a segunda trava.
+- **Nenhuma resposta devolve coordenada**, nem para o dono: só o `hasApproxLocation`. O perfil público não sabe que ela existe.
+- **Trocar de lugar tem limite**: `location-update`, 10 por dia por conta, contra quem tenta se mover para trilaterar.
+- **Log**: `APPROX_LOCATION_SAVED` só com o `user=`, nunca com a coordenada (`observabilidade.md`).
+- **Apagar** zera os três campos na hora, e a distância volta a contar pela cidade. A localização é dado pessoal (LGPD): é opt-in, explicada na tela e removível a qualquer momento.
 
 ## Post automático
 
@@ -106,13 +133,14 @@ Todos autenticados, em `Controllers/`.
 
 | Método e rota | Code de sucesso |
 |---|---|
-| `GET /api/musicians` (vitrine, paginada, `instrument`, `cityId`, `abc`, `genre`, `withSamples`) | `MUSICIANS_FOUND` |
+| `GET /api/musicians` (vitrine, paginada, `instrument`, `maxKm`, `nearCityId`, `genre`, `withSamples`) | `MUSICIANS_FOUND` |
 | `GET /api/musicians/me` | `MUSICIAN_PROFILE_FOUND` (com `exists`) |
 | `PUT /api/musicians/me` | `MUSICIAN_PROFILE_SAVED` |
 | `POST /api/musicians/me/looking { isLookingForBand }` | `MUSICIAN_LOOKING_CHANGED` |
 | `POST` / `DELETE /api/musicians/me/photo` | `MUSICIAN_PHOTO_UPDATED` / `MUSICIAN_PHOTO_REMOVED` |
+| `PUT` / `DELETE /api/profile/location` | `APPROX_LOCATION_SAVED` / `APPROX_LOCATION_REMOVED` |
 | `GET /api/musicians/{nickname}` | `MUSICIAN_PROFILE_FOUND` |
-| `GET /api/openings` (paginada, `instrument`, `cityId`, `abc`, `genre`) | `OPENINGS_FOUND` |
+| `GET /api/openings` (paginada, `instrument`, `maxKm`, `nearCityId`, `genre`) | `OPENINGS_FOUND` |
 | `GET /api/bands/{slug}/openings` | `OPENINGS_FOUND` |
 | `POST /api/bands/{slug}/openings { instrument, otherName?, description, goal? }` | `OPENING_CREATED` |
 | `GET /api/openings/{id}` | `OPENING_FOUND` |
@@ -144,6 +172,7 @@ O `BandOpeningDto` traz:
 |---|---|---|
 | `opening-create` | 10/h por conta | `POST /api/bands/{slug}/openings` |
 | `opening-interest` | 20/h por conta | `POST /api/openings/{id}/interest` |
+| `location-update` | 10/dia por conta | `PUT /api/profile/location` |
 | `band-invite` | 30/h, compartilhado com o convite | convidar a partir do interesse |
 | `user-search` | 60/min | a vitrine |
 
@@ -169,7 +198,7 @@ O script `ensaio-api.mjs` (scratchpad da sessão que criou o módulo, fora do re
    - Salvar → `MUSICIAN_PROFILE_SAVED`. Salvar de novo troca a disponibilidade e os gêneros.
 2. **Interruptor.**
    - Desligado: D toma 404 na ficha, e C fica fora da vitrine.
-   - Ligado: C aparece filtrando por baixo, `abc=true`, gênero e com gravação, mas não por bateria; o perfil traz `isLookingForBand`.
+   - Ligado: C aparece filtrando por baixo, gênero e com gravação, mas não por bateria; o perfil traz `isLookingForBand`.
 3. **Vaga.**
    - Erros: C abrindo → `BAND_FORBIDDEN`; descrição vazia → `INVALID_OPENING_DESCRIPTION`.
    - A abre → `OPENING_CREATED` com `canManage`, e o feed traz o post com `opening`.
@@ -183,3 +212,9 @@ O script `ensaio-api.mjs` (scratchpad da sessão que criou o módulo, fora do re
    - Fechar como preenchida → some da busca, e o post mostra o status.
    - Interesse ou renovação depois disso → `OPENING_NOT_OPEN`.
    - Apagar → a vaga, o post e a notificação somem.
+6. **Distância.** O script `distance-api.mjs` (mesmo scratchpad) passou nas 24 checagens em 15/10/2026, com três contas: quem vê em Santo André, uma em São Bernardo e uma em Campinas.
+   - O alcance aceita de 1 a 500.
+   - Até 25 km traz São Bernardo e não traz Campinas; até 200 km traz Campinas com `distanceKm: 100`, do mais perto para o mais longe.
+   - Com alcance de 1 km, São Bernardo some do raio de 25 km (mão dupla), mas aparece em "qualquer distância". Perto de Campinas até 25 km traz Campinas e não São Bernardo.
+   - Localização: latitude 120 → `INVALID_LOCATION`. Salvar não devolve coordenada, e o perfil público não a expõe. Apagar volta a contar pela cidade.
+   - A vaga de Campinas fica fora de 25 km e dentro de 200 km, com a distância também no detalhe.

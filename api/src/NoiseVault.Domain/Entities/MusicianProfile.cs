@@ -9,7 +9,7 @@ namespace NoiseVault.Domain.Entities
         public DateTime? LookingSince { get; set; }
         public EMusicianGoal Goal { get; set; }
         public EMusicianCommitment Commitment { get; set; }
-        public EReach Reach { get; set; }
+        public int? ReachKm { get; set; }
         public bool HasGear { get; set; }
         public bool HasTransport { get; set; }
         public bool HasRehearsalSpace { get; set; }

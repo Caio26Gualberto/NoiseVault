@@ -1,6 +1,7 @@
 using NoiseVault.Application.Cities.Dtos;
 using NoiseVault.Application.Pagination;
 using NoiseVault.Application.Response;
+using NoiseVault.Application.Geo;
 
 namespace NoiseVault.Application.Cities.Interfaces
 {
@@ -12,5 +13,6 @@ namespace NoiseVault.Application.Cities.Interfaces
 
         Task<CityResolution> Resolve(int? cityId, string? cityName, bool required);
         Task<CityDto?> Get(int? cityId);
+        Task<GeoPoint?> Coordinates(int cityId);
     }
 }

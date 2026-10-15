@@ -15,6 +15,7 @@ namespace NoiseVault.Application.Profiles.Dtos
         public string? BannerUrl { get; set; }
         public int BannerPosition { get; set; }
         public bool EmailOnBandInvite { get; set; }
+        public bool HasApproxLocation { get; set; }
         public string? Bio { get; set; }
         public CityDto? City { get; set; }
         public string? CityName { get; set; }

@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Context\Seeding\ibge-municipios.json" LogicalName="NoiseVault.Infra.Data.Context.Seeding.ibge-municipios.json" />
+    <EmbeddedResource Include="Context\Seeding\municipios-coordenadas.json" LogicalName="NoiseVault.Infra.Data.Context.Seeding.municipios-coordenadas.json" />
   </ItemGroup>
 
   <ItemGroup>

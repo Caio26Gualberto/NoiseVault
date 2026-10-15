@@ -8,6 +8,7 @@ using NoiseVault.Application.BandOpenings.Interfaces;
 using NoiseVault.Application.Bands.Dtos;
 using NoiseVault.Application.Bands.Interfaces;
 using NoiseVault.Application.Cities;
+using NoiseVault.Application.Geo;
 using NoiseVault.Application.Musicians;
 using NoiseVault.Application.Musicians.Dtos;
 using NoiseVault.Application.Musicians.Interfaces;
@@ -220,20 +221,34 @@ namespace NoiseVault.Application.BandOpenings
 
             var now = DateTime.UtcNow;
             var instrument = query.Instrument;
-            var cityId = query.CityId;
-            var abc = query.Abc == true;
-            var abcIds = CityRules.AbcCityIds;
             var genre = query.Genre;
+            var origin = await _musicianAppService.ResolveOrigin(query.NearCityId);
+
+            var byDistance = origin != null && query.MaxKm != null;
+            var oLat = origin?.Latitude ?? 0;
+            var oLon = origin?.Longitude ?? 0;
+            var ky = GeoRules.KmPerDegreeLatitude;
+            var kx = GeoRules.KmPerDegreeLongitude(oLat);
+            var maxKm = Math.Clamp(query.MaxKm ?? GeoRules.MaxSearchKm, 1, GeoRules.MaxSearchKm);
+            var max2 = (double)maxKm * maxKm;
+
+            Func<IQueryable<BandOpening>, IOrderedQueryable<BandOpening>>? orderBy = byDistance
+                ? q => q
+                    .OrderBy(o => (o.Band!.City!.Latitude - oLat) * ky * ((o.Band.City!.Latitude - oLat) * ky) + (o.Band.City!.Longitude - oLon) * kx * ((o.Band.City!.Longitude - oLon) * kx))
+                    .ThenByDescending(o => o.CreatedAt)
+                    .ThenByDescending(o => o.Id)
+                : null;
 
             return await PageAsync(
                 o => o.Status == EBandOpeningStatus.Open
                     && o.ExpiresAt > now
                     && !o.Band!.IsDeleted
                     && (instrument == null || o.Instrument == instrument)
-                    && (cityId == null || o.Band.CityId == cityId)
-                    && (!abc || (o.Band.CityId != null && abcIds.Contains(o.Band.CityId.Value)))
-                    && (genre == null || o.Band.Genres.Any(g => g.Genre == genre)),
-                query);
+                    && (genre == null || o.Band.Genres.Any(g => g.Genre == genre))
+                    && (!byDistance || (o.Band.City!.Latitude - oLat) * ky * ((o.Band.City!.Latitude - oLat) * ky) + (o.Band.City!.Longitude - oLon) * kx * ((o.Band.City!.Longitude - oLon) * kx) <= max2),
+                query,
+                origin,
+                orderBy);
         }
 
         public async Task<Result<PagedResultDto<BandOpeningDto>>> ListForBand(string slug, PagedRequestDto query)
@@ -410,13 +425,17 @@ namespace NoiseVault.Application.BandOpenings
             return Result<OpeningInterestDto>.Ok(MapInterest(interest, cards.GetValueOrDefault(interest.UserId) ?? new()), code, message);
         }
 
-        private async Task<Result<PagedResultDto<BandOpeningDto>>> PageAsync(Expression<Func<BandOpening, bool>> predicate, PagedRequestDto query)
+        private async Task<Result<PagedResultDto<BandOpeningDto>>> PageAsync(
+            Expression<Func<BandOpening, bool>> predicate,
+            PagedRequestDto query,
+            GeoPoint? origin = null,
+            Func<IQueryable<BandOpening>, IOrderedQueryable<BandOpening>>? orderBy = null)
         {
             var options = new QueryOptions<BandOpening>
             {
                 Predicate = predicate,
                 Includes = [o => o.Band!, o => o.Band!.City!, o => o.Band!.Members],
-                OrderBy = q => q.OrderByDescending(o => o.CreatedAt).ThenByDescending(o => o.Id),
+                OrderBy = orderBy ?? (q => q.OrderByDescending(o => o.CreatedAt).ThenByDescending(o => o.Id)),
                 Skip = query.Skip,
                 Take = query.PageSize,
                 AsNoTracking = true,
@@ -426,7 +445,7 @@ namespace NoiseVault.Application.BandOpenings
             var rows = await _openingRepository.ListAsync(options);
 
             return Result<PagedResultDto<BandOpeningDto>>.Ok(
-                PagedResultDto<BandOpeningDto>.Create(await MapAsync(rows), query.Page, query.PageSize, total),
+                PagedResultDto<BandOpeningDto>.Create(await MapAsync(rows, origin), query.Page, query.PageSize, total),
                 "OPENINGS_FOUND",
                 "Openings found");
         }
@@ -440,10 +459,10 @@ namespace NoiseVault.Application.BandOpenings
                 AsNoTracking = true,
             });
 
-            return (await MapAsync([row!]))[0];
+            return (await MapAsync([row!], await _musicianAppService.ResolveOrigin(null)))[0];
         }
 
-        private async Task<List<BandOpeningDto>> MapAsync(List<BandOpening> rows)
+        private async Task<List<BandOpeningDto>> MapAsync(List<BandOpening> rows, GeoPoint? origin)
         {
             if (rows.Count == 0)
                 return [];
@@ -483,6 +502,7 @@ namespace NoiseVault.Application.BandOpenings
                 CanManage = managed.Contains(r.Id),
                 MyInterest = mine.TryGetValue(r.Id, out var my) ? new OpeningMyInterestDto { Status = my.Status, Message = my.Message } : null,
                 InterestCount = managed.Contains(r.Id) ? pending.GetValueOrDefault(r.Id) : null,
+                DistanceKm = MusicianAppService.DistanceBucket(origin, CityAppService.Point(r.Band.City)),
             }).ToList();
         }
 

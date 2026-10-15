@@ -6,6 +6,7 @@ using NoiseVault.Application.Cities;
 using NoiseVault.Application.Cities.Interfaces;
 using NoiseVault.Application.Common.Media;
 using NoiseVault.Application.Interfaces;
+using NoiseVault.Application.Geo;
 using NoiseVault.Application.Profiles.Dtos;
 using NoiseVault.Application.Profiles.Interfaces;
 using NoiseVault.Application.Response;
@@ -166,6 +167,42 @@ namespace NoiseVault.Application.Profiles
             return Result<ProfileDto>.Ok(await MapAsync(user), "BANNER_POSITION_UPDATED", "Banner position updated");
         }
 
+        public async Task<Result<ProfileDto>> SetApproxLocation(ApproxLocationInputDto input)
+        {
+            if (!GeoRules.IsValid(input.Latitude, input.Longitude))
+                return Fail("INVALID_LOCATION", "Send a valid latitude and longitude");
+
+            var user = await FindCurrentAsync(tracked: true);
+
+            if (user == null)
+                return Result<ProfileDto>.Fail(UserNotFound());
+
+            var snapped = GeoRules.Snap(input.Latitude, input.Longitude);
+            user.ApproxLatitude = snapped.Latitude;
+            user.ApproxLongitude = snapped.Longitude;
+            user.ApproxLocationUpdatedAt = DateTime.UtcNow;
+            await _userRepository.UpdateAsync(user);
+
+            _logger.Info("APPROX_LOCATION_SAVED", "Approximate location saved", userId: user.Id);
+
+            return Result<ProfileDto>.Ok(await MapAsync(user), "APPROX_LOCATION_SAVED", "Approximate location saved");
+        }
+
+        public async Task<Result<ProfileDto>> ClearApproxLocation()
+        {
+            var user = await FindCurrentAsync(tracked: true);
+
+            if (user == null)
+                return Result<ProfileDto>.Fail(UserNotFound());
+
+            user.ApproxLatitude = null;
+            user.ApproxLongitude = null;
+            user.ApproxLocationUpdatedAt = null;
+            await _userRepository.UpdateAsync(user);
+
+            return Result<ProfileDto>.Ok(await MapAsync(user), "APPROX_LOCATION_REMOVED", "Approximate location removed");
+        }
+
         public async Task<Result<ProfileDto>> UpdateNotificationSettings(NotificationSettingsInputDto input)
         {
             var user = await FindCurrentAsync(tracked: true);
@@ -277,6 +314,7 @@ namespace NoiseVault.Application.Profiles
             BannerUrl = _fileStorage.PublicUrl(user.BannerKey),
             BannerPosition = user.BannerPosition,
             EmailOnBandInvite = user.EmailOnBandInvite,
+            HasApproxLocation = user.ApproxLatitude != null,
             Bio = user.Bio,
             City = user.City == null ? null : CityAppService.Map(user.City),
             CityName = user.CityName,

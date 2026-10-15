@@ -32,6 +32,7 @@ namespace NoiseVault.Api.RateLimiting
         public const string SharePreview = "share-preview";
         public const string OpeningCreate = "opening-create";
         public const string OpeningInterest = "opening-interest";
+        public const string LocationUpdate = "location-update";
     }
 
     public static class ApiRateLimiting
@@ -77,6 +78,7 @@ namespace NoiseVault.Api.RateLimiting
                 AddFixedWindow(options, ApiRateLimitPolicies.SharePreview, permitLimit: 120, windowMinutes: 1);
                 AddFixedWindow(options, ApiRateLimitPolicies.OpeningCreate, permitLimit: 10, windowMinutes: 60);
                 AddFixedWindow(options, ApiRateLimitPolicies.OpeningInterest, permitLimit: 20, windowMinutes: 60);
+                AddFixedWindow(options, ApiRateLimitPolicies.LocationUpdate, permitLimit: 10, windowMinutes: 1440);
 
                 options.OnRejected = async (context, token) =>
                 {

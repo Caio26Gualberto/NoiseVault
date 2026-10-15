@@ -3,6 +3,7 @@ using NoiseVault.Application.Cities.Interfaces;
 using NoiseVault.Application.Pagination;
 using NoiseVault.Application.Response;
 using NoiseVault.Domain.Entities;
+using NoiseVault.Application.Geo;
 
 namespace NoiseVault.Application.Cities
 {
@@ -65,6 +66,15 @@ namespace NoiseVault.Application.Cities
             var city = await _cityRepository.FindAsync(cityId.Value);
             return city == null ? null : Map(city);
         }
+
+        public async Task<GeoPoint?> Coordinates(int cityId)
+        {
+            var city = await _cityRepository.FindAsync(cityId);
+            return Point(city);
+        }
+
+        public static GeoPoint? Point(City? city) =>
+            city?.Latitude != null && city.Longitude != null ? new GeoPoint(city.Latitude.Value, city.Longitude.Value) : null;
 
         public static CityDto Map(City city) => new()
         {

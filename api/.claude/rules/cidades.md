@@ -24,6 +24,7 @@ Decisão do usuário em 14/10/2026: o site passou a servir à música em geral, 
 ## De onde vêm os dados
 
 - Snapshot da API de localidades do IBGE (`/api/v1/localidades/municipios?view=nivelado`, baixado em 14/10/2026) em `Infra.Data/Context/Seeding/ibge-municipios.json`, como `[id, nome, uf]`, embutido no assembly.
+- **Coordenadas** (`City.Latitude`/`Longitude`, o centro do município): snapshot `Infra.Data/Context/Seeding/municipios-coordenadas.json` (`[id, latitude, longitude]`), tirado em 15/10/2026 do conjunto público `kelvins/municipios-brasileiros` (licença MIT), ligado pelo mesmo código do IBGE. Cobre os 5.571 municípios. O seed preenche as coordenadas que estiverem nulas a cada boot. É o que a distância do Ensaio usa (`ensaio.md`).
 - **A aplicação não chama o IBGE em tempo de execução**: o seed insere os municípios que faltam a cada boot, em todo ambiente (inclusive produção, porque perfil sem cidade não pode depender de dado de dev). Município novo do IBGE = baixar o snapshot de novo e reiniciar.
 - **Migração do enum** (`ReplaceCityEnumWithIbge`): a migration cria a tabela com as 8 cidades que o enum conhecia (os 7 municípios do ABC e São Paulo, pelos códigos 3547809, 3548708, 3548807, 3513801, 3529401, 3543303, 3544103 e 3550308), converte os valores gravados e só então apaga a coluna `City`. O "Outra" (8) vira `CityId` nulo, e o `CityName` digitado fica como texto livre. O seed completa os outros 5.563 no boot seguinte.
 

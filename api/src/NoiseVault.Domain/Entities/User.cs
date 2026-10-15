@@ -21,6 +21,9 @@ namespace NoiseVault.Domain.Entities
         public string? BannerKey { get; set; }
         public int BannerPosition { get; set; } = DefaultBannerPosition;
         public bool EmailOnBandInvite { get; set; } = true;
+        public double? ApproxLatitude { get; set; }
+        public double? ApproxLongitude { get; set; }
+        public DateTime? ApproxLocationUpdatedAt { get; set; }
 
         public List<UserGenre> Genres { get; set; } = [];
     }

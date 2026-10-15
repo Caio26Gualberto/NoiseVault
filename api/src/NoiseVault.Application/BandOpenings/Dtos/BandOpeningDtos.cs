@@ -24,6 +24,7 @@ namespace NoiseVault.Application.BandOpenings.Dtos
         public bool CanManage { get; set; }
         public OpeningMyInterestDto? MyInterest { get; set; }
         public int? InterestCount { get; set; }
+        public int? DistanceKm { get; set; }
     }
 
     public class OpeningMyInterestDto
@@ -77,8 +78,8 @@ namespace NoiseVault.Application.BandOpenings.Dtos
     public class BandOpeningSearchQueryDto : PagedRequestDto
     {
         public EInstrument? Instrument { get; set; }
-        public int? CityId { get; set; }
-        public bool? Abc { get; set; }
+        public int? MaxKm { get; set; }
+        public int? NearCityId { get; set; }
         public EMusicGenre? Genre { get; set; }
     }
 }

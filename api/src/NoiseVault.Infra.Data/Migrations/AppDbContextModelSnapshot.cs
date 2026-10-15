@@ -990,6 +990,12 @@ namespace NoiseVault.Infra.Data.Migrations
                     b.Property<int>("Id")
                         .HasColumnType("integer");
 
+                    b.Property<double?>("Latitude")
+                        .HasColumnType("double precision");
+
+                    b.Property<double?>("Longitude")
+                        .HasColumnType("double precision");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(80)
@@ -1495,7 +1501,7 @@ namespace NoiseVault.Infra.Data.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
-                    b.Property<int>("Reach")
+                    b.Property<int?>("ReachKm")
                         .HasColumnType("integer");
 
                     b.Property<DateTime?>("UpdatedAt")
@@ -2040,6 +2046,15 @@ namespace NoiseVault.Infra.Data.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<double?>("ApproxLatitude")
+                        .HasColumnType("double precision");
+
+                    b.Property<DateTime?>("ApproxLocationUpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<double?>("ApproxLongitude")
+                        .HasColumnType("double precision");
 
                     b.Property<string>("AvatarKey")
                         .HasMaxLength(200)

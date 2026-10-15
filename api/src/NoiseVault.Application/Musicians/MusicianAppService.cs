@@ -1,9 +1,12 @@
+using System.Linq.Expressions;
 using NoiseVault.Application.Abstractions.Authentication;
 using NoiseVault.Application.Abstractions.Logging;
 using NoiseVault.Application.Abstractions.Repository;
 using NoiseVault.Application.Auth;
 using NoiseVault.Application.Cities;
+using NoiseVault.Application.Cities.Interfaces;
 using NoiseVault.Application.Common.Media;
+using NoiseVault.Application.Geo;
 using NoiseVault.Application.Interfaces;
 using NoiseVault.Application.Musicians.Dtos;
 using NoiseVault.Application.Musicians.Interfaces;
@@ -23,6 +26,7 @@ namespace NoiseVault.Application.Musicians
         private readonly IRepository<User> _userRepository;
         private readonly ICurrentUser _currentUser;
         private readonly IFileStorage _fileStorage;
+        private readonly ICityAppService _cityAppService;
         private readonly ImageReplacement _images;
         private readonly IApplicationLogger _logger;
 
@@ -31,6 +35,7 @@ namespace NoiseVault.Application.Musicians
             IRepository<User> userRepository,
             ICurrentUser currentUser,
             IFileStorage fileStorage,
+            ICityAppService cityAppService,
             IImageProcessor imageProcessor,
             IApplicationLoggerFactory loggerFactory)
         {
@@ -38,6 +43,7 @@ namespace NoiseVault.Application.Musicians
             _userRepository = userRepository;
             _currentUser = currentUser;
             _fileStorage = fileStorage;
+            _cityAppService = cityAppService;
             _images = new ImageReplacement(fileStorage, imageProcessor);
             _logger = loggerFactory.Create(LogContext.Ensaio);
         }
@@ -69,7 +75,7 @@ namespace NoiseVault.Application.Musicians
                 CityName = user.CityName,
                 Goal = EMusicianGoal.Either,
                 Commitment = EMusicianCommitment.PlayLive,
-                Reach = EReach.Abc,
+                ReachKm = MusicianRules.DefaultReachKm,
                 Genres = user.Genres.Select(g => g.Genre).OrderBy(g => g).ToList(),
             }, "MUSICIAN_PROFILE_FOUND", "Musician profile not created yet");
         }
@@ -95,7 +101,7 @@ namespace NoiseVault.Application.Musicians
             ApplyLooking(profile, input.IsLookingForBand, now);
             profile.Goal = input.Goal;
             profile.Commitment = input.Commitment;
-            profile.Reach = input.Reach;
+            profile.ReachKm = input.ReachKm;
             profile.HasGear = input.HasGear;
             profile.HasTransport = input.HasTransport;
             profile.HasRehearsalSpace = input.HasRehearsalSpace;
@@ -196,23 +202,43 @@ namespace NoiseVault.Application.Musicians
             query.Normalize();
 
             var instrument = query.Instrument;
-            var cityId = query.CityId;
-            var abc = query.Abc == true;
-            var abcIds = CityRules.AbcCityIds;
             var genre = query.Genre;
             var withSamples = query.WithSamples == true;
+            var origin = await ResolveOrigin(query.NearCityId);
+            var me = _currentUser.UserId;
+
+            var byDistance = origin != null && query.MaxKm != null;
+            var oLat = origin?.Latitude ?? 0;
+            var oLon = origin?.Longitude ?? 0;
+            var ky = GeoRules.KmPerDegreeLatitude;
+            var kx = GeoRules.KmPerDegreeLongitude(oLat);
+            var maxKm = Math.Clamp(query.MaxKm ?? GeoRules.MaxSearchKm, 1, GeoRules.MaxSearchKm);
+            var max2 = (double)maxKm * maxKm;
+
+            Expression<Func<MusicianProfile, bool>> predicate = p => p.IsLookingForBand
+                && p.User!.IsActive
+                && (instrument == null || p.Instruments.Any(i => i.Instrument == instrument))
+                && (genre == null || p.Genres.Any(g => g.Genre == genre))
+                && (!withSamples || p.SampleLinks.Any())
+                && (!byDistance || (
+                    ((p.User.ApproxLatitude ?? p.User.City!.Latitude) - oLat) * ky * (((p.User.ApproxLatitude ?? p.User.City!.Latitude) - oLat) * ky)
+                    + ((p.User.ApproxLongitude ?? p.User.City!.Longitude) - oLon) * kx * (((p.User.ApproxLongitude ?? p.User.City!.Longitude) - oLon) * kx) <= max2
+                    && (p.ReachKm == null || p.UserId == me
+                        || ((p.User.ApproxLatitude ?? p.User.City!.Latitude) - oLat) * ky * (((p.User.ApproxLatitude ?? p.User.City!.Latitude) - oLat) * ky)
+                        + ((p.User.ApproxLongitude ?? p.User.City!.Longitude) - oLon) * kx * (((p.User.ApproxLongitude ?? p.User.City!.Longitude) - oLon) * kx)
+                        <= (double)(p.ReachKm * p.ReachKm))));
 
             var options = new QueryOptions<MusicianProfile>
             {
-                Predicate = p => p.IsLookingForBand
-                    && p.User!.IsActive
-                    && (instrument == null || p.Instruments.Any(i => i.Instrument == instrument))
-                    && (cityId == null || p.User.CityId == cityId)
-                    && (!abc || (p.User.CityId != null && abcIds.Contains(p.User.CityId.Value)))
-                    && (genre == null || p.Genres.Any(g => g.Genre == genre))
-                    && (!withSamples || p.SampleLinks.Any()),
+                Predicate = predicate,
                 Includes = [p => p.User!, p => p.User!.City!, p => p.Instruments, p => p.Genres, p => p.SampleLinks],
-                OrderBy = q => q.OrderByDescending(p => p.LookingSince).ThenByDescending(p => p.Id),
+                OrderBy = byDistance
+                    ? q => q
+                        .OrderBy(p => ((p.User!.ApproxLatitude ?? p.User.City!.Latitude) - oLat) * ky * (((p.User.ApproxLatitude ?? p.User.City!.Latitude) - oLat) * ky)
+                            + ((p.User.ApproxLongitude ?? p.User.City!.Longitude) - oLon) * kx * (((p.User.ApproxLongitude ?? p.User.City!.Longitude) - oLon) * kx))
+                        .ThenByDescending(p => p.LookingSince)
+                        .ThenByDescending(p => p.Id)
+                    : q => q.OrderByDescending(p => p.LookingSince).ThenByDescending(p => p.Id),
                 Skip = query.Skip,
                 Take = query.PageSize,
                 AsNoTracking = true,
@@ -222,10 +248,31 @@ namespace NoiseVault.Application.Musicians
             var rows = await _profileRepository.ListAsync(options);
 
             return Result<PagedResultDto<MusicianCardDto>>.Ok(
-                PagedResultDto<MusicianCardDto>.Create(rows.Select(Card).ToList(), query.Page, query.PageSize, total),
+                PagedResultDto<MusicianCardDto>.Create(rows.Select(row => Card(row, origin)).ToList(), query.Page, query.PageSize, total),
                 "MUSICIANS_FOUND",
                 "Musicians found");
         }
+
+        public async Task<GeoPoint?> ResolveOrigin(int? nearCityId)
+        {
+            if (nearCityId != null)
+                return await _cityAppService.Coordinates(nearCityId.Value);
+
+            var me = _currentUser.UserId;
+            var viewer = await _userRepository.FirstOrDefaultAsync(new QueryOptions<User>
+            {
+                Predicate = u => u.Id == me,
+                Includes = [u => u.City!],
+                AsNoTracking = true,
+            });
+
+            return viewer == null ? null : PointOf(viewer);
+        }
+
+        public static GeoPoint? PointOf(User user) =>
+            user.ApproxLatitude != null && user.ApproxLongitude != null
+                ? new GeoPoint(user.ApproxLatitude.Value, user.ApproxLongitude.Value)
+                : CityAppService.Point(user.City);
 
         public async Task<Result<MusicianProfileDto>> GetByNickname(string nickname)
         {
@@ -237,7 +284,12 @@ namespace NoiseVault.Application.Musicians
             if (profile == null || (!profile.IsLookingForBand && profile.UserId != me))
                 return Fail(new Error("MUSICIAN_PROFILE_NOT_FOUND", "Musician profile not found", ErrorType.NotFound));
 
-            return Ok(Map(profile), "MUSICIAN_PROFILE_FOUND", "Musician profile found");
+            var dto = Map(profile);
+
+            if (!dto.IsMine)
+                dto.DistanceKm = DistanceBucket(await ResolveOrigin(null), PointOf(profile.User!));
+
+            return Ok(dto, "MUSICIAN_PROFILE_FOUND", "Musician profile found");
         }
 
         public async Task<bool> IsLooking(int userId) =>
@@ -258,10 +310,10 @@ namespace NoiseVault.Application.Musicians
                 AsNoTracking = true,
             });
 
-            return rows.ToDictionary(p => p.UserId, Card);
+            return rows.ToDictionary(p => p.UserId, p => Card(p, null));
         }
 
-        private Task<MusicianProfile?> FindAsync(System.Linq.Expressions.Expression<Func<MusicianProfile, bool>> predicate, bool tracked) =>
+        private Task<MusicianProfile?> FindAsync(Expression<Func<MusicianProfile, bool>> predicate, bool tracked) =>
             _profileRepository.FirstOrDefaultAsync(new QueryOptions<MusicianProfile>
             {
                 Predicate = predicate,
@@ -297,7 +349,7 @@ namespace NoiseVault.Application.Musicians
                 || instruments.Select(i => (i.Instrument, i.OtherName?.ToLowerInvariant())).Distinct().Count() != instruments.Count)
                 return Validation("INVALID_MUSICIAN_INSTRUMENTS", $"Choose from 1 to {MusicianRules.MaxInstruments} distinct instruments, each with a level");
 
-            if (!Enum.IsDefined(input.Goal) || !Enum.IsDefined(input.Commitment) || !Enum.IsDefined(input.Reach))
+            if (!Enum.IsDefined(input.Goal) || !Enum.IsDefined(input.Commitment) || input.ReachKm is < GeoRules.MinReachKm or > GeoRules.MaxReachKm)
                 return Validation("INVALID_MUSICIAN_PREFERENCES", "Goal, commitment and reach must be supported values");
 
             if (!ProfileRules.IsValidGenres(input.Genres ?? []))
@@ -330,7 +382,7 @@ namespace NoiseVault.Application.Musicians
             LookingSince = profile.LookingSince,
             Goal = profile.Goal,
             Commitment = profile.Commitment,
-            Reach = profile.Reach,
+            ReachKm = profile.ReachKm,
             HasGear = profile.HasGear,
             HasTransport = profile.HasTransport,
             HasRehearsalSpace = profile.HasRehearsalSpace,
@@ -344,8 +396,12 @@ namespace NoiseVault.Application.Musicians
             SampleLinks = profile.SampleLinks.OrderBy(l => l.Position).Select(l => l.Url).ToList(),
         };
 
-        private MusicianCardDto Card(MusicianProfile profile) => new()
+        public static int? DistanceBucket(GeoPoint? from, GeoPoint? to) =>
+            from == null || to == null ? null : GeoRules.Bucket(GeoRules.DistanceKm(from.Value, to.Value));
+
+        private MusicianCardDto Card(MusicianProfile profile, GeoPoint? origin) => new()
         {
+            DistanceKm = DistanceBucket(origin, PointOf(profile.User!)),
             Person = Summary(profile.User!),
             PhotoUrl = _fileStorage.PublicUrl(profile.PhotoKey),
             City = profile.User!.City == null ? null : CityAppService.Map(profile.User.City),
