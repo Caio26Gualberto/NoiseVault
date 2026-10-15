@@ -83,7 +83,7 @@ Parte 1 feita em 14/10/2026: ícone na tela inicial, tela cheia, página sem con
 - É o que mais faz músico entrar todo dia. O perfil já tem instrumento e cidade.
 - **Pontos a decidir**: tipos de anúncio, validade (anúncio vence sozinho), contato (pela plataforma ou link externo), se venda de equipamento entra (a loja ficou fora do escopo; classificado entre pessoas é outra coisa).
 - **Conversa de 14/10/2026: virou dois módulos.**
-  - **8a. Músicos e bandas (vem primeiro).**
+  - ~~**8a. Músicos e bandas (vem primeiro).**~~ **Feito em 15/10/2026** como o módulo **Ensaio** (`api/.claude/rules/ensaio.md`, `frontend/.claude/rules/ensaio.md`), com o visual "D · Flyer limpo". Ficaram para depois: vídeo na ficha, "seguir vaga" (avisar quando abrir vaga do meu instrumento) e o mapa de quem toca perto.
     - Do lado da pessoa, uma **ficha de músico** opcional, parte do mesmo perfil e não um segundo perfil (`User` continua sendo uma pessoa só):
       - instrumentos com nível, gêneros que quer tocar, influências, objetivo, região e até onde topa ir;
       - disponibilidade, estrutura (equipamento, transporte, lugar de ensaio) e mostra do som;
