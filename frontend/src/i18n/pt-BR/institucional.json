@@ -28,10 +28,28 @@
   },
   "store": {
     "title": "Loja parceira",
-    "description": "Onde comprar camiseta, vinil e corda de guitarra.",
-    "body": [
-      "A loja parceira do Noise Vault fica em Santo André e tem desconto para quem mostra o perfil da comunidade no balcão.",
-      "Camisetas de bandas da região, vinis novos e usados, acessórios e manutenção de instrumentos. Endereço e horário entram aqui quando a parceria for fechada."
-    ]
+    "badge": "Loja parceira do Noise Vault",
+    "location": "Santo André · Centro",
+    "name": "Metal Music",
+    "lead": "Camiseta de banda, vinil e CD usado, pedal, corda e ingresso de show, tudo no centro de Santo André e no site. É a loja da cena, com balcão de verdade e gente que sabe o que está vendendo.",
+    "visit": "Visitar a loja",
+    "whatsapp": "Chamar no WhatsApp",
+    "categoriesTitle": "O que tem lá",
+    "categoriesDescription": "Cada categoria abre direto no site da Metal Music.",
+    "categories": {
+      "apparel": { "title": "Roupas e calçados", "description": "Camisetas, moletons, regatas e jaqueta de couro." },
+      "records": { "title": "CDs, DVDs e LPs", "description": "Vinil e CD usado, do thrash ao jazz, garimpado um a um." },
+      "instruments": { "title": "Instrumentos", "description": "Instrumentos e pedais usados, com preço de quem toca." },
+      "accessories": { "title": "Acessórios", "description": "Anel, brinco, colar, pulseira, patch e chaveiro." },
+      "tickets": { "title": "Ingressos", "description": "Ingresso de show da região, sem taxa de site." },
+      "giftCard": { "title": "Vale-presente", "description": "Para quem não sabe qual disco a pessoa já tem." }
+    },
+    "visitTitle": "Onde fica",
+    "address": "Rua Álvares de Azevedo, 159 e 163, Centro, Santo André, SP",
+    "openMap": "Abrir no mapa",
+    "phone": "(11) 93458-7444",
+    "shipping": "Entrega de 3 a 7 dias úteis para o resto do Brasil.",
+    "communityTitle": "A loja da comunidade",
+    "communityBody": "A Metal Music é parceira do Noise Vault: é onde a cena compra, troca e descobre disco. Divulgue a loja, marque ela nos posts e leve o pessoal do balcão para os shows da agenda."
   }
 }
