@@ -1,5 +1,5 @@
 import { ChevronsUpDownIcon, DownloadIcon, LogOutIcon, HeartHandshakeIcon, MegaphoneIcon, MoonIcon, PencilIcon, SunIcon, SunMoonIcon, UserRoundCogIcon, UserRoundIcon } from 'lucide-react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
 
@@ -35,6 +35,10 @@ export function UserMenu({ compact = false }: UserMenuProps) {
   const navigate = useNavigate()
   const installMode = useInstallMode()
   const [installHelpOpen, setInstallHelpOpen] = useState(false)
+  const closedByPointer = useRef(false)
+  const markPointer = () => {
+    closedByPointer.current = true
+  }
 
   if (!user) return null
 
@@ -52,6 +56,7 @@ export function UserMenu({ compact = false }: UserMenuProps) {
             compact ? 'w-auto p-0.5' : 'px-2 py-2',
           )}
           aria-label={user.name}
+          onPointerDown={markPointer}
         >
           <AppAvatar name={user.name} src={user.avatarUrl} size="md" />
           {compact ? null : (
@@ -64,7 +69,18 @@ export function UserMenu({ compact = false }: UserMenuProps) {
             </>
           )}
         </DropdownMenuTrigger>
-        <DropdownMenuContent align={compact ? 'end' : 'start'} side={compact ? 'bottom' : 'top'} className="w-56">
+        <DropdownMenuContent
+          align={compact ? 'end' : 'start'}
+          side={compact ? 'bottom' : 'top'}
+          className="w-56"
+          onPointerDown={markPointer}
+          onInteractOutside={markPointer}
+          onCloseAutoFocus={(event) => {
+            if (!closedByPointer.current) return
+            event.preventDefault()
+            closedByPointer.current = false
+          }}
+        >
           <DropdownMenuLabel className="flex flex-col">
             <span className="truncate font-medium">{user.name}</span>
             <span className="app-meta truncate">{user.email}</span>
