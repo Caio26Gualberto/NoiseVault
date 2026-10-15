@@ -1,5 +1,5 @@
 import { CalendarIcon } from 'lucide-react'
-import { useState } from 'react'
+import { memo, useState } from 'react'
 import type { ChangeEvent } from 'react'
 import type { DropdownProps } from 'react-day-picker'
 import { useTranslation } from 'react-i18next'
@@ -16,8 +16,41 @@ const defaultTime = '20:00'
 
 const pad = (value: number) => String(value).padStart(2, '0')
 
+type DigitRule = (accepted: string) => (digit: number) => boolean
+
+const any: DigitRule = () => () => true
+const dateRules: DigitRule[] = [
+  () => (d) => d <= 3,
+  (a) => (d) => (a[0] === '3' ? d <= 1 : a[0] === '0' ? d >= 1 : true),
+  () => (d) => d <= 1,
+  (a) => (d) => (a[2] === '1' ? d <= 2 : a[2] === '0' ? d >= 1 : true),
+  () => (d) => d >= 1 && d <= 2,
+  any,
+  any,
+  any,
+]
+const timeRules: DigitRule[] = [() => (d) => d <= 2, (a) => (d) => (a[a.length - 1] === '2' ? d <= 3 : true), () => (d) => d <= 5, any]
+
+const datePadPositions = [0, 2]
+const timePadPositions = [0, 2]
+
+function acceptDigits(raw: string, rules: DigitRule[], padPositions: number[]) {
+  let accepted = ''
+  for (const char of raw.replace(/\D/g, '')) {
+    const position = accepted.length
+    if (position >= rules.length) break
+    const digit = Number(char)
+    if (rules[position](accepted)(digit)) {
+      accepted += char
+    } else if (padPositions.includes(position) && rules[position](accepted)(0) && rules[position + 1]?.(`${accepted}0`)(digit)) {
+      accepted += `0${char}`
+    }
+  }
+  return accepted
+}
+
 function maskDateTime(raw: string) {
-  const digits = raw.replace(/\D/g, '').slice(0, 12)
+  const digits = acceptDigits(raw, [...dateRules, ...timeRules], [...datePadPositions, ...timePadPositions.map((p) => p + dateRules.length)])
   const parts = [digits.slice(0, 2), digits.slice(2, 4), digits.slice(4, 8), digits.slice(8, 10), digits.slice(10, 12)]
   let out = parts[0]
   if (digits.length > 2) out += `/${parts[1]}`
@@ -28,8 +61,17 @@ function maskDateTime(raw: string) {
 }
 
 function maskTime(raw: string) {
-  const digits = raw.replace(/\D/g, '').slice(0, 4)
+  const digits = acceptDigits(raw, timeRules, timePadPositions)
   return digits.length > 2 ? `${digits.slice(0, 2)}:${digits.slice(2)}` : digits
+}
+
+function completeTime(time: string) {
+  const digits = time.replace(/\D/g, '')
+  if (digits.length === 0) return time
+  if (digits.length === 1) return `0${digits}:00`
+  if (digits.length === 2) return `${digits}:00`
+  if (digits.length === 3) return `${digits.slice(0, 2)}:${digits[2]}0`
+  return time
 }
 
 function isValidTime(time: string) {
@@ -88,6 +130,25 @@ function CalendarDropdown({ options = [], value, onChange, 'aria-label': ariaLab
   )
 }
 
+const calendarComponents = { Dropdown: CalendarDropdown }
+const calendarFormatters = { formatMonthDropdown: formatMonth }
+
+const DayCalendar = memo(function DayCalendar({ selected, onSelect }: { selected: Date | undefined; onSelect: (day: Date | undefined) => void }) {
+  return (
+    <Calendar
+      mode="single"
+      locale={ptBR}
+      selected={selected}
+      onSelect={onSelect}
+      defaultMonth={selected}
+      captionLayout="dropdown"
+      components={calendarComponents}
+      formatters={calendarFormatters}
+      className="[--cell-size:--spacing(9)]"
+    />
+  )
+})
+
 type AppDateTimeInputProps = {
   value: string
   onChange: (value: string) => void
@@ -126,8 +187,9 @@ export function AppDateTimeInput({ value, onChange, onBlur, id, invalid, describ
   }
 
   const apply = () => {
-    if (!draftDay || !isValidTime(draftTime)) return
-    const next = `${draftDay.getFullYear()}-${pad(draftDay.getMonth() + 1)}-${pad(draftDay.getDate())}T${draftTime}`
+    const time = completeTime(draftTime)
+    if (!draftDay || !isValidTime(time)) return
+    const next = `${draftDay.getFullYear()}-${pad(draftDay.getMonth() + 1)}-${pad(draftDay.getDate())}T${time}`
     setText(toText(next))
     setShown(next)
     onChange(next)
@@ -161,23 +223,14 @@ export function AppDateTimeInput({ value, onChange, onBlur, id, invalid, describ
           </button>
         </PopoverTrigger>
         <PopoverContent align="end" className="w-auto gap-0 p-0">
-          <Calendar
-            mode="single"
-            locale={ptBR}
-            selected={draftDay}
-            onSelect={setDraftDay}
-            defaultMonth={draftDay}
-            captionLayout="dropdown"
-            components={{ Dropdown: CalendarDropdown }}
-            formatters={{ formatMonthDropdown: formatMonth }}
-            className="[--cell-size:--spacing(9)]"
-          />
+          <DayCalendar selected={draftDay} onSelect={setDraftDay} />
           <div className="flex items-end gap-2 border-t p-3">
             <label className="flex flex-1 flex-col gap-1 text-sm font-medium">
               {t('dateTime.time')}
               <input
                 value={draftTime}
                 onChange={(event) => setDraftTime(maskTime(event.target.value))}
+                onBlur={() => setDraftTime((current) => completeTime(current))}
                 onKeyDown={(event) => {
                   if (event.key === 'Enter') {
                     event.preventDefault()
@@ -189,7 +242,7 @@ export function AppDateTimeInput({ value, onChange, onBlur, id, invalid, describ
                 className="h-9 w-full rounded-md border bg-transparent px-2.5 text-sm font-normal tabular-nums focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
               />
             </label>
-            <AppButton type="button" size="sm" disabled={!draftDay || !isValidTime(draftTime)} onClick={apply}>
+            <AppButton type="button" size="sm" disabled={!draftDay || !isValidTime(completeTime(draftTime))} onClick={apply}>
               {t('dateTime.apply')}
             </AppButton>
           </div>
