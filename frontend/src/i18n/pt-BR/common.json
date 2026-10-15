@@ -35,7 +35,8 @@
     "supportTitle": "Resuma em 5 a 120 caracteres.",
     "supportDescription": "Conte com pelo menos 20 caracteres (até 5000).",
     "supportTags": "Marque pelo menos um tipo.",
-    "cityRequired": "Escolha a cidade ou informe uma fora do Brasil."
+    "cityRequired": "Escolha a cidade ou informe uma fora do Brasil.",
+    "dateTime": "Use dia, mês, ano e hora, como 25/10/2026 21:00."
   },
   "city": {
     "searchPlaceholder": "Buscar cidade…",
@@ -46,7 +47,8 @@
     "abroadLabel": "Cidade fora do Brasil",
     "abroadPlaceholder": "Ex.: Lisboa, Portugal",
     "abroadUse": "Usar esta cidade",
-    "backToBrazil": "Voltar para o Brasil"
+    "backToBrazil": "Voltar para o Brasil",
+    "suggestions": "Cidades do ABC"
   },
   "field": {
     "hint": "Saiba mais sobre {{label}}"
@@ -162,5 +164,11 @@
       "removeTitle": "Remover esta marcação?",
       "removeMessage": "{{name}} deixa de aparecer marcado nesta foto."
     }
+  },
+  "dateTime": {
+    "placeholder": "dd/mm/aaaa hh:mm",
+    "openCalendar": "Abrir calendário",
+    "time": "Horário",
+    "apply": "Pronto"
   }
 }

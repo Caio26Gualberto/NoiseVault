@@ -46,7 +46,8 @@ Decidido em 14/10/2026, antes dos subdomínios (`IDEIAS.md`, item 8). A regra é
 | `/redefinir-senha?email&token` | nova senha | senha + confirmação; sucesso → `/entrar` com toast |
 | `/definir-senha` | senha inicial (convite) | copiada do boilerplate; só com `isNeededChangePassword` |
 | `/bem-vindo` | boas-vindas do primeiro acesso | o texto original do projeto sobre a capa do *To Mega Therion* (Celtic Frost) em tela cheia; "Começar jornada" marca o `localStorage` e vai para `/feed` |
-| `/minha-conta` | conta | aparência (avatar e capa), perfil (nome, bio, cidade, instrumento, gêneros, links) e senha — tudo real; detalhes em `perfil.md` |
+| `/meu-perfil` | meu perfil | o que os outros veem: avatar, capa, nome, bio, cidade, instrumento, gêneros e links, com a prévia do perfil; detalhes em `perfil.md` |
+| `/minha-conta` | conta | só o que é sensível: e-mail e apelido (leitura), senha, notificações por e-mail e localização aproximada |
 
 Caminhos ficam em `auth/routes.ts`; ninguém escreve `'/entrar'` em página.
 

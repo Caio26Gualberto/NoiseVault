@@ -8,17 +8,17 @@ import { z } from 'zod'
 import { useAuth } from '@/auth/use-auth'
 import { AppBannerEditor } from '@/components/app-banner-editor'
 import { AppButton } from '@/components/app-button'
-import { AppCard } from '@/components/app-card'
-import { AppCityField, AppField, AppForm, AppTextareaField } from '@/components/app-field'
+import { AppCityField, AppDateTimeField, AppField, AppForm, AppTextareaField } from '@/components/app-field'
+import { AppFormAsideBox, AppFormLayout, AppFormPanel } from '@/components/app-form-layout'
 import { AppPageHeader } from '@/components/app-page-header'
 import { AppSkeleton } from '@/components/app-skeleton'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { getMyBands } from '@/pages/bandas/services/bandas-service'
+import { EventEmbed } from '@/pages/feed/components/event-embed'
 import type { BandSummaryDto } from '@/pages/bandas/services/bandas-service'
 import { cityValueSchema, emptyCityValue, toCityInput, toCityValue } from '@/pages/perfil/city'
-import { searchCities } from '@/pages/perfil/services/cidades-service'
+import { featuredCities, searchCities } from '@/pages/perfil/services/cidades-service'
 import { allMusicGenres, useMusicGenreLabel } from '@/pages/perfil/genres'
 import type { MusicGenre } from '@/pages/perfil/genres'
 
@@ -33,17 +33,18 @@ import {
   updateEventBannerPosition,
   uploadEventBanner,
 } from './services/eventos-service'
-import type { EventInputDto } from './services/eventos-service'
+import type { EventInputDto, EventSummaryDto } from './services/eventos-service'
 
 const maxGenres = 5
+const dateTimePattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/
 const asSelf = 'self'
 
 const schema = z
   .object({
     title: z.string().trim().min(3, 'validation.required').max(120),
     description: z.string().trim().max(5000),
-    startsAt: z.string().min(1, 'validation.required'),
-    endsAt: z.string(),
+    startsAt: z.string().min(1, 'validation.required').regex(dateTimePattern, 'validation.dateTime'),
+    endsAt: z.string().refine((value) => value === '' || dateTimePattern.test(value), 'validation.dateTime'),
     venue: z.string().trim().min(2, 'validation.required').max(120),
     city: cityValueSchema,
     genres: z.array(z.number()).max(maxGenres),
@@ -95,6 +96,7 @@ export function EventoFormPage() {
   const [banner, setBanner] = useState<{ url: string | null; position: number }>({ url: null, position: 50 })
   const [pending, setPending] = useState<PendingBanner | null>(null)
   const genreLabel = useMusicGenreLabel()
+  const [openedAt] = useState(() => new Date().toISOString())
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -164,6 +166,7 @@ export function EventoFormPage() {
   }, [pending])
 
   const genres = useWatch({ control: form.control, name: 'genres' })
+  const [previewTitle, startsAt, previewVenue, previewCity] = useWatch({ control: form.control, name: ['title', 'startsAt', 'venue', 'city'] })
 
   const submit = async (values: FormValues) => {
     setSaving(true)
@@ -229,62 +232,89 @@ export function EventoFormPage() {
     form.setValue('genres', next, { shouldValidate: true })
   }
 
+  const bannerUrl = eventId === null ? (pending?.previewUrl ?? null) : banner.url
+  const bannerPosition = eventId === null ? (pending?.position ?? 50) : banner.position
+  const previewStartsAt = startsAt ? new Date(startsAt) : null
+  const preview: EventSummaryDto = {
+    id: eventId ?? 0,
+    title: previewTitle?.trim() || t('form.previewTitle'),
+    bannerUrl,
+    bannerPosition,
+    startsAt: previewStartsAt && !Number.isNaN(previewStartsAt.getTime()) ? previewStartsAt.toISOString() : openedAt,
+    venue: previewVenue?.trim() || t('form.previewVenue'),
+    city: previewCity?.city ?? null,
+    cityName: previewCity?.city ? null : previewCity?.cityName || null,
+    status: EventStatus.published,
+    hasEnded: false,
+  }
+
   return (
-    <div className="app-page-enter mx-auto flex max-w-2xl flex-col gap-6">
+    <div className="app-page-enter flex flex-col gap-6">
       <AppPageHeader title={t(eventId === null ? 'form.createTitle' : 'form.editTitle')} description={t('form.description')} />
 
-      <AppCard title={t('form.bannerTitle')} description={t('form.bannerHint')}>
-        <AppBannerEditor
-          bannerUrl={eventId === null ? (pending?.previewUrl ?? null) : banner.url}
-          bannerPosition={eventId === null ? (pending?.position ?? 50) : banner.position}
-          {...bannerHandlers}
-        />
-      </AppCard>
+      <AppForm form={form} onSubmit={submit}>
+        <AppFormLayout
+          aside={
+            <>
+              <div className="flex flex-col gap-2">
+                <span className="app-meta">{t('form.preview')}</span>
+                <EventEmbed event={preview} linked={false} />
+              </div>
 
-      <AppCard>
-        <AppForm form={form} onSubmit={submit}>
-          {eventId === null && bands.length > 0 && user ? (
-            <div className="flex flex-col gap-1.5">
-              <Label>{t('form.fields.publishAs')}</Label>
-              <Select value={publishAs} onValueChange={setPublishAs}>
-                <SelectTrigger className="h-11 md:h-10" aria-label={t('form.fields.publishAs')}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={asSelf}>{t('form.asSelf', { name: user.name })}</SelectItem>
-                  {bands.map((band) => (
-                    <SelectItem key={band.slug} value={band.slug}>
-                      {t('form.asBand', { name: band.name })}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          ) : null}
+              {eventId === null && bands.length > 0 && user ? (
+                <AppFormAsideBox title={t('form.fields.publishAs')}>
+                  <Select value={publishAs} onValueChange={setPublishAs}>
+                    <SelectTrigger className="h-11 md:h-10" aria-label={t('form.fields.publishAs')}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={asSelf}>{t('form.asSelf', { name: user.name })}</SelectItem>
+                      {bands.map((band) => (
+                        <SelectItem key={band.slug} value={band.slug}>
+                          {t('form.asBand', { name: band.name })}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </AppFormAsideBox>
+              ) : null}
 
-          <AppField name="title" label={t('form.fields.title')} />
-          <AppTextareaField name="description" label={t('form.fields.description')} rows={5} />
-          <div className="grid gap-4 md:grid-cols-2">
-            <AppField name="startsAt" label={t('form.fields.startsAt')} type="datetime-local" />
-            <AppField name="endsAt" label={t('form.fields.endsAt')} type="datetime-local" />
-          </div>
-          <div className="grid gap-4 md:grid-cols-2">
+              <div className="flex flex-col gap-2">
+                <AppButton type="submit" loading={saving} size="lg" className="w-full font-heading tracking-wider uppercase">
+                  {t(eventId === null ? 'form.submitCreate' : 'form.submitEdit')}
+                </AppButton>
+                <AppButton intent="ghost" type="button" onClick={() => navigate(-1)}>
+                  {t('common:actions.cancel')}
+                </AppButton>
+              </div>
+            </>
+          }
+        >
+          <AppFormPanel title={t('form.bannerTitle')} description={t('form.bannerHint')} wide>
+            <AppBannerEditor bannerUrl={bannerUrl} bannerPosition={bannerPosition} {...bannerHandlers} />
+          </AppFormPanel>
+
+          <AppFormPanel title={t('form.sections.about')} wide>
+            <AppField name="title" label={t('form.fields.title')} />
+            <AppTextareaField name="description" label={t('form.fields.description')} rows={5} />
+          </AppFormPanel>
+
+          <AppFormPanel title={t('form.sections.when')}>
+            <AppDateTimeField name="startsAt" label={t('form.fields.startsAt')} />
+            <AppDateTimeField name="endsAt" label={t('form.fields.endsAt')} />
+          </AppFormPanel>
+
+          <AppFormPanel title={t('form.sections.where')}>
             <AppField name="venue" label={t('form.fields.venue')} placeholder={t('form.venuePlaceholder')} />
-            <AppCityField
-              name="city"
-              label={t('form.fields.city')}
-              placeholder={t('form.cityPlaceholder')}
-              search={searchCities}
-              allowAbroad
-            />
-          </div>
+            <AppCityField name="city" label={t('form.fields.city')} placeholder={t('form.cityPlaceholder')} search={searchCities} suggest={featuredCities} allowAbroad />
+          </AppFormPanel>
 
-          <LineupEditor value={lineup} onChange={setLineup} />
+          <AppFormPanel title={t('form.sections.lineup')} wide>
+            <LineupEditor value={lineup} onChange={setLineup} />
+          </AppFormPanel>
 
-          <fieldset className="flex flex-col gap-2">
-            <legend className="text-sm font-medium">{t('form.fields.genres')}</legend>
-            <p className="app-meta">{t('form.genresHint', { max: maxGenres })}</p>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3">
+          <AppFormPanel title={t('form.fields.genres')} description={t('form.genresHint', { max: maxGenres })} wide>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3 2xl:grid-cols-4">
               {allMusicGenres.map((genre) => (
                 <label key={genre} className="flex items-center gap-2 text-sm">
                   <Checkbox
@@ -301,24 +331,17 @@ export function EventoFormPage() {
                 {t(genreError, { ns: 'common', defaultValue: genreError })}
               </p>
             ) : null}
-          </fieldset>
+          </AppFormPanel>
 
-          <div className="grid gap-4 md:grid-cols-3">
-            <AppField name="price" label={t('form.fields.price')} inputMode="decimal" placeholder={t('form.pricePlaceholder')} />
-            <AppField name="capacity" label={t('form.fields.capacity')} inputMode="numeric" />
-            <AppField name="ticketsUrl" label={t('form.fields.ticketsUrl')} type="url" placeholder="https://" />
-          </div>
-
-          <div className="flex gap-2">
-            <AppButton type="submit" loading={saving}>
-              {t(eventId === null ? 'form.submitCreate' : 'form.submitEdit')}
-            </AppButton>
-            <AppButton intent="ghost" type="button" onClick={() => navigate(-1)}>
-              {t('common:actions.cancel')}
-            </AppButton>
-          </div>
-        </AppForm>
-      </AppCard>
+          <AppFormPanel title={t('form.sections.tickets')} wide>
+            <div className="grid gap-4 md:grid-cols-3">
+              <AppField name="price" label={t('form.fields.price')} inputMode="decimal" placeholder={t('form.pricePlaceholder')} />
+              <AppField name="capacity" label={t('form.fields.capacity')} inputMode="numeric" />
+              <AppField name="ticketsUrl" label={t('form.fields.ticketsUrl')} type="url" placeholder="https://" />
+            </div>
+          </AppFormPanel>
+        </AppFormLayout>
+      </AppForm>
     </div>
   )
 }

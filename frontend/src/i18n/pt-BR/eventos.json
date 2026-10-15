@@ -81,7 +81,17 @@
     "lineupUp": "Subir",
     "lineupDown": "Descer",
     "lineupRemove": "Remover do line-up",
-    "lineupFull": "Line-up completo ({{max}} atrações)"
+    "lineupFull": "Line-up completo ({{max}} atrações)",
+    "preview": "Assim o evento aparece no feed",
+    "previewTitle": "Nome do evento",
+    "previewVenue": "Local",
+    "sections": {
+      "about": "O evento",
+      "when": "Quando",
+      "where": "Onde",
+      "lineup": "Quem toca",
+      "tickets": "Ingresso e lotação"
+    }
   },
   "priceFrom": "A partir de {{price}}",
   "publishedBy": "publicado por @{{nickname}}",

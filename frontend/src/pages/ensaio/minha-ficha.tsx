@@ -2,7 +2,6 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { ArrowUpIcon, CarIcon, HouseIcon, PlusIcon, SpeakerIcon, XIcon } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
-import type { ReactNode } from 'react'
 import { useFieldArray, useForm, useWatch } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
@@ -10,6 +9,7 @@ import { z } from 'zod'
 
 import { useAuth } from '@/auth/use-auth'
 import { AppButton, AppIconButton } from '@/components/app-button'
+import { AppFormLayout, AppFormPanel } from '@/components/app-form-layout'
 import { AppChipsField, AppField, AppForm, AppSelectField, AppTextareaField } from '@/components/app-field'
 import { AppPageHeader } from '@/components/app-page-header'
 import { AppSkeleton } from '@/components/app-skeleton'
@@ -137,18 +137,6 @@ function toInput(values: FormValues): MusicianInputDto {
   }
 }
 
-function Panel({ title, description, className, children }: { title: string; description?: string; className?: string; children: ReactNode }) {
-  return (
-    <section className={cn('flex min-w-0 flex-col gap-3 rounded-xl border bg-card p-4 md:p-5', className)}>
-      <div className="flex flex-col gap-0.5">
-        <h2 className="font-heading text-base font-bold tracking-wider uppercase">{title}</h2>
-        {description ? <p className="app-meta">{description}</p> : null}
-      </div>
-      {children}
-    </section>
-  )
-}
-
 export function EnsaioMinhaFichaPage() {
   const { t } = useTranslation('ensaio')
   const { user } = useAuth()
@@ -233,8 +221,10 @@ export function EnsaioMinhaFichaPage() {
         }
       />
 
-      <AppForm form={form} onSubmit={submit} className="grid gap-6 lg:grid-cols-[340px_minmax(0,1fr)] lg:items-start">
-        <aside className="flex min-w-0 flex-col gap-4 lg:sticky lg:top-24">
+      <AppForm form={form} onSubmit={submit}>
+        <AppFormLayout
+          aside={
+            <>
           <div className="flex flex-col gap-2">
             <span className="app-meta">{t('myProfile.preview')}</span>
             <FlyerCard
@@ -275,10 +265,10 @@ export function EnsaioMinhaFichaPage() {
           <AppButton type="submit" loading={saving} size="lg" className="w-full font-heading tracking-wider uppercase">
             {t('myProfile.save')}
           </AppButton>
-        </aside>
-
-        <div className="grid min-w-0 gap-4 xl:grid-cols-2">
-          <Panel title={t('myProfile.instruments')} description={t('myProfile.instrumentsHint')} className="xl:col-span-2">
+            </>
+          }
+        >
+          <AppFormPanel title={t('myProfile.instruments')} description={t('myProfile.instrumentsHint')} wide>
             <div className="flex flex-col gap-3">
               {instruments.fields.map((field, index) => (
                 <div key={field.id} className="flex flex-col gap-3 rounded-lg border p-3 md:flex-row md:items-end">
@@ -320,9 +310,9 @@ export function EnsaioMinhaFichaPage() {
                 {t('myProfile.addInstrument')}
               </AppButton>
             ) : null}
-          </Panel>
+          </AppFormPanel>
 
-          <Panel title={t('myProfile.wants')}>
+          <AppFormPanel title={t('myProfile.wants')}>
             <AppSelectField name="goal" label={t('myProfile.goal')} options={optionsOf(Object.values(MusicianGoal), (value) => t(`goals.${goalKey[value]}`))} />
             <AppSelectField
               name="commitment"
@@ -335,9 +325,9 @@ export function EnsaioMinhaFichaPage() {
               description={t('myProfile.reachHint')}
               options={reachOptions.map((km) => ({ value: km === null ? anywhereValue : String(km), label: reachLabel(km) }))}
             />
-          </Panel>
+          </AppFormPanel>
 
-          <Panel title={t('myProfile.structure')} description={t('myProfile.structureHint')}>
+          <AppFormPanel title={t('myProfile.structure')} description={t('myProfile.structureHint')}>
             <div className="grid gap-2">
               {structureNames.map((name, index) => {
                 const Icon = structureIcons[name]
@@ -359,9 +349,9 @@ export function EnsaioMinhaFichaPage() {
                 )
               })}
             </div>
-          </Panel>
+          </AppFormPanel>
 
-          <Panel title={t('myProfile.availability')} description={t('myProfile.availabilityHint')} className="xl:col-span-2">
+          <AppFormPanel title={t('myProfile.availability')} description={t('myProfile.availabilityHint')} wide>
             <div role="group" aria-label={t('myProfile.availability')} className="grid grid-cols-[3.25rem_repeat(7,minmax(0,1fr))] gap-1 sm:grid-cols-[4.5rem_repeat(7,minmax(0,1fr))] sm:gap-1.5">
               <span />
               {allWeekDays.map((day) => (
@@ -392,13 +382,13 @@ export function EnsaioMinhaFichaPage() {
                 </div>
               ))}
             </div>
-          </Panel>
+          </AppFormPanel>
 
-          <Panel title={t('myProfile.genres')} className="xl:col-span-2">
+          <AppFormPanel title={t('myProfile.genres')} wide>
             <AppChipsField name="genres" label={t('myProfile.genresLabel')} max={maxGenres} options={allMusicGenres.map((genre) => ({ value: genre, label: genreLabel(genre) }))} />
-          </Panel>
+          </AppFormPanel>
 
-          <Panel title={t('myProfile.links')} description={t('myProfile.linksHint')}>
+          <AppFormPanel title={t('myProfile.links')} description={t('myProfile.linksHint')}>
             {links.fields.map((field, index) => (
               <div key={field.id} className="flex items-end gap-2">
                 <div className="min-w-0 flex-1">
@@ -415,12 +405,12 @@ export function EnsaioMinhaFichaPage() {
                 {t('myProfile.addLink')}
               </AppButton>
             ) : null}
-          </Panel>
+          </AppFormPanel>
 
-          <Panel title={t('myProfile.influences')}>
+          <AppFormPanel title={t('myProfile.influences')}>
             <AppTextareaField name="influences" label={t('myProfile.influencesLabel')} placeholder={t('myProfile.influencesPlaceholder')} rows={5} maxLength={300} />
-          </Panel>
-        </div>
+          </AppFormPanel>
+        </AppFormLayout>
       </AppForm>
     </div>
   )

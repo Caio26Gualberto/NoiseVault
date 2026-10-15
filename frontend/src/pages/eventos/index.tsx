@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
 import { AppCitySelect } from '@/components/app-city-select'
-import { searchCities } from '@/pages/perfil/services/cidades-service'
+import { featuredCities, searchCities } from '@/pages/perfil/services/cidades-service'
 import { allMusicGenres, useMusicGenreLabel } from '@/pages/perfil/genres'
 import type { MusicGenre } from '@/pages/perfil/genres'
 
@@ -93,7 +93,7 @@ export function EventosPage() {
         <AppCitySelect
           value={{ city: page.city, cityName: '' }}
           onChange={(value) => page.changeCity(value.city)}
-          search={searchCities}
+          search={searchCities} suggest={featuredCities}
           placeholder={t('filters.allCities')}
           clearLabel={t('filters.allCities')}
           ariaLabel={t('filters.city')}

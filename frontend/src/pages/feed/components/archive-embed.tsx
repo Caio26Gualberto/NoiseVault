@@ -7,15 +7,14 @@ import type { ArchiveSummaryDto } from '@/pages/mural/services/mural-service'
 
 import { MediaKind } from '../media-kind'
 
-export function ArchiveEmbed({ entry }: { entry: ArchiveSummaryDto }) {
+export function ArchiveEmbed({ entry, linked = true }: { entry: ArchiveSummaryDto; linked?: boolean }) {
   const { t } = useTranslation('feed')
   const coverUrl = entry.cover ? (entry.cover.kind === MediaKind.video ? entry.cover.posterUrl : entry.cover.url) : null
 
-  return (
-    <Link
-      to={`/mural/${entry.id}`}
-      className="group flex flex-col overflow-hidden rounded-lg border transition-colors hover:border-primary/60 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
-    >
+  const className = 'group flex flex-col overflow-hidden rounded-lg border transition-colors hover:border-primary/60 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none'
+
+  const body = (
+    <>
       <div className="relative aspect-[4/3] overflow-hidden bg-muted sm:aspect-video">
         {coverUrl ? (
           <img src={coverUrl} alt="" loading="lazy" className="size-full object-cover sepia-[.25] transition-all duration-500 group-hover:sepia-0" />
@@ -47,6 +46,14 @@ export function ArchiveEmbed({ entry }: { entry: ArchiveSummaryDto }) {
           ) : null}
         </span>
       </div>
+    </>
+  )
+
+  return linked ? (
+    <Link to={`/mural/${entry.id}`} className={className}>
+      {body}
     </Link>
+  ) : (
+    <div className={className}>{body}</div>
   )
 }

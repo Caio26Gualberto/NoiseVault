@@ -1,6 +1,6 @@
 {
   "title": "Minha conta",
-  "description": "Seu perfil público e seus dados de acesso.",
+  "description": "O que só você vê: acesso, senha, notificações e privacidade.",
   "profile": {
     "title": "Perfil",
     "description": "O que as pessoas veem em /perfil/seu-apelido.",
@@ -38,5 +38,27 @@
     "description": "As notificações chegam no sino na hora. Por e-mail, só o que precisa de resposta.",
     "emailOnBandInvite": "Receber convite de banda por e-mail",
     "emailOnBandInviteHint": "Para você não perder um convite quando não estiver no Noise Vault."
+  },
+  "profilePage": {
+    "title": "Meu perfil",
+    "description": "O que as pessoas veem no seu perfil e em tudo que você publica.",
+    "view": "Ver como os outros veem",
+    "preview": "Assim seu perfil aparece",
+    "about": "Quem é você",
+    "where": "De onde e o que toca",
+    "links": "Redes",
+    "genres": "Sons"
+  },
+  "account": {
+    "profileTitle": "Perfil público",
+    "profileDescription": "Foto, capa, bio, cidade, sons e redes ficam em Meu perfil.",
+    "editProfile": "Editar perfil",
+    "viewProfile": "Ver perfil",
+    "privateHint": "Nada desta página aparece para outras pessoas.",
+    "accessTitle": "Acesso",
+    "accessDescription": "Os dados com que você entra no Noise Vault.",
+    "emailHint": "É o seu login. Ele nunca aparece no perfil.",
+    "locationTitle": "Localização aproximada",
+    "locationDescription": "Usada só para mostrar a distância no Ensaio. Fica guardada com cerca de 1 km de imprecisão."
   }
 }

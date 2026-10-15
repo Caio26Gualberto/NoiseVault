@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 import { nameSchema } from '@/auth/validators'
-import { instrumentMaxLength, isValidSocialLink, maxGenres } from '@/pages/minha-conta/profile-validators'
+import { instrumentMaxLength, isValidSocialLink, maxGenres } from '@/pages/meu-perfil/profile-validators'
 import { cityValueSchema, emptyCityValue, toCityInput, toCityValue } from '@/pages/perfil/city'
 import { allMusicGenres } from '@/pages/perfil/genres'
 import type { MusicGenre } from '@/pages/perfil/genres'

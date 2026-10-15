@@ -1,4 +1,4 @@
-import { ChevronsUpDownIcon, DownloadIcon, LogOutIcon, MegaphoneIcon, MoonIcon, SunIcon, SunMoonIcon, UserRoundCogIcon, UserRoundIcon } from 'lucide-react'
+import { ChevronsUpDownIcon, DownloadIcon, LogOutIcon, MegaphoneIcon, MoonIcon, PencilIcon, SunIcon, SunMoonIcon, UserRoundCogIcon, UserRoundIcon } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
@@ -18,7 +18,7 @@ import {
 import { cn } from '@/lib/utils'
 import { promptInstall, useInstallMode } from '@/pwa/install-prompt'
 
-import { accountPath, loginPath } from '../auth/routes'
+import { accountPath, loginPath, profileEditPath } from '../auth/routes'
 import { useAuth } from '../auth/use-auth'
 import { useColorScheme } from '../theme/color-scheme'
 import { InstallAppDialog } from './install-app-dialog'
@@ -74,6 +74,12 @@ export function UserMenu({ compact = false }: UserMenuProps) {
             <Link to={`/perfil/${user.nickname}`}>
               <UserRoundIcon />
               {t('layout:userMenu.myProfile')}
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link to={profileEditPath}>
+              <PencilIcon />
+              {t('layout:userMenu.editProfile')}
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>

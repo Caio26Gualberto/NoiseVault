@@ -196,10 +196,10 @@ export function AppBannerEditor({ bannerUrl, bannerPosition, onUpload, onPositio
         <input ref={inputRef} type="file" accept={acceptedImageTypes.join(',')} className="hidden" onChange={pick} />
         {file ? (
           <>
-            <AppButton size="sm" loading={saving} onClick={() => void run(() => onUpload(file, position))}>
+            <AppButton type="button" size="sm" loading={saving} onClick={() => void run(() => onUpload(file, position))}>
               {t('imageUpload.banner.save')}
             </AppButton>
-            <AppButton size="sm" intent="ghost" disabled={saving} onClick={cancel}>
+            <AppButton type="button" size="sm" intent="ghost" disabled={saving} onClick={cancel}>
               {t('actions.cancel')}
             </AppButton>
           </>
@@ -207,20 +207,20 @@ export function AppBannerEditor({ bannerUrl, bannerPosition, onUpload, onPositio
           <>
             {positionChanged ? (
               <>
-                <AppButton size="sm" loading={saving} onClick={() => void run(() => onPosition(position))}>
+                <AppButton type="button" size="sm" loading={saving} onClick={() => void run(() => onPosition(position))}>
                   {t('imageUpload.banner.savePosition')}
                 </AppButton>
-                <AppButton size="sm" intent="ghost" disabled={saving} onClick={cancel}>
+                <AppButton type="button" size="sm" intent="ghost" disabled={saving} onClick={cancel}>
                   {t('actions.cancel')}
                 </AppButton>
               </>
             ) : null}
-            <AppButton size="sm" intent="neutral" disabled={saving} onClick={() => inputRef.current?.click()}>
+            <AppButton type="button" size="sm" intent="neutral" disabled={saving} onClick={() => inputRef.current?.click()}>
               <ImageUpIcon />
               {bannerUrl ? t('imageUpload.banner.replace') : t('imageUpload.banner.choose')}
             </AppButton>
             {bannerUrl ? (
-              <AppButton size="sm" intent="ghost" disabled={saving} onClick={remove}>
+              <AppButton type="button" size="sm" intent="ghost" disabled={saving} onClick={remove}>
                 <Trash2Icon />
                 {t('imageUpload.banner.remove')}
               </AppButton>

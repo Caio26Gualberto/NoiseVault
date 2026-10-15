@@ -4,8 +4,8 @@ import { useTranslation } from 'react-i18next'
 
 import { AppButton } from '@/components/app-button'
 import { AppChipsField, AppCityField, AppField, AppForm, AppTextareaField } from '@/components/app-field'
-import { maxGenres } from '@/pages/minha-conta/profile-validators'
-import { searchCities } from '@/pages/perfil/services/cidades-service'
+import { maxGenres } from '@/pages/meu-perfil/profile-validators'
+import { featuredCities, searchCities } from '@/pages/perfil/services/cidades-service'
 import { allMusicGenres, useMusicGenreLabel } from '@/pages/perfil/genres'
 
 import { bandDescriptionMaxLength, bandFormSchema } from '../band-validators'
@@ -50,7 +50,7 @@ export function BandForm({ defaultValues, withInstrument = false, submitLabel, s
           label={t('form.city')}
           placeholder={t('form.cityPlaceholder')}
           clearLabel={t('form.cityNone')}
-          search={searchCities}
+          search={searchCities} suggest={featuredCities}
           allowAbroad
         />
         <AppField name="foundedYear" inputMode="numeric" label={t('form.foundedYear')} placeholder={t('form.foundedYearPlaceholder')} />

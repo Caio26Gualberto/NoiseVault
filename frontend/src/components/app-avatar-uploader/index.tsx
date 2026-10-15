@@ -85,21 +85,21 @@ export function AppAvatarUploader({ name, avatarUrl, onUpload, onRemove }: AppAv
           <input ref={inputRef} type="file" accept={acceptedImageTypes.join(',')} className="hidden" onChange={pick} />
           {file ? (
             <>
-              <AppButton size="sm" loading={saving} onClick={() => void save()}>
+              <AppButton type="button" size="sm" loading={saving} onClick={() => void save()}>
                 {t('imageUpload.avatar.save')}
               </AppButton>
-              <AppButton size="sm" intent="ghost" disabled={saving} onClick={() => setFile(null)}>
+              <AppButton type="button" size="sm" intent="ghost" disabled={saving} onClick={() => setFile(null)}>
                 {t('actions.cancel')}
               </AppButton>
             </>
           ) : (
             <>
-              <AppButton size="sm" intent="neutral" onClick={() => inputRef.current?.click()}>
+              <AppButton type="button" size="sm" intent="neutral" onClick={() => inputRef.current?.click()}>
                 <ImageUpIcon />
                 {t('imageUpload.avatar.choose')}
               </AppButton>
               {avatarUrl ? (
-                <AppButton size="sm" intent="ghost" onClick={remove}>
+                <AppButton type="button" size="sm" intent="ghost" onClick={remove}>
                   <Trash2Icon />
                   {t('imageUpload.avatar.remove')}
                 </AppButton>

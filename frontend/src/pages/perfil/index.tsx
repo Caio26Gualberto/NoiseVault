@@ -6,7 +6,7 @@ import { Link, useParams } from 'react-router-dom'
 import { ApiCodes } from '@/api/api-codes'
 import { ApiError } from '@/api/types'
 import { feedback } from '@/api/feedback-sink'
-import { accountPath, homePath } from '@/auth/routes'
+import { homePath, profileEditPath } from '@/auth/routes'
 import { useAuth } from '@/auth/use-auth'
 import { AppAvatar } from '@/components/app-avatar'
 import { AppButton } from '@/components/app-button'
@@ -93,7 +93,7 @@ export function PerfilPage() {
             <AppShareButton path={`/perfil/${profile.nickname}`} title={profile.name} label size="md" />
             {isMe ? (
               <AppButton intent="neutral" asChild>
-                <Link to={accountPath}>
+                <Link to={profileEditPath}>
                   <PencilIcon />
                   {t('edit')}
                 </Link>

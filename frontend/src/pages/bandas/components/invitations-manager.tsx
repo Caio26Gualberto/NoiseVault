@@ -12,7 +12,7 @@ import { useAppConfirm } from '@/components/app-confirm'
 import { AppField, AppForm } from '@/components/app-field'
 import { useDebouncedValue } from '@/hooks/use-debounced-value'
 import { formatDate } from '@/lib/format'
-import { instrumentMaxLength } from '@/pages/minha-conta/profile-validators'
+import { instrumentMaxLength } from '@/pages/meu-perfil/profile-validators'
 import { peopleSearchMinLength, searchPeople } from '@/pages/perfil/services/perfil-service'
 import type { ProfileSummaryDto } from '@/pages/perfil/services/perfil-service'
 

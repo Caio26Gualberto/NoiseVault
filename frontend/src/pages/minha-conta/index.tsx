@@ -1,28 +1,24 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { EyeIcon, MailIcon, PencilIcon, ShieldCheckIcon } from 'lucide-react'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router-dom'
 import { z } from 'zod'
 
 import { tokenStorage } from '@/api/token-storage'
-import type { ProfileDto } from '@/api/types'
 import { changePassword } from '@/auth/auth-service'
+import { profileEditPath } from '@/auth/routes'
 import { useAuth } from '@/auth/use-auth'
 import { passwordSchema, withPasswordConfirmation } from '@/auth/validators'
-import { AppAvatarUploader } from '@/components/app-avatar-uploader'
-import { AppBannerEditor } from '@/components/app-banner-editor'
+import { AppAvatar } from '@/components/app-avatar'
 import { AppButton } from '@/components/app-button'
-import { AppCard } from '@/components/app-card'
-import { AppChipsField, AppCityField, AppField, AppForm, AppPasswordField, AppTextareaField } from '@/components/app-field'
+import { AppForm, AppPasswordField } from '@/components/app-field'
+import { AppFormAsideBox, AppFormLayout, AppFormPanel } from '@/components/app-form-layout'
 import { AppPageHeader } from '@/components/app-page-header'
-import { toCityInput, toCityValue } from '@/pages/perfil/city'
-import { searchCities } from '@/pages/perfil/services/cidades-service'
-import { allMusicGenres, useMusicGenreLabel } from '@/pages/perfil/genres'
+import { LocationControl } from '@/pages/ensaio/components/location-control'
 
 import { NotificationSettings } from './components/notification-settings'
-import { bioMaxLength, maxGenres, profileFormSchema } from './profile-validators'
-import type { ProfileFormValues } from './profile-validators'
-import { removeAvatar, removeBanner, setAvatar, setBanner, setBannerPosition, updateProfile } from './services/conta-service'
 
 const passwordFormSchema = withPasswordConfirmation(
   z.object({
@@ -34,33 +30,11 @@ const passwordFormSchema = withPasswordConfirmation(
 
 type PasswordValues = z.infer<typeof passwordFormSchema>
 
-function toFormValues(user: ProfileDto): ProfileFormValues {
-  return {
-    name: user.name,
-    bio: user.bio ?? '',
-    city: toCityValue(user),
-    mainInstrument: user.mainInstrument ?? '',
-    genres: user.genres,
-    instagram: user.socialLinks.instagram ?? '',
-    youtube: user.socialLinks.youtube ?? '',
-    spotify: user.socialLinks.spotify ?? '',
-  }
-}
-
-const orNull = (value: string) => (value === '' ? null : value)
-
 export function MinhaContaPage() {
   const { t } = useTranslation('conta')
   const { t: tAuth } = useTranslation('auth')
-  const { user, replaceUser } = useAuth()
-  const genreLabel = useMusicGenreLabel()
-  const [savingProfile, setSavingProfile] = useState(false)
+  const { user } = useAuth()
   const [savingPassword, setSavingPassword] = useState(false)
-
-  const profileForm = useForm<ProfileFormValues>({
-    resolver: zodResolver(profileFormSchema),
-    defaultValues: user ? toFormValues(user) : undefined,
-  })
 
   const passwordForm = useForm<PasswordValues>({
     resolver: zodResolver(passwordFormSchema),
@@ -68,30 +42,6 @@ export function MinhaContaPage() {
   })
 
   if (!user) return null
-
-  const saveProfile = async (values: ProfileFormValues) => {
-    setSavingProfile(true)
-    try {
-      const updated = await updateProfile({
-        name: values.name,
-        bio: orNull(values.bio),
-        ...toCityInput(values.city),
-        mainInstrument: orNull(values.mainInstrument),
-        genres: values.genres as ProfileDto['genres'],
-        socialLinks: {
-          instagram: orNull(values.instagram),
-          youtube: orNull(values.youtube),
-          spotify: orNull(values.spotify),
-        },
-      })
-      replaceUser(updated)
-      profileForm.reset(toFormValues(updated))
-    } catch {
-      return
-    } finally {
-      setSavingProfile(false)
-    }
-  }
 
   const savePassword = async ({ currentPassword, password }: PasswordValues) => {
     setSavingPassword(true)
@@ -106,104 +56,76 @@ export function MinhaContaPage() {
     }
   }
 
-  const replaceAndReturn = async (request: Promise<ProfileDto>) => {
-    const updated = await request
-    replaceUser(updated)
-    return updated
-  }
-
   return (
-    <div className="app-page-enter mx-auto flex max-w-2xl flex-col gap-6">
+    <div className="app-page-enter flex flex-col gap-6">
       <AppPageHeader title={t('title')} description={t('description')} />
 
-      <AppCard title={t('appearance.title')} description={t('appearance.description')}>
-        <div className="flex flex-col gap-6">
-          <AppAvatarUploader
-            name={user.name}
-            avatarUrl={user.avatarUrl}
-            onUpload={async (file) => replaceUser(await setAvatar(file))}
-            onRemove={async () => replaceUser(await removeAvatar())}
-          />
-          <AppBannerEditor
-            bannerUrl={user.bannerUrl}
-            bannerPosition={user.bannerPosition}
-            onUpload={(file, position) => replaceAndReturn(setBanner(file, position))}
-            onPosition={(position) => replaceAndReturn(setBannerPosition(position))}
-            onRemove={() => replaceAndReturn(removeBanner())}
-          />
-        </div>
-      </AppCard>
-
-      <AppCard title={t('profile.title')} description={t('profile.description')}>
-        <AppForm form={profileForm} onSubmit={saveProfile}>
-          <AppField name="name" label={t('profile.name')} autoComplete="name" />
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="flex flex-col gap-1.5">
-              <span className="text-sm font-medium">{t('profile.nickname')}</span>
-              <span className="flex h-11 items-center rounded-lg border bg-muted/40 px-3 text-sm text-muted-foreground md:h-10">
-                @{user.nickname}
-              </span>
-              <span className="text-[13px] text-muted-foreground">{t('profile.nicknameHint', { nickname: user.nickname })}</span>
+      <AppFormLayout
+        aside={
+          <>
+            <div className="flex items-center gap-3 rounded-xl border bg-card p-4">
+              <AppAvatar name={user.name} src={user.avatarUrl} size="lg" />
+              <div className="flex min-w-0 flex-col">
+                <span className="truncate font-semibold">{user.name}</span>
+                <span className="app-meta truncate">@{user.nickname}</span>
+              </div>
             </div>
-            <div className="flex flex-col gap-1.5">
-              <span className="text-sm font-medium">{t('profile.email')}</span>
-              <span className="flex h-11 items-center truncate rounded-lg border bg-muted/40 px-3 text-sm text-muted-foreground md:h-10">
-                {user.email}
-              </span>
-            </div>
+            <AppFormAsideBox title={t('account.profileTitle')} description={t('account.profileDescription')}>
+              <div className="flex flex-wrap gap-2">
+                <AppButton asChild size="sm">
+                  <Link to={profileEditPath}>
+                    <PencilIcon />
+                    {t('account.editProfile')}
+                  </Link>
+                </AppButton>
+                <AppButton asChild size="sm" intent="neutral">
+                  <Link to={`/perfil/${user.nickname}`}>
+                    <EyeIcon />
+                    {t('account.viewProfile')}
+                  </Link>
+                </AppButton>
+              </div>
+            </AppFormAsideBox>
+            <p className="flex gap-1.5 px-1 text-[13px] text-muted-foreground">
+              <ShieldCheckIcon className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+              {t('account.privateHint')}
+            </p>
+          </>
+        }
+      >
+        <AppFormPanel title={t('account.accessTitle')} description={t('account.accessDescription')}>
+          <div className="flex flex-col gap-1.5">
+            <span className="text-sm font-medium">{t('profile.email')}</span>
+            <span className="flex h-11 items-center gap-2 truncate rounded-lg border bg-muted/40 px-3 text-sm text-muted-foreground md:h-10">
+              <MailIcon className="size-4 shrink-0" aria-hidden="true" />
+              {user.email}
+            </span>
+            <span className="text-[13px] text-muted-foreground">{t('account.emailHint')}</span>
           </div>
-          <AppTextareaField
-            name="bio"
-            label={t('profile.bio')}
-            rows={4}
-            maxLength={bioMaxLength}
-            placeholder={t('profile.bioPlaceholder')}
-            description={t('profile.bioHint', { max: bioMaxLength })}
-          />
-          <div className="grid gap-4 md:grid-cols-2">
-            <AppCityField
-              name="city"
-              label={t('profile.city')}
-              placeholder={t('profile.cityPlaceholder')}
-              clearLabel={t('profile.cityNone')}
-              hint={t('profile.cityTooltip')}
-              search={searchCities}
-              allowAbroad
-            />
-            <AppField name="mainInstrument" label={t('profile.instrument')} placeholder={t('profile.instrumentPlaceholder')} />
+          <div className="flex flex-col gap-1.5">
+            <span className="text-sm font-medium">{t('profile.nickname')}</span>
+            <span className="flex h-11 items-center rounded-lg border bg-muted/40 px-3 text-sm text-muted-foreground md:h-10">@{user.nickname}</span>
+            <span className="text-[13px] text-muted-foreground">{t('profile.nicknameHint', { nickname: user.nickname })}</span>
           </div>
-          <AppChipsField
-            name="genres"
-            label={t('profile.genres')}
-            max={maxGenres}
-            description={t('profile.genresHint', { max: maxGenres })}
-            options={allMusicGenres.map((genre) => ({ value: genre, label: genreLabel(genre) }))}
-          />
-          <div className="grid gap-4 md:grid-cols-3">
-            <AppField name="instagram" type="url" label={t('profile.instagram')} placeholder="https://instagram.com/..." />
-            <AppField name="youtube" type="url" label={t('profile.youtube')} placeholder="https://youtube.com/@..." />
-            <AppField name="spotify" type="url" label={t('profile.spotify')} placeholder="https://open.spotify.com/..." />
-          </div>
-          <AppButton type="submit" loading={savingProfile} className="self-start">
-            {t('profile.save')}
-          </AppButton>
-        </AppForm>
-      </AppCard>
+        </AppFormPanel>
 
-      <NotificationSettings />
-
-      <AppCard title={t('password.title')} description={t('password.description')}>
-        <AppForm form={passwordForm} onSubmit={savePassword}>
-          <AppPasswordField name="currentPassword" label={tAuth('fields.currentPassword')} autoComplete="current-password" />
-          <div className="grid gap-4 md:grid-cols-2">
+        <AppFormPanel title={t('password.title')} description={t('password.description')}>
+          <AppForm form={passwordForm} onSubmit={savePassword}>
+            <AppPasswordField name="currentPassword" label={tAuth('fields.currentPassword')} autoComplete="current-password" />
             <AppPasswordField name="password" label={tAuth('fields.newPassword')} autoComplete="new-password" />
             <AppPasswordField name="confirmPassword" label={tAuth('fields.confirmPassword')} autoComplete="new-password" />
-          </div>
-          <AppButton type="submit" intent="secondary" loading={savingPassword} className="self-start">
-            {t('password.save')}
-          </AppButton>
-        </AppForm>
-      </AppCard>
+            <AppButton type="submit" intent="secondary" loading={savingPassword} className="self-start">
+              {t('password.save')}
+            </AppButton>
+          </AppForm>
+        </AppFormPanel>
+
+        <NotificationSettings />
+
+        <AppFormPanel title={t('account.locationTitle')} description={t('account.locationDescription')}>
+          <LocationControl />
+        </AppFormPanel>
+      </AppFormLayout>
     </div>
   )
 }

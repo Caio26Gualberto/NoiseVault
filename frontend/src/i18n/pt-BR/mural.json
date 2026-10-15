@@ -181,6 +181,15 @@
         "tooLarge": "O vídeo pode ter até {{size}} GB.",
         "tooLong": "O vídeo pode ter até {{hours}} h."
       }
+    },
+    "preview": "Assim o registro aparece no feed",
+    "previewTitle": "Título do registro",
+    "sections": {
+      "what": "O registro",
+      "where": "Onde",
+      "story": "A história",
+      "bands": "Quem tocou",
+      "media": "Fotos e vídeos"
     }
   }
 }

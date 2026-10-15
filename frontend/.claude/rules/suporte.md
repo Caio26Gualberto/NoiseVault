@@ -25,6 +25,7 @@ Rule irmã: `../api/.claude/rules/suporte.md`. A regra é do backend; a tela só
 
 ## Formulário
 
+- **Duas colunas** (`AppFormLayout`, `design-system.md`). A coluna fixa explica o que acontece depois, mostra a página de origem e tem o "Enviar". À direita: Que tipo de problema e Onde aconteceu lado a lado, O que aconteceu, Prints e vídeo. O estado de enviado continua centralizado.
 - **Pré-marcado, não obrigatório**: "Bug" e o aparelho pela largura da tela (`useIsMobile`: Celular abaixo de 768 px, senão Computador). A página de origem pré-marca a área (`areaFromPath`: `/feed`, `/eventos`, `/mural`, `/perfil`, `/bandas`, `/minha-conta`). Tudo desmarcável.
 - **Página de origem**: `layout/last-location.ts` guarda, num valor de módulo, o último `pathname` do shell que não é `/reportar-problema` (`useRememberLocation` no `AppShell`). Recarregar a página do formulário perde a origem: aceito, porque então ninguém sabe de onde a pessoa veio. O formulário lê uma vez ao montar.
 - **Transparência**: o aviso tracejado no fim diz o que vai junto (o caminho, o navegador e o tamanho da tela). Dado do navegador nunca sai escondido.

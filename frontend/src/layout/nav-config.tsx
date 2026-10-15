@@ -17,6 +17,7 @@ import { Permissions } from '../auth/permissions'
 import type { Permission } from '../auth/permissions'
 import {
   accountPath,
+  profileEditPath,
   confirmEmailPath,
   forgotPasswordPath,
   homePath,
@@ -41,6 +42,7 @@ import { PostDetalhePage } from '../pages/feed/detalhe'
 import { LojaParceiraPage, PodcastsPage } from '../pages/institucional'
 import { SobrePage } from '../pages/institucional/sobre'
 import { MinhaContaPage } from '../pages/minha-conta'
+import { MeuPerfilPage } from '../pages/meu-perfil'
 import { PerfilPage } from '../pages/perfil'
 import { RedefinirSenhaPage } from '../pages/redefinir-senha'
 import { ReportarProblemaPage } from '../pages/reportar-problema'
@@ -181,6 +183,7 @@ export const hiddenRoutes: HiddenRoute[] = [
   { path: '/suporte/:id', element: <SuporteDetalhePage /> },
   { path: '/admin/suporte/:id', element: <SuporteAdminDetalhePage />, permission: Permissions.supportView },
   { path: accountPath, element: <MinhaContaPage /> },
+  { path: profileEditPath, element: <MeuPerfilPage /> },
 ]
 
 export const welcomeRoute: HiddenRoute = { path: welcomePath, element: <BemVindoPage /> }

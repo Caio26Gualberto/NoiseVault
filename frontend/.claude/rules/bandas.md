@@ -48,7 +48,7 @@ Rule irmã: `../api/.claude/rules/bandas.md`. A regra é do backend; a tela só 
 
 - `BandSummaryDto` mora em `bandas-service.ts` (a página dona). Perfil, feed, eventos e notificações importam de lá.
 - Os uploaders de avatar e capa viraram globais (`AppAvatarUploader`, `AppBannerEditor`), recebendo callbacks: a conta e a banda usam o mesmo componente. Validação de arquivo em `src/lib/image-file.ts`; textos em `common.json` (`imageUpload.*`).
-- O formulário (`components/band-form.tsx` + `band-validators.ts`) é o mesmo na criação e na edição. Os campos repetidos do perfil (cidade, gêneros, links, limite de instrumento) reaproveitam `minha-conta/profile-validators.ts`.
+- O formulário (`components/band-form.tsx` + `band-validators.ts`) é o mesmo na criação e na edição. Os campos repetidos do perfil (cidade, gêneros, links, limite de instrumento) reaproveitam `meu-perfil/profile-validators.ts`.
 - `band-invitation-status.ts` espelha `EBandInvitationStatus` (`pending: 0, accepted: 1, declined: 2, revoked: 3`).
 
 ## Roteiro de verificação

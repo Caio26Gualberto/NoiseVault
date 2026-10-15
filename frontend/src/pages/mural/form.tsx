@@ -8,23 +8,26 @@ import { z } from 'zod'
 import { Permissions } from '@/auth/permissions'
 import { useCan } from '@/auth/use-can'
 import { AppButton } from '@/components/app-button'
-import { AppCard } from '@/components/app-card'
 import { AppCityField, AppField, AppForm, AppTextareaField } from '@/components/app-field'
+import { AppFormLayout, AppFormPanel } from '@/components/app-form-layout'
 import { AppPageHeader } from '@/components/app-page-header'
 import { AppSkeleton } from '@/components/app-skeleton'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { LineupEditor } from '@/pages/eventos/components/lineup-editor'
+import { ArchiveEmbed } from '@/pages/feed/components/archive-embed'
+import { MediaKind } from '@/pages/feed/media-kind'
+import { MediaStatus } from '@/pages/feed/media-status'
 import type { LineupItem } from '@/pages/eventos/components/lineup-editor'
 import { cityValueSchema, emptyCityValue, toCityInput, toCityValue } from '@/pages/perfil/city'
-import { searchCities } from '@/pages/perfil/services/cidades-service'
+import { featuredCities, searchCities } from '@/pages/perfil/services/cidades-service'
 
 import { ArchiveEntryStatus, mySubmissionsPath } from './archive-status'
 import { MediaManager } from './components/media-manager'
 import { fromSaved } from './managed-media'
 import type { ManagedMedia } from './managed-media'
 import { createArchiveEntry, getArchiveEntry, submitArchiveEntry, updateArchiveEntry, updateArchiveSubmission } from './services/mural-service'
-import type { ArchiveEntryInput } from './services/mural-service'
+import type { ArchiveEntryInput, ArchiveSummaryDto } from './services/mural-service'
 
 const none = 'none'
 const minYear = 1950
@@ -107,6 +110,7 @@ export function MuralFormPage({ mode = 'curation' }: { mode?: 'curation' | 'subm
   }, [entryId, form, navigate, can])
 
   const month = useWatch({ control: form.control, name: 'month' })
+  const [previewTitle, previewYear, previewMonth, previewDay] = useWatch({ control: form.control, name: ['title', 'year', 'month', 'day'] })
   const uploading = media.some((item) => item.state === 'uploading')
 
   const submit = async (values: FormValues) => {
@@ -148,74 +152,115 @@ export function MuralFormPage({ mode = 'curation' }: { mode?: 'curation' | 'subm
     return <AppSkeleton preset="lines" count={8} className="app-page-enter mx-auto max-w-3xl" />
   }
 
+  const readyMedia = media.filter((item) => item.state === 'ready')
+  const coverItem = media.find((item) => item.key === coverKey) ?? media[0] ?? null
+  const preview: ArchiveSummaryDto = {
+    id: entryId ?? 0,
+    title: previewTitle?.trim() || t('form.previewTitle'),
+    year: /^\d{4}$/.test(previewYear ?? '') ? Number(previewYear) : currentYear,
+    month: previewMonth && previewMonth !== none ? Number(previewMonth) : null,
+    day: previewMonth && previewMonth !== none && /^\d{1,2}$/.test(previewDay ?? '') ? Number(previewDay) : null,
+    cover: coverItem?.previewUrl
+      ? {
+          id: 0,
+          kind: MediaKind.photo,
+          status: MediaStatus.ready,
+          url: coverItem.previewUrl,
+          posterUrl: coverItem.previewUrl,
+          width: null,
+          height: null,
+          durationSeconds: null,
+          tags: [],
+        }
+      : null,
+    photoCount: readyMedia.filter((item) => item.kind === 'photo').length,
+    videoCount: readyMedia.filter((item) => item.kind === 'video').length,
+  }
+
   return (
-    <div className="app-page-enter mx-auto flex max-w-3xl flex-col gap-6">
+    <div className="app-page-enter flex flex-col gap-6">
       <AppPageHeader
         title={t(entryId !== null ? 'form.editTitle' : submitting ? 'form.submitTitle' : 'form.createTitle')}
         description={t(submitting ? 'form.submitDescription' : 'form.description')}
       />
 
       <AppForm form={form} onSubmit={submit}>
-        <AppCard>
-          <div className="flex flex-col gap-4">
-            <AppField name="title" label={t('form.fields.title')} placeholder={t('form.titlePlaceholder')} />
-
-            <fieldset className="flex flex-col gap-1.5">
-              <legend className="text-sm font-medium">{t('form.fields.date')}</legend>
-              <p className="app-meta">{t('form.dateHint')}</p>
-              <div className="grid grid-cols-[1fr_1.4fr_1fr] gap-3">
-                <AppField name="year" label={t('form.fields.year')} inputMode="numeric" placeholder="1987" />
-                <div className="flex flex-col gap-1.5">
-                  <Label>{t('form.fields.month')}</Label>
-                  <Select value={month} onValueChange={(value) => form.setValue('month', value, { shouldValidate: true })}>
-                    <SelectTrigger className="h-11 md:h-10" aria-label={t('form.fields.month')}>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={none}>{t('form.unknown')}</SelectItem>
-                      {months.map((month) => (
-                        <SelectItem key={month.value} value={String(month.value)}>
-                          {month.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <AppField name="day" label={t('form.fields.day')} inputMode="numeric" placeholder={t('form.unknownShort')} />
+        <AppFormLayout
+          aside={
+            <>
+              <div className="flex flex-col gap-2">
+                <span className="app-meta">{t('form.preview')}</span>
+                <ArchiveEmbed entry={preview} linked={false} />
               </div>
-            </fieldset>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <AppField name="venue" label={t('form.fields.venue')} placeholder={t('form.venuePlaceholder')} />
-              <AppCityField
-                name="city"
-                label={t('form.fields.city')}
-                placeholder={t('form.cityPlaceholder')}
-                clearLabel={t('form.unknown')}
-                search={searchCities}
-                allowAbroad
-              />
+              {mediaError ? (
+                <p role="alert" className="text-sm text-destructive">
+                  {mediaError}
+                </p>
+              ) : null}
+
+              <div className="flex flex-col gap-2">
+                <AppButton type="submit" loading={saving} disabled={uploading} size="lg" className="w-full font-heading tracking-wider uppercase">
+                  {uploading ? t('form.waitUpload') : t(entryId !== null ? 'form.submitEdit' : submitting ? 'form.submitSend' : 'form.submitCreate')}
+                </AppButton>
+                <AppButton intent="ghost" type="button" onClick={() => navigate(-1)}>
+                  {t('common:actions.cancel')}
+                </AppButton>
+              </div>
+            </>
+          }
+        >
+          <AppFormPanel title={t('form.sections.what')} wide>
+            <AppField name="title" label={t('form.fields.title')} placeholder={t('form.titlePlaceholder')} />
+          </AppFormPanel>
+
+          <AppFormPanel title={t('form.fields.date')} description={t('form.dateHint')}>
+            <div className="grid grid-cols-[1fr_1.4fr_1fr] gap-3">
+              <AppField name="year" label={t('form.fields.year')} inputMode="numeric" placeholder="1987" />
+              <div className="flex flex-col gap-1.5">
+                <Label>{t('form.fields.month')}</Label>
+                <Select value={month} onValueChange={(value) => form.setValue('month', value, { shouldValidate: true })}>
+                  <SelectTrigger className="h-11 md:h-10" aria-label={t('form.fields.month')}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={none}>{t('form.unknown')}</SelectItem>
+                    {months.map((item) => (
+                      <SelectItem key={item.value} value={String(item.value)}>
+                        {item.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <AppField name="day" label={t('form.fields.day')} inputMode="numeric" placeholder={t('form.unknownShort')} />
             </div>
+          </AppFormPanel>
 
+          <AppFormPanel title={t('form.sections.where')}>
+            <AppField name="venue" label={t('form.fields.venue')} placeholder={t('form.venuePlaceholder')} />
+            <AppCityField
+              name="city"
+              label={t('form.fields.city')}
+              placeholder={t('form.cityPlaceholder')}
+              clearLabel={t('form.unknown')}
+              search={searchCities} suggest={featuredCities}
+              allowAbroad
+            />
+          </AppFormPanel>
+
+          <AppFormPanel title={t('form.sections.story')} wide>
             <AppTextareaField name="description" label={t('form.fields.description')} rows={8} placeholder={t('form.descriptionPlaceholder')} />
+          </AppFormPanel>
 
+          <AppFormPanel title={t('form.sections.bands')} wide>
             <LineupEditor value={bands} onChange={setBands} legend={t('form.fields.bands')} hint={t('form.bandsHint')} />
-          </div>
-        </AppCard>
+          </AppFormPanel>
 
-        <AppCard>
-          <MediaManager value={media} onChange={setMedia} coverKey={coverKey} onCoverChange={setCoverKey} target={uploadTarget} />
-          {mediaError ? <p className="mt-2 text-sm text-destructive">{mediaError}</p> : null}
-        </AppCard>
-
-        <div className="flex gap-2">
-          <AppButton type="submit" loading={saving} disabled={uploading}>
-            {uploading ? t('form.waitUpload') : t(entryId !== null ? 'form.submitEdit' : submitting ? 'form.submitSend' : 'form.submitCreate')}
-          </AppButton>
-          <AppButton intent="ghost" type="button" onClick={() => navigate(-1)}>
-            {t('common:actions.cancel')}
-          </AppButton>
-        </div>
+          <AppFormPanel title={t('form.sections.media')} wide>
+            <MediaManager value={media} onChange={setMedia} coverKey={coverKey} onCoverChange={setCoverKey} target={uploadTarget} />
+          </AppFormPanel>
+        </AppFormLayout>
       </AppForm>
     </div>
   )

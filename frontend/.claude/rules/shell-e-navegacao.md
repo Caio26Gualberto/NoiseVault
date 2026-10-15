@@ -17,7 +17,7 @@ Item ativo: `resolveActivePath` (copiado do boilerplate) resolve **uma vez** par
 
 ## Três regiões em desktop, duas em mobile
 
-- **Sidebar** (≥ `md`, 240px): wordmark, `navSections`, e no rodapé o `user-menu` (avatar + nome + `@nickname`; menu com Minha conta, Tema, Sair). Sem modo colapsado nesta entrega: o site não é ferramenta de trabalho em que a pessoa passa o dia — menos estado, menos bug.
+- **Sidebar** (≥ `md`, 240px): wordmark, `navSections`, e no rodapé o `user-menu` (avatar + nome + `@nickname`; menu com Meu perfil, Editar perfil, Minha conta, Ensaio, Tema, Sair). Sem modo colapsado nesta entrega: o site não é ferramenta de trabalho em que a pessoa passa o dia — menos estado, menos bug.
 - **Topbar**: busca de pessoas real (`people-search.tsx`, só a partir de `md`; ver `perfil.md`), sino de notificações, que **abre um balão** (`Popover`) com a lista (desde 14/10/2026 não há página `/notificacoes` nem item na sidebar ou no "Mais"; `notificacoes.md`) (`notifications-bell.tsx`, que lê o `NotificationsProvider` do `AppShell`: contador real empurrado por SignalR, com polling de 60 s só enquanto a conexão está caída — `notificacoes.md`), e em mobile o wordmark à esquerda e o avatar à direita.
 - **`<main>`**: coluna de até 680px centrada em páginas de leitura (feed, detalhe); largura total em galerias e listas. A página escolhe com `AppPageHeader`/`contentWidth`.
 - **Rail direito** (≥ `xl`, 320px): a página registra o conteúdo via `useShellRail(node)` (`shell-rail.tsx`); vazio = não renderiza. Feed registra "Próximos eventos" e "Bandas sugeridas".

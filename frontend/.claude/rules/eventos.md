@@ -25,12 +25,13 @@ Rule irmã: `../api/.claude/rules/eventos.md`. A regra é do backend; a tela só
 
 ## Formulário
 
+- **Duas colunas** (`AppFormLayout`, `design-system.md`). A coluna fixa tem a prévia ao vivo do card do feed (`EventEmbed` com `linked={false}`: capa, data, nome, local e cidade, enquanto a pessoa digita), o "Publicar como" e os botões. À direita: Capa, O evento, Quando e Onde lado a lado, Quem toca, Gêneros, Ingresso e lotação.
 - **Banner**: é o `AppBannerEditor`.
   - Na **criação**, ele trabalha com o arquivo local: o "Salvar capa" só guarda o arquivo e a posição na tela, e o upload acontece depois do `POST /api/events`, com o id em mãos. Se o upload falhar, o evento já existe e o toast de erro avisa.
   - Na **edição**, cada ação vai direto à API, como a capa da banda.
 - **Line-up** (`components/lineup-editor.tsx`): um campo só, que busca bandas do Noise Vault (`GET /api/bands/search`, debounce de 350 ms, 2+ caracteres) e oferece "Adicionar "X" como nome". Enter adiciona como nome. Cada linha mostra se é banda do Noise Vault ou nome livre, com ↑/↓ e remover. O limite é 30, igual à API.
 - **Cidade** é `AppCityField` com "Fora do Brasil", obrigatório no zod como na API (`validation.cityRequired`).
-- **Datas**: o `datetime-local` vira ISO UTC no envio. O zod confere que o término vem depois do início; "no passado" e "no máximo 7 dias" ficam com a API, que devolve `EVENT_IN_PAST` / `INVALID_EVENT_DATES` pelo toast.
+- **Datas**: `AppDateTimeField` (máscara `dd/mm/aaaa hh:mm` e calendário, `design-system.md`); o valor local vira ISO UTC no envio. Data incompleta ou inexistente → `validation.dateTime`. O zod confere que o término vem depois do início; "no passado" e "no máximo 7 dias" ficam com a API, que devolve `EVENT_IN_PAST` / `INVALID_EVENT_DATES` pelo toast.
 - **Acessibilidade**: os selects "Publicar como" e "Cidade" têm `aria-label`, porque o `Label` do shadcn não se liga ao trigger do Radix.
 
 ## Listas

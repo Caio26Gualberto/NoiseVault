@@ -11,7 +11,7 @@ import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetT
 import { useAuth } from '@/auth/use-auth'
 import { cn } from '@/lib/utils'
 import { formatCityDto } from '@/pages/perfil/city'
-import { searchCities } from '@/pages/perfil/services/cidades-service'
+import { featuredCities, searchCities } from '@/pages/perfil/services/cidades-service'
 import { allMusicGenres, useMusicGenreLabel } from '@/pages/perfil/genres'
 import type { MusicGenre } from '@/pages/perfil/genres'
 
@@ -126,7 +126,7 @@ export function EnsaioFilters({ value, onChange, withSamples = false }: EnsaioFi
                 <AppCitySelect
                   value={{ city: value.nearCity, cityName: '' }}
                   onChange={(next) => onChange({ ...value, nearCity: next.city })}
-                  search={searchCities}
+                  search={searchCities} suggest={featuredCities}
                   placeholder={t('filters.nearMe')}
                   clearLabel={t('filters.nearMe')}
                   ariaLabel={t('filters.nearCity')}

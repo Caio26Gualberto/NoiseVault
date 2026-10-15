@@ -10,6 +10,7 @@ import { homePath } from '@/auth/routes'
 import { AppButton } from '@/components/app-button'
 import { AppCard } from '@/components/app-card'
 import { AppChipsField, AppField, AppForm, AppTextareaField } from '@/components/app-field'
+import { AppFormAsideBox, AppFormLayout, AppFormPanel } from '@/components/app-form-layout'
 import { AppPageHeader } from '@/components/app-page-header'
 import { useIsMobile } from '@/hooks/use-media-query'
 import { lastVisitedPath } from '@/layout/last-location'
@@ -77,7 +78,7 @@ export function ReportarProblemaPage() {
   }
 
   return (
-    <div className="app-page-enter mx-auto flex max-w-2xl flex-col">
+    <div className="app-page-enter flex flex-col gap-6">
       <AppPageHeader
         title={t('title')}
         description={t('description')}
@@ -92,7 +93,7 @@ export function ReportarProblemaPage() {
       />
 
       {created ? (
-        <AppCard>
+        <AppCard className="mx-auto w-full max-w-2xl">
           <div className="flex flex-col items-center gap-4 py-4 text-center">
             <div className="flex size-14 items-center justify-center rounded-full bg-success/15 text-success">
               <CircleCheckIcon className="size-7" />
@@ -112,42 +113,53 @@ export function ReportarProblemaPage() {
           </div>
         </AppCard>
       ) : (
-        <AppCard>
-          <AppForm form={form} onSubmit={submit}>
-            <AppChipsField
-              name="tags"
-              label={t('fields.tags')}
-              description={t('fields.tagsHint')}
-              options={allSupportTags.map((tag) => ({ value: tag, label: labels.tag(tag) }))}
-            />
-            <AppField name="title" label={t('fields.title')} placeholder={t('fields.titlePlaceholder')} maxLength={120} />
-            <AppTextareaField
-              name="description"
-              label={t('fields.description')}
-              rows={6}
-              maxLength={5000}
-              placeholder={t('fields.descriptionPlaceholder')}
-            />
-            <AppChipsField
-              name="areas"
-              label={t('fields.areas')}
-              description={t('fields.areasHint')}
-              options={allSupportAreas.map((area) => ({ value: area, label: labels.area(area) }))}
-            />
-            <ReportAttachments value={attachments} onChange={setAttachments} />
-
-            <div className="flex gap-2 rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
-              <InfoIcon className="mt-0.5 size-4 shrink-0" />
-              <p>{origin ? t('context.withOrigin', { path: origin }) : t('context.withoutOrigin')}</p>
-            </div>
-
-            {failed ? <p className="text-sm text-destructive">{t('attachments.failedHint')}</p> : null}
-
-            <AppButton type="submit" loading={submitting} disabled={uploading} className="self-start">
-              {uploading ? t('uploading') : t('submit')}
-            </AppButton>
-          </AppForm>
-        </AppCard>
+        <AppForm form={form} onSubmit={submit}>
+          <AppFormLayout
+            aside={
+              <>
+                <AppFormAsideBox title={t('aside.title')} description={t('aside.description')} />
+                <div className="flex gap-2 rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
+                  <InfoIcon className="mt-0.5 size-4 shrink-0" />
+                  <p>{origin ? t('context.withOrigin', { path: origin }) : t('context.withoutOrigin')}</p>
+                </div>
+                {failed ? <p className="text-sm text-destructive">{t('attachments.failedHint')}</p> : null}
+                <AppButton type="submit" loading={submitting} disabled={uploading} size="lg" className="w-full font-heading tracking-wider uppercase">
+                  {uploading ? t('uploading') : t('submit')}
+                </AppButton>
+              </>
+            }
+          >
+            <AppFormPanel title={t('sections.kind')}>
+              <AppChipsField
+                name="tags"
+                label={t('fields.tags')}
+                description={t('fields.tagsHint')}
+                options={allSupportTags.map((tag) => ({ value: tag, label: labels.tag(tag) }))}
+              />
+            </AppFormPanel>
+            <AppFormPanel title={t('sections.where')}>
+              <AppChipsField
+                name="areas"
+                label={t('fields.areas')}
+                description={t('fields.areasHint')}
+                options={allSupportAreas.map((area) => ({ value: area, label: labels.area(area) }))}
+              />
+            </AppFormPanel>
+            <AppFormPanel title={t('sections.what')} wide>
+              <AppField name="title" label={t('fields.title')} placeholder={t('fields.titlePlaceholder')} maxLength={120} />
+              <AppTextareaField
+                name="description"
+                label={t('fields.description')}
+                rows={6}
+                maxLength={5000}
+                placeholder={t('fields.descriptionPlaceholder')}
+              />
+            </AppFormPanel>
+            <AppFormPanel title={t('sections.attachments')} wide>
+              <ReportAttachments value={attachments} onChange={setAttachments} />
+            </AppFormPanel>
+          </AppFormLayout>
+        </AppForm>
       )}
     </div>
   )

@@ -12,7 +12,7 @@ import { AppSkeleton } from '@/components/app-skeleton'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 import { AppCitySelect } from '@/components/app-city-select'
-import { searchCities } from '@/pages/perfil/services/cidades-service'
+import { featuredCities, searchCities } from '@/pages/perfil/services/cidades-service'
 
 import { mySubmissionsPath, submitArchivePath } from './archive-status'
 import { ArchiveCard } from './components/archive-card'
@@ -81,7 +81,7 @@ export function MuralPage() {
         <AppCitySelect
           value={{ city: page.city, cityName: '' }}
           onChange={(value) => page.changeCity(value.city)}
-          search={searchCities}
+          search={searchCities} suggest={featuredCities}
           placeholder={t('filters.allCities')}
           clearLabel={t('filters.allCities')}
           ariaLabel={t('filters.city')}

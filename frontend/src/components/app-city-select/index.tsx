@@ -19,6 +19,7 @@ type AppCitySelectProps = {
   value: AppCityValue
   onChange: (value: AppCityValue) => void
   search: (term: string) => Promise<AppCity[]>
+  suggest?: () => Promise<AppCity[]>
   placeholder: string
   clearLabel?: string
   allowAbroad?: boolean
@@ -35,6 +36,7 @@ export function AppCitySelect({
   value,
   onChange,
   search,
+  suggest,
   placeholder,
   clearLabel,
   allowAbroad = false,
@@ -52,6 +54,7 @@ export function AppCitySelect({
   const [query, setQuery] = useState('')
   const [abroadText, setAbroadText] = useState('')
   const [active, setActive] = useState(-1)
+  const [suggestions, setSuggestions] = useState<AppCity[]>([])
   const [state, setState] = useState<SearchState>({ term: '', items: [], loading: false })
   const term = useDebouncedValue(query.trim(), 300)
   const searchable = term.length >= searchMinLength
@@ -69,7 +72,8 @@ export function AppCitySelect({
       })
   }, [term, searchable, search])
 
-  const items = searchable && state.term === term ? state.items : []
+  const showingSuggestions = query.trim().length < searchMinLength && suggestions.length > 0
+  const items = showingSuggestions ? suggestions : searchable && state.term === term ? state.items : []
   const pending = state.loading || (searchable && state.term !== term) || query.trim() !== term
   const abroadName = abroadText.trim()
   const label = value.city ? `${value.city.name}, ${value.city.uf}` : value.cityName.trim() || null
@@ -77,6 +81,11 @@ export function AppCitySelect({
   const changeOpen = (next: boolean) => {
     setOpen(next)
     if (!next) return
+    if (suggest && suggestions.length === 0) {
+      suggest()
+        .then(setSuggestions)
+        .catch(() => undefined)
+    }
     setQuery('')
     setActive(-1)
     setAbroad(!value.city && value.cityName.trim().length > 0)
@@ -188,10 +197,15 @@ export function AppCitySelect({
               />
             </div>
             <div className="max-h-64 overflow-y-auto py-1">
-              {query.trim().length < searchMinLength ? (
+              {query.trim().length < searchMinLength && !showingSuggestions ? (
                 <p className="px-3 py-2.5 text-sm text-muted-foreground">{t('city.typeMore')}</p>
               ) : items.length > 0 ? (
-                <ul id={listId} role="listbox" className="flex flex-col">
+                <ul id={listId} role="listbox" aria-label={showingSuggestions ? t('city.suggestions') : undefined} className="flex flex-col">
+                  {showingSuggestions ? (
+                    <li role="presentation" className="px-3 pt-1.5 pb-1 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                      {t('city.suggestions')}
+                    </li>
+                  ) : null}
                   {items.map((city, index) => {
                     const selected = value.city?.id === city.id
                     return (

@@ -2,6 +2,7 @@
 paths:
   - "src/pages/perfil/**"
   - "src/pages/minha-conta/**"
+  - "src/pages/meu-perfil/**"
   - "src/layout/top-bar.tsx"
   - "src/layout/people-search.tsx"
   - "src/layout/user-menu.tsx"
@@ -17,7 +18,7 @@ Rule irmã: `../api/.claude/rules/perfil-e-midia.md` (campos, validação, codes
 | Tela | Fonte |
 |---|---|
 | `/perfil/:nickname` | `GET /api/users/{nickname}` |
-| `/minha-conta` → seção Perfil | `GET /api/profile` (sessão), `PUT /api/profile`, avatar e capa |
+| `/meu-perfil` | `GET /api/profile` (sessão), `PUT /api/profile`, avatar e capa |
 | Busca da topbar | `GET /api/users/search` |
 | Bandas no perfil | seção "Bandas" com os `BandSummaryDto` de `profile.bands` (módulo 2, `bandas.md`); no próprio perfil aparece "Criar banda" mesmo sem nenhuma |
 | Publicações no perfil | contador "N publicações" no hero (`postCount`) e a seção "Publicações" com `OwnerPosts` do feed (módulo 3, `feed.md`) |
@@ -30,9 +31,18 @@ Rule irmã: `../api/.claude/rules/perfil-e-midia.md` (campos, validação, codes
 
 `ProfileDto` da sessão traz `avatarUrl`, `bannerUrl`, `bannerPosition`, `bio`, `city`, `mainInstrument`, `genres` e `socialLinks`. Toda ação do perfil devolve o `ProfileDto` atualizado e a tela chama `replaceUser(dto)` do `AuthProvider` — sem refetch, e o avatar do user-menu troca na hora.
 
+## Meu perfil × Minha conta
+
+Decisão do usuário em 15/10/2026: "perfil é o que as pessoas veem, e minha conta é sensível, hoje tá tudo junto".
+
+- **`/meu-perfil`** (`pages/meu-perfil/`) edita o perfil público: avatar, capa, nome, bio, cidade, instrumento, gêneros e links. A coluna fixa tem a prévia ao vivo do cartão do perfil (capa, avatar, nome, cidade, instrumento, bio e gêneros, lidos do formulário enquanto a pessoa digita) e o "Salvar perfil". O botão "Editar perfil" do perfil e o item do user-menu levam para cá.
+- **`/minha-conta`** fica só com o que é da pessoa e não aparece para ninguém: e-mail e apelido (só leitura), troca de senha, notificações por e-mail e a localização aproximada do Ensaio (`ensaio.md`). Tem "Editar perfil" e "Ver perfil" para quem chegou procurando o perfil.
+- O service continua um só (`pages/minha-conta/services/conta-service.ts`): "Meu perfil" importa do caminho da conta, como manda a regra de service não promovido. Os validadores do perfil foram para `pages/meu-perfil/profile-validators.ts`, porque são daquela tela; a banda importa de lá.
+- O `/bem-vindo` continua liberando só a `/minha-conta`.
+
 ## Edição: um formulário, um `PUT`
 
-A seção Perfil de `/minha-conta` envia tudo de uma vez (nome, bio, cidade, instrumento, gêneros, links). Os schemas zod em `pages/minha-conta/profile-validators.ts` espelham `perfil-e-midia.md` (bio 500, instrumento 60, até 10 gêneros, link `http(s)` no host do serviço). ⚠️ Mudou a regra no backend, muda aqui no mesmo commit.
+`/meu-perfil` envia tudo de uma vez (nome, bio, cidade, instrumento, gêneros, links). Os schemas zod em `pages/meu-perfil/profile-validators.ts` espelham `perfil-e-midia.md` (bio 500, instrumento 60, até 10 gêneros, link `http(s)` no host do serviço). ⚠️ Mudou a regra no backend, muda aqui no mesmo commit.
 
 A cidade é o `AppCityField` (busca no `GET /api/cities` por `pages/perfil/services/cidades-service.ts`, mais "Fora do Brasil"), e os gêneros são chips de múltipla escolha de `genres.ts` (numeração igual à do backend). Tipo, conversão para o formulário (`toCityValue`, `toCityInput`), schema zod e `formatCity` moram em `pages/perfil/city.ts`.
 
@@ -62,10 +72,10 @@ A cidade é o `AppCityField` (busca no `GET /api/cities` por `pages/perfil/servi
 
 Com API, LocalStack e Vite no ar:
 
-1. `/minha-conta`: preencher bio, cidade, instrumento, 2 gêneros e Instagram → "Salvar perfil" → toast `PROFILE_UPDATED`; recarregar mantém tudo. Instagram `https://evil.com/x` → erro no campo antes de enviar.
+1. `/meu-perfil`: preencher bio, cidade, instrumento, 2 gêneros e Instagram → "Salvar perfil" → toast `PROFILE_UPDATED`; recarregar mantém tudo. Instagram `https://evil.com/x` → erro no campo antes de enviar.
 2. Escolher um JPEG como avatar → preview circular → "Salvar avatar" → toast `AVATAR_UPDATED`; o avatar do user-menu troca sem recarregar. Arquivo `.txt` → erro sem chamar a API. "Remover" volta às iniciais.
 3. Escolher uma capa larga → arrastar para mostrar outra parte → "Salvar capa" → `/perfil/:nickname` mostra o mesmo corte do preview. Arrastar de novo → "Salvar posição" → muda sem reupload (mesma `bannerUrl`).
 4. `/perfil/<nickname>` de outra pessoa → sem "Editar perfil"; `/perfil/naoexiste` → estado vazio, sem toast.
 5. Topbar: digitar "a" não busca; "adm" lista o admin; Enter abre o perfil e limpa o campo.
 6. ~~Telas mockadas abrem com as fixtures movidas~~: não sobrou tela mockada que use fixture de pessoa.
-7. 390px: `/minha-conta` e `/perfil/:nickname` sem rolagem horizontal; arrastar a capa com toque funciona.
+7. 390px: `/meu-perfil`, `/minha-conta` e `/perfil/:nickname` sem rolagem horizontal; arrastar a capa com toque funciona.

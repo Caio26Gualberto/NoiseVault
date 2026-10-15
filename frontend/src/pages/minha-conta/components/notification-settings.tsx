@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { useAuth } from '@/auth/use-auth'
-import { AppCard } from '@/components/app-card'
+import { AppFormPanel } from '@/components/app-form-layout'
 import { Checkbox } from '@/components/ui/checkbox'
 
 import { updateNotificationSettings } from '../services/conta-service'
@@ -26,7 +26,7 @@ export function NotificationSettings() {
   }
 
   return (
-    <AppCard title={t('notifications.title')} description={t('notifications.description')}>
+    <AppFormPanel title={t('notifications.title')} description={t('notifications.description')}>
       <label className="flex items-start gap-3 text-sm">
         <Checkbox
           checked={user.emailOnBandInvite}
@@ -39,6 +39,6 @@ export function NotificationSettings() {
           <span className="app-meta">{t('notifications.emailOnBandInviteHint')}</span>
         </span>
       </label>
-    </AppCard>
+    </AppFormPanel>
   )
 }

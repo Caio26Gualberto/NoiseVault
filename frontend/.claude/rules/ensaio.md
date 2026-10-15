@@ -120,7 +120,7 @@ A regra é do backend (`../api/.claude/rules/ensaio.md`, "Distância, com a loca
 
 Pedido do usuário em 15/10/2026 ("tá tudo muito vertical, tem mais espaço para usar").
 
-- **A partir de `lg`**: uma coluna fixa de 340 px (`sticky`) e os blocos à direita, dois por linha a partir de `xl`.
+- **A partir de `lg`**: uma coluna fixa de 340 px (`sticky`) e os blocos à direita, dois por linha a partir de `xl`. Foi a primeira tela assim; o desenho virou o `AppFormLayout` e o `AppFormPanel` globais (`design-system.md`).
 - **A coluna fixa tem**:
   - a **prévia ao vivo do flyer** (o `FlyerCard` sem link, com o instrumento, o nome, a cidade e o primeiro som do formulário, e a foto escolhida antes mesmo de salvar);
   - a foto do flyer, cujo `FlyerPhotoUploader` usa `showPreview={false}` e `onPreviewChange` para alimentar a prévia;

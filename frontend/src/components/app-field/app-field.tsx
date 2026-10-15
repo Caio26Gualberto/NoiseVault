@@ -4,6 +4,7 @@ import type { ComponentProps, ReactNode } from 'react'
 import { Controller, useFormContext } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
+import { AppDateTimeInput } from '@/components/app-date-time-input'
 import { AppCitySelect } from '@/components/app-city-select'
 import type { AppCity, AppCityValue } from '@/components/app-city-select'
 import { Input } from '@/components/ui/input'
@@ -290,13 +291,14 @@ export type AppCityFieldProps = {
   label: string
   placeholder: string
   search: (term: string) => Promise<AppCity[]>
+  suggest?: () => Promise<AppCity[]>
   clearLabel?: string
   allowAbroad?: boolean
   description?: ReactNode
   hint?: string
 }
 
-export function AppCityField({ name, label, placeholder, search, clearLabel, allowAbroad, description, hint }: AppCityFieldProps) {
+export function AppCityField({ name, label, placeholder, search, suggest, clearLabel, allowAbroad, description, hint }: AppCityFieldProps) {
   const { control } = useFormContext()
 
   return (
@@ -313,10 +315,36 @@ export function AppCityField({ name, label, placeholder, search, clearLabel, all
               value={field.value as AppCityValue}
               onChange={field.onChange}
               search={search}
+              suggest={suggest}
               placeholder={placeholder}
               clearLabel={clearLabel}
               allowAbroad={allowAbroad}
             />
+          )}
+        />
+      )}
+    </FieldShell>
+  )
+}
+
+export type AppDateTimeFieldProps = {
+  name: string
+  label: string
+  description?: ReactNode
+  hint?: string
+}
+
+export function AppDateTimeField({ name, label, description, hint }: AppDateTimeFieldProps) {
+  const { control } = useFormContext()
+
+  return (
+    <FieldShell name={name} label={label} description={description} hint={hint}>
+      {({ id, invalid, describedBy }) => (
+        <Controller
+          control={control}
+          name={name}
+          render={({ field }) => (
+            <AppDateTimeInput id={id} invalid={invalid} describedBy={describedBy} value={field.value as string} onChange={field.onChange} onBlur={field.onBlur} />
           )}
         />
       )}

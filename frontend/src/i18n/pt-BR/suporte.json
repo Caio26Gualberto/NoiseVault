@@ -136,5 +136,15 @@
       "userAgent": "Navegador",
       "unknown": "Não informado"
     }
+  },
+  "aside": {
+    "title": "O que acontece depois",
+    "description": "A equipe recebe o relato na hora e responde por aqui. Você acompanha tudo em Meus relatos."
+  },
+  "sections": {
+    "kind": "Que tipo de problema",
+    "where": "Onde aconteceu",
+    "what": "O que aconteceu",
+    "attachments": "Prints e vídeo"
   }
 }

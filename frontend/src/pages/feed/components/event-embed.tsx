@@ -9,17 +9,15 @@ import { EventStatus } from '@/pages/eventos/event-status'
 import { formatCity } from '@/pages/perfil/city'
 import type { EventSummaryDto } from '@/pages/eventos/services/eventos-service'
 
-export function EventEmbed({ event }: { event: EventSummaryDto }) {
+export function EventEmbed({ event, linked = true }: { event: EventSummaryDto; linked?: boolean }) {
   const { t } = useTranslation('feed')
   const { day, month } = dayParts(event.startsAt)
   const cancelled = event.status === EventStatus.cancelled
   const closed = cancelled || event.hasEnded
 
-  return (
-    <Link
-      to={`/eventos/${event.id}`}
-      className="group flex flex-col overflow-hidden rounded-lg border transition-colors hover:border-primary/60 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
-    >
+  const className = 'group flex flex-col overflow-hidden rounded-lg border transition-colors hover:border-primary/60 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none'
+  const body = (
+    <>
       <div className="relative aspect-[21/9] overflow-hidden bg-muted">
         {event.bannerUrl ? (
           <img
@@ -52,10 +50,18 @@ export function EventEmbed({ event }: { event: EventSummaryDto }) {
         <span className="app-meta inline-flex items-center gap-1.5">
           <MapPinIcon className="size-3.5 shrink-0" />
           <span className="truncate">
-            {event.venue} · {formatCity(event)}
+            {[event.venue, formatCity(event)].filter(Boolean).join(' · ')}
           </span>
         </span>
       </div>
+    </>
+  )
+
+  return linked ? (
+    <Link to={`/eventos/${event.id}`} className={className}>
+      {body}
     </Link>
+  ) : (
+    <div className={className}>{body}</div>
   )
 }

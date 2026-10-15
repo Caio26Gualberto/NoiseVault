@@ -58,6 +58,7 @@ Rule irmã: `../api/.claude/rules/mural.md`. A regra é do backend; a tela só r
 
 ## Formulário
 
+- **Duas colunas** (`AppFormLayout`, `design-system.md`). A coluna fixa tem a prévia ao vivo do card do feed (`ArchiveEmbed` com `linked={false}`: a capa escolhida, a data na precisão preenchida, o título e a contagem de fotos e vídeos prontos), o aviso de mídia faltando e os botões. À direita: O registro, Data e Onde lado a lado, A história, Quem tocou, Fotos e vídeos.
 - **Modo envio** (`/mural/enviar`): mesmos campos, mas a mídia vai para `/api/archive/media/*`.
   - O `MediaManager` recebe `target`: `curation` para quem tem `archiveCreate`, `submission` para os outros (`archiveUploadPaths` no service).
   - Na edição, o formulário usa o `PUT` de envio quando a pessoa é quem enviou, o envio está pendente e ela não tem `archiveEdit`; senão, o da curadoria.
