@@ -1,4 +1,5 @@
-import { CalendarIcon, LogOutIcon, MapPinIcon, PencilIcon, UsersRoundIcon } from 'lucide-react'
+import { BadgeCheckIcon, CalendarIcon, LogOutIcon, MapPinIcon, PencilIcon, UsersRoundIcon } from 'lucide-react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
@@ -23,6 +24,8 @@ import { formatCity } from '@/pages/perfil/city'
 
 import { BandMemberRole } from './band-member-role'
 import { useBand } from './hooks/use-band'
+import { BandVerificationStatus } from './band-verification-status'
+import { VerificationRequestDialog } from './components/verification-request-dialog'
 import { leaveBand } from './services/bandas-service'
 
 export function BandasPage() {
@@ -31,6 +34,7 @@ export function BandasPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const confirm = useAppConfirm()
+  const [verifying, setVerifying] = useState(false)
   const { state, reload } = useBand(slug)
 
   if (state.status === 'loading') {
@@ -124,6 +128,38 @@ export function BandasPage() {
         </div>
         <AppGenreBadges genres={band.genres} max={5} tone="brand" />
       </AppProfileHero>
+
+      {isOwner && !band.isVerified ? (
+        <section className="flex flex-col gap-3 rounded-xl border border-dashed p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <BadgeCheckIcon className="mt-0.5 size-5 shrink-0 text-highlight" />
+            <div className="flex flex-col gap-1 text-sm">
+              {band.verification?.status === BandVerificationStatus.pending ? (
+                <>
+                  <span className="font-medium">{t('verification.pendingTitle')}</span>
+                  <span className="text-muted-foreground">{t('verification.pendingDescription')}</span>
+                </>
+              ) : band.verification?.status === BandVerificationStatus.rejected ? (
+                <>
+                  <span className="font-medium">{t('verification.rejectedTitle')}</span>
+                  <span className="text-muted-foreground">{band.verification.rejectionReason}</span>
+                </>
+              ) : (
+                <>
+                  <span className="font-medium">{t('verification.askTitle')}</span>
+                  <span className="text-muted-foreground">{t('verification.askDescription')}</span>
+                </>
+              )}
+            </div>
+          </div>
+          {band.verification?.status !== BandVerificationStatus.pending ? (
+            <AppButton intent="secondary" onClick={() => setVerifying(true)} className="shrink-0">
+              {t(band.verification?.status === BandVerificationStatus.rejected ? 'verification.askAgain' : 'verification.ask')}
+            </AppButton>
+          ) : null}
+          <VerificationRequestDialog slug={band.slug} open={verifying} onOpenChange={setVerifying} onRequested={reload} />
+        </section>
+      ) : null}
 
       <section className="flex flex-col gap-3">
         <h2 className="app-h3">{t('members')}</h2>

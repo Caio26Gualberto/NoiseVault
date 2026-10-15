@@ -18,6 +18,9 @@ export const Permissions = {
   archiveDelete: 'Archive.Delete',
   archiveReview: 'Archive.Review',
 
+  bandsVerificationsView: 'Bands.Verifications.View',
+  bandsVerify: 'Bands.Verify',
+
   supportView: 'Support.View',
   supportEdit: 'Support.Edit',
   supportReply: 'Support.Reply',

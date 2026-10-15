@@ -15,6 +15,7 @@ Rule irmã: `../api/.claude/rules/bandas.md`. A regra é do backend; a tela só 
 | `/bandas/:slug` | página pública da banda: capa, avatar, descrição, cidade, "Desde {ano}", gêneros, links e integrantes; a seção "Vagas abertas" vem do Ensaio (`ensaio.md`) | qualquer pessoa logada |
 | `/bandas/nova` | criar banda (`BandForm` com o campo "seu instrumento na banda") | qualquer pessoa logada; entra pelo botão "Criar banda" no próprio perfil |
 | `/bandas/:slug/editar` | avatar e capa, dados, integrantes e convites | só Owner (`myRole === owner`); quem não é Owner é redirecionado para `/bandas/:slug` |
+| `/admin/bandas` | fila de pedidos de verificação (ver "Verificação") | `Bands.Verifications.View`; decidir exige `Bands.Verify` |
 
 - As três estão em `hiddenRoutes` no `nav-config`, com `/bandas/nova` antes de `/bandas/:slug`.
 - Criar banda leva direto a `/editar`, porque o próximo passo natural é subir imagem e convidar a formação.
@@ -33,6 +34,15 @@ Rule irmã: `../api/.claude/rules/bandas.md`. A regra é do backend; a tela só 
 - **Na edição, outro Owner:** só o selo. A API recusa remover Owner.
 - **Na edição, a própria linha:** "Sair da banda". O último Owner recebe `BAND_LAST_OWNER` pelo toast global.
 - Toda ação de banda devolve o `BandProfileDto` novo e a tela chama `replace(dto)`; sair é a exceção, porque a pessoa perde acesso à tela.
+
+## Verificação
+
+Rule irmã: a seção "Verificação" de `../api/.claude/rules/bandas.md` (15/10/2026).
+
+- **Na página da banda**, só o Owner de banda **não verificada** vê a caixa tracejada abaixo do hero, com três estados lidos de `verification` no `BandProfileDto`: sem pedido ("Pedir verificação"), `pending` ("em análise", sem botão) e `rejected` (o motivo da API e "Pedir de novo"). O botão abre `components/verification-request-dialog.tsx`: mensagem obrigatória (20 a 1000) e WhatsApp opcional; ao enviar, `reload()` da banda. A exigência mínima (avatar, 2 integrantes, um link social) é da API: a tela só explica no texto do diálogo e deixa o toast `BAND_VERIFICATION_REQUIREMENTS` dizer o que falta.
+- **Fila** em `/admin/bandas` (`pages/admin/bandas/`, item "Verificação de bandas" na seção Administração, permissão `bandsVerificationsView`), no molde de `/admin/mural`: abas por status com o resumo, busca, lista. Clicar num pedido abre `components/verification-review-dialog.tsx` com o avatar e os links sociais da banda (abrem em outra aba, porque é o que o revisor confere), quem pediu, a mensagem e o telefone. "Aprovar" passa por `useAppConfirm` e avisa que o nome fica reservado; "Recusar" pede o motivo (3 a 500) no próprio diálogo; num pedido aprovado de banda ainda verificada aparece "Tirar o selo". Aprovar, recusar e tirar o selo exigem `bandsVerify`; sem ela a pessoa só lê.
+- `band-verification-status.ts` espelha `EBandVerificationStatus` (`pending: 0, approved: 1, rejected: 2`), com tom do badge e `adminBandsPath`.
+- As notificações 29 a 32 (`notificacoes.md`): o pedido leva a equipe para `/admin/bandas`; aprovado, recusado e selo removido levam os Owners à página da banda.
 
 ## Convite
 

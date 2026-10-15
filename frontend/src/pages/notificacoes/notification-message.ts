@@ -1,5 +1,7 @@
 import {
   ArchiveIcon,
+  BadgeCheckIcon,
+  BadgeXIcon,
   AtSignIcon,
   CalendarCheckIcon,
   CalendarClockIcon,
@@ -23,6 +25,7 @@ import { ensaioUrl } from '@/ensaio/frame'
 import i18n from '@/i18n'
 import { Instrument, instrumentKey } from '@/pages/ensaio/ensaio-status'
 import { mySubmissionsPath } from '@/pages/mural/archive-status'
+import { adminBandsPath } from '@/pages/bandas/band-verification-status'
 import { SupportTicketStatus } from '@/pages/reportar-problema/support-enums'
 import { adminTicketPath, myTicketPath } from '@/pages/reportar-problema/support-paths'
 
@@ -72,6 +75,10 @@ export const notificationKinds: Record<NotificationKind, KindConfig> = {
   [NotificationKind.bandMentionedInComment]: { key: 'bandMentionedInComment', icon: AtSignIcon, link: targetLink },
   [NotificationKind.photoTagged]: { key: 'photoTagged', icon: TagIcon, link: targetLink },
   [NotificationKind.bandOpeningInterest]: { key: 'bandOpeningInterest', icon: MegaphoneIcon, link: (n) => (n.opening ? ensaioUrl(`/vagas/${n.opening.id}`) : null) },
+  [NotificationKind.bandVerificationRequested]: { key: 'bandVerificationRequested', icon: BadgeCheckIcon, link: () => adminBandsPath },
+  [NotificationKind.bandVerificationApproved]: { key: 'bandVerificationApproved', icon: BadgeCheckIcon, link: bandLink },
+  [NotificationKind.bandVerificationRejected]: { key: 'bandVerificationRejected', icon: BadgeXIcon, link: bandLink },
+  [NotificationKind.bandVerificationRevoked]: { key: 'bandVerificationRevoked', icon: BadgeXIcon, link: bandLink },
 }
 
 const withPlace = new Set<NotificationKind>([NotificationKind.mentionedInComment, NotificationKind.bandMentionedInComment, NotificationKind.photoTagged])

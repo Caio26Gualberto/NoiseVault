@@ -88,7 +88,11 @@
     "photoTagged": "<b>{{actor}}</b> marcou você numa foto",
     "photoTaggedEvent": "<b>{{actor}}</b> marcou você numa foto",
     "photoTaggedArchive": "<b>{{actor}}</b> marcou você numa foto em <b>{{archive}}</b>",
-    "bandOpeningInterest": "<b>{{actor}}</b> tem interesse na vaga de {{instrument}} da <b>{{band}}</b>"
+    "bandOpeningInterest": "<b>{{actor}}</b> tem interesse na vaga de {{instrument}} da <b>{{band}}</b>",
+    "bandVerificationRequested": "<b>{{actor}}</b> pediu a verificação da <b>{{band}}</b>",
+    "bandVerificationApproved": "A <b>{{band}}</b> foi verificada. O selo já aparece na página da banda",
+    "bandVerificationRejected": "O pedido de verificação da <b>{{band}}</b> foi recusado. Veja o motivo na página da banda",
+    "bandVerificationRevoked": "A <b>{{band}}</b> perdeu o selo de verificada"
   },
   "invitations": {
     "title": "Convites de banda",

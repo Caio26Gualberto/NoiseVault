@@ -6,6 +6,7 @@ import type { ProfileSummaryDto, SocialLinksDto } from '@/pages/perfil/services/
 
 import type { BandInvitationStatus } from '../band-invitation-status'
 import type { BandMemberRole } from '../band-member-role'
+import type { BandVerificationStatus } from '../band-verification-status'
 
 export type BandSummaryDto = {
   id: number
@@ -39,6 +40,7 @@ export type BandProfileDto = {
   socialLinks: SocialLinksDto
   members: BandMemberDto[]
   myRole: BandMemberRole | null
+  verification: BandVerificationStateDto | null
   postCount: number
   upcomingEventCount: number
 }
@@ -157,4 +159,39 @@ export function acceptBandInvitation(id: number) {
 
 export function declineBandInvitation(id: number) {
   return apiPost<BandInvitationDto>(`/api/band-invitations/${id}/decline`, undefined, { toastSuccess: true })
+}
+
+export type BandVerificationStateDto = {
+  status: BandVerificationStatus
+  requestedAt: string
+  reviewedAt: string | null
+  rejectionReason: string | null
+}
+
+export type BandVerificationDto = {
+  id: number
+  band: BandSummaryDto
+  bandSocialLinks: SocialLinksDto
+  bandMemberCount: number
+  requestedBy: ProfileSummaryDto
+  message: string
+  contactPhone: string | null
+  status: BandVerificationStatus
+  createdAt: string
+  reviewedBy: ProfileSummaryDto | null
+  reviewedAt: string | null
+  rejectionReason: string | null
+}
+
+export type BandVerificationRequestInput = {
+  message: string
+  contactPhone: string | null
+}
+
+export const bandVerificationMessageMinLength = 20
+export const bandVerificationMessageMaxLength = 1000
+export const bandVerificationPhoneMaxLength = 30
+
+export function requestBandVerification(slug: string, input: BandVerificationRequestInput) {
+  return apiPost<BandVerificationDto>(`${bandPath(slug)}/verification`, input, { toastSuccess: true })
 }

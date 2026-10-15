@@ -3,6 +3,7 @@ import {
   HeadsetIcon,
   CalendarDaysIcon,
   ArchiveIcon,
+  BadgeCheckIcon,
   CassetteTapeIcon,
   HeadphonesIcon,
   LifeBuoyIcon,
@@ -54,6 +55,8 @@ import { MuralPage } from '../pages/mural'
 import { MuralDetalhePage } from '../pages/mural/detalhe'
 import { MuralFormPage } from '../pages/mural/form'
 import { MuralEnviosPage } from '../pages/mural/envios'
+import { BandasAdminPage } from '../pages/admin/bandas'
+import { adminBandsPath } from '../pages/bandas/band-verification-status'
 import { MuralAdminPage } from '../pages/admin/mural'
 import { adminArchivePath, mySubmissionsPath, submitArchivePath } from '../pages/mural/archive-status'
 
@@ -152,6 +155,13 @@ export const navSections: NavSection[] = [
         icon: ArchiveIcon,
         element: <MuralAdminPage />,
         permission: Permissions.archiveReview,
+      },
+      {
+        path: adminBandsPath,
+        labelKey: 'layout:nav.bandVerifications',
+        icon: BadgeCheckIcon,
+        element: <BandasAdminPage />,
+        permission: Permissions.bandsVerificationsView,
       },
       {
         path: '/admin/suporte',

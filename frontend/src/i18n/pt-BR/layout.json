@@ -15,7 +15,8 @@
     "archive": "Mural das antigas",
     "admin": "Administração",
     "supportInbox": "Suporte",
-    "archiveInbox": "Envios do mural"
+    "archiveInbox": "Envios do mural",
+    "bandVerifications": "Verificação de bandas"
   },
   "search": {
     "placeholder": "Buscar pessoas",
