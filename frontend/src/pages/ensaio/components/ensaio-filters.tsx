@@ -8,15 +8,18 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { useAuth } from '@/auth/use-auth'
 import { cn } from '@/lib/utils'
+import { formatCityDto } from '@/pages/perfil/city'
 import { searchCities } from '@/pages/perfil/services/cidades-service'
 import { allMusicGenres, useMusicGenreLabel } from '@/pages/perfil/genres'
 import type { MusicGenre } from '@/pages/perfil/genres'
 
-import { allInstruments, chipInstruments, useInstrumentLabel } from '../ensaio-status'
+import { allInstruments, chipInstruments, distanceOptions, useInstrumentLabel } from '../ensaio-status'
 import type { Instrument } from '../ensaio-status'
 import { emptyFilters } from '../services/ensaio-service'
 import type { EnsaioFilters as Filters } from '../services/ensaio-service'
+import { LocationControl } from './location-control'
 
 const any = 'any'
 
@@ -30,7 +33,18 @@ export function EnsaioFilters({ value, onChange, withSamples = false }: EnsaioFi
   const { t } = useTranslation('ensaio')
   const instrumentLabel = useInstrumentLabel()
   const [open, setOpen] = useState(false)
-  const extraActive = Boolean(value.city || value.abc || value.genre !== null || value.withSamples || (value.instrument !== null && !chipInstruments.includes(value.instrument)))
+  const { user } = useAuth()
+  const hasOrigin = Boolean(value.nearCity || user?.hasApproxLocation || user?.city)
+  const originLabel = value.nearCity
+    ? formatCityDto(value.nearCity)
+    : user?.hasApproxLocation
+      ? t('filters.myLocation')
+      : user?.city
+        ? t('filters.myCity', { city: formatCityDto(user.city) })
+        : t('filters.noOriginShort')
+  const sheetChip = (active: boolean) =>
+    cn('h-9 rounded-full px-3 text-sm transition-colors', active ? 'bg-primary font-semibold text-primary-foreground' : 'border border-border hover:bg-accent')
+  const extraActive = Boolean(value.maxKm !== null || value.nearCity || value.genre !== null || value.withSamples || (value.instrument !== null && !chipInstruments.includes(value.instrument)))
 
   const chip = (active: boolean) =>
     cn(
@@ -86,23 +100,39 @@ export function EnsaioFilters({ value, onChange, withSamples = false }: EnsaioFi
               </Select>
             </div>
 
-            <div className="flex flex-col gap-2">
-              <Label>{t('filters.city')}</Label>
-              <label className="flex items-center gap-2 text-sm">
-                <Checkbox checked={value.abc} onCheckedChange={(checked) => onChange({ ...value, abc: checked === true, city: null })} />
-                {t('filters.abc')}
-              </label>
-              {value.abc ? null : (
+            <fieldset className="flex min-w-0 flex-col gap-3">
+              <legend className="mb-1 text-sm font-medium">{t('filters.distance')}</legend>
+              <p className="text-sm text-muted-foreground">
+                {t('filters.from')} <span className="font-medium text-foreground">{originLabel}</span>
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {distanceOptions.map((km) => (
+                  <button
+                    key={km ?? 'any'}
+                    type="button"
+                    aria-pressed={value.maxKm === km}
+                    disabled={!hasOrigin && km !== null}
+                    className={cn(sheetChip(value.maxKm === km), 'disabled:cursor-not-allowed disabled:opacity-50')}
+                    onClick={() => onChange({ ...value, maxKm: km })}
+                  >
+                    {km === null ? t('filters.anyDistance') : t('filters.upToKm', { km })}
+                  </button>
+                ))}
+              </div>
+              {hasOrigin ? <p className="text-[13px] text-muted-foreground">{t(withSamples ? 'filters.mutualHint' : 'filters.bandCityHint')}</p> : <p className="text-[13px] text-muted-foreground">{t('filters.noOrigin')}</p>}
+              <LocationControl compact />
+              <div className="flex flex-col gap-1.5">
+                <Label>{t('filters.nearCity')}</Label>
                 <AppCitySelect
-                  value={{ city: value.city, cityName: '' }}
-                  onChange={(next) => onChange({ ...value, city: next.city })}
+                  value={{ city: value.nearCity, cityName: '' }}
+                  onChange={(next) => onChange({ ...value, nearCity: next.city })}
                   search={searchCities}
-                  placeholder={t('filters.anyCity')}
-                  clearLabel={t('filters.anyCity')}
-                  ariaLabel={t('filters.city')}
+                  placeholder={t('filters.nearMe')}
+                  clearLabel={t('filters.nearMe')}
+                  ariaLabel={t('filters.nearCity')}
                 />
-              )}
-            </div>
+              </div>
+            </fieldset>
 
             <div className="flex flex-col gap-1.5">
               <Label>{t('filters.genre')}</Label>

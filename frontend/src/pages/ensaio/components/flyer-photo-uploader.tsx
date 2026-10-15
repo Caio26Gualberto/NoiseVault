@@ -15,9 +15,11 @@ type FlyerPhotoUploaderProps = {
   disabled: boolean
   onUpload: (file: File) => Promise<unknown>
   onRemove: () => Promise<unknown>
+  showPreview?: boolean
+  onPreviewChange?: (url: string | null) => void
 }
 
-export function FlyerPhotoUploader({ photoUrl, fallbackUrl, disabled, onUpload, onRemove }: FlyerPhotoUploaderProps) {
+export function FlyerPhotoUploader({ photoUrl, fallbackUrl, disabled, onUpload, onRemove, showPreview = true, onPreviewChange }: FlyerPhotoUploaderProps) {
   const { t } = useTranslation('ensaio')
   const confirm = useAppConfirm()
   const inputRef = useRef<HTMLInputElement>(null)
@@ -29,12 +31,14 @@ export function FlyerPhotoUploader({ photoUrl, fallbackUrl, disabled, onUpload, 
   useEffect(() => {
     if (!file) {
       setPreview(null)
+      onPreviewChange?.(null)
       return
     }
     const url = URL.createObjectURL(file)
     setPreview(url)
+    onPreviewChange?.(url)
     return () => URL.revokeObjectURL(url)
-  }, [file])
+  }, [file, onPreviewChange])
 
   const pick = (event: ChangeEvent<HTMLInputElement>) => {
     const chosen = event.target.files?.[0]
@@ -80,28 +84,30 @@ export function FlyerPhotoUploader({ photoUrl, fallbackUrl, disabled, onUpload, 
     <div className="flex flex-col gap-3">
       <span className="text-sm font-medium">{t('photo.title')}</span>
       <div className="ensaio flex flex-col gap-4 sm:flex-row sm:items-center">
-        <span className="ensaio-halftone relative h-40 w-full shrink-0 overflow-hidden sm:w-72">
-          {shown ? <img src={shown} alt={t('photo.preview')} className="size-full object-cover mix-blend-multiply grayscale contrast-125" /> : null}
-        </span>
+        {showPreview ? (
+          <span className="ensaio-halftone relative h-40 w-full shrink-0 overflow-hidden sm:w-72">
+            {shown ? <img src={shown} alt={t('photo.preview')} className="size-full object-cover mix-blend-multiply grayscale contrast-125" /> : null}
+          </span>
+        ) : null}
         <div className="flex flex-col gap-2">
           <input ref={inputRef} type="file" accept={acceptedImageTypes.join(',')} className="hidden" onChange={pick} />
           {file ? (
             <div className="flex flex-wrap gap-2">
-              <AppButton size="sm" loading={saving} onClick={() => void save()}>
+              <AppButton type="button" size="sm" loading={saving} onClick={() => void save()}>
                 {t('photo.save')}
               </AppButton>
-              <AppButton size="sm" intent="ghost" disabled={saving} onClick={() => setFile(null)}>
+              <AppButton type="button" size="sm" intent="ghost" disabled={saving} onClick={() => setFile(null)}>
                 {t('common:actions.cancel')}
               </AppButton>
             </div>
           ) : (
             <div className="flex flex-wrap gap-2">
-              <AppButton size="sm" intent="neutral" disabled={disabled} onClick={() => inputRef.current?.click()}>
+              <AppButton type="button" size="sm" intent="neutral" disabled={disabled} onClick={() => inputRef.current?.click()}>
                 <ImageUpIcon />
                 {t(photoUrl ? 'photo.change' : 'photo.choose')}
               </AppButton>
               {photoUrl ? (
-                <AppButton size="sm" intent="ghost" onClick={remove}>
+                <AppButton type="button" size="sm" intent="ghost" onClick={remove}>
                   <Trash2Icon />
                   {t('photo.remove')}
                 </AppButton>

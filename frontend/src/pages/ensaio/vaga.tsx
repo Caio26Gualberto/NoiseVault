@@ -19,7 +19,7 @@ import { formatCity } from '@/pages/perfil/city'
 
 import { InterestDialog } from './components/interest-dialog'
 import { PaperSheet } from './components/paper-sheet'
-import { InterestStatus, OpeningStatus, goalKey, interestStatusKey, openingStatusKey, useInstrumentLabel } from './ensaio-status'
+import { InterestStatus, OpeningStatus, goalKey, interestStatusKey, openingStatusKey, useDistanceLabel, useInstrumentLabel } from './ensaio-status'
 import {
   closeOpening,
   deleteOpening,
@@ -51,6 +51,7 @@ export function EnsaioVagaPage() {
   const openingId = Number(id)
   const navigate = useNavigate()
   const confirm = useAppConfirm()
+  const distanceLabel = useDistanceLabel()
   const instrumentLabel = useInstrumentLabel()
   const [opening, setOpening] = useState<BandOpeningDto | null>(null)
   const [state, setState] = useState<'loading' | 'ready' | 'missing'>('loading')
@@ -142,7 +143,7 @@ export function EnsaioVagaPage() {
             <AppAvatar name={opening.band.name} src={opening.band.avatarUrl} size="lg" verified={opening.band.isVerified} />
             <div className="flex flex-col">
               <span className="text-lg font-semibold">{opening.band.name}</span>
-              {formatCity(opening) ? <span className="text-sm text-paper-muted">{formatCity(opening)}</span> : null}
+              {formatCity(opening) ? <span className="text-sm text-paper-muted">{[formatCity(opening), distanceLabel(opening.distanceKm)].filter(Boolean).join(' · ')}</span> : null}
             </div>
           </div>
           {opening.canManage ? (

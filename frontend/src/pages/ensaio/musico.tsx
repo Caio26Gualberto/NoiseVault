@@ -16,7 +16,18 @@ import { useMusicGenreLabel } from '@/pages/perfil/genres'
 
 import { InviteDialog } from './components/invite-dialog'
 import { PaperSection, PaperSheet } from './components/paper-sheet'
-import { allDayPeriods, allWeekDays, commitmentKey, dayPeriodKey, goalKey, levelKey, reachKey, useInstrumentLabel, weekDayKey } from './ensaio-status'
+import {
+  allDayPeriods,
+  allWeekDays,
+  commitmentKey,
+  dayPeriodKey,
+  goalKey,
+  levelKey,
+  useDistanceLabel,
+  useInstrumentLabel,
+  useReachLabel,
+  weekDayKey,
+} from './ensaio-status'
 import { useOwnedBands } from './hooks/use-owned-bands'
 import { getMusician } from './services/ensaio-service'
 import type { MusicianProfileDto } from './services/ensaio-service'
@@ -30,6 +41,8 @@ export function EnsaioMusicoPage() {
   const { bands } = useOwnedBands()
   const instrumentLabel = useInstrumentLabel()
   const genreLabel = useMusicGenreLabel()
+  const reachLabel = useReachLabel()
+  const distanceLabel = useDistanceLabel()
 
   useEffect(() => {
     let cancelled = false
@@ -82,6 +95,7 @@ export function EnsaioMusicoPage() {
             <span className="text-paper-muted">
               @{profile.person.nickname}
               {formatCity(profile) ? ` · ${formatCity(profile)}` : ''}
+              {profile.distanceKm !== null ? ` · ${distanceLabel(profile.distanceKm)}` : ''}
             </span>
           </div>
         </div>
@@ -101,7 +115,7 @@ export function EnsaioMusicoPage() {
           <ul className="flex flex-col gap-1">
             <li>{t(`goals.${goalKey[profile.goal]}`)}</li>
             <li>{t(`commitments.${commitmentKey[profile.commitment]}`)}</li>
-            <li>{t(`reach.${reachKey[profile.reach]}`)}</li>
+            <li>{reachLabel(profile.reachKm)}</li>
           </ul>
           {profile.genres.length > 0 ? (
             <p className="text-paper-muted">

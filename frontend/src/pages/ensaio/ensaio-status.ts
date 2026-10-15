@@ -23,8 +23,9 @@ export type MusicianGoal = (typeof MusicianGoal)[keyof typeof MusicianGoal]
 export const MusicianCommitment = { justRehearse: 0, playLive: 1, record: 2 } as const
 export type MusicianCommitment = (typeof MusicianCommitment)[keyof typeof MusicianCommitment]
 
-export const Reach = { myCity: 0, abc: 1, greaterSaoPaulo: 2, anywhere: 3 } as const
-export type Reach = (typeof Reach)[keyof typeof Reach]
+export const reachOptions = [5, 10, 25, 50, 100, null] as const
+export const distanceOptions = [10, 25, 50, 100, null] as const
+export const defaultReachKm = 25
 
 export const WeekDay = { monday: 0, tuesday: 1, wednesday: 2, thursday: 3, friday: 4, saturday: 5, sunday: 6 } as const
 export type WeekDay = (typeof WeekDay)[keyof typeof WeekDay]
@@ -69,13 +70,6 @@ export const commitmentKey: Record<MusicianCommitment, string> = {
   [MusicianCommitment.record]: 'record',
 }
 
-export const reachKey: Record<Reach, string> = {
-  [Reach.myCity]: 'myCity',
-  [Reach.abc]: 'abc',
-  [Reach.greaterSaoPaulo]: 'greaterSaoPaulo',
-  [Reach.anywhere]: 'anywhere',
-}
-
 export const weekDayKey: Record<WeekDay, string> = {
   [WeekDay.monday]: 'monday',
   [WeekDay.tuesday]: 'tuesday',
@@ -113,4 +107,14 @@ export function useInstrumentLabel() {
   const { t } = useTranslation('ensaio')
   return (instrument: Instrument, otherName?: string | null) =>
     instrument === Instrument.other && otherName ? otherName : t(`instruments.${instrumentKey[instrument]}`)
+}
+
+export function useDistanceLabel() {
+  const { t } = useTranslation('ensaio')
+  return (km: number | null) => (km === null ? null : km <= 2 ? t('distance.under', { km: 2 }) : t('distance.about', { km }))
+}
+
+export function useReachLabel() {
+  const { t } = useTranslation('ensaio')
+  return (km: number | null) => (km === null ? t('reachKm.anywhere') : t('reachKm.upTo', { km }))
 }

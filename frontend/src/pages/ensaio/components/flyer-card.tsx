@@ -15,7 +15,7 @@ export type FlyerAction = {
 
 type FlyerCardProps = {
   index: number
-  to: string
+  to?: string
   title: string
   name: string
   meta: string | null
@@ -28,13 +28,13 @@ export function FlyerCard({ index, to, title, name, meta, photoUrl, badge, actio
   const angle = tapeAngles[index % tapeAngles.length]
 
   return (
-    <article className="relative flex bg-paper text-paper-foreground shadow-lg sm:flex-col">
+    <article className="relative flex min-w-0 bg-paper text-paper-foreground shadow-lg sm:flex-col">
       <span
         aria-hidden="true"
         className="absolute -top-2.5 left-6 h-5 w-20 bg-tape sm:left-1/2 sm:h-6 sm:w-24 sm:-translate-x-1/2"
         style={{ rotate: `${angle}deg` }}
       />
-      <Link to={to} className="flex flex-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:flex-col">
+      <FlyerBody to={to}>
         <span className="ensaio-halftone relative w-28 shrink-0 overflow-hidden sm:h-48 sm:w-auto">
           {photoUrl ? <img src={photoUrl} alt="" className="size-full object-cover mix-blend-multiply grayscale contrast-125" /> : null}
         </span>
@@ -44,9 +44,21 @@ export function FlyerCard({ index, to, title, name, meta, photoUrl, badge, actio
           <span className="truncate text-[17px] font-semibold sm:text-lg">{name}</span>
           {meta ? <span className="truncate text-sm text-paper-muted sm:text-[15px]">{meta}</span> : null}
         </span>
-      </Link>
+      </FlyerBody>
       {action ? <FlyerTearStrip action={action} /> : null}
     </article>
+  )
+}
+
+function FlyerBody({ to, children }: { to?: string; children: ReactNode }) {
+  const className = 'flex min-w-0 flex-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:flex-col'
+
+  return to ? (
+    <Link to={to} className={className}>
+      {children}
+    </Link>
+  ) : (
+    <div className={className}>{children}</div>
   )
 }
 

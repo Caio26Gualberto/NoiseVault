@@ -21,6 +21,14 @@ export function updateNotificationSettings(input: { emailOnBandInvite: boolean }
   return apiPut<ProfileDto>('/api/profile/notification-settings', input, { toastSuccess: true })
 }
 
+export function setApproxLocation(latitude: number, longitude: number) {
+  return apiPut<ProfileDto>('/api/profile/location', { latitude, longitude }, { toastSuccess: true })
+}
+
+export function clearApproxLocation() {
+  return apiDelete<ProfileDto>('/api/profile/location', { toastSuccess: true })
+}
+
 export function setAvatar(file: File) {
   const form = new FormData()
   form.append('file', file)

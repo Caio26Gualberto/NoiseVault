@@ -44,12 +44,6 @@
     "playLive": "Tocar ao vivo",
     "record": "Gravar e fazer show"
   },
-  "reach": {
-    "myCity": "Só na minha cidade",
-    "abc": "Em todo o ABC",
-    "greaterSaoPaulo": "Na Grande São Paulo",
-    "anywhere": "Onde precisar"
-  },
   "weekDays": {
     "monday": "Seg",
     "tuesday": "Ter",
@@ -70,14 +64,23 @@
     "moreTitle": "Filtrar",
     "otherInstruments": "Outros instrumentos",
     "anyInstrument": "Qualquer instrumento",
-    "city": "Cidade",
-    "anyCity": "Qualquer cidade",
-    "abc": "Todo o ABC",
     "genre": "Som",
     "anyGenre": "Qualquer som",
     "withSamples": "Só quem tem gravação",
     "clear": "Limpar filtros",
-    "apply": "Ver resultados"
+    "apply": "Ver resultados",
+    "distance": "Distância",
+    "from": "A partir de",
+    "anyDistance": "Qualquer distância",
+    "upToKm": "Até {{km}} km",
+    "mutualHint": "Com distância, só aparece quem também topa vir até você.",
+    "bandCityHint": "A distância é até a cidade da banda.",
+    "noOrigin": "Coloque sua cidade em Minha conta ou use sua localização para filtrar por distância.",
+    "noOriginShort": "sem ponto de partida",
+    "nearCity": "Perto de outra cidade",
+    "nearMe": "Perto de mim",
+    "myLocation": "sua localização (aproximada)",
+    "myCity": "{{city}} (sua cidade)"
   },
   "musicians": {
     "title": "Procura-se banda",
@@ -222,7 +225,16 @@
     "influences": "Influências",
     "influencesPlaceholder": "Bandas e artistas que fazem a sua cabeça.",
     "save": "Salvar ficha",
-    "view": "Ver como as bandas veem"
+    "view": "Ver como as bandas veem",
+    "preview": "Assim seu flyer aparece na vitrine",
+    "previewInstrument": "Instrumento",
+    "wants": "O que você procura",
+    "reachHint": "Com distância, só aparece para quem está dentro desse raio.",
+    "structureHint": "Toque para marcar o que você tem.",
+    "availabilityHint": "Toque nos dias e turnos em que você pode ensaiar.",
+    "genresLabel": "Até 10 sons",
+    "link": "Link",
+    "influencesLabel": "Bandas e artistas"
   },
   "photo": {
     "title": "Foto do flyer",
@@ -245,5 +257,23 @@
     "message": "O recado cabe em até 300 caracteres.",
     "openingText": "Conte sobre a vaga em até 500 caracteres.",
     "band": "Escolha a banda."
+  },
+  "distance": {
+    "under": "menos de {{km}} km",
+    "about": "~{{km}} km"
+  },
+  "reachKm": {
+    "anywhere": "Vai onde precisar",
+    "upTo": "Topa ir até {{km}} km"
+  },
+  "location": {
+    "title": "Distância",
+    "description": "As bandas e músicos veem a distância até você. Sem a localização, conta a partir do centro da sua cidade.",
+    "on": "Usando sua localização aproximada",
+    "enable": "Usar minha localização",
+    "disable": "Parar de usar",
+    "denied": "O navegador não deixou usar a localização. Libere nas permissões do site ou continue pela sua cidade.",
+    "unavailable": "Não deu para pegar a localização agora. Tente de novo ou continue pela sua cidade.",
+    "privacy": "Só um ponto aproximado (cerca de 1 km) sai do seu aparelho, e a distância aparece em faixas. Ninguém vê onde você está, e dá para apagar quando quiser."
   }
 }

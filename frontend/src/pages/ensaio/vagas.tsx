@@ -15,7 +15,7 @@ import { EnsaioFilters } from './components/ensaio-filters'
 import { FlyerCard } from './components/flyer-card'
 import type { FlyerAction } from './components/flyer-card'
 import { InterestDialog } from './components/interest-dialog'
-import { useInstrumentLabel } from './ensaio-status'
+import { useDistanceLabel, useInstrumentLabel } from './ensaio-status'
 import { useEnsaioList } from './hooks/use-ensaio-list'
 import { useOwnedBands } from './hooks/use-owned-bands'
 import { getOpenings } from './services/ensaio-service'
@@ -27,10 +27,11 @@ export function EnsaioVagasPage() {
   const { bands } = useOwnedBands()
   const instrumentLabel = useInstrumentLabel()
   const genreLabel = useMusicGenreLabel()
+  const distanceLabel = useDistanceLabel()
   const [interested, setInterested] = useState<BandOpeningDto | null>(null)
 
   const meta = (opening: BandOpeningDto) =>
-    [formatCity(opening), opening.band.genres[0] !== undefined ? genreLabel(opening.band.genres[0]) : null].filter(Boolean).join(' · ') || null
+    [formatCity(opening), opening.band.genres[0] !== undefined ? genreLabel(opening.band.genres[0]) : null, distanceLabel(opening.distanceKm)].filter(Boolean).join(' · ') || null
 
   const action = (opening: BandOpeningDto): FlyerAction => {
     if (opening.canManage) {

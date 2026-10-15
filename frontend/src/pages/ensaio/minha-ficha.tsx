@@ -1,6 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ArrowUpIcon, PlusIcon, XIcon } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { ArrowUpIcon, CarIcon, HouseIcon, PlusIcon, SpeakerIcon, XIcon } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
+import type { ReactNode } from 'react'
 import { useFieldArray, useForm, useWatch } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
@@ -8,34 +10,38 @@ import { z } from 'zod'
 
 import { useAuth } from '@/auth/use-auth'
 import { AppButton, AppIconButton } from '@/components/app-button'
-import { AppCard } from '@/components/app-card'
 import { AppChipsField, AppField, AppForm, AppSelectField, AppTextareaField } from '@/components/app-field'
 import { AppPageHeader } from '@/components/app-page-header'
 import { AppSkeleton } from '@/components/app-skeleton'
 import { Checkbox } from '@/components/ui/checkbox'
 import { ensaioPath } from '@/ensaio/frame'
+import { cn } from '@/lib/utils'
+import { formatCity } from '@/pages/perfil/city'
 import { allMusicGenres, useMusicGenreLabel } from '@/pages/perfil/genres'
 import type { MusicGenre } from '@/pages/perfil/genres'
 
+import { FlyerCard } from './components/flyer-card'
+import { FlyerPhotoUploader } from './components/flyer-photo-uploader'
+import { LocationControl } from './components/location-control'
 import {
   Instrument,
   MusicianCommitment,
   MusicianGoal,
-  Reach,
   SkillLevel,
   allDayPeriods,
   allInstruments,
   allWeekDays,
   commitmentKey,
   dayPeriodKey,
+  defaultReachKm,
   goalKey,
   levelKey,
-  reachKey,
+  reachOptions,
   useInstrumentLabel,
+  useReachLabel,
   weekDayKey,
 } from './ensaio-status'
 import type { DayPeriod, WeekDay } from './ensaio-status'
-import { FlyerPhotoUploader } from './components/flyer-photo-uploader'
 import { getMyMusicianProfile, removeMusicianPhoto, saveMyMusicianProfile, uploadMusicianPhoto } from './services/ensaio-service'
 import type { MusicianInputDto, MusicianProfileDto } from './services/ensaio-service'
 
@@ -43,6 +49,7 @@ const maxInstruments = 5
 const maxLinks = 4
 const maxGenres = 10
 const otherValue = String(Instrument.other)
+const anywhereValue = 'anywhere'
 const sampleHosts = ['youtube.com', 'youtu.be', 'open.spotify.com', 'spotify.com', 'bandcamp.com', 'soundcloud.com']
 
 function isSampleLink(value: string) {
@@ -67,7 +74,7 @@ const schema = z.object({
     .max(maxInstruments),
   goal: z.string(),
   commitment: z.string(),
-  reach: z.string(),
+  reachKm: z.string(),
   availability: z.array(z.string()),
   hasGear: z.boolean(),
   hasTransport: z.boolean(),
@@ -78,6 +85,13 @@ const schema = z.object({
 })
 
 type FormValues = z.infer<typeof schema>
+type StructureName = 'hasGear' | 'hasTransport' | 'hasRehearsalSpace'
+
+const structureIcons: Record<StructureName, LucideIcon> = {
+  hasGear: SpeakerIcon,
+  hasTransport: CarIcon,
+  hasRehearsalSpace: HouseIcon,
+}
 
 const slotKey = (day: WeekDay, period: DayPeriod) => `${day}-${period}`
 
@@ -89,7 +103,7 @@ function toValues(profile: MusicianProfileDto): FormValues {
       : [{ instrument: '', otherName: '', level: String(SkillLevel.intermediate) }],
     goal: String(profile.goal),
     commitment: String(profile.commitment),
-    reach: String(profile.reach),
+    reachKm: profile.reachKm === null ? anywhereValue : String(profile.reachKm),
     availability: profile.availability.map((slot) => slotKey(slot.day, slot.period)),
     hasGear: profile.hasGear,
     hasTransport: profile.hasTransport,
@@ -105,7 +119,7 @@ function toInput(values: FormValues): MusicianInputDto {
     isLookingForBand: values.looking,
     goal: Number(values.goal) as MusicianGoal,
     commitment: Number(values.commitment) as MusicianCommitment,
-    reach: Number(values.reach) as Reach,
+    reachKm: values.reachKm === anywhereValue ? null : Number(values.reachKm),
     hasGear: values.hasGear,
     hasTransport: values.hasTransport,
     hasRehearsalSpace: values.hasRehearsalSpace,
@@ -123,15 +137,29 @@ function toInput(values: FormValues): MusicianInputDto {
   }
 }
 
+function Panel({ title, description, className, children }: { title: string; description?: string; className?: string; children: ReactNode }) {
+  return (
+    <section className={cn('flex min-w-0 flex-col gap-3 rounded-xl border bg-card p-4 md:p-5', className)}>
+      <div className="flex flex-col gap-0.5">
+        <h2 className="font-heading text-base font-bold tracking-wider uppercase">{title}</h2>
+        {description ? <p className="app-meta">{description}</p> : null}
+      </div>
+      {children}
+    </section>
+  )
+}
+
 export function EnsaioMinhaFichaPage() {
   const { t } = useTranslation('ensaio')
   const { user } = useAuth()
   const instrumentLabel = useInstrumentLabel()
+  const reachLabel = useReachLabel()
   const genreLabel = useMusicGenreLabel()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [exists, setExists] = useState(false)
   const [photoUrl, setPhotoUrl] = useState<string | null>(null)
+  const [pendingPhoto, setPendingPhoto] = useState<string | null>(null)
 
   const form = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: toValues(emptyProfile) })
   const instruments = useFieldArray({ control: form.control, name: 'instruments' })
@@ -139,7 +167,10 @@ export function EnsaioMinhaFichaPage() {
   const instrumentValues = useWatch({ control: form.control, name: 'instruments' })
   const availability = useWatch({ control: form.control, name: 'availability' })
   const looking = useWatch({ control: form.control, name: 'looking' })
+  const genres = useWatch({ control: form.control, name: 'genres' })
+  const structure = useWatch({ control: form.control, name: ['hasGear', 'hasTransport', 'hasRehearsalSpace'] })
   const instrumentsError = form.formState.errors.instruments?.root?.message ?? form.formState.errors.instruments?.message
+  const onPreviewChange = useCallback((url: string | null) => setPendingPhoto(url), [])
 
   useEffect(() => {
     let cancelled = false
@@ -173,22 +204,28 @@ export function EnsaioMinhaFichaPage() {
     }
   }
 
-  const toggleSlot = (key: string, checked: boolean) => {
-    const next = checked ? [...availability, key] : availability.filter((item) => item !== key)
+  const toggleSlot = (key: string) => {
+    const next = availability.includes(key) ? availability.filter((item) => item !== key) : [...availability, key]
     form.setValue('availability', next, { shouldDirty: true })
   }
 
-  if (loading) return <AppSkeleton preset="lines" count={10} className="mx-auto max-w-2xl" />
+  if (loading || !user) return <AppSkeleton preset="lines" count={10} className="mx-auto max-w-6xl" />
 
   const optionsOf = <T extends number>(values: readonly T[], label: (value: T) => string) => values.map((value) => ({ value: String(value), label: label(value) }))
+  const main = instrumentValues[0]
+  const previewTitle = main?.instrument
+    ? instrumentLabel(Number(main.instrument) as Instrument, main.instrument === otherValue ? main.otherName : null)
+    : t('myProfile.previewInstrument')
+  const previewMeta = [formatCity(user), genres[0] !== undefined ? genreLabel(genres[0] as MusicGenre) : null].filter(Boolean).join(' · ') || null
+  const structureNames: StructureName[] = ['hasGear', 'hasTransport', 'hasRehearsalSpace']
 
   return (
-    <div className="app-page-enter mx-auto flex max-w-2xl flex-col gap-6">
+    <div className="app-page-enter flex flex-col gap-6">
       <AppPageHeader
         title={t('myProfile.title')}
         description={t('myProfile.description')}
         actions={
-          exists && user ? (
+          exists ? (
             <AppButton asChild intent="secondary" size="sm">
               <Link to={ensaioPath(`/musicos/${user.nickname}`)}>{t('myProfile.view')}</Link>
             </AppButton>
@@ -196,58 +233,76 @@ export function EnsaioMinhaFichaPage() {
         }
       />
 
-      <AppCard>
-        <FlyerPhotoUploader
-          photoUrl={photoUrl}
-          fallbackUrl={user?.avatarUrl ?? null}
-          disabled={!exists}
-          onUpload={async (file) => setPhotoUrl((await uploadMusicianPhoto(file)).photoUrl)}
-          onRemove={async () => setPhotoUrl((await removeMusicianPhoto()).photoUrl)}
-        />
-      </AppCard>
-
-      <AppCard>
-        <AppForm form={form} onSubmit={submit}>
-          <label className="flex items-start gap-3 rounded-lg border border-primary/40 bg-primary/5 p-4">
-            <Checkbox
-              className="mt-0.5"
-              checked={looking}
-              onCheckedChange={(checked) => form.setValue('looking', checked === true, { shouldDirty: true })}
+      <AppForm form={form} onSubmit={submit} className="grid gap-6 lg:grid-cols-[340px_minmax(0,1fr)] lg:items-start">
+        <aside className="flex min-w-0 flex-col gap-4 lg:sticky lg:top-24">
+          <div className="flex flex-col gap-2">
+            <span className="app-meta">{t('myProfile.preview')}</span>
+            <FlyerCard
+              index={0}
+              title={previewTitle}
+              name={user.name}
+              meta={previewMeta}
+              photoUrl={pendingPhoto ?? photoUrl ?? user.avatarUrl}
             />
+          </div>
+
+          <div className="rounded-xl border bg-card p-4">
+            <FlyerPhotoUploader
+              photoUrl={photoUrl}
+              fallbackUrl={user.avatarUrl}
+              disabled={!exists}
+              showPreview={false}
+              onPreviewChange={onPreviewChange}
+              onUpload={async (file) => setPhotoUrl((await uploadMusicianPhoto(file)).photoUrl)}
+              onRemove={async () => setPhotoUrl((await removeMusicianPhoto()).photoUrl)}
+            />
+          </div>
+
+          <label className={cn('flex items-start gap-3 rounded-xl border p-4', looking ? 'border-primary/40 bg-primary/5' : 'bg-card')}>
+            <Checkbox className="mt-0.5" checked={looking} onCheckedChange={(checked) => form.setValue('looking', checked === true, { shouldDirty: true })} />
             <span className="flex flex-col gap-1">
               <span className="font-semibold">{t('myProfile.looking')}</span>
               <span className="app-meta">{t('myProfile.lookingHint')}</span>
             </span>
           </label>
 
-          <fieldset className="flex min-w-0 flex-col gap-3">
-            <legend className="text-sm font-medium">{t('myProfile.instruments')}</legend>
-            <p className="app-meta">{t('myProfile.instrumentsHint')}</p>
-            {instruments.fields.map((field, index) => (
-              <div key={field.id} className="flex flex-col gap-3 rounded-lg border p-3 sm:flex-row sm:items-end">
-                <div className="grid flex-1 gap-3 sm:grid-cols-2">
-                  <AppSelectField
-                    name={`instruments.${index}.instrument`}
-                    label={t('myProfile.instrument')}
-                    options={optionsOf(allInstruments, (value) => instrumentLabel(value))}
-                  />
-                  <AppSelectField name={`instruments.${index}.level`} label={t('myProfile.level')} options={optionsOf(Object.values(SkillLevel), (value) => t(`levels.${levelKey[value]}`))} />
-                  {instrumentValues[index]?.instrument === otherValue ? <AppField name={`instruments.${index}.otherName`} label={t('myProfile.otherName')} /> : null}
+          <div className="flex flex-col gap-2 rounded-xl border bg-card p-4">
+            <span className="text-sm font-medium">{t('location.title')}</span>
+            <span className="app-meta">{t('location.description')}</span>
+            <LocationControl />
+          </div>
+
+          <AppButton type="submit" loading={saving} size="lg" className="w-full font-heading tracking-wider uppercase">
+            {t('myProfile.save')}
+          </AppButton>
+        </aside>
+
+        <div className="grid min-w-0 gap-4 xl:grid-cols-2">
+          <Panel title={t('myProfile.instruments')} description={t('myProfile.instrumentsHint')} className="xl:col-span-2">
+            <div className="flex flex-col gap-3">
+              {instruments.fields.map((field, index) => (
+                <div key={field.id} className="flex flex-col gap-3 rounded-lg border p-3 md:flex-row md:items-end">
+                  <span className="hidden size-9 shrink-0 items-center justify-center self-center rounded-full bg-muted font-heading font-bold md:flex">{index + 1}</span>
+                  <div className="grid flex-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    <AppSelectField name={`instruments.${index}.instrument`} label={t('myProfile.instrument')} options={optionsOf(allInstruments, (value) => instrumentLabel(value))} />
+                    <AppSelectField name={`instruments.${index}.level`} label={t('myProfile.level')} options={optionsOf(Object.values(SkillLevel), (value) => t(`levels.${levelKey[value]}`))} />
+                    {instrumentValues[index]?.instrument === otherValue ? <AppField name={`instruments.${index}.otherName`} label={t('myProfile.otherName')} /> : null}
+                  </div>
+                  <div className="flex gap-1">
+                    {index > 0 ? (
+                      <AppIconButton type="button" label={t('myProfile.moveUp')} onClick={() => instruments.move(index, index - 1)}>
+                        <ArrowUpIcon />
+                      </AppIconButton>
+                    ) : null}
+                    {instruments.fields.length > 1 ? (
+                      <AppIconButton type="button" label={t('myProfile.removeInstrument')} onClick={() => instruments.remove(index)}>
+                        <XIcon />
+                      </AppIconButton>
+                    ) : null}
+                  </div>
                 </div>
-                <div className="flex gap-1">
-                  {index > 0 ? (
-                    <AppIconButton label={t('myProfile.moveUp')} onClick={() => instruments.move(index, index - 1)}>
-                      <ArrowUpIcon />
-                    </AppIconButton>
-                  ) : null}
-                  {instruments.fields.length > 1 ? (
-                    <AppIconButton label={t('myProfile.removeInstrument')} onClick={() => instruments.remove(index)}>
-                      <XIcon />
-                    </AppIconButton>
-                  ) : null}
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
             {instrumentsError ? (
               <p role="alert" className="text-[13px] text-destructive">
                 {t(instrumentsError, { ns: 'common', defaultValue: instrumentsError })}
@@ -265,75 +320,91 @@ export function EnsaioMinhaFichaPage() {
                 {t('myProfile.addInstrument')}
               </AppButton>
             ) : null}
-          </fieldset>
+          </Panel>
 
-          <div className="grid gap-4 md:grid-cols-3">
+          <Panel title={t('myProfile.wants')}>
             <AppSelectField name="goal" label={t('myProfile.goal')} options={optionsOf(Object.values(MusicianGoal), (value) => t(`goals.${goalKey[value]}`))} />
             <AppSelectField
               name="commitment"
               label={t('myProfile.commitment')}
               options={optionsOf(Object.values(MusicianCommitment), (value) => t(`commitments.${commitmentKey[value]}`))}
             />
-            <AppSelectField name="reach" label={t('myProfile.reach')} options={optionsOf(Object.values(Reach), (value) => t(`reach.${reachKey[value]}`))} />
-          </div>
+            <AppSelectField
+              name="reachKm"
+              label={t('myProfile.reach')}
+              description={t('myProfile.reachHint')}
+              options={reachOptions.map((km) => ({ value: km === null ? anywhereValue : String(km), label: reachLabel(km) }))}
+            />
+          </Panel>
 
-          <fieldset className="flex min-w-0 flex-col gap-2">
-            <legend className="text-sm font-medium">{t('myProfile.availability')}</legend>
-            <div className="relative overflow-x-auto">
-              <table className="w-full min-w-[420px] border-collapse text-center text-sm">
-                <thead>
-                  <tr>
-                    <th scope="col" className="w-20" />
-                    {allWeekDays.map((day) => (
-                      <th key={day} scope="col" className="pb-2 font-medium">
-                        {t(`weekDays.${weekDayKey[day]}`)}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {allDayPeriods.map((period) => (
-                    <tr key={period} className="border-t">
-                      <th scope="row" className="py-2 text-left font-medium">
-                        {t(`periods.${dayPeriodKey[period]}`)}
-                      </th>
-                      {allWeekDays.map((day) => {
-                        const key = slotKey(day, period)
-                        return (
-                          <td key={day} className="py-2">
-                            <Checkbox
-                              aria-label={`${t(`weekDays.${weekDayKey[day]}`)} ${t(`periods.${dayPeriodKey[period]}`)}`}
-                              checked={availability.includes(key)}
-                              onCheckedChange={(checked) => toggleSlot(key, checked === true)}
-                            />
-                          </td>
-                        )
-                      })}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <Panel title={t('myProfile.structure')} description={t('myProfile.structureHint')}>
+            <div className="grid gap-2">
+              {structureNames.map((name, index) => {
+                const Icon = structureIcons[name]
+                const active = structure[index]
+                return (
+                  <button
+                    key={name}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => form.setValue(name, !active, { shouldDirty: true })}
+                    className={cn(
+                      'flex h-12 items-center gap-3 rounded-lg border px-3 text-left text-sm transition-colors focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none',
+                      active ? 'border-primary bg-primary/10 font-semibold' : 'hover:bg-accent',
+                    )}
+                  >
+                    <Icon className={cn('size-5', active ? 'text-primary' : 'text-muted-foreground')} aria-hidden="true" />
+                    {t(`profile.${name}`)}
+                  </button>
+                )
+              })}
             </div>
-          </fieldset>
+          </Panel>
 
-          <fieldset className="flex min-w-0 flex-col gap-2">
-            <legend className="text-sm font-medium">{t('myProfile.structure')}</legend>
-            {(['hasGear', 'hasTransport', 'hasRehearsalSpace'] as const).map((name) => (
-              <StructureCheck key={name} name={name} label={t(`profile.${name}`)} form={form} />
-            ))}
-          </fieldset>
+          <Panel title={t('myProfile.availability')} description={t('myProfile.availabilityHint')} className="xl:col-span-2">
+            <div role="group" aria-label={t('myProfile.availability')} className="grid grid-cols-[3.25rem_repeat(7,minmax(0,1fr))] gap-1 sm:grid-cols-[4.5rem_repeat(7,minmax(0,1fr))] sm:gap-1.5">
+              <span />
+              {allWeekDays.map((day) => (
+                <span key={day} className="pb-1 text-center font-heading text-sm font-medium tracking-wide uppercase">
+                  {t(`weekDays.${weekDayKey[day]}`)}
+                </span>
+              ))}
+              {allDayPeriods.map((period) => (
+                <div key={period} className="contents">
+                  <span className="flex items-center text-sm font-medium">{t(`periods.${dayPeriodKey[period]}`)}</span>
+                  {allWeekDays.map((day) => {
+                    const key = slotKey(day, period)
+                    const active = availability.includes(key)
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        aria-pressed={active}
+                        aria-label={`${t(`weekDays.${weekDayKey[day]}`)} ${t(`periods.${dayPeriodKey[period]}`)}`}
+                        onClick={() => toggleSlot(key)}
+                        className={cn(
+                          'h-10 rounded-md border transition-colors focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none',
+                          active ? 'border-primary bg-primary text-primary-foreground' : 'hover:bg-accent',
+                        )}
+                      />
+                    )
+                  })}
+                </div>
+              ))}
+            </div>
+          </Panel>
 
-          <AppChipsField name="genres" label={t('myProfile.genres')} max={maxGenres} options={allMusicGenres.map((genre) => ({ value: genre, label: genreLabel(genre) }))} />
+          <Panel title={t('myProfile.genres')} className="xl:col-span-2">
+            <AppChipsField name="genres" label={t('myProfile.genresLabel')} max={maxGenres} options={allMusicGenres.map((genre) => ({ value: genre, label: genreLabel(genre) }))} />
+          </Panel>
 
-          <fieldset className="flex min-w-0 flex-col gap-3">
-            <legend className="text-sm font-medium">{t('myProfile.links')}</legend>
-            <p className="app-meta">{t('myProfile.linksHint')}</p>
+          <Panel title={t('myProfile.links')} description={t('myProfile.linksHint')}>
             {links.fields.map((field, index) => (
               <div key={field.id} className="flex items-end gap-2">
-                <div className="flex-1">
-                  <AppField name={`links.${index}.url`} label={`${t('myProfile.links')} ${index + 1}`} type="url" placeholder="https://" />
+                <div className="min-w-0 flex-1">
+                  <AppField name={`links.${index}.url`} label={`${t('myProfile.link')} ${index + 1}`} type="url" placeholder="https://" />
                 </div>
-                <AppIconButton label={t('myProfile.removeLink')} onClick={() => links.remove(index)}>
+                <AppIconButton type="button" label={t('myProfile.removeLink')} onClick={() => links.remove(index)}>
                   <XIcon />
                 </AppIconButton>
               </div>
@@ -344,29 +415,14 @@ export function EnsaioMinhaFichaPage() {
                 {t('myProfile.addLink')}
               </AppButton>
             ) : null}
-          </fieldset>
+          </Panel>
 
-          <AppTextareaField name="influences" label={t('myProfile.influences')} placeholder={t('myProfile.influencesPlaceholder')} rows={3} maxLength={300} />
-
-          <AppButton type="submit" loading={saving} className="self-start">
-            {t('myProfile.save')}
-          </AppButton>
-        </AppForm>
-      </AppCard>
+          <Panel title={t('myProfile.influences')}>
+            <AppTextareaField name="influences" label={t('myProfile.influencesLabel')} placeholder={t('myProfile.influencesPlaceholder')} rows={5} maxLength={300} />
+          </Panel>
+        </div>
+      </AppForm>
     </div>
-  )
-}
-
-type StructureName = 'hasGear' | 'hasTransport' | 'hasRehearsalSpace'
-
-function StructureCheck({ name, label, form }: { name: StructureName; label: string; form: ReturnType<typeof useForm<FormValues>> }) {
-  const checked = useWatch({ control: form.control, name })
-
-  return (
-    <label className="flex items-center gap-2 text-sm">
-      <Checkbox checked={checked} onCheckedChange={(value) => form.setValue(name, value === true, { shouldDirty: true })} />
-      {label}
-    </label>
   )
 }
 
@@ -379,9 +435,10 @@ const emptyProfile: MusicianProfileDto = {
   cityName: null,
   isLookingForBand: true,
   lookingSince: null,
+  distanceKm: null,
   goal: MusicianGoal.either,
   commitment: MusicianCommitment.playLive,
-  reach: Reach.abc,
+  reachKm: defaultReachKm,
   hasGear: false,
   hasTransport: false,
   hasRehearsalSpace: false,

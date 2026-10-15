@@ -14,7 +14,7 @@ import { useMusicGenreLabel } from '@/pages/perfil/genres'
 import { EnsaioFilters } from './components/ensaio-filters'
 import { FlyerCard } from './components/flyer-card'
 import { InviteDialog } from './components/invite-dialog'
-import { useInstrumentLabel } from './ensaio-status'
+import { useDistanceLabel, useInstrumentLabel } from './ensaio-status'
 import { useEnsaioList } from './hooks/use-ensaio-list'
 import { useOwnedBands } from './hooks/use-owned-bands'
 import { getMusicians, getMyMusicianProfile } from './services/ensaio-service'
@@ -27,6 +27,7 @@ export function EnsaioVitrinePage() {
   const { user } = useAuth()
   const instrumentLabel = useInstrumentLabel()
   const genreLabel = useMusicGenreLabel()
+  const distanceLabel = useDistanceLabel()
   const [inviting, setInviting] = useState<MusicianCardDto | null>(null)
   const [listed, setListed] = useState<boolean | null>(null)
 
@@ -42,7 +43,7 @@ export function EnsaioVitrinePage() {
     }
   }, [])
 
-  const meta = (card: MusicianCardDto) => [formatCity(card), card.genres[0] !== undefined ? genreLabel(card.genres[0]) : null].filter(Boolean).join(' · ') || null
+  const meta = (card: MusicianCardDto) => [formatCity(card), card.genres[0] !== undefined ? genreLabel(card.genres[0]) : null, distanceLabel(card.distanceKm)].filter(Boolean).join(' · ') || null
 
   return (
     <div className="app-page-enter flex flex-col gap-8">

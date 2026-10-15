@@ -251,5 +251,8 @@
   "MUSICIAN_PHOTO_REMOVED": "Foto do flyer tirada.",
   "SESSION_EXPIRED": "Sua sessão expirou. Entre de novo.",
   "NETWORK_ERROR": "Sem conexão com o servidor. Verifique sua internet.",
-  "UNKNOWN_ERROR": "Algo deu errado. Tente de novo."
+  "UNKNOWN_ERROR": "Algo deu errado. Tente de novo.",
+  "APPROX_LOCATION_SAVED": "Localização aproximada salva.",
+  "APPROX_LOCATION_REMOVED": "Localização apagada. A distância volta a contar pela sua cidade.",
+  "INVALID_LOCATION": "Não deu para ler essa localização."
 }

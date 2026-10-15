@@ -12,7 +12,6 @@ import type {
   MusicianCommitment,
   MusicianGoal,
   OpeningStatus,
-  Reach,
   SkillLevel,
   WeekDay,
 } from '../ensaio-status'
@@ -34,9 +33,10 @@ export type MusicianProfileDto = {
   cityName: string | null
   isLookingForBand: boolean
   lookingSince: string | null
+  distanceKm: number | null
   goal: MusicianGoal
   commitment: MusicianCommitment
-  reach: Reach
+  reachKm: number | null
   hasGear: boolean
   hasTransport: boolean
   hasRehearsalSpace: boolean
@@ -56,13 +56,14 @@ export type MusicianCardDto = {
   genres: MusicGenre[]
   hasSamples: boolean
   lookingSince: string | null
+  distanceKm: number | null
 }
 
 export type MusicianInputDto = {
   isLookingForBand: boolean
   goal: MusicianGoal
   commitment: MusicianCommitment
-  reach: Reach
+  reachKm: number | null
   hasGear: boolean
   hasTransport: boolean
   hasRehearsalSpace: boolean
@@ -75,13 +76,13 @@ export type MusicianInputDto = {
 
 export type EnsaioFilters = {
   instrument: Instrument | null
-  city: CityDto | null
-  abc: boolean
+  maxKm: number | null
+  nearCity: CityDto | null
   genre: MusicGenre | null
   withSamples: boolean
 }
 
-export const emptyFilters: EnsaioFilters = { instrument: null, city: null, abc: false, genre: null, withSamples: false }
+export const emptyFilters: EnsaioFilters = { instrument: null, maxKm: null, nearCity: null, genre: null, withSamples: false }
 
 export type BandOpeningDto = {
   id: number
@@ -99,6 +100,7 @@ export type BandOpeningDto = {
   canManage: boolean
   myInterest: { status: InterestStatus; message: string | null } | null
   interestCount: number | null
+  distanceKm: number | null
 }
 
 export type BandOpeningSummaryDto = {
@@ -131,8 +133,8 @@ function filterParams(query: PagedRequest & { filters: EnsaioFilters }, withSamp
     page: query.page,
     pageSize: query.pageSize,
     instrument: filters.instrument ?? undefined,
-    cityId: filters.abc ? undefined : filters.city?.id,
-    abc: filters.abc || undefined,
+    maxKm: filters.maxKm ?? undefined,
+    nearCityId: filters.nearCity?.id,
     genre: filters.genre ?? undefined,
     withSamples: withSamples && filters.withSamples ? true : undefined,
   }

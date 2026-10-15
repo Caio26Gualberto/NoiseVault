@@ -261,6 +261,9 @@ export const ApiCodes = {
   invalidInterestMessage: 'INVALID_INTEREST_MESSAGE',
   musicianPhotoUpdated: 'MUSICIAN_PHOTO_UPDATED',
   musicianPhotoRemoved: 'MUSICIAN_PHOTO_REMOVED',
+  approxLocationSaved: 'APPROX_LOCATION_SAVED',
+  approxLocationRemoved: 'APPROX_LOCATION_REMOVED',
+  invalidLocation: 'INVALID_LOCATION',
 
   networkError: 'NETWORK_ERROR',
   unknownError: 'UNKNOWN_ERROR',
