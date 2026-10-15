@@ -10,6 +10,7 @@ namespace NoiseVault.Application.Cities.Interfaces
     public interface ICityAppService
     {
         Task<Result<PagedResultDto<CityDto>>> Search(CitySearchQueryDto query);
+        Task<Result<List<CityDto>>> Featured();
 
         Task<CityResolution> Resolve(int? cityId, string? cityName, bool required);
         Task<CityDto?> Get(int? cityId);

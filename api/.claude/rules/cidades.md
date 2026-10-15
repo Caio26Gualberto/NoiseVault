@@ -33,6 +33,7 @@ Decisão do usuário em 14/10/2026: o site passou a servir à música em geral, 
 `GET /api/cities?search=&page=&pageSize=` (qualquer pessoa logada) → `CITIES_FOUND`, paginado.
 - O termo é normalizado do mesmo jeito do `SearchName` e precisa de pelo menos 2 letras; menos que isso devolve lista vazia, sem varrer a tabela.
 - Ordem: quem **começa** com o termo vem antes de quem só contém; dentro de cada grupo, **as 7 cidades do ABC vêm primeiro** (`CityRules.AbcCityIds`), porque o núcleo do projeto continua sendo o ABC; depois nome e UF, com desempate por `Id`. "sao bern" traz São Bernardo do Campo antes de São Bernardino (SC), e "Santo" traz Santo André antes dos outros Santos.
+- **`GET /api/cities/featured`** devolve as 7 cidades do ABC, na ordem de `CityRules.AbcCityIds`, com o code `CITIES_FOUND`. É o que o seletor de cidade mostra antes de a pessoa digitar (pedido do usuário em 15/10/2026). Não tem rate limit próprio: é uma lista fixa, e o front guarda depois da primeira chamada.
 - Limite `city-search` 60/min por conta, como a busca de pessoas: o campo busca enquanto a pessoa digita.
 
 ## Quem valida

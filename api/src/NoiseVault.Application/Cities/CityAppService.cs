@@ -58,6 +58,14 @@ namespace NoiseVault.Application.Cities
                 : new CityResolution(null, null, null);
         }
 
+        public async Task<Result<List<CityDto>>> Featured()
+        {
+            var cities = await _cityRepository.ListByIdsAsync(CityRules.AbcCityIds);
+            var order = CityRules.AbcCityIds.Select((id, index) => (id, index)).ToDictionary(x => x.id, x => x.index);
+
+            return Result<List<CityDto>>.Ok(cities.OrderBy(c => order[c.Id]).Select(Map).ToList(), "CITIES_FOUND", "Cities found");
+        }
+
         public async Task<CityDto?> Get(int? cityId)
         {
             if (cityId == null)

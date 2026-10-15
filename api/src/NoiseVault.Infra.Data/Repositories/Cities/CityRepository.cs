@@ -37,6 +37,9 @@ namespace NoiseVault.Infra.Data.Repositories.Cities
         public Task<bool> ExistsAsync(int cityId) =>
             _context.Cities.AnyAsync(c => c.Id == cityId);
 
+        public Task<List<City>> ListByIdsAsync(IReadOnlyCollection<int> cityIds) =>
+            _context.Cities.AsNoTracking().Where(c => cityIds.Contains(c.Id)).ToListAsync();
+
         public Task<City?> FindAsync(int cityId) =>
             _context.Cities.AsNoTracking().FirstOrDefaultAsync(c => c.Id == cityId);
     }

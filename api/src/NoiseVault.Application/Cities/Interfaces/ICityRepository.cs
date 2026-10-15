@@ -7,5 +7,6 @@ namespace NoiseVault.Application.Cities.Interfaces
         Task<(List<City> Items, int TotalCount)> SearchAsync(string normalizedTerm, int skip, int take);
         Task<bool> ExistsAsync(int cityId);
         Task<City?> FindAsync(int cityId);
+        Task<List<City>> ListByIdsAsync(IReadOnlyCollection<int> cityIds);
     }
 }

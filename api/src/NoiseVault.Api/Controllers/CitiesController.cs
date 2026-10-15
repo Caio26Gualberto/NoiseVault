@@ -23,5 +23,12 @@ namespace NoiseVault.Api.Controllers
             var result = await _cityAppService.Search(query);
             return ToResponse(result);
         }
+
+        [HttpGet("featured")]
+        public async Task<ActionResult> Featured()
+        {
+            var result = await _cityAppService.Featured();
+            return ToResponse(result);
+        }
     }
 }
