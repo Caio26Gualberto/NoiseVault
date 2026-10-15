@@ -50,6 +50,8 @@ builder.Services.AddControllers(options =>
 });
 builder.Services.AddApiRateLimiting();
 builder.Services.AddScoped<ICurrentUser, CurrentUser>();
+builder.Services.AddSingleton<RefreshCookie>();
+builder.Services.AddSingleton<OriginGuard>();
 builder.Services.AddSignalR(options =>
 {
     options.KeepAliveInterval = TimeSpan.FromSeconds(15);

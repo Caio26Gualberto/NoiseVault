@@ -1,3 +1,4 @@
+using NoiseVault.Application.Auth;
 using System.Buffers.Text;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -18,7 +19,6 @@ namespace NoiseVault.Infra.Data.Identity.AuthenticateService
     public class AuthenticateService : IAuthenticateService
     {
         private static readonly TimeSpan AccessTokenLifetime = TimeSpan.FromMinutes(15);
-        private static readonly TimeSpan RefreshTokenLifetime = TimeSpan.FromDays(7);
         private static readonly TimeSpan RefreshReuseGrace = TimeSpan.FromSeconds(30);
 
         private readonly UserManager<ApplicationUser> _userManager;
@@ -288,7 +288,7 @@ namespace NoiseVault.Infra.Data.Identity.AuthenticateService
             {
                 ApplicationUserId = identityUser.Id,
                 TokenHash = HashToken(rawToken),
-                ExpiresAt = DateTime.UtcNow.Add(RefreshTokenLifetime),
+                ExpiresAt = DateTime.UtcNow.Add(AuthTokenRules.RefreshTokenLifetime),
                 CreatedAt = DateTime.UtcNow
             });
 

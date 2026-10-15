@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using NoiseVault.Api.Authentication;
 using NoiseVault.Api.RateLimiting;
 using NoiseVault.Application.Auth.Dtos;
 using NoiseVault.Application.Auth.Interfaces;
+using NoiseVault.Application.Response;
 
 namespace NoiseVault.Api.Controllers
 {
@@ -11,10 +13,14 @@ namespace NoiseVault.Api.Controllers
     public class AuthController : ApiBaseController
     {
         private readonly IAuthAppService _authAppService;
+        private readonly RefreshCookie _refreshCookie;
+        private readonly OriginGuard _originGuard;
 
-        public AuthController(IAuthAppService authAppService)
+        public AuthController(IAuthAppService authAppService, RefreshCookie refreshCookie, OriginGuard originGuard)
         {
             _authAppService = authAppService;
+            _refreshCookie = refreshCookie;
+            _originGuard = originGuard;
         }
 
         [AllowAnonymous]
@@ -23,6 +29,10 @@ namespace NoiseVault.Api.Controllers
         public async Task<ActionResult> Login([FromBody] LoginInputDto input)
         {
             var result = await _authAppService.Login(input);
+
+            if (result.IsSuccess && result.Data?.Tokens != null)
+                _refreshCookie.Write(Response, result.Data.Tokens.RefreshToken);
+
             return ToResponse(result);
         }
 
@@ -74,17 +84,31 @@ namespace NoiseVault.Api.Controllers
         [AllowAnonymous]
         [EnableRateLimiting(ApiRateLimitPolicies.RefreshToken)]
         [HttpPost("refresh-token")]
-        public async Task<ActionResult> RefreshToken([FromBody] RefreshTokenRequestDto input)
+        public async Task<ActionResult> RefreshToken()
         {
-            var result = await _authAppService.RefreshTokens(input);
+            if (!_originGuard.IsAllowed(Request))
+                return ToResponse(Result.Fail(OriginNotAllowed()));
+
+            var result = await _authAppService.RefreshTokens(new RefreshTokenRequestDto { RefreshToken = _refreshCookie.Read(Request) });
+
+            if (result.IsSuccess)
+                _refreshCookie.Write(Response, result.Data!.RefreshToken);
+
             return ToResponse(result);
         }
 
         [HttpPost("logout")]
         public async Task<ActionResult> Logout()
         {
+            if (!_originGuard.IsAllowed(Request))
+                return ToResponse(Result.Fail(OriginNotAllowed()));
+
             var result = await _authAppService.Logout();
+            _refreshCookie.Clear(Response);
             return ToResponse(result);
         }
+
+        private static Error OriginNotAllowed() =>
+            new("ORIGIN_NOT_ALLOWED", "This request did not come from an allowed site", ErrorType.Forbidden);
     }
 }

@@ -63,9 +63,27 @@ A tela de boas-vindas do primeiro acesso (`/bem-vindo` no front) **não tem nada
 
 ## Refresh token: atômico, com janela de reuso
 
-`ConsumeRefreshTokenAsync` marca o token como consumido com `ExecuteUpdateAsync ... WHERE RevokedAt IS NULL`; zero linhas afetadas é recusa (duas abas renovando ao mesmo tempo: uma ganha, a outra toma `INVALID_TOKEN` e usa o par novo que o storage já recebeu). Um token **já revogado** apresentado de novo depois de 30 s (`RefreshReuseGrace`) é tratado como roubo: **todos** os refresh tokens daquele usuário caem. Dentro dos 30 s é a corrida legítima de abas e nada acontece. Herdado do Buscaprocesso.
+`ConsumeRefreshTokenAsync` marca o token como consumido com `ExecuteUpdateAsync ... WHERE RevokedAt IS NULL`; zero linhas afetadas é recusa (duas abas renovando ao mesmo tempo: uma ganha, a outra toma `INVALID_TOKEN` e tenta de novo com o cookie novo que o navegador já recebeu). Um token **já revogado** apresentado de novo depois de 30 s (`RefreshReuseGrace`) é tratado como roubo: **todos** os refresh tokens daquele usuário caem. Dentro dos 30 s é a corrida legítima de abas e nada acontece. Herdado do Buscaprocesso.
 
 `Logout` e troca de senha revogam todos os refresh tokens por `ExecuteUpdateAsync`, não por `SELECT` + loop.
+
+## Refresh token num cookie `HttpOnly`, token de acesso no corpo
+
+Decidido em 14/10/2026, antes dos subdomínios (`IDEIAS.md`, item 8; `hospedagem.md`). Até então o par ia no corpo e o front guardava os dois no `localStorage`, que é preso a cada endereço (o login de `noisevault.net` não valeria em `ensaio.noisevault.net`) e fica ao alcance de qualquer script injetado na página.
+
+- **O refresh token nunca aparece no JSON.** `TokensDto.RefreshToken` é `[JsonIgnore]`: continua circulando entre `AuthAppService` e controller, e o controller o grava no cookie. O corpo leva só `token` (o de acesso, 15 min), que o front guarda em memória.
+- **O cookie** (`Api/Authentication/RefreshCookie.cs`): nome `nv_refresh`, `HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/api/auth` (só o refresh e o logout o recebem, nunca o resto da API), validade igual à do token (`AuthTokenRules.RefreshTokenLifetime`, 7 dias). `Domain` vem de `Auth:RefreshCookie:Domain`: vazio em dev (vale para `localhost`, e cookie não distingue porta), `.noisevault.net` em produção, para todos os subdomínios.
+- **Quem grava**: `login`, `refresh-token` (o cookie novo da rotação), `profile/change-password` e `profile/set-initial-password`. **Quem apaga**: só o `logout`. 🔴 **Refresh recusado não apaga o cookie**: com várias abas, a resposta de falha da aba que perdeu a corrida chegaria depois da vencedora e apagaria o cookie novo dela, derrubando a sessão inteira (visto em 14/10/2026). Um cookie inválido que sobra não abre nada e é trocado no próximo login.
+- `refresh-token` não tem corpo. Sem cookie, a resposta é a mesma de token inválido (`INVALID_TOKEN`).
+
+### CSRF: `SameSite=Strict` mais a checagem de origem
+
+Cookie vai sozinho em toda requisição para a API, inclusive as que um site de fora dispara. Duas barreiras no `refresh-token` e no `logout`:
+
+1. `SameSite=Strict`: o navegador não manda o cookie em requisição iniciada por outro site. Os subdomínios são o **mesmo site** (`noisevault.net`), então passam.
+2. `OriginGuard` (`Api/Authentication/OriginGuard.cs`): com `Origin` presente e fora de `Cors:AllowedOrigins`, a resposta é `403 ORIGIN_NOT_ALLOWED` antes de ler o cookie. Sem `Origin` (cliente que não é navegador), passa: o `SameSite` não se aplica a ele, e sem cookie roubado não há o que forjar.
+
+O resto da API não precisa da checagem: ela é autorizada pelo `Authorization: Bearer`, que nenhum site de fora consegue montar. O CORS já era por lista exata e ganhou `AllowCredentials()`, que exige isso.
 
 ## Troca de senha: `ChangePasswordAsync`, nunca `Remove` + `Add`
 
@@ -127,10 +145,10 @@ Com `docker compose up -d` e a API no ar (`Email:Provider=Smtp` apontando para o
 2. `POST /api/auth/login` antes de confirmar → 403 `EMAIL_NOT_CONFIRMED`; com senha errada → 401 `INVALID_CREDENTIALS`.
 3. `POST /api/auth/resend-confirmation {email}` → 200 `CONFIRMATION_EMAIL_SENT` (também para e-mail inexistente, sem e-mail no Mailpit); 4ª chamada na mesma hora → 429 `TOO_MANY_REQUESTS` e `RATE_LIMIT_REJECTED` no log.
 4. `POST /api/auth/confirm-email {userId, token}` com o token do link → 200 `EMAIL_CONFIRMED { alreadyConfirmed: false }`; repetir → `alreadyConfirmed: true`; token adulterado → 400 `EMAIL_CONFIRMATION_INVALID`.
-5. Login → `LOGIN_SUCCESS` com `data.tokens`; `GET /api/profile` → `nickname: "caio"`; `POST /api/profile/complete-onboarding` → 404 (endpoint removido).
-6. `POST /api/auth/refresh-token` → `TOKENS_RENEWED`; reapresentar o refresh consumido na hora → 401 `INVALID_TOKEN` e nada mais; reapresentá-lo depois de 30 s → 401, `REFRESH_TOKEN_REUSE` no log e o par novo também passa a dar `INVALID_TOKEN`.
+5. Login → `LOGIN_SUCCESS` com `data.tokens.token` (sem `refreshToken`) e o `Set-Cookie: nv_refresh=…; path=/api/auth; secure; samesite=strict; httponly` de 7 dias; `GET /api/profile` → `nickname: "caio"`; `POST /api/profile/complete-onboarding` → 404 (endpoint removido).
+6. `POST /api/auth/refresh-token` sem corpo, com o cookie e `Origin: http://localhost:5173` → `TOKENS_RENEWED` e cookie novo; sem cookie → 401 `INVALID_TOKEN` sem `Set-Cookie`; com `Origin: https://evil.example` → 403 `ORIGIN_NOT_ALLOWED` e o cookie continua valendo; reapresentar o refresh consumido na hora → 401 `INVALID_TOKEN` e nada mais; reapresentá-lo depois de 30 s → 401, `REFRESH_TOKEN_REUSE` no log e o par novo também passa a dar `INVALID_TOKEN`.
 7. `POST /api/auth/forgot-password {email}` → 200 `PASSWORD_RESET_EMAIL_SENT` para existente e inexistente; e-mail no Mailpit com `/redefinir-senha?email=…&token=…`; `POST /api/auth/reset-password {email, token, newPassword:"xyz789"}` → 200 `PASSWORD_RESET_SUCCESS` sem tokens; refresh token anterior → `INVALID_TOKEN`; login com a senha antiga → 401; com a nova → 200; reusar o token de reset → 400 `PASSWORD_RESET_INVALID`.
-8. `POST /api/profile/change-password` com atual errada → 401 `INVALID_CREDENTIALS`; nova fraca → 400 `PASSWORD_TOO_WEAK` e a antiga continua valendo; certa → `PASSWORD_CHANGED` com tokens novos.
-9. `POST /api/auth/logout` → `LOGOUT_SUCCESS`; o refresh anterior → `INVALID_TOKEN`.
+8. `POST /api/profile/change-password` com atual errada → 401 `INVALID_CREDENTIALS`; nova fraca → 400 `PASSWORD_TOO_WEAK` e a antiga continua valendo; certa → `PASSWORD_CHANGED` com token novo e cookie novo; o cookie anterior → `INVALID_TOKEN`.
+9. `POST /api/auth/logout` → `LOGOUT_SUCCESS` e o cookie apagado (`expires=Thu, 01 Jan 1970`); o refresh anterior → `INVALID_TOKEN`.
 10. Login `caiogualbertodev@outlook.com` / `12341234` → `GET /api/admin/users?search=cai` → 200 com o usuário; `POST /api/admin/users/invite {name, email, roleId}` → `USER_INVITED` e o e-mail de convite no Mailpit; login do convidado → `GET /api/admin/users` → 403 `PASSWORD_CHANGE_REQUIRED`; `set-initial-password` → tokens; repetir → `PASSWORD_CHANGE_NOT_PENDING`.
 11. `DELETE /api/admin/users/{id}` do próprio → `CANNOT_DELETE_SELF`; do último Admin → `LAST_ADMIN_PROTECTED`; de outro → `USER_DELETED`, o login dele vira `INVALID_CREDENTIALS`, e registrar de novo o mesmo e-mail e nickname funciona (tombstone).

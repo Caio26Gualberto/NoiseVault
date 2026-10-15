@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using NoiseVault.Api.Authentication;
 using NoiseVault.Api.RateLimiting;
 using NoiseVault.Application.Auth.Dtos;
 using NoiseVault.Application.Auth.Interfaces;
@@ -17,11 +18,13 @@ namespace NoiseVault.Api.Controllers
 
         private readonly IProfileAppService _profileAppService;
         private readonly IAuthAppService _authAppService;
+        private readonly RefreshCookie _refreshCookie;
 
-        public ProfileController(IProfileAppService profileAppService, IAuthAppService authAppService)
+        public ProfileController(IProfileAppService profileAppService, IAuthAppService authAppService, RefreshCookie refreshCookie)
         {
             _profileAppService = profileAppService;
             _authAppService = authAppService;
+            _refreshCookie = refreshCookie;
         }
 
         [HttpGet]
@@ -94,6 +97,10 @@ namespace NoiseVault.Api.Controllers
         public async Task<ActionResult> ChangePassword([FromBody] ChangePasswordInputDto input)
         {
             var result = await _authAppService.ChangePassword(input);
+
+            if (result.IsSuccess)
+                _refreshCookie.Write(Response, result.Data!.RefreshToken);
+
             return ToResponse(result);
         }
 
@@ -101,6 +108,10 @@ namespace NoiseVault.Api.Controllers
         public async Task<ActionResult> SetInitialPassword([FromBody] SetInitialPasswordInputDto input)
         {
             var result = await _authAppService.SetInitialPassword(input);
+
+            if (result.IsSuccess)
+                _refreshCookie.Write(Response, result.Data!.RefreshToken);
+
             return ToResponse(result);
         }
     }

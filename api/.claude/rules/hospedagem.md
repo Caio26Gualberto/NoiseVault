@@ -49,7 +49,7 @@ Comprado pelo usuário em 14/10/2026. O `.com` já tinha dono, o `.com.br` o usu
 | `api.noisevault.net` | o Lightsail (Caddy com HTTPS) | API, SignalR (`/hubs`) e a rota de prévia `/s/...` (que o Amplify repassa) |
 | `media.noisevault.net` | o CloudFront do bucket | `Storage:PublicBaseUrl` |
 | e-mail `nao-responda@noisevault.net` | SES | o domínio verificado no SES, com SPF, DKIM e DMARC no DNS, para confirmação e redefinição de senha não caírem no spam |
-| `ensaio.noisevault.net` | o mesmo app do Amplify, que mostra a moldura do módulo de músicos e bandas pelo endereço | planejado (`IDEIAS.md`, 8a); pede a sessão por cookie em `.noisevault.net` antes |
+| `ensaio.noisevault.net` | o mesmo app do Amplify, que mostra a moldura do módulo de músicos e bandas pelo endereço | planejado (`IDEIAS.md`, 8a); a sessão por cookie em `.noisevault.net` já existe (`auth-e-contas.md`) |
 | `mercado.noisevault.net` | idem, para venda e troca | planejado (`IDEIAS.md`, 8b) |
 
 - Quem guarda o DNS ainda não foi decidido. O caminho mais simples é o **Route 53**, junto do resto da AWS; se o domínio ficar em outro registrador, ele aponta os servidores de nome para o Route 53.
@@ -68,7 +68,8 @@ Comprado pelo usuário em 14/10/2026. O `.com` já tinha dono, o `.com.br` o usu
 - **PWA**: o `sw.js` vai com `Cache-Control: no-cache` no Amplify ou no CloudFront, e o `manifest.webmanifest` com `application/manifest+json` (`frontend/.claude/rules/pwa.md`). Com cache longo no `sw.js`, a versão nova do site demora a chegar em quem instalou.
 - **Licença do ImageSharp**: o build em `Release` **falha** sem chave da Six Labors ("No Six Labors license found"; o `Debug` só avisa). Visto em 14/10/2026. A licença Split é gratuita abaixo de US$ 1 milhão de receita (`armazenamento.md`), mas a chave precisa existir no build da imagem (`SixLaborsLicenseKey` por variável, nunca no Git).
 - **SignalR**: uma instância, sem backplane. O Caddy repassa WebSocket; o keep-alive de 15 s sobra para qualquer idle timeout (`notificacoes.md`).
-- **CORS**: `Cors:AllowedOrigins` e o CORS do bucket com `https://noisevault.net` (`midia-e-video.md`).
+- **CORS**: `Cors:AllowedOrigins` e o CORS do bucket com `https://noisevault.net` (`midia-e-video.md`). O CORS da API aceita credenciais (o cookie do refresh), então a lista é exata e ganha cada subdomínio do front quando ele nascer (`https://ensaio.noisevault.net`, `https://mercado.noisevault.net`); a mesma lista é a do `OriginGuard`.
+- **Cookie do refresh**: `Auth__RefreshCookie__Domain=.noisevault.net`, para a sessão valer em todos os subdomínios. Sem a variável, o cookie fica preso a `api.noisevault.net`, o que também funciona enquanto só existir o site principal (`auth-e-contas.md`).
 - **E-mail**: com provedor real, o envio do esqueci-senha vai para a fila `emails` (o risco aceito de tempo de resposta em `auth-e-contas.md`).
 
 ## Front e a prévia de links

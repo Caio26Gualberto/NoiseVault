@@ -14,7 +14,7 @@ As **decisões** — o porquê de cada regra — vivem em `.claude/rules/`, um a
 
 | Arquivo | Cobre |
 |---|---|
-| `.claude/rules/auth-e-contas.md` | registro com confirmação de e-mail, login, esqueci/redefinir senha, nickname, refresh atômico, convite, revogação, papéis e permissões |
+| `.claude/rules/auth-e-contas.md` | registro com confirmação de e-mail, login, esqueci/redefinir senha, nickname, refresh atômico, refresh no cookie `HttpOnly` com CSRF barrado por `SameSite` e origem, convite, revogação, papéis e permissões |
 | `.claude/rules/dominio.md` | o modelo da comunidade (pessoa, banda, integrante, convite, conteúdo, moderação), enums herdados e a ordem dos módulos |
 | `.claude/rules/perfil-e-midia.md` | campos do perfil, edição, avatar e capa, perfil público, busca de pessoas |
 | `.claude/rules/bandas.md` | banda sem login, slug imutável, quem é Owner, convite com estado e aceite atômico, endpoints, limites |
@@ -79,7 +79,7 @@ Rotas são explícitas, minúsculas/kebab-case (`/api/items/{id}/archive`), sem 
 
 Um tipo de usuário: `User` (`Name`, `Nickname`, `Email`, `IsActive`) herda `EntityBase` e é **sempre uma pessoa** — banda é entidade própria sem login (`.claude/rules/dominio.md`). `ApplicationUser` (Identity) aponta 1:1 para `User` via `UserId` e carrega `EmailConfirmed` e `IsNeededChangePassword`. Papéis/permissões vivem **só** no Identity (Roles/UserRoles/RoleClaims/UserClaims) — não existe Role denormalizada. Papéis de sistema: `User` (default do registro, sem permissão) e `Admin` (todas implícitas). O painel cria papéis intermediários pela tela; o código não precisa conhecê-los.
 
-**Auth é stateless (JWT), uma audience.** O access token vale 15 min e é validado só por assinatura + `exp` + audience (`JwtAudiences.Api`). Claims: `user_id`, roles do Identity, `password_change_required` quando houver. O refresh token (7 dias, tabela `RefreshTokens`) é guardado **só como hash SHA-256**; a rotação revoga o token consumido atomicamente e reuso fora da janela derruba todos. "Sair" = revogar os refresh tokens do usuário.
+**Auth é stateless (JWT), uma audience.** O access token vale 15 min e é validado só por assinatura + `exp` + audience (`JwtAudiences.Api`). Claims: `user_id`, roles do Identity, `password_change_required` quando houver. O refresh token (7 dias, tabela `RefreshTokens`) é guardado **só como hash SHA-256** e viaja **só no cookie `HttpOnly` `nv_refresh`**, nunca no JSON (`auth-e-contas.md`); a rotação revoga o token consumido atomicamente e reuso fora da janela derruba todos. "Sair" = revogar os refresh tokens do usuário.
 
 Fluxo: `POST /api/auth/register` (nome, nickname, e-mail, senha → papel `User`, **pendente de confirmação**, sem tokens), `confirm-email`, `resend-confirmation`, `login` (recusa `EMAIL_NOT_CONFIRMED`), `refresh-token`, `logout`, `forgot-password`, `reset-password`; `POST /api/profile/change-password` (exige a atual) e `set-initial-password` (só com `password_change_required`, para quem entrou por convite). A tela de boas-vindas do primeiro acesso é só do front (`localStorage`). Decisões em `.claude/rules/auth-e-contas.md`; e-mail em `.claude/rules/email.md`. Login social ficou de fora: quando entrar, entra no `AuthAppService` e no `IAuthenticateService`, não num serviço paralelo.
 
