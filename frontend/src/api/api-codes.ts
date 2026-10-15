@@ -184,6 +184,7 @@ export const ApiCodes = {
   invalidArchiveRejectionReason: 'INVALID_ARCHIVE_REJECTION_REASON',
   invalidArchiveStatus: 'INVALID_ARCHIVE_STATUS',
   tooManyMentions: 'TOO_MANY_MENTIONS',
+  originNotAllowed: 'ORIGIN_NOT_ALLOWED',
   photoTagCreated: 'PHOTO_TAG_CREATED',
   photoTagDeleted: 'PHOTO_TAG_DELETED',
   photoNotTaggable: 'PHOTO_NOT_TAGGABLE',

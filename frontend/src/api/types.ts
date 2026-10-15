@@ -42,7 +42,6 @@ export function emptyPage<T>(pageSize: number): PagedResult<T> {
 
 export type TokensDto = {
   token: string
-  refreshToken: string
 }
 
 export type LoginResponseDto = {

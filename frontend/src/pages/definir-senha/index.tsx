@@ -34,7 +34,7 @@ export function DefinirSenhaPage() {
     setSubmitting(true)
     try {
       const tokens = await setInitialPassword(password)
-      tokenStorage.saveTokens(tokens.token, tokens.refreshToken)
+      tokenStorage.saveToken(tokens.token)
       await refreshUser()
       navigate(homePath, { replace: true })
     } catch {

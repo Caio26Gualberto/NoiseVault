@@ -97,7 +97,7 @@ export function MinhaContaPage() {
     setSavingPassword(true)
     try {
       const tokens = await changePassword(currentPassword, password)
-      tokenStorage.saveTokens(tokens.token, tokens.refreshToken)
+      tokenStorage.saveToken(tokens.token)
       passwordForm.reset()
     } catch {
       return

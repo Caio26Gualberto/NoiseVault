@@ -1,32 +1,27 @@
-const ACCESS_TOKEN_KEY = 'access_token'
-const REFRESH_TOKEN_KEY = 'refresh_token'
-const USER_EMAIL_KEY = 'user_email'
+const legacyKeys = ['access_token', 'refresh_token', 'user_email']
+
+let accessToken: string | null = null
+
+function forgetLegacyStorage() {
+  try {
+    for (const key of legacyKeys) localStorage.removeItem(key)
+  } catch {
+    return
+  }
+}
+
+forgetLegacyStorage()
 
 export const tokenStorage = {
   readToken(): string | null {
-    return localStorage.getItem(ACCESS_TOKEN_KEY)
+    return accessToken
   },
 
-  readRefreshToken(): string | null {
-    return localStorage.getItem(REFRESH_TOKEN_KEY)
-  },
-
-  readEmail(): string | null {
-    return localStorage.getItem(USER_EMAIL_KEY)
-  },
-
-  saveTokens(token: string, refreshToken: string) {
-    localStorage.setItem(ACCESS_TOKEN_KEY, token)
-    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken)
-  },
-
-  saveEmail(email: string) {
-    localStorage.setItem(USER_EMAIL_KEY, email)
+  saveToken(token: string) {
+    accessToken = token
   },
 
   clear() {
-    localStorage.removeItem(ACCESS_TOKEN_KEY)
-    localStorage.removeItem(REFRESH_TOKEN_KEY)
-    localStorage.removeItem(USER_EMAIL_KEY)
+    accessToken = null
   },
 }

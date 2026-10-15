@@ -176,6 +176,7 @@
   "INVALID_ARCHIVE_REJECTION_REASON": "Escreva o motivo da recusa, com 3 a 500 caracteres.",
   "INVALID_ARCHIVE_STATUS": "Status de envio desconhecido.",
   "TOO_MANY_MENTIONS": "Dá para mencionar até 10 pessoas ou bandas por texto.",
+  "ORIGIN_NOT_ALLOWED": "Essa ação só funciona a partir do próprio Noise Vault.",
   "PHOTO_TAG_CREATED": "Pessoa marcada na foto.",
   "PHOTO_TAG_DELETED": "Marcação removida.",
   "PHOTO_NOT_TAGGABLE": "Só dá para marcar pessoas em fotos publicadas no feed ou no mural.",

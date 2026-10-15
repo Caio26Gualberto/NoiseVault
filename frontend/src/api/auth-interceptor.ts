@@ -13,36 +13,55 @@ type RetriableConfig = InternalAxiosRequestConfig & {
 
 const REFRESH_PATH = '/api/auth/refresh-token'
 const REFRESH_MARGIN_MS = 60_000
+const RACE_RETRY_MS = 400
+const REFRESH_LOCK = 'nv-refresh'
 
 let pendingRefresh: Promise<string | null> | null = null
 
-async function requestNewToken(bareClient: AxiosInstance): Promise<string | null> {
-  const refreshToken = tokenStorage.readRefreshToken()
-  if (!refreshToken) return null
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
+async function postRefresh(bareClient: AxiosInstance): Promise<ApiEnvelope<TokensDto> | null> {
   try {
-    const response = await bareClient.post<ApiEnvelope<TokensDto>>(REFRESH_PATH, { refreshToken })
-    const envelope = response.data
-
-    if (!envelope?.isSuccess || !envelope.data?.token) return null
-
-    tokenStorage.saveTokens(envelope.data.token, envelope.data.refreshToken)
-    return envelope.data.token
+    const response = await bareClient.post<ApiEnvelope<TokensDto>>(REFRESH_PATH)
+    return response.data ?? null
   } catch {
     return null
   }
 }
 
+async function requestNewToken(bareClient: AxiosInstance): Promise<string | null> {
+  let envelope = await postRefresh(bareClient)
+
+  if (envelope && !envelope.isSuccess && envelope.code === 'INVALID_TOKEN') {
+    await sleep(RACE_RETRY_MS)
+    envelope = await postRefresh(bareClient)
+  }
+
+  if (!envelope?.isSuccess || !envelope.data?.token) return null
+
+  tokenStorage.saveToken(envelope.data.token)
+  return envelope.data.token
+}
+
+function requestAcrossTabs(bareClient: AxiosInstance): Promise<string | null> {
+  if (typeof navigator === 'undefined' || !navigator.locks) return requestNewToken(bareClient)
+  return navigator.locks.request(REFRESH_LOCK, () => requestNewToken(bareClient))
+}
+
 function refreshOnce(bareClient: AxiosInstance): Promise<string | null> {
-  pendingRefresh ??= requestNewToken(bareClient).finally(() => {
+  pendingRefresh ??= requestAcrossTabs(bareClient).finally(() => {
     pendingRefresh = null
   })
   return pendingRefresh
 }
 
+export function restoreSession(bareClient: AxiosInstance): Promise<string | null> {
+  return refreshOnce(bareClient)
+}
+
 export async function freshToken(bareClient: AxiosInstance): Promise<string | null> {
   const token = tokenStorage.readToken()
-  if (!token) return null
+  if (!token) return refreshOnce(bareClient)
 
   const exp = decodeJwt(token)?.exp
   if (exp != null && exp * 1000 - Date.now() > REFRESH_MARGIN_MS) return token
@@ -62,7 +81,7 @@ export function attachAuthInterceptor(
       response.status === 401 &&
       !config.appRetried &&
       !config.url?.includes(REFRESH_PATH) &&
-      tokenStorage.readRefreshToken() !== null
+      tokenStorage.readToken() !== null
 
     if (!shouldRefresh) return response
 

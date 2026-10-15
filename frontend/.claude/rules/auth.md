@@ -19,9 +19,21 @@ Rule irmã: `api/.claude/rules/auth-e-contas.md` — a regra é do backend, a te
 
 ## Sessão: a arquitetura do boilerplate, sem o gate de painel
 
-`src/api/` (client, interceptor de refresh single-flight, `base-service`, `token-storage` em `localStorage`) veio do boilerplate sem alteração. `auth-provider.tsx` mudou em um ponto: **não exige `Admin.Access`** — qualquer `User` entra na comunidade. `fetchMyAccess` continua sendo chamado (para `can()` nas telas de admin), mas falha dele não derruba a sessão: o `access` fica vazio.
+`src/api/` (client, interceptor de refresh single-flight, `base-service`, `token-storage`) veio do boilerplate e mudou num ponto: a sessão por cookie (abaixo). `auth-provider.tsx` mudou em um ponto: **não exige `Admin.Access`** — qualquer `User` entra na comunidade. `fetchMyAccess` continua sendo chamado (para `can()` nas telas de admin), mas falha dele não derruba a sessão: o `access` fica vazio.
 
 A sessão carrega o `ProfileDto` inteiro (dados de acesso e o perfil público: avatar, capa, bio, cidade, gêneros, links — ver `perfil.md`). Ação de perfil devolve o `ProfileDto` novo e a tela chama `replaceUser(dto)`; `refreshUser()` fica para quando não há DTO na mão.
+
+## Sessão por cookie: o refresh no cookie `HttpOnly`, o token de acesso em memória
+
+Decidido em 14/10/2026, antes dos subdomínios (`IDEIAS.md`, item 8). A regra é do backend (`../api/.claude/rules/auth-e-contas.md`); aqui fica o que a tela faz.
+
+- **Nada de token no `localStorage`.** O refresh token chega num cookie `nv_refresh` que o JavaScript não lê e o navegador manda sozinho (`withCredentials: true` no `client.ts` e no cliente sem interceptor). O token de acesso fica numa variável do `token-storage.ts` e some ao recarregar. Um script injetado na página não leva a sessão embora: no máximo usa o token de 15 minutos enquanto a aba está aberta.
+- **Boot**: o `auth-provider` chama `restoreSessionToken()`, que faz `POST /api/auth/refresh-token` sem corpo. Deu token → busca o perfil e o acesso; não deu → deslogado, sem toast. O status `unknown` cobre essa ida à API, então o `RequireAuth` não redireciona antes.
+- O `token-storage` apaga as chaves da versão anterior (`access_token`, `refresh_token`, `user_email`) ao carregar. Quem estava logado antes da mudança entra de novo uma vez.
+- **Várias abas**: cada aba tem o seu token em memória, mas o cookie é um só e roda a cada renovação. As renovações passam em fila pelo **Web Locks** (`navigator.locks`, trava `nv-refresh`): a segunda aba espera a primeira e renova com o cookie novo. Sem Web Locks (navegador antigo), sobra o reenvio de 400 ms depois de um `INVALID_TOKEN`. Abrir três abas juntas sem a fila derrubava uma delas (visto em 14/10/2026).
+- `freshToken` (o do hub de notificações) renova quando não há token em memória ou ele vence em menos de 60 s.
+- **Sair** chama o `logout`, que apaga o cookie na API; o front só esquece o token.
+- `ORIGIN_NOT_ALLOWED` (o refresh vindo de origem fora da lista) tem tradução, mas só aparece com o front num endereço que a API não conhece.
 
 ## Telas e caminhos
 
@@ -82,5 +94,6 @@ Com a API e o Mailpit (http://localhost:8025) no ar:
 2. Abrir o link do Mailpit → `/confirmar-email` mostra "E-mail confirmado" → "Entrar" → login → `/bem-vindo` com a capa do Celtic Frost e o texto original → "Começar jornada" → `/feed`. Recarregar `/feed` mantém a sessão; sair e entrar de novo vai direto ao `/feed`; apagar `app-welcome-seen:{id}` do `localStorage` faz a tela voltar.
 3. Login de conta não confirmada → toast + faixa com "Reenviar"; clicar → toast `CONFIRMATION_EMAIL_SENT` e e-mail novo no Mailpit.
 4. `/esqueci-senha` com e-mail inexistente → mesma tela de sucesso; com existente → link no Mailpit → `/redefinir-senha` → nova senha → `/entrar` com toast → entrar com a nova.
-5. Apagar o `access_token` do `localStorage` e navegar → a request renova pelo refresh e segue sem logout; apagar os dois → `/entrar` com toast `SESSION_EXPIRED` só se havia request em voo.
-6. `/minha-conta` → trocar senha com atual errada → toast `INVALID_CREDENTIALS`; certa → toast `PASSWORD_CHANGED` e a sessão continua.
+5. Depois do login, o `localStorage` não tem token nenhum e o `document.cookie` não mostra o `nv_refresh` (o DevTools, em Application → Cookies, mostra, com HttpOnly marcado). Recarregar mantém a sessão; abrir três abas de uma vez mantém as três logadas. Apagar o cookie no DevTools e recarregar → `/entrar` sem toast; apagar com a página aberta e esperar o token vencer → `/entrar` com toast `SESSION_EXPIRED` na próxima request.
+6. `/minha-conta` → trocar senha com atual errada → toast `INVALID_CREDENTIALS`; certa → toast `PASSWORD_CHANGED` e a sessão continua, inclusive depois de recarregar.
+7. Sair → o cookie some do DevTools; `/feed` manda para `/entrar`.

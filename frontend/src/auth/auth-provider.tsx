@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 
 import { ApiCodes } from '../api/api-codes'
-import { setSessionExpiredHandler } from '../api/client'
+import { restoreSessionToken, setSessionExpiredHandler } from '../api/client'
 import { feedback } from '../api/feedback-sink'
 import { decodeJwt } from '../api/jwt'
 import { tokenStorage } from '../api/token-storage'
@@ -41,16 +41,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (bootstrapped.current) return
     bootstrapped.current = true
 
-    const token = tokenStorage.readToken()
-    const role = (token ? decodeJwt(token)?.role : null) ?? null
+    restoreSessionToken()
+      .then(async (token) => {
+        if (!token) {
+          clearSession()
+          return
+        }
 
-    if (!token) {
-      clearSession()
-      return
-    }
-
-    Promise.all([authService.fetchMe(), loadAccess()])
-      .then(([user, access]) => setState({ status: 'authenticated', user, role: user.role || role, access }))
+        const role = decodeJwt(token)?.role ?? null
+        const [user, access] = await Promise.all([authService.fetchMe(), loadAccess()])
+        setState({ status: 'authenticated', user, role: user.role || role, access })
+      })
       .catch(() => clearSession())
   }, [clearSession])
 
@@ -75,8 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const role = decodeJwt(tokens.token)?.role ?? null
 
-      tokenStorage.saveTokens(tokens.token, tokens.refreshToken)
-      tokenStorage.saveEmail(email)
+      tokenStorage.saveToken(tokens.token)
 
       try {
         const [user, access] = await Promise.all([authService.fetchMe(), loadAccess()])

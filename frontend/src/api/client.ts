@@ -1,7 +1,7 @@
 import axios from 'axios'
 import type { AxiosRequestConfig } from 'axios'
 
-import { attachAuthInterceptor, freshToken } from './auth-interceptor'
+import { attachAuthInterceptor, freshToken, restoreSession } from './auth-interceptor'
 import { tokenStorage } from './token-storage'
 
 function resolveApiBaseUrl(): string {
@@ -23,6 +23,7 @@ const baseConfig: AxiosRequestConfig = {
   timeout: 15000,
   headers: { 'Content-Type': 'application/json' },
   validateStatus: (status) => status < 500,
+  withCredentials: true,
 }
 
 export const bareClient = axios.create(baseConfig)
@@ -47,4 +48,8 @@ attachAuthInterceptor(apiClient, bareClient, () => sessionExpiredHandler())
 
 export function getFreshToken(): Promise<string | null> {
   return freshToken(bareClient)
+}
+
+export function restoreSessionToken(): Promise<string | null> {
+  return restoreSession(bareClient)
 }

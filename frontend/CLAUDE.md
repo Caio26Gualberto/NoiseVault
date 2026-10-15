@@ -116,7 +116,7 @@ Regra central: **toda comunicação HTTP fica em `src/api/`**. Página nenhuma i
 - **Envelope**: toda resposta é `ApiEnvelope<T>` = `{ isSuccess, code, message, data }`.
 - **`base-service.ts`** expõe `apiGet/apiPost/apiPut/apiPatch/apiDelete/apiPostForm<T>`: desembrulha o envelope e, em falha, lança `ApiError(code)`. Quem consome nunca vê o envelope.
 - **Feedback é global e sai do `base-service`**: **erro toasta sozinho, sucesso é opt-in** (`toastSuccess: true`). Página nenhuma toasta erro de API. A única exceção registrada está em `auth.md`.
-- **Tokens** no `localStorage` (`token-storage.ts`). Access token de **15 minutos**; o `auth-interceptor` renova em 401 e repete a request; 401 concorrentes compartilham **uma** renovação; se o refresh falhar, limpa e dispara `onSessionExpired`.
+- **Sessão por cookie** (`auth.md`): o refresh token vive num cookie `HttpOnly` que o JavaScript não lê, e o access token de **15 minutos** fica **só em memória** (`token-storage.ts`). O `client.ts` manda `withCredentials: true`; no boot, `restoreSessionToken()` troca o cookie por um token. Renovações de abas diferentes passam em fila pelo Web Locks (`nv-refresh`); o `auth-interceptor` renova em 401 e repete a request; 401 concorrentes compartilham **uma** renovação; se o refresh falhar, limpa e dispara `onSessionExpired`.
 - `validateStatus: status < 500`: 4xx chega como resposta normal; 5xx e rede viram `NETWORK_ERROR`/`UNKNOWN_ERROR`.
 
 ## Navegação — `nav-config.tsx` é a fonte única
@@ -217,8 +217,9 @@ Sem testes automatizados nesta entrega: `lint` + `typecheck` + `build` + greps +
 - `AppButton asChild` (para `<Link>`) não renderiza o spinner de `loading`: o `Slot` do radix exige um único filho.
 - `components/ui/*` exporta variantes (`buttonVariants`) além de componentes; por isso a pasta está em `ignorePatterns` do oxlint.
 - O `Toaster` usa `useColorScheme()` em vez de `next-themes`; trocar o tema sem passar por `saveColorScheme` deixa o toast na cor errada.
-- `auth-provider.tsx` faz `setState` dentro do `useEffect` de boot (aviso `set-state-in-effect` do oxlint): herdado do boilerplate, deliberado — o boot é sincronização com `localStorage`.
+- `auth-provider.tsx` faz `setState` dentro do `useEffect` de boot (aviso `set-state-in-effect` do oxlint): herdado do boilerplate, deliberado — o boot é a troca do cookie por um token na API.
 - O CORS da API vem de `Cors:AllowedOrigins` (dev libera só `http://localhost:5173`). Se o Vite subir em outra porta, toda request falha por CORS.
+- O cookie da sessão é `SameSite=Strict`: o front e a API precisam ser o mesmo site. Em dev, os dois em `localhost` (porta não conta); abrir o front em `127.0.0.1` com a API em `localhost`, ou o contrário, faz o cookie não ir e todo recarregar cai em `/entrar`.
 - O `vite.config.ts` repassa `^/s/` para a API (prévia de link, `compartilhamento.md`). Rota nova do front que comece com `/s/` vai parar na API.
 
 ## Como este arquivo evolui

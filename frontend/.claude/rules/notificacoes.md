@@ -16,7 +16,7 @@ Rule irmã: `../api/.claude/rules/notificacoes.md`. A regra é do backend; a tel
 - **`src/api/notifications-hub.ts`** (dentro da fronteira HTTP) abre a conexão em `/hubs/notifications`:
   - `@microsoft/signalr` carregado sob demanda (`import()`, fora do bundle inicial, como o hls.js);
   - só WebSocket (`skipNegotiation`) e `withAutomaticReconnect()`.
-  - O token vem de `getFreshToken()` (`api/client.ts`): o access token do `localStorage`, renovado pelo mesmo `refreshOnce` do interceptor quando vence em menos de 60 s.
+  - O token vem de `getFreshToken()` (`api/client.ts`): o access token em memória, renovado pelo mesmo `refreshOnce` do interceptor quando vence em menos de 60 s.
 - **`layout/notifications-provider.tsx`**, montado no `AppShell` (só existe com sessão), guarda o `unreadCount` e uma `version`.
   - **Mensagem `unread` do hub**: troca o número. Se ele **subiu** e o painel do sino está fechado, busca a notificação não lida mais recente e mostra um toast com a frase e a ação "Ver", que marca como lida e navega.
   - **Contagem mudou**: a `version` sobe, e a lista e os convites refazem a busca.
