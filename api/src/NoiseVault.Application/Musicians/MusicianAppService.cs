@@ -3,6 +3,7 @@ using NoiseVault.Application.Abstractions.Logging;
 using NoiseVault.Application.Abstractions.Repository;
 using NoiseVault.Application.Auth;
 using NoiseVault.Application.Cities;
+using NoiseVault.Application.Common.Media;
 using NoiseVault.Application.Interfaces;
 using NoiseVault.Application.Musicians.Dtos;
 using NoiseVault.Application.Musicians.Interfaces;
@@ -22,6 +23,7 @@ namespace NoiseVault.Application.Musicians
         private readonly IRepository<User> _userRepository;
         private readonly ICurrentUser _currentUser;
         private readonly IFileStorage _fileStorage;
+        private readonly ImageReplacement _images;
         private readonly IApplicationLogger _logger;
 
         public MusicianAppService(
@@ -29,12 +31,14 @@ namespace NoiseVault.Application.Musicians
             IRepository<User> userRepository,
             ICurrentUser currentUser,
             IFileStorage fileStorage,
+            IImageProcessor imageProcessor,
             IApplicationLoggerFactory loggerFactory)
         {
             _profileRepository = profileRepository;
             _userRepository = userRepository;
             _currentUser = currentUser;
             _fileStorage = fileStorage;
+            _images = new ImageReplacement(fileStorage, imageProcessor);
             _logger = loggerFactory.Create(LogContext.Ensaio);
         }
 
@@ -140,6 +144,51 @@ namespace NoiseVault.Application.Musicians
             await _profileRepository.UpdateAsync(profile);
 
             return Ok(Map((await FindAsync(p => p.UserId == me, tracked: false))!), "MUSICIAN_LOOKING_CHANGED", "Looking for band changed");
+        }
+
+        public async Task<Result<MusicianProfileDto>> SetPhoto(ImageUploadInput? file, CancellationToken cancellationToken = default)
+        {
+            _logger.SetOperation("SetMusicianPhoto");
+
+            var me = _currentUser.UserId;
+            var profile = await FindAsync(p => p.UserId == me, tracked: true);
+
+            if (profile == null)
+                return Fail(ProfileRequired());
+
+            var upload = await _images.UploadAsync(file, EImagePreset.Flyer, $"users/{me}/musician", cancellationToken);
+
+            if (!upload.Succeeded)
+                return Fail(upload.Error!);
+
+            var oldKey = profile.PhotoKey;
+            profile.PhotoKey = upload.Key;
+
+            await _images.SaveAsync(upload.Key!, oldKey, () => _profileRepository.UpdateAsync(profile));
+
+            _logger.Info("MUSICIAN_PHOTO_UPDATED", "Musician photo updated", userId: me, extra: new { ProfileId = profile.Id, upload.Key });
+
+            return Ok(Map((await FindAsync(p => p.UserId == me, tracked: false))!), "MUSICIAN_PHOTO_UPDATED", "Photo updated");
+        }
+
+        public async Task<Result<MusicianProfileDto>> RemovePhoto()
+        {
+            var me = _currentUser.UserId;
+            var profile = await FindAsync(p => p.UserId == me, tracked: true);
+
+            if (profile == null)
+                return Fail(ProfileRequired());
+
+            var oldKey = profile.PhotoKey;
+
+            if (oldKey != null)
+            {
+                profile.PhotoKey = null;
+                await _profileRepository.UpdateAsync(profile);
+                await _images.DeleteAsync(oldKey);
+            }
+
+            return Ok(Map((await FindAsync(p => p.UserId == me, tracked: false))!), "MUSICIAN_PHOTO_REMOVED", "Photo removed");
         }
 
         public async Task<Result<PagedResultDto<MusicianCardDto>>> Search(MusicianSearchQueryDto query)
@@ -274,6 +323,7 @@ namespace NoiseVault.Application.Musicians
             Exists = true,
             IsMine = profile.UserId == _currentUser.UserId,
             Person = Summary(profile.User!),
+            PhotoUrl = _fileStorage.PublicUrl(profile.PhotoKey),
             City = profile.User!.City == null ? null : CityAppService.Map(profile.User.City),
             CityName = profile.User.CityName,
             IsLookingForBand = profile.IsLookingForBand,
@@ -297,6 +347,7 @@ namespace NoiseVault.Application.Musicians
         private MusicianCardDto Card(MusicianProfile profile) => new()
         {
             Person = Summary(profile.User!),
+            PhotoUrl = _fileStorage.PublicUrl(profile.PhotoKey),
             City = profile.User!.City == null ? null : CityAppService.Map(profile.User.City),
             CityName = profile.User.CityName,
             Instrument = profile.Instruments.OrderBy(i => i.Position).Select(MapInstrument).FirstOrDefault(),

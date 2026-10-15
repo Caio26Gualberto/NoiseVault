@@ -1491,6 +1491,10 @@ namespace NoiseVault.Infra.Data.Migrations
                     b.Property<DateTime?>("LookingSince")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("PhotoKey")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
                     b.Property<int>("Reach")
                         .HasColumnType("integer");
 

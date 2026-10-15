@@ -14,6 +14,7 @@ namespace NoiseVault.Domain.Entities
         public bool HasTransport { get; set; }
         public bool HasRehearsalSpace { get; set; }
         public string? Influences { get; set; }
+        public string? PhotoKey { get; set; }
 
         public User? User { get; set; }
         public List<MusicianInstrument> Instruments { get; set; } = [];

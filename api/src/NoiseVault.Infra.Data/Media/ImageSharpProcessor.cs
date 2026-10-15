@@ -20,6 +20,8 @@ namespace NoiseVault.Infra.Data.Media
         private const int PostMaxSide = 2048;
         private const int PostMinSide = 64;
         private const int ArchiveMaxSide = 3072;
+        private const int FlyerMaxSide = 1200;
+        private const int FlyerMinSide = 300;
 
         private static readonly Configuration DecodeConfiguration = new(
             new JpegConfigurationModule(),
@@ -78,6 +80,7 @@ namespace NoiseVault.Infra.Data.Media
             EImagePreset.Avatar => image.Width < AvatarMinSize || image.Height < AvatarMinSize,
             EImagePreset.Banner => image.Width < BannerMinWidth,
             EImagePreset.Post or EImagePreset.Archive => image.Width < PostMinSide || image.Height < PostMinSide,
+            EImagePreset.Flyer => image.Width < FlyerMinSide || image.Height < FlyerMinSide,
             _ => throw new ArgumentOutOfRangeException(nameof(preset), preset, "Preset de imagem desconhecido."),
         };
 
@@ -102,6 +105,11 @@ namespace NoiseVault.Infra.Data.Media
             EImagePreset.Archive => new ResizeOptions
             {
                 Size = new Size(Math.Min(image.Width, ArchiveMaxSide), Math.Min(image.Height, ArchiveMaxSide)),
+                Mode = ResizeMode.Max,
+            },
+            EImagePreset.Flyer => new ResizeOptions
+            {
+                Size = new Size(Math.Min(image.Width, FlyerMaxSide), Math.Min(image.Height, FlyerMaxSide)),
                 Mode = ResizeMode.Max,
             },
             _ => throw new ArgumentOutOfRangeException(nameof(preset), preset, "Preset de imagem desconhecido."),

@@ -23,6 +23,7 @@ Todo arquivo que a comunidade envia (avatar, capa e mídia de post hoje; fotos d
 |---|---|---|---|
 | `Avatar` | 5 MB | 128×128 | 512×512, corte central quadrado |
 | `Banner` | 10 MB | 800 de largura | até 1600 de largura, proporção original, sem corte |
+| `Flyer` | 10 MB | 300×300 | até 1200 no lado maior, proporção original, sem corte (a foto do flyer do Ensaio, `ensaio.md`) |
 
 - Formatos aceitos na entrada: JPEG, PNG, WebP. GIF animado e HEIC ficam fora (HEIC exigiria lib nativa).
 - Saída sempre **WebP** qualidade 82, com **todos os metadados removidos** (EXIF, ICC, XMP). Foto de celular carrega GPS no EXIF; publicar o original vazaria onde a pessoa mora.
@@ -32,7 +33,7 @@ Todo arquivo que a comunidade envia (avatar, capa e mídia de post hoje; fotos d
 
 ## Chaves: previsíveis no prefixo, imprevisíveis no nome
 
-`users/{userId}/avatar/{guid}.webp`, `users/{userId}/banner/{guid}.webp`, `bands/{bandId}/avatar/{guid}.webp`, `bands/{bandId}/banner/{guid}.webp`, `events/{eventId}/banner/{guid}.webp` (banner de evento), `users/{userId}/photos/{guid}.webp` (foto de post e do mural; o preset `Archive` só muda o tamanho) e `users/{userId}/videos/{guid}/` (vídeo convertido: `master.m3u8`, uma pasta por resolução com `index.m3u8` e segmentos `.ts`, e `poster.webp`; os primeiros vídeos, de antes do HLS, têm `video.mp4`). O original do vídeo fica em `uploads/users/{userId}/{guid}` só até a conversão, e é o único prefixo com regra de lifecycle (`midia-e-video.md`). O prefixo por dono facilita limpeza e auditoria; o GUID impede adivinhar a URL de uma imagem antes de ela ser publicada e garante que **trocar a imagem troca a URL** — cache de CDN e de navegador nunca serve a imagem velha, então não existe invalidação.
+`users/{userId}/avatar/{guid}.webp`, `users/{userId}/banner/{guid}.webp`, `bands/{bandId}/avatar/{guid}.webp`, `bands/{bandId}/banner/{guid}.webp`, `events/{eventId}/banner/{guid}.webp` (banner de evento), `users/{userId}/photos/{guid}.webp` (foto de post e do mural; o preset `Archive` só muda o tamanho), `users/{userId}/musician/{guid}.webp` (foto do flyer do Ensaio) e `users/{userId}/videos/{guid}/` (vídeo convertido: `master.m3u8`, uma pasta por resolução com `index.m3u8` e segmentos `.ts`, e `poster.webp`; os primeiros vídeos, de antes do HLS, têm `video.mp4`). O original do vídeo fica em `uploads/users/{userId}/{guid}` só até a conversão, e é o único prefixo com regra de lifecycle (`midia-e-video.md`). O prefixo por dono facilita limpeza e auditoria; o GUID impede adivinhar a URL de uma imagem antes de ela ser publicada e garante que **trocar a imagem troca a URL** — cache de CDN e de navegador nunca serve a imagem velha, então não existe invalidação.
 
 O legado montava `avatars/{id}{guid}` sem separador nem extensão e usava título digitado pelo usuário na chave de foto. Nada disso volta: chave nunca contém texto do usuário.
 

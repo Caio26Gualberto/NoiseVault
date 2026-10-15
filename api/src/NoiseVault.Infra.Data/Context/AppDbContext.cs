@@ -514,6 +514,7 @@ namespace NoiseVault.Infra.Data.Context
                 b.HasKey(x => x.Id);
 
                 b.Property(x => x.Influences).HasMaxLength(300);
+                b.Property(x => x.PhotoKey).HasMaxLength(200);
 
                 b.HasOne(x => x.User)
                     .WithMany()

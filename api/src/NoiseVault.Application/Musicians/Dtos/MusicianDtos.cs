@@ -24,6 +24,7 @@ namespace NoiseVault.Application.Musicians.Dtos
         public bool Exists { get; set; }
         public bool IsMine { get; set; }
         public ProfileSummaryDto Person { get; set; } = new();
+        public string? PhotoUrl { get; set; }
         public CityDto? City { get; set; }
         public string? CityName { get; set; }
         public bool IsLookingForBand { get; set; }
@@ -44,6 +45,7 @@ namespace NoiseVault.Application.Musicians.Dtos
     public class MusicianCardDto
     {
         public ProfileSummaryDto Person { get; set; } = new();
+        public string? PhotoUrl { get; set; }
         public CityDto? City { get; set; }
         public string? CityName { get; set; }
         public MusicianInstrumentDto? Instrument { get; set; }

@@ -6,5 +6,6 @@ namespace NoiseVault.Application.Common.Media
         Banner = 1,
         Post = 2,
         Archive = 3,
+        Flyer = 4,
     }
 }

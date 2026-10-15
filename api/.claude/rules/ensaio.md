@@ -23,6 +23,7 @@ Escopo decidido pelo usuário em 14/10/2026: a ficha, a vitrine, as vagas e o in
   - `Reach` (minha cidade, ABC, Grande SP, qualquer lugar);
   - `HasGear`, `HasTransport`, `HasRehearsalSpace`;
   - `Influences` (até 300).
+  - `PhotoKey?`: a **foto do flyer**, uma foto da pessoa tocando ou de show, separada do avatar. Sem ela, o front usa o avatar do perfil.
 - **Tabelas filhas** com FK `Cascade` para a ficha: são parte dela, como a `PhotoTag` é parte da mídia. A ficha não tem exclusão; quem não quer aparecer desliga o interruptor.
   - `MusicianInstrument`: de 1 a 5, com nível; a ordem é a `Position`, e o primeiro é o principal;
   - `MusicianGenre`: até 10. São os sons que a pessoa **quer tocar**, que podem ser diferentes dos do perfil. A ficha nova vem preenchida com os gêneros do perfil;
@@ -33,6 +34,15 @@ Escopo decidido pelo usuário em 14/10/2026: a ficha, a vitrine, as vagas e o in
   - O `BandMember.Instrument` também continua texto: o convite feito a partir da vaga leva o rótulo que o front manda.
 - **Salvar substitui tudo** (`PUT /api/musicians/me`, como o perfil). Os filhos com `Id` são limpos e recriados; os de chave composta (gêneros e disponibilidade) entram por diferença, como o `UserGenre`, para o EF não acusar duas instâncias com a mesma chave.
 - **`GET /api/musicians/me` nunca dá 404**: sem ficha, devolve `exists: false` com os padrões e os gêneros do perfil, para o formulário abrir preenchido. O desfecho é o bool do DTO, não um code (`CLAUDE.md`).
+
+## Foto do flyer
+
+- `POST /api/musicians/me/photo` (multipart, campo `file`) e `DELETE /api/musicians/me/photo` devolvem a ficha, com os codes `MUSICIAN_PHOTO_UPDATED` e `MUSICIAN_PHOTO_REMOVED`.
+- Exige a ficha já salva (`MUSICIAN_PROFILE_REQUIRED`): a foto é da ficha, não do perfil.
+- O preset é o `Flyer` (`armazenamento.md`): até 10 MB, no mínimo 300×300, saída WebP com até 1200 no lado maior, sem corte. O flyer recorta com `object-cover` na tela.
+- A chave é `users/{userId}/musician/{guid}.webp`. A ordem é a de sempre (`ImageReplacement`): sobe, grava, apaga a antiga.
+- Rate limit `profile-upload` (20/h, compartilhado com avatar e capa) e `RequestSizeLimit` de 11 MB.
+- `MusicianProfileDto.photoUrl` e `MusicianCardDto.photoUrl` trazem a URL pública. Log `MUSICIAN_PHOTO_UPDATED`.
 
 ## Vitrine e visibilidade
 
@@ -100,6 +110,7 @@ Todos autenticados, em `Controllers/`.
 | `GET /api/musicians/me` | `MUSICIAN_PROFILE_FOUND` (com `exists`) |
 | `PUT /api/musicians/me` | `MUSICIAN_PROFILE_SAVED` |
 | `POST /api/musicians/me/looking { isLookingForBand }` | `MUSICIAN_LOOKING_CHANGED` |
+| `POST` / `DELETE /api/musicians/me/photo` | `MUSICIAN_PHOTO_UPDATED` / `MUSICIAN_PHOTO_REMOVED` |
 | `GET /api/musicians/{nickname}` | `MUSICIAN_PROFILE_FOUND` |
 | `GET /api/openings` (paginada, `instrument`, `cityId`, `abc`, `genre`) | `OPENINGS_FOUND` |
 | `GET /api/bands/{slug}/openings` | `OPENINGS_FOUND` |
