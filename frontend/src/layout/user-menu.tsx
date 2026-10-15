@@ -1,4 +1,4 @@
-import { ChevronsUpDownIcon, DownloadIcon, LogOutIcon, MegaphoneIcon, MoonIcon, PencilIcon, SunIcon, SunMoonIcon, UserRoundCogIcon, UserRoundIcon } from 'lucide-react'
+import { ChevronsUpDownIcon, DownloadIcon, LogOutIcon, HeartHandshakeIcon, MegaphoneIcon, MoonIcon, PencilIcon, SunIcon, SunMoonIcon, UserRoundCogIcon, UserRoundIcon } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
@@ -93,6 +93,12 @@ export function UserMenu({ compact = false }: UserMenuProps) {
               <MegaphoneIcon />
               {t('layout:userMenu.ensaio')}
             </EnsaioLink>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link to="/sobre">
+              <HeartHandshakeIcon />
+              {t('layout:userMenu.about')}
+            </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuLabel className="app-meta font-normal">{t('layout:userMenu.theme')}</DropdownMenuLabel>

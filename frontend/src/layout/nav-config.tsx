@@ -5,7 +5,6 @@ import {
   ArchiveIcon,
   CassetteTapeIcon,
   HeadphonesIcon,
-  HeartHandshakeIcon,
   LifeBuoyIcon,
   NewspaperIcon,
   StoreIcon,
@@ -140,7 +139,6 @@ export const navSections: NavSection[] = [
         subRoutes: ['/suporte', '/suporte/:id'],
       },
       { path: '/podcasts', labelKey: 'layout:nav.podcasts', icon: HeadphonesIcon, element: <PodcastsPage /> },
-      { path: '/sobre', labelKey: 'layout:nav.about', icon: HeartHandshakeIcon, element: <SobrePage /> },
       { path: '/loja-parceira', labelKey: 'layout:nav.store', icon: StoreIcon, element: <LojaParceiraPage /> },
     ],
   },
@@ -169,6 +167,7 @@ export const navSections: NavSection[] = [
 
 export const hiddenRoutes: HiddenRoute[] = [
   { path: '/feed/:id', element: <PostDetalhePage /> },
+  { path: '/sobre', element: <SobrePage /> },
   { path: '/mural/novo', element: <MuralFormPage />, permission: Permissions.archiveCreate },
   { path: submitArchivePath, element: <MuralFormPage mode="submission" /> },
   { path: mySubmissionsPath, element: <MuralEnviosPage /> },

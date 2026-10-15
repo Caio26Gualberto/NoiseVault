@@ -7,7 +7,6 @@
     "account": "Minha conta",
     "report": "Reportar problema",
     "podcasts": "Podcasts",
-    "about": "Sobre",
     "store": "Loja parceira",
     "more": "Mais",
     "community": "Comunidade",
@@ -26,6 +25,7 @@
   "userMenu": {
     "account": "Minha conta",
     "ensaio": "Ensaio: músicos e bandas",
+    "about": "Sobre o Noise Vault",
     "myProfile": "Meu perfil",
     "editProfile": "Editar perfil",
     "theme": "Tema",
