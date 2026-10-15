@@ -1,7 +1,7 @@
 {
   "podcasts": {
     "title": "Podcasts",
-    "description": "Conversas sobre a cena do ABC.",
+    "description": "Conversas sobre a cena.",
     "soonTitle": "Em breve",
     "soonDescription": "O primeiro episódio está sendo gravado. Enquanto isso, o feed e os eventos seguem no ar."
   },
@@ -12,8 +12,7 @@
     "role": "Desenvolvedor & Metalhead",
     "photoAlt": "Foto de Caio Gualberto",
     "links": {
-      "instagram": "Instagram pessoal",
-      "instagramProject": "Instagram do projeto",
+      "instagram": "Instagram",
       "github": "GitHub",
       "linkedin": "LinkedIn"
     },
@@ -29,7 +28,7 @@
   },
   "store": {
     "title": "Loja parceira",
-    "description": "Onde comprar camiseta, vinil e corda de guitarra sem sair do ABC.",
+    "description": "Onde comprar camiseta, vinil e corda de guitarra.",
     "body": [
       "A loja parceira do Noise Vault fica em Santo André e tem desconto para quem mostra o perfil da comunidade no balcão.",
       "Camisetas de bandas da região, vinis novos e usados, acessórios e manutenção de instrumentos. Endereço e horário entram aqui quando a parceria for fechada."

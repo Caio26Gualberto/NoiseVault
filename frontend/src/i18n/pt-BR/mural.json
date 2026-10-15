@@ -1,6 +1,6 @@
 {
   "title": "Mural das antigas",
-  "description": "Fotos e fitas da cena do ABC, digitalizadas por quem viveu.",
+  "description": "Fotos e fitas da cena, digitalizadas por quem viveu.",
   "create": "Novo registro",
   "back": "Voltar ao mural",
   "searchPlaceholder": "Buscar por título, local, banda ou história",
@@ -22,7 +22,7 @@
     "rejectTitle": "Recusar este envio?",
     "rejectDescription": "Quem enviou vai ver o motivo em Meus envios. As fotos e os vídeos do envio são apagados.",
     "reason": "Motivo",
-    "reasonPlaceholder": "Ex.: a foto não é de um show do ABC; mande com a data, se lembrar",
+    "reasonPlaceholder": "Ex.: a foto não é de um show; mande com a data, se lembrar",
     "rejectConfirm": "Recusar envio",
     "pendingTitle": "Aguardando a curadoria",
     "pendingMine": "Só você e a curadoria estão vendo este registro. Ele entra no mural e no feed quando for publicado, e você recebe um aviso.",

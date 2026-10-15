@@ -1,7 +1,7 @@
 {
   "name": "Noise Vault",
   "short_name": "Noise Vault",
-  "description": "A cena do ABC num lugar só: feed, mural das antigas, shows e bandas.",
+  "description": "A cena num lugar só: feed, mural das antigas, shows e bandas.",
   "lang": "pt-BR",
   "id": "/",
   "start_url": "/feed",

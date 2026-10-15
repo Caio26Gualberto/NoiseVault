@@ -9,7 +9,6 @@ type SocialLink = { labelKey: string; href: string; icon: LucideIcon }
 
 const socialLinks: SocialLink[] = [
   { labelKey: 'about.links.instagram', href: 'https://www.instagram.com/caio_gualbertoo/', icon: CameraIcon },
-  { labelKey: 'about.links.instagramProject', href: 'https://www.instagram.com/newlevelmusic_/', icon: CameraIcon },
   { labelKey: 'about.links.github', href: 'https://github.com/Caio26Gualberto', icon: CodeIcon },
   { labelKey: 'about.links.linkedin', href: 'https://www.linkedin.com/in/caio-faria-gualberto-50706019a/', icon: BriefcaseIcon },
 ]
