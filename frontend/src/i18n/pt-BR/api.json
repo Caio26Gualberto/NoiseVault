@@ -247,6 +247,8 @@
   "OPENING_INTEREST_DUPLICATE": "Você já mostrou interesse nessa vaga.",
   "OPENING_INTEREST_NOT_FOUND": "Esse interesse não está mais pendente.",
   "INVALID_INTEREST_MESSAGE": "O recado cabe em até 300 caracteres.",
+  "MUSICIAN_PHOTO_UPDATED": "Foto do flyer salva.",
+  "MUSICIAN_PHOTO_REMOVED": "Foto do flyer tirada.",
   "SESSION_EXPIRED": "Sua sessão expirou. Entre de novo.",
   "NETWORK_ERROR": "Sem conexão com o servidor. Verifique sua internet.",
   "UNKNOWN_ERROR": "Algo deu errado. Tente de novo."

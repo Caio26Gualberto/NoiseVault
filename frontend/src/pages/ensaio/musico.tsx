@@ -57,6 +57,7 @@ export function EnsaioMusicoPage() {
   }
 
   const main = profile.instruments[0]
+  const photo = profile.photoUrl ?? profile.person.avatarUrl
   const profileHref = mainUrl(`/perfil/${profile.person.nickname}`)
   const slots = new Set(profile.availability.map((slot) => `${slot.day}-${slot.period}`))
   const structure = [
@@ -69,8 +70,8 @@ export function EnsaioMusicoPage() {
     <div className="app-page-enter mx-auto flex max-w-3xl flex-col gap-6">
       <PaperSheet className="flex flex-col gap-6">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
-          <span className="ensaio-halftone size-32 shrink-0 overflow-hidden">
-            {profile.person.avatarUrl ? <img src={profile.person.avatarUrl} alt="" className="size-full object-cover mix-blend-multiply grayscale contrast-125" /> : null}
+          <span className="ensaio-halftone h-40 w-full shrink-0 overflow-hidden sm:h-36 sm:w-48">
+            {photo ? <img src={photo} alt="" className="size-full object-cover mix-blend-multiply grayscale contrast-125" /> : null}
           </span>
           <div className="flex min-w-0 flex-col gap-1">
             <span className={cn('self-start font-typewriter text-sm', profile.isLookingForBand ? 'text-primary' : 'text-paper-muted')}>

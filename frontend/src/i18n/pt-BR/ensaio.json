@@ -224,6 +224,19 @@
     "save": "Salvar ficha",
     "view": "Ver como as bandas veem"
   },
+  "photo": {
+    "title": "Foto do flyer",
+    "preview": "Prévia da foto do flyer",
+    "choose": "Escolher foto",
+    "change": "Trocar foto",
+    "save": "Salvar foto",
+    "remove": "Tirar foto",
+    "removeTitle": "Tirar a foto do flyer?",
+    "removeMessage": "O flyer volta a mostrar o avatar do seu perfil.",
+    "hint": "JPEG, PNG ou WebP até 10 MB. Aparece em preto e branco, como xerox.",
+    "fallbackHint": "Uma foto tocando ou de show. Sem ela, o flyer usa o avatar do seu perfil. JPEG, PNG ou WebP até 10 MB.",
+    "saveFirst": "Salve a ficha uma vez para poder colocar a foto."
+  },
   "validation": {
     "otherName": "Diga qual é o instrumento.",
     "instrumentsMin": "Escolha pelo menos um instrumento.",

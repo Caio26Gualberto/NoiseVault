@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
+import { useAuth } from '@/auth/use-auth'
 import { AppEmptyState } from '@/components/app-empty-state'
 import { AppPagination } from '@/components/app-pagination'
 import { AppSkeleton } from '@/components/app-skeleton'
@@ -23,6 +24,7 @@ export function EnsaioVitrinePage() {
   const { t } = useTranslation('ensaio')
   const list = useEnsaioList(getMusicians)
   const { bands } = useOwnedBands()
+  const { user } = useAuth()
   const instrumentLabel = useInstrumentLabel()
   const genreLabel = useMusicGenreLabel()
   const [inviting, setInviting] = useState<MusicianCardDto | null>(null)
@@ -75,8 +77,8 @@ export function EnsaioVitrinePage() {
               title={card.instrument ? instrumentLabel(card.instrument.instrument, card.instrument.otherName) : ''}
               name={card.person.name}
               meta={meta(card)}
-              photoUrl={card.person.avatarUrl}
-              action={bands.length > 0 ? { label: t('musicians.callToBand'), onClick: () => setInviting(card) } : null}
+              photoUrl={card.photoUrl ?? card.person.avatarUrl}
+              action={bands.length > 0 && card.person.id !== user?.id ? { label: t('musicians.callToBand'), onClick: () => setInviting(card) } : null}
             />
           ))}
         </div>

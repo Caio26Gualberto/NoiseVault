@@ -259,6 +259,8 @@ export const ApiCodes = {
   openingInterestDuplicate: 'OPENING_INTEREST_DUPLICATE',
   openingInterestNotFound: 'OPENING_INTEREST_NOT_FOUND',
   invalidInterestMessage: 'INVALID_INTEREST_MESSAGE',
+  musicianPhotoUpdated: 'MUSICIAN_PHOTO_UPDATED',
+  musicianPhotoRemoved: 'MUSICIAN_PHOTO_REMOVED',
 
   networkError: 'NETWORK_ERROR',
   unknownError: 'UNKNOWN_ERROR',

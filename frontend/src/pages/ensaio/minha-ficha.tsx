@@ -35,7 +35,8 @@ import {
   weekDayKey,
 } from './ensaio-status'
 import type { DayPeriod, WeekDay } from './ensaio-status'
-import { getMyMusicianProfile, saveMyMusicianProfile } from './services/ensaio-service'
+import { FlyerPhotoUploader } from './components/flyer-photo-uploader'
+import { getMyMusicianProfile, removeMusicianPhoto, saveMyMusicianProfile, uploadMusicianPhoto } from './services/ensaio-service'
 import type { MusicianInputDto, MusicianProfileDto } from './services/ensaio-service'
 
 const maxInstruments = 5
@@ -130,6 +131,7 @@ export function EnsaioMinhaFichaPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [exists, setExists] = useState(false)
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null)
 
   const form = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: toValues(emptyProfile) })
   const instruments = useFieldArray({ control: form.control, name: 'instruments' })
@@ -146,6 +148,7 @@ export function EnsaioMinhaFichaPage() {
         if (cancelled) return
         form.reset(toValues(profile))
         setExists(profile.exists)
+        setPhotoUrl(profile.photoUrl)
       })
       .catch(() => undefined)
       .finally(() => {
@@ -162,6 +165,7 @@ export function EnsaioMinhaFichaPage() {
       const saved = await saveMyMusicianProfile(toInput(values))
       form.reset(toValues(saved))
       setExists(true)
+      setPhotoUrl(saved.photoUrl)
     } catch {
       return
     } finally {
@@ -191,6 +195,16 @@ export function EnsaioMinhaFichaPage() {
           ) : null
         }
       />
+
+      <AppCard>
+        <FlyerPhotoUploader
+          photoUrl={photoUrl}
+          fallbackUrl={user?.avatarUrl ?? null}
+          disabled={!exists}
+          onUpload={async (file) => setPhotoUrl((await uploadMusicianPhoto(file)).photoUrl)}
+          onRemove={async () => setPhotoUrl((await removeMusicianPhoto()).photoUrl)}
+        />
+      </AppCard>
 
       <AppCard>
         <AppForm form={form} onSubmit={submit}>
@@ -360,6 +374,7 @@ const emptyProfile: MusicianProfileDto = {
   exists: false,
   isMine: true,
   person: { id: 0, name: '', nickname: '', avatarUrl: null },
+  photoUrl: null,
   city: null,
   cityName: null,
   isLookingForBand: true,

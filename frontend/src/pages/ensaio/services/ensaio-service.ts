@@ -1,4 +1,4 @@
-import { apiDelete, apiGet, apiPost, apiPut } from '@/api/base-service'
+import { apiDelete, apiGet, apiPost, apiPostForm, apiPut } from '@/api/base-service'
 import type { PagedRequest, PagedResult } from '@/api/types'
 import type { BandSummaryDto } from '@/pages/bandas/services/bandas-service'
 import type { CityDto } from '@/pages/perfil/city'
@@ -29,6 +29,7 @@ export type MusicianProfileDto = {
   exists: boolean
   isMine: boolean
   person: ProfileSummaryDto
+  photoUrl: string | null
   city: CityDto | null
   cityName: string | null
   isLookingForBand: boolean
@@ -48,6 +49,7 @@ export type MusicianProfileDto = {
 
 export type MusicianCardDto = {
   person: ProfileSummaryDto
+  photoUrl: string | null
   city: CityDto | null
   cityName: string | null
   instrument: MusicianInstrumentDto | null
@@ -150,6 +152,16 @@ export function saveMyMusicianProfile(input: MusicianInputDto) {
 
 export function setLookingForBand(isLookingForBand: boolean) {
   return apiPost<MusicianProfileDto>('/api/musicians/me/looking', { isLookingForBand }, { toastSuccess: true })
+}
+
+export function uploadMusicianPhoto(file: File) {
+  const form = new FormData()
+  form.append('file', file)
+  return apiPostForm<MusicianProfileDto>('/api/musicians/me/photo', form, { toastSuccess: true })
+}
+
+export function removeMusicianPhoto() {
+  return apiDelete<MusicianProfileDto>('/api/musicians/me/photo', { toastSuccess: true })
 }
 
 export function getMusician(nickname: string) {

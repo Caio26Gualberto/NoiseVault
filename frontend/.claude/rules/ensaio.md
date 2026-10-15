@@ -19,7 +19,7 @@ Escolhido pelo usuário em 15/10/2026, entre seis propostas do canvas https://cl
 
 - **Fundo**: cortiça bem discreta (`ensaio-cork`).
 - **Anúncios**: flyers de papel retos, com a fita no topo. A fita é o único elemento torto, com ângulo variando pelo índice.
-- **Foto**: em retícula de xerox (`ensaio-halftone`, a imagem em escala de cinza com `mix-blend-multiply`).
+- **Foto**: em retícula de xerox (`ensaio-halftone`, a imagem em escala de cinza com `mix-blend-multiply`). É a **foto do flyer** da ficha; sem ela, o avatar do perfil.
 - **Pouca coisa por flyer**: o instrumento enorme (Oswald), o nome, e "cidade · som". O resto fica na ficha ou no detalhe da vaga.
 - **A tirinha "✂ …"** embaixo do flyer é a ação, na Special Elite:
   - "Chamar pra banda" na vitrine;
@@ -81,8 +81,9 @@ Não tem tema: a moldura é sempre escura.
 | `/vagas` | as vagas abertas em flyers; "Abrir vaga" para quem é Owner de alguma banda |
 | `/vagas/:id` | a vaga em papel, com status, descrição, objetivo e validade, e a tirinha "Tenho interesse" (que abre o dialog com o recado) ou "Interesse enviado" (com "Retirar interesse" e a dica de convidado ou dispensado). Para os Owners: o menu "…" (Editar, Renovar, Marcar como preenchida, Encerrar, Apagar) e a lista de interessados com Convidar e Dispensar |
 | `/vagas/nova`, `/vagas/:id/editar` | o formulário: banda (só as que a pessoa é Owner, `GET /api/bands/owned`), instrumento, "Qual?" quando é "Outro", objetivo e texto |
-| `/minha-ficha` | o editor da ficha: o interruptor "Estou procurando banda" no topo, instrumentos (até 5, com nível, subir e tirar), objetivo, compromisso, alcance, grade de disponibilidade, estrutura, sons (chips, até 10), links (até 4) e influências |
+| `/minha-ficha` | o editor da ficha: a **foto do flyer** no topo (`FlyerPhotoUploader`: escolher, prévia já em retícula, salvar, trocar e tirar; só depois de a ficha ser salva uma vez), o interruptor "Estou procurando banda" no topo, instrumentos (até 5, com nível, subir e tirar), objetivo, compromisso, alcance, grade de disponibilidade, estrutura, sons (chips, até 10), links (até 4) e influências |
 
+- O próprio flyer não mostra "Chamar pra banda".
 - **"Chamar pra banda"** abre o `InviteDialog`: escolher a banda e o instrumento (já preenchido com o principal da ficha). Ele manda o convite de banda de sempre (`inviteBandMember`).
 - **Convidar um interessado** manda o instrumento da vaga, já traduzido, porque o `BandMember.instrument` é texto.
 - **Listas**: `hooks/use-ensaio-list.ts` serve à vitrine e às vagas. Os filtros voltam para a página 1 a cada troca (`changeFilters`), com 12 por página.
