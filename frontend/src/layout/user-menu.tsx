@@ -1,9 +1,10 @@
-import { ChevronsUpDownIcon, DownloadIcon, LogOutIcon, MoonIcon, SunIcon, SunMoonIcon, UserRoundCogIcon, UserRoundIcon } from 'lucide-react'
+import { ChevronsUpDownIcon, DownloadIcon, LogOutIcon, MegaphoneIcon, MoonIcon, SunIcon, SunMoonIcon, UserRoundCogIcon, UserRoundIcon } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { AppAvatar } from '@/components/app-avatar'
+import { EnsaioLink } from '@/ensaio/ensaio-link'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -80,6 +81,12 @@ export function UserMenu({ compact = false }: UserMenuProps) {
               <UserRoundCogIcon />
               {t('layout:userMenu.account')}
             </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <EnsaioLink to="/">
+              <MegaphoneIcon />
+              {t('layout:userMenu.ensaio')}
+            </EnsaioLink>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuLabel className="app-meta font-normal">{t('layout:userMenu.theme')}</DropdownMenuLabel>

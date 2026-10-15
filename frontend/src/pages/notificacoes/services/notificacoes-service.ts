@@ -5,6 +5,7 @@ import type { BandInvitationStatus } from '@/pages/bandas/band-invitation-status
 import type { BandSummaryDto } from '@/pages/bandas/services/bandas-service'
 import type { ProfileSummaryDto } from '@/pages/perfil/services/perfil-service'
 import type { SupportTicketStatus } from '@/pages/reportar-problema/support-enums'
+import type { Instrument } from '@/pages/ensaio/ensaio-status'
 
 import type { NotificationKind } from '../notification-kind'
 
@@ -19,6 +20,7 @@ export type NotificationDto = {
   band: BandSummaryDto | null
   invitation: { id: number; status: BandInvitationStatus; instrument: string | null; expiresAt: string } | null
   ticket: { id: number; protocol: string; title: string; status: SupportTicketStatus; mine: boolean } | null
+  opening: { id: number; instrument: Instrument; otherName: string | null } | null
   readAt: string | null
   lastActivityAt: string
 }

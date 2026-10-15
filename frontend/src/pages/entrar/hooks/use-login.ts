@@ -6,6 +6,7 @@ import { ApiError } from '@/api/types'
 import { resendConfirmation } from '@/auth/auth-service'
 import { homePath } from '@/auth/routes'
 import { useAuth } from '@/auth/use-auth'
+import { returnUrlFrom } from '@/ensaio/frame'
 
 export function useLogin() {
   const { login } = useAuth()
@@ -20,6 +21,11 @@ export function useLogin() {
     setPendingEmail(null)
     try {
       await login(email, password)
+      const external = returnUrlFrom(location.search)
+      if (external) {
+        window.location.assign(external)
+        return
+      }
       const from = (location.state as { from?: string } | null)?.from
       navigate(from ?? homePath, { replace: true })
     } catch (error) {

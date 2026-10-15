@@ -2,6 +2,8 @@ import type { ReactNode } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 
 import { AppSkeleton } from '@/components/app-skeleton'
+import { ExternalRedirect } from '@/ensaio/external-redirect'
+import { isEnsaioHost, loginUrlReturningHere } from '@/ensaio/frame'
 
 import type { Permission } from './permissions'
 import { accountPath, homePath, initialPasswordPath, loginPath, welcomePath } from './routes'
@@ -11,9 +13,10 @@ import { hasSeenWelcome } from './welcome-storage'
 type RequireAuthProps = {
   children: ReactNode
   permission?: Permission
+  skipWelcome?: boolean
 }
 
-export function RequireAuth({ children, permission }: RequireAuthProps) {
+export function RequireAuth({ children, permission, skipWelcome = false }: RequireAuthProps) {
   const { status, access, user } = useAuth()
   const location = useLocation()
 
@@ -22,6 +25,7 @@ export function RequireAuth({ children, permission }: RequireAuthProps) {
   }
 
   if (status !== 'authenticated') {
+    if (isEnsaioHost) return <ExternalRedirect to={loginUrlReturningHere()} />
     return <Navigate to={loginPath} replace state={{ from: location.pathname }} />
   }
 
@@ -29,7 +33,7 @@ export function RequireAuth({ children, permission }: RequireAuthProps) {
     return <Navigate to={initialPasswordPath} replace />
   }
 
-  const welcomeExempt = location.pathname === welcomePath || location.pathname === accountPath
+  const welcomeExempt = skipWelcome || location.pathname === welcomePath || location.pathname === accountPath
 
   if (user && !user.isNeededChangePassword && !welcomeExempt && !hasSeenWelcome(user.id)) {
     return <Navigate to={welcomePath} replace />

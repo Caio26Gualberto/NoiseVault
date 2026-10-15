@@ -39,6 +39,7 @@ Rule irmã: `../api/.claude/rules/notificacoes.md`. A regra é do backend; a tel
   - ticket de suporte → `/suporte/:id` quando `ticket.mine` (quem reportou), senão `/admin/suporte/:id` (a equipe);
   - envio para o mural: recebido (a curadoria) e publicado → `/mural/:id`; recusado → `/mural/envios`, onde está o motivo.
   - menção e marcação em foto (23–27): o alvo (post, evento ou registro), com a frase pelo lugar (`marcacoes.md`).
+  - interesse numa vaga (28): a vaga no Ensaio (`ensaioUrl`). Quando o link é de outro endereço, o item vira `<a>` e o "Ver" do toast usa `window.location` (`ensaio.md`).
 - **Suporte**: a frase de `supportTicketStatusChanged` sai do status atual do ticket (`supportTicketResolved`, `…InProgress`, `…Dismissed`, `…Reopened`), e `supportTicketReplied` para quem reportou vira "A equipe respondeu o seu relato" (`supportTicketRepliedToYou`), sem expor quem da equipe respondeu.
 
 ## Balão do sino, como no Facebook

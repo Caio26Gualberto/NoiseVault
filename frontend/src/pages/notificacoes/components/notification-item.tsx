@@ -6,6 +6,7 @@ import { AppAvatar } from '@/components/app-avatar'
 import { AppBadge } from '@/components/app-badge'
 import type { AppBadgeTone } from '@/components/app-badge'
 import { AppIconButton } from '@/components/app-button'
+import { isExternalUrl } from '@/ensaio/frame'
 import { formatRelative } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { BandInvitationStatus } from '@/pages/bandas/band-invitation-status'
@@ -89,12 +90,12 @@ export function NotificationItem({ item, onOpen, onMarkRead, onRemove }: Notific
       <span className="mt-4 flex w-2 shrink-0 justify-center">
         {isUnread ? <span className="size-2 rounded-full bg-primary" aria-label={t('unread')} /> : null}
       </span>
-      {link ? (
-        <Link
-          to={link}
-          onClick={() => onOpen(item)}
-          className="-m-1 flex min-w-0 flex-1 gap-3 rounded-lg p-1 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
-        >
+      {link && isExternalUrl(link) ? (
+        <a href={link} onClick={() => onOpen(item)} className="-m-1 flex min-w-0 flex-1 gap-3 rounded-lg p-1 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none">
+          {body}
+        </a>
+      ) : link ? (
+        <Link to={link} onClick={() => onOpen(item)} className="-m-1 flex min-w-0 flex-1 gap-3 rounded-lg p-1 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none">
           {body}
         </Link>
       ) : (

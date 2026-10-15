@@ -86,6 +86,10 @@ export function getMyBands() {
   return apiGet<BandSummaryDto[]>('/api/bands/mine')
 }
 
+export function getOwnedBands() {
+  return apiGet<BandSummaryDto[]>('/api/bands/owned')
+}
+
 export function createBand(input: CreateBandInput) {
   return apiPost<BandProfileDto>('/api/bands', input, { toastSuccess: true })
 }

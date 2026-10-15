@@ -87,7 +87,8 @@
     "bandMentionedInCommentArchive": "<b>{{actor}}</b> mencionou a <b>{{band}}</b> numa história em <b>{{archive}}</b>",
     "photoTagged": "<b>{{actor}}</b> marcou você numa foto",
     "photoTaggedEvent": "<b>{{actor}}</b> marcou você numa foto",
-    "photoTaggedArchive": "<b>{{actor}}</b> marcou você numa foto em <b>{{archive}}</b>"
+    "photoTaggedArchive": "<b>{{actor}}</b> marcou você numa foto em <b>{{archive}}</b>",
+    "bandOpeningInterest": "<b>{{actor}}</b> tem interesse na vaga de {{instrument}} da <b>{{band}}</b>"
   },
   "invitations": {
     "title": "Convites de banda",

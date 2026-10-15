@@ -1,0 +1,236 @@
+{
+  "title": "Ensaio",
+  "tagline": "músicos e bandas do ABC",
+  "documentTitle": "Ensaio · Noise Vault",
+  "nav": {
+    "label": "Seções do Ensaio",
+    "musicians": "Músicos",
+    "openings": "Vagas",
+    "myProfile": "Minha ficha"
+  },
+  "menu": {
+    "post": "Pregar anúncio",
+    "postShort": "Pregar",
+    "myProfile": "Minha ficha de músico",
+    "openOpening": "Abrir vaga na minha banda",
+    "account": "Minha conta",
+    "backToMain": "Voltar ao Noise Vault",
+    "logout": "Sair"
+  },
+  "instruments": {
+    "vocal": "Vocal",
+    "guitar": "Guitarra",
+    "bass": "Baixo",
+    "drums": "Bateria",
+    "keys": "Teclado",
+    "percussion": "Percussão",
+    "winds": "Sopro",
+    "strings": "Cordas",
+    "electronic": "Eletrônico",
+    "other": "Outro"
+  },
+  "levels": {
+    "beginner": "Começando",
+    "intermediate": "Intermediário",
+    "advanced": "Avançado"
+  },
+  "goals": {
+    "original": "Som autoral",
+    "covers": "Covers",
+    "either": "Autoral ou cover, tanto faz"
+  },
+  "commitments": {
+    "justRehearse": "Só ensaiar, sem compromisso",
+    "playLive": "Tocar ao vivo",
+    "record": "Gravar e fazer show"
+  },
+  "reach": {
+    "myCity": "Só na minha cidade",
+    "abc": "Em todo o ABC",
+    "greaterSaoPaulo": "Na Grande São Paulo",
+    "anywhere": "Onde precisar"
+  },
+  "weekDays": {
+    "monday": "Seg",
+    "tuesday": "Ter",
+    "wednesday": "Qua",
+    "thursday": "Qui",
+    "friday": "Sex",
+    "saturday": "Sáb",
+    "sunday": "Dom"
+  },
+  "periods": {
+    "morning": "Manhã",
+    "afternoon": "Tarde",
+    "night": "Noite"
+  },
+  "filters": {
+    "all": "Todos",
+    "more": "Mais filtros",
+    "moreTitle": "Filtrar",
+    "otherInstruments": "Outros instrumentos",
+    "anyInstrument": "Qualquer instrumento",
+    "city": "Cidade",
+    "anyCity": "Qualquer cidade",
+    "abc": "Todo o ABC",
+    "genre": "Som",
+    "anyGenre": "Qualquer som",
+    "withSamples": "Só quem tem gravação",
+    "clear": "Limpar filtros",
+    "apply": "Ver resultados"
+  },
+  "musicians": {
+    "title": "Procura-se banda",
+    "description": "Quem está atrás de banda para tocar. Gostou de alguém? Chame para a sua banda.",
+    "callToBand": "Chamar pra banda",
+    "notListed": "Você não está na vitrine.",
+    "notListedAction": "Montar minha ficha",
+    "emptyTitle": "Ninguém procurando banda com esses filtros",
+    "emptyDescription": "Tente outro instrumento ou tire algum filtro."
+  },
+  "openings": {
+    "title": "Vagas abertas",
+    "description": "Bandas da cena procurando gente para tocar junto.",
+    "create": "Abrir vaga",
+    "lookingFor": "Procura {{instrument}}",
+    "wanted": "Procura-se",
+    "interested": "Tenho interesse",
+    "interestSent": "Interesse enviado",
+    "manage": "Ver interessados",
+    "manageCount_one": "{{count}} interessado",
+    "manageCount_other": "{{count}} interessados",
+    "emptyTitle": "Nenhuma vaga aberta com esses filtros",
+    "emptyDescription": "Tente outro instrumento ou tire algum filtro."
+  },
+  "status": {
+    "open": "Aberta",
+    "filled": "Preenchida",
+    "closed": "Encerrada",
+    "expired": "Vencida"
+  },
+  "interestStatus": {
+    "pending": "Aguardando",
+    "invited": "Convidado",
+    "dismissed": "Dispensado"
+  },
+  "opening": {
+    "notFound": "Essa vaga não existe mais.",
+    "back": "Voltar às vagas",
+    "goal": "Objetivo",
+    "expiresAt": "Fica aberta até {{date}}",
+    "expiredHint": "A vaga venceu e saiu da lista. Renove para ela voltar.",
+    "seeBand": "Ver a banda no Noise Vault",
+    "withdraw": "Retirar interesse",
+    "withdrawTitle": "Retirar o interesse?",
+    "withdrawDescription": "A banda deixa de ver você entre os interessados.",
+    "invitedHint": "A banda mandou um convite. Responda no sino do Noise Vault.",
+    "dismissedHint": "A banda já escolheu outra pessoa para essa vaga.",
+    "needsProfile": "Para mostrar interesse, monte a sua ficha de músico.",
+    "actions": "Opções da vaga",
+    "edit": "Editar",
+    "renew": "Renovar por 60 dias",
+    "markFilled": "Marcar como preenchida",
+    "close": "Encerrar sem preencher",
+    "delete": "Apagar vaga",
+    "deleteTitle": "Apagar a vaga?",
+    "deleteDescription": "A vaga e o post dela no feed somem. Os interessados não são avisados.",
+    "filledTitle": "Marcar como preenchida?",
+    "filledDescription": "A vaga sai da lista e o post no feed passa a mostrar \"Preenchida\".",
+    "closeTitle": "Encerrar a vaga?",
+    "closeDescription": "A vaga sai da lista sem ninguém escolhido."
+  },
+  "interests": {
+    "title": "Interessados",
+    "empty": "Ninguém mostrou interesse ainda.",
+    "invite": "Convidar",
+    "dismiss": "Dispensar",
+    "dismissTitle": "Dispensar {{name}}?",
+    "dismissDescription": "A pessoa não é avisada. Ela continua vendo o interesse como enviado.",
+    "viewProfile": "Ver ficha"
+  },
+  "interestDialog": {
+    "title": "Tenho interesse",
+    "description": "Os responsáveis pela {{band}} recebem a sua ficha. Quer mandar um recado?",
+    "message": "Recado (opcional)",
+    "messagePlaceholder": "Conte rapidinho quem você é e por que quer tocar com eles.",
+    "submit": "Mandar interesse"
+  },
+  "inviteDialog": {
+    "title": "Chamar {{name}} pra banda",
+    "description": "A pessoa recebe um convite de banda no Noise Vault e decide se entra.",
+    "band": "Banda",
+    "instrument": "Instrumento na banda",
+    "submit": "Mandar convite"
+  },
+  "openingForm": {
+    "createTitle": "Abrir vaga",
+    "editTitle": "Editar vaga",
+    "description": "A vaga fica aberta por 60 dias e aparece no feed da banda.",
+    "band": "Banda",
+    "noBands": "Você precisa ser responsável por uma banda para abrir vaga.",
+    "instrument": "Instrumento",
+    "otherName": "Qual instrumento?",
+    "goal": "Objetivo",
+    "noGoal": "Não informar",
+    "text": "Sobre a vaga",
+    "textPlaceholder": "O que vocês tocam, quando ensaiam, o que esperam de quem entrar.",
+    "submitCreate": "Abrir vaga",
+    "submitEdit": "Salvar"
+  },
+  "profile": {
+    "notFound": "Essa ficha não existe ou não está na vitrine agora.",
+    "lookingBadge": "Procurando banda",
+    "notLookingBadge": "Fora da vitrine",
+    "instruments": "Instrumentos",
+    "plays": "O que procura",
+    "availability": "Disponibilidade",
+    "noAvailability": "Não informou.",
+    "structure": "Estrutura",
+    "hasGear": "Tem equipamento",
+    "hasTransport": "Tem transporte",
+    "hasRehearsalSpace": "Tem lugar para ensaiar",
+    "noStructure": "Não informou.",
+    "sound": "O som",
+    "influences": "Influências",
+    "genres": "Sons que quer tocar",
+    "seeProfile": "Ver perfil no Noise Vault",
+    "editMine": "Editar minha ficha"
+  },
+  "myProfile": {
+    "title": "Minha ficha de músico",
+    "description": "É o que as bandas veem na vitrine. Seu perfil do Noise Vault continua o mesmo.",
+    "looking": "Estou procurando banda",
+    "lookingHint": "Ligado, você aparece na vitrine \"Procura-se banda\". Desligado, só você vê a ficha.",
+    "instruments": "Instrumentos",
+    "instrumentsHint": "Até 5. O primeiro é o principal e aparece no flyer.",
+    "addInstrument": "Adicionar instrumento",
+    "removeInstrument": "Tirar instrumento",
+    "moveUp": "Subir",
+    "instrument": "Instrumento",
+    "level": "Nível",
+    "otherName": "Qual?",
+    "goal": "Objetivo",
+    "commitment": "Compromisso",
+    "reach": "Até onde você vai",
+    "availability": "Quando você pode ensaiar",
+    "structure": "Estrutura",
+    "genres": "Sons que você quer tocar",
+    "links": "Mostra do som",
+    "linksHint": "Até 4 links do YouTube, Spotify, Bandcamp ou SoundCloud.",
+    "addLink": "Adicionar link",
+    "removeLink": "Tirar link",
+    "influences": "Influências",
+    "influencesPlaceholder": "Bandas e artistas que fazem a sua cabeça.",
+    "save": "Salvar ficha",
+    "view": "Ver como as bandas veem"
+  },
+  "validation": {
+    "otherName": "Diga qual é o instrumento.",
+    "instrumentsMin": "Escolha pelo menos um instrumento.",
+    "sampleLink": "Use um link https do YouTube, Spotify, Bandcamp ou SoundCloud.",
+    "influences": "As influências cabem em até 300 caracteres.",
+    "message": "O recado cabe em até 300 caracteres.",
+    "openingText": "Conte sobre a vaga em até 500 caracteres.",
+    "band": "Escolha a banda."
+  }
+}

@@ -1,6 +1,7 @@
 import { apiDelete, apiGet, apiPost, apiPut } from '@/api/base-service'
 import type { PagedRequest, PagedResult } from '@/api/types'
 import type { BandSummaryDto } from '@/pages/bandas/services/bandas-service'
+import type { BandOpeningSummaryDto } from '@/pages/ensaio/services/ensaio-service'
 import type { EventSummaryDto } from '@/pages/eventos/services/eventos-service'
 import type { ArchiveSummaryDto } from '@/pages/mural/services/mural-service'
 import type { ProfileSummaryDto } from '@/pages/perfil/services/perfil-service'
@@ -15,6 +16,7 @@ export type PostDto = {
   band: BandSummaryDto | null
   event: EventSummaryDto | null
   archive: ArchiveSummaryDto | null
+  opening: BandOpeningSummaryDto | null
   content: string
   mentions: MentionDto[]
   media: MediaDto[]

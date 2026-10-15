@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { connectNotificationsHub } from '@/api/notifications-hub'
+import { isExternalUrl } from '@/ensaio/frame'
 import { usePolling } from '@/hooks/use-polling'
 import { notificationKinds, notificationPlainText } from '@/pages/notificacoes/notification-message'
 import { getNotifications, getUnreadCount, markRead } from '@/pages/notificacoes/services/notificacoes-service'
@@ -44,7 +45,8 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
         label: t('toast.view'),
         onClick: () => {
           void markRead(latest.id).catch(() => undefined)
-          if (link) navigate(link)
+          if (link && isExternalUrl(link)) window.location.assign(link)
+          else if (link) navigate(link)
           else setPanelOpen(true)
         },
       },

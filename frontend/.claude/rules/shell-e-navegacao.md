@@ -23,11 +23,15 @@ Item ativo: `resolveActivePath` (copiado do boilerplate) resolve **uma vez** par
 - **Rail direito** (≥ `xl`, 320px): a página registra o conteúdo via `useShellRail(node)` (`shell-rail.tsx`); vazio = não renderiza. Feed registra "Próximos eventos" e "Bandas sugeridas".
 - **Bottom-nav** (< `md`): os 4 itens com `mobile: true` em `navSections` (Feed, Mural, Eventos, Perfil) mais "Mais", que abre um `Sheet` com todas as outras folhas agrupadas por seção. O item "Mais" acende quando a rota ativa está dentro dele.
 
-🔴 **`user-menu.tsx` é o único dono de tema e "Sair".** Não recriar em outro lugar. Ele também tem o "Instalar o app", que só aparece quando dá para instalar (`pwa.md`).
+🔴 **`user-menu.tsx` é o único dono de tema e "Sair".** Não recriar em outro lugar. A exceção é o cabeçalho do Ensaio, que tem o próprio menu da conta porque os links do `user-menu` não funcionam no subdomínio (`ensaio.md`). O `user-menu` também tem o "Instalar o app", que só aparece quando dá para instalar (`pwa.md`).
 
 ## Público × autenticado
 
 Rotas públicas usam `PublicLayout` (fundo escuro, card centralizado, wordmark). Rotas do shell passam por `RequireAuth` (ver `auth.md`). Rota pública com sessão ativa redireciona para `/feed` (`redirect-if-authenticated.tsx`), exceto `/confirmar-email` e `/redefinir-senha`, que precisam funcionar com link aberto em sessão de outra conta.
+
+## O Ensaio é outra moldura
+
+`/ensaio/*` (e a raiz de `ensaio.noisevault.net`) não passa pelo `AppShell` nem pelo `nav-config`: tem shell, navegação (`layout/ensaio/ensaio-nav.ts`) e rotas próprias (`layout/ensaio/ensaio-routes.tsx`). O `app.tsx` monta a moldura do Ensaio na frente das outras rotas. Tudo em `ensaio.md`.
 
 ## Admin dentro do mesmo shell
 

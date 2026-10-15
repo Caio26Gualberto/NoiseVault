@@ -3,6 +3,7 @@
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/inter";
 @import "@fontsource-variable/oswald";
+@import "@fontsource/special-elite/latin-400.css";
 @import "./tokens.css";
 
 @custom-variant dark (&:is(.dark *));
@@ -104,4 +105,16 @@
   .app-page-enter {
     animation: none;
   }
+}
+
+@utility ensaio-cork {
+  background-color: var(--cork);
+  background-image: radial-gradient(var(--cork-dot) 1px, transparent 1.5px);
+  background-size: 9px 9px;
+}
+
+@utility ensaio-halftone {
+  background-color: var(--halftone);
+  background-image: radial-gradient(var(--halftone-dot) 1.2px, transparent 1.7px);
+  background-size: 6px 6px;
 }

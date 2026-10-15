@@ -8,6 +8,7 @@ import {
   HeadsetIcon,
   HeartIcon,
   LifeBuoyIcon,
+  MegaphoneIcon,
   MessageCircleIcon,
   MicVocalIcon,
   TagIcon,
@@ -18,6 +19,9 @@ import {
 import type { LucideIcon } from 'lucide-react'
 import type { TFunction } from 'i18next'
 
+import { ensaioUrl } from '@/ensaio/frame'
+import i18n from '@/i18n'
+import { Instrument, instrumentKey } from '@/pages/ensaio/ensaio-status'
 import { mySubmissionsPath } from '@/pages/mural/archive-status'
 import { SupportTicketStatus } from '@/pages/reportar-problema/support-enums'
 import { adminTicketPath, myTicketPath } from '@/pages/reportar-problema/support-paths'
@@ -67,6 +71,7 @@ export const notificationKinds: Record<NotificationKind, KindConfig> = {
   [NotificationKind.bandMentionedInPost]: { key: 'bandMentionedInPost', icon: AtSignIcon, link: targetLink },
   [NotificationKind.bandMentionedInComment]: { key: 'bandMentionedInComment', icon: AtSignIcon, link: targetLink },
   [NotificationKind.photoTagged]: { key: 'photoTagged', icon: TagIcon, link: targetLink },
+  [NotificationKind.bandOpeningInterest]: { key: 'bandOpeningInterest', icon: MegaphoneIcon, link: (n) => (n.opening ? ensaioUrl(`/vagas/${n.opening.id}`) : null) },
 }
 
 const withPlace = new Set<NotificationKind>([NotificationKind.mentionedInComment, NotificationKind.bandMentionedInComment, NotificationKind.photoTagged])
@@ -87,8 +92,13 @@ function messageKey(n: NotificationDto) {
   return notificationKinds[n.kind].key
 }
 
+function openingInstrument(opening: { instrument: Instrument; otherName: string | null }) {
+  if (opening.instrument === Instrument.other && opening.otherName) return opening.otherName
+  return i18n.t(`ensaio:instruments.${instrumentKey[opening.instrument]}`).toLowerCase()
+}
+
 export function notificationMessage(n: NotificationDto) {
-  const instrument = n.invitation?.instrument ?? null
+  const instrument = n.invitation?.instrument ?? (n.opening ? openingInstrument(n.opening) : null)
 
   return {
     key: `kinds.${messageKey(n)}`,

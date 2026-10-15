@@ -28,6 +28,7 @@ import { photoTagging, toAppTags } from '../photo-tags'
 import { deletePost, getPost } from '../services/feed-service'
 import { ArchiveEmbed } from './archive-embed'
 import { EventEmbed } from './event-embed'
+import { OpeningEmbed } from './opening-embed'
 import type { PostDto } from '../services/feed-service'
 import type { MediaDto } from '../services/media-service'
 import { PostEditDialog } from './post-edit-dialog'
@@ -119,6 +120,12 @@ export function PostCard({ post, onLike, onUpdated, onDeleted, detail = false }:
                 <span aria-hidden>·</span>
               </>
             ) : null}
+            {post.opening ? (
+              <>
+                <span>{t('opening.published')}</span>
+                <span aria-hidden>·</span>
+              </>
+            ) : null}
             <Link to={`/feed/${post.id}`} className="hover:underline">
               <time dateTime={post.createdAt}>{formatRelative(post.createdAt)}</time>
             </Link>
@@ -170,6 +177,7 @@ export function PostCard({ post, onLike, onUpdated, onDeleted, detail = false }:
       {post.event ? <EventEmbed event={post.event} /> : null}
 
       {post.archive ? <ArchiveEmbed entry={post.archive} /> : null}
+      {post.opening ? <OpeningEmbed opening={post.opening} /> : null}
 
       {published ? (
         <footer className="flex items-center gap-1 border-t pt-2">

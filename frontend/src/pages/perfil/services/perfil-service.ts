@@ -30,6 +30,7 @@ export type UserProfileDto = ProfileSummaryDto & {
   memberSince: string
   bands: BandSummaryDto[]
   postCount: number
+  isLookingForBand: boolean
 }
 
 export const peopleSearchMinLength = 2

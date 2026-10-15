@@ -21,6 +21,7 @@ Item 7 do `IDEIAS.md`, parte 1 (14/10/2026): o site vira app na tela inicial, co
   - O `favicon.svg` antigo desenhava um "H" do legado e foi trocado pelo mesmo ícone.
   - As fontes ficam em `public/icons/icon.svg` (cantos arredondados) e `icon-maskable.svg` (fundo inteiro, arte a 80% para caber no círculo que o Android recorta).
   - Os PNG (192, 512, maskable 512 e o `apple-touch-icon` de 180) são gerados a partir dos SVG; não há script no repositório. Mudou o SVG, gera de novo.
+- **Ensaio**: no subdomínio `ensaio.`, o boot troca o `<link rel="manifest">` para `public/manifest-ensaio.webmanifest` ("Ensaio · Noise Vault", `start_url: /`), e ele vira outro app instalável, com o mesmo ícone (`ensaio.md`).
 - O `index.html` liga o manifesto, o `apple-touch-icon`, as `meta` `apple-mobile-web-app-*` e a `description`.
 
 ## Service worker: só o esqueleto, nunca a API

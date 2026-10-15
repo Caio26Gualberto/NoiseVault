@@ -37,6 +37,10 @@ Paleta (valores em `tokens.css`, aqui só a intenção):
 - Fontes auto-hospedadas pelo fontsource, importadas uma vez em `main.tsx`. **Sem CDN.**
 - `fontSize` inline numa página é bug: a escala é `text-sm/base/lg` + as classes de título em `global.css` (`.app-h1`, `.app-h2`, `.app-h3`).
 
+## O papel do Ensaio
+
+O módulo Ensaio tem uma camada própria de tokens, só dentro de `.ensaio`: papel, fita, cortiça, retícula. Também tem a `font-typewriter` (`@fontsource/special-elite`, auto-hospedada) e as utilidades `ensaio-cork` e `ensaio-halftone`. Fora de um contêiner `.ensaio` essas cores não existem; o Noise Vault continua com a paleta acima. A moldura do Ensaio é sempre escura. Tudo em `ensaio.md`.
+
 ## Imagens do projeto
 
 `src/assets/` guarda só imagem que é **conteúdo fixo do produto**, vinda do legado: `celtic-frost.jpg` (capa do *To Mega Therion*, fundo do `/bem-vindo`) e `caio.jpg` (foto do autor na página Sobre). Imagem de usuário nunca entra no repositório: vem do backend. A `/bem-vindo` força `.dark` no próprio contêiner porque o texto vai sobre a capa em qualquer tema.

@@ -69,6 +69,12 @@ Quem já viu a tela de boas-vindas fica marcado em `localStorage` na chave `app-
 - Trocar de navegador, usar aba anônima ou limpar os dados mostra de novo. Aceito: é uma tela de apresentação, não um passo obrigatório.
 - `localStorage` indisponível (modo privado restrito) conta como "já viu" — falha aberta, a pessoa nunca fica presa num redirecionamento.
 
+## Login vindo do Ensaio
+
+- O `RequireAuth` aceita `skipWelcome` (o shell do Ensaio usa), porque a tela de boas-vindas é do site principal.
+- No subdomínio, quem não tem sessão vai para `/entrar?voltar=<endereço do Ensaio>` do site principal. Depois do login, ou se a pessoa já tem sessão, volta para lá.
+- Só volta se a origem for a do Ensaio (`safeReturnUrl` em `src/ensaio/frame.ts`); qualquer outro `voltar` é ignorado. Detalhes em `ensaio.md`.
+
 ## A única exceção à regra "página não trata erro"
 
 O toast global cobre todo erro de API. **`EMAIL_NOT_CONFIRMED` no login é a exceção**: além do toast, a tela de login mostra uma faixa inline "Seu e-mail ainda não foi confirmado" com o botão "Reenviar e-mail", porque a ação de reenviar é da tela e a pessoa precisa dela ali, não num toast que some. O hook `use-login.ts` captura o `ApiError` por `code` e expõe `pendingConfirmation`. Nenhuma outra tela faz isso sem registrar aqui.

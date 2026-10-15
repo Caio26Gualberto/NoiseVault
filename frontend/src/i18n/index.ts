@@ -6,6 +6,7 @@ import auth from './pt-BR/auth.json'
 import bandas from './pt-BR/bandas.json'
 import common from './pt-BR/common.json'
 import conta from './pt-BR/conta.json'
+import ensaio from './pt-BR/ensaio.json'
 import eventos from './pt-BR/eventos.json'
 import feed from './pt-BR/feed.json'
 import institucional from './pt-BR/institucional.json'
@@ -25,6 +26,7 @@ const namespaces = {
   conta,
   feed,
   eventos,
+  ensaio,
   perfil,
   bandas,
   notificacoes,

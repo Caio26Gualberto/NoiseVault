@@ -4,7 +4,7 @@
 
 **Noise Vault** — site público da cena do ABC Paulista (metal, punk, hardcore e afins): feed, mural das antigas, eventos, perfis de pessoas e de bandas, notificações. Quem usa é o fã e o músico da região; a administração (moderação, equipe) é a mesma aplicação com permissão. Reescrita do zero do legado "NewLevel" (`C:\Projetos\Pessoal\Alvo\newlevel`), que não serve de referência de código nem de tela.
 
-**Estado da entrega atual:** auth é real (`/entrar`, `/criar-conta`, `/confirmar-email`, `/esqueci-senha`, `/redefinir-senha`, `/definir-senha`, `/bem-vindo`); perfil e mídia também (`/minha-conta` inteira com avatar e capa, `/perfil/:nickname`, busca de pessoas na topbar — `.claude/rules/perfil.md`); bandas e convites também (`/bandas/:slug`, `/bandas/nova`, `/bandas/:slug/editar` e a seção de convites no painel do sino — `.claude/rules/bandas.md`); o feed também (`/feed`, `/feed/:id`, publicações no perfil e na banda, com fotos e vídeo — `.claude/rules/feed.md`); os eventos também (`/eventos`, detalhe, formulário, seção Shows da banda e o rail do feed — `.claude/rules/eventos.md`). O mural das antigas também (`/mural` e o detalhe, o formulário com permissão, o envio da comunidade em `/mural/enviar` e `/mural/envios`, e a fila da curadoria em `/admin/mural` — `.claude/rules/mural.md`); Vídeos, Fotos e Moderação saíram do produto. As notificações também (o balão do sino, como no Facebook, em tempo real por SignalR e a preferência em `/minha-conta` — `.claude/rules/notificacoes.md`). O suporte também (`/reportar-problema` com prints e vídeo, `/suporte` com os relatos e a conversa, e a caixa de entrada `/admin/suporte` com permissão `Support.*` — `.claude/rules/suporte.md`). Não sobrou tela mockada: o último `mocks.ts` e o `mock-delay.ts` morreram com o suporte (`.claude/rules/mocks.md`). Institucionais (podcasts, sobre, loja) são páginas estáticas, sem backend.
+**Estado da entrega atual:** auth é real (`/entrar`, `/criar-conta`, `/confirmar-email`, `/esqueci-senha`, `/redefinir-senha`, `/definir-senha`, `/bem-vindo`); perfil e mídia também (`/minha-conta` inteira com avatar e capa, `/perfil/:nickname`, busca de pessoas na topbar — `.claude/rules/perfil.md`); bandas e convites também (`/bandas/:slug`, `/bandas/nova`, `/bandas/:slug/editar` e a seção de convites no painel do sino — `.claude/rules/bandas.md`); o feed também (`/feed`, `/feed/:id`, publicações no perfil e na banda, com fotos e vídeo — `.claude/rules/feed.md`); os eventos também (`/eventos`, detalhe, formulário, seção Shows da banda e o rail do feed — `.claude/rules/eventos.md`). O mural das antigas também (`/mural` e o detalhe, o formulário com permissão, o envio da comunidade em `/mural/enviar` e `/mural/envios`, e a fila da curadoria em `/admin/mural` — `.claude/rules/mural.md`); Vídeos, Fotos e Moderação saíram do produto. O Ensaio também, com moldura própria em `ensaio.noisevault.net` (em dev, `/ensaio`): vitrine "Procura-se banda", ficha de músico, vagas da banda e o "Tenho interesse" (`.claude/rules/ensaio.md`). As notificações também (o balão do sino, como no Facebook, em tempo real por SignalR e a preferência em `/minha-conta` — `.claude/rules/notificacoes.md`). O suporte também (`/reportar-problema` com prints e vídeo, `/suporte` com os relatos e a conversa, e a caixa de entrada `/admin/suporte` com permissão `Support.*` — `.claude/rules/suporte.md`). Não sobrou tela mockada: o último `mocks.ts` e o `mock-delay.ts` morreram com o suporte (`.claude/rules/mocks.md`). Institucionais (podcasts, sobre, loja) são páginas estáticas, sem backend.
 
 ## Como trabalhar neste repositório
 
@@ -24,6 +24,7 @@ As **decisões por área** vivem em `.claude/rules/`, com front matter `paths:`,
 | `.claude/rules/feed.md` | feed único, composer com fotos e vídeo (upload multipart direto ao S3), publicar como banda, post em processamento com polling, editar e apagar, comentários, listas no perfil e na banda |
 | `.claude/rules/mural.md` | linha do tempo interativa, envio da comunidade, meus envios, fila e painel da curadoria (`Archive.Review`), grade de registros, detalhe com legendas e "Eu estava lá", formulário com data aproximada e gerenciador de mídias de arquivo, permissões `Archive.*` |
 | `.claude/rules/marcacoes.md` | @menção com autocomplete (`AppMentionTextarea`) e texto com links (`AppRichText`), marcação de pessoas nas fotos no `AppMediaViewer`, notificações de menção e marcação |
+| `.claude/rules/ensaio.md` | Ensaio (músicos e bandas) no subdomínio `ensaio.`: moldura escolhida pelo endereço no mesmo build (`src/ensaio/frame.ts`, `/ensaio` em dev), visual "flyer limpo" com tokens só dentro de `.ensaio`, vitrine, ficha, vagas, interesse e convite, login com `voltar`, selo no perfil, vagas na banda e o card no feed |
 | `.claude/rules/pwa.md` | instalável no celular: manifesto e ícones, service worker gerado no build (só o esqueleto, nunca a API), página sem conexão, aviso de versão nova, "Instalar o app" no menu do usuário e o passo a passo do iPhone |
 | `.claude/rules/compartilhamento.md` | `AppShareButton` (menu do sistema no celular, copiar link no computador), onde aparece, o link `/s/...` e o proxy do Vite |
 | `.claude/rules/notificacoes.md` | SignalR só avisando (`api/notifications-hub.ts` + `layout/notifications-provider.tsx`), toast do push, balão do sino, frase pelo `kind` com plural de agrupamento, convites no topo, preferência de e-mail |
@@ -51,7 +52,7 @@ Vite 8 · React 19 · TypeScript 6 · Tailwind CSS v4 · shadcn/ui (base radix, 
 
 Comandos: `npm run dev` (porta 5173), `npm run build`, `npm run lint` (oxlint), `npm run typecheck`, `npm run preview`. Adicionar primitivo: `npx shadcn@latest add <nome>` (vai para `components/ui/`, ignorado pelo lint).
 
-`VITE_API_BASE_URL` vem do `.env` (copie o `.env.example`). **Nunca hardcodar a URL da API.** Sem a variável, o `vite.config.ts` derruba o build e o `client.ts` lança no boot.
+`VITE_API_BASE_URL` vem do `.env` (copie o `.env.example`). **Nunca hardcodar a URL da API.** `VITE_ENSAIO_URL` e `VITE_MAIN_URL` (vazios em dev) são os endereços do subdomínio do Ensaio e do site principal em produção (`ensaio.md`). Sem a variável, o `vite.config.ts` derruba o build e o `client.ts` lança no boot.
 
 ## Estrutura de pastas
 
@@ -61,6 +62,7 @@ src/
   app.tsx                  # rotas: publicRoutes (PublicLayout) + definir-senha + bem-vindo + shell (RequireAuth > AppShell) + 404
   toast-feedback.ts        # liga o FeedbackSink da API ao sonner
   pwa/                     # registro do service worker (aviso de versão nova) e o "Instalar o app" (pwa.md)
+  ensaio/                  # frame.ts (moldura pelo endereço, ensaioPath/ensaioUrl/mainUrl, voltar do login), boot.ts, EnsaioLink
   api/                     # fronteira HTTP — nada fora daqui usa axios (copiado do boilerplate)
     client.ts · auth-interceptor.ts · base-service.ts · api-codes.ts · feedback-sink.ts · token-storage.ts · types.ts · jwt.ts
     multipart-upload.ts    # PUT das partes de vídeo direto no S3 (axios próprio, sem auth e sem timeout)
@@ -92,6 +94,7 @@ src/
     last-location.ts       # última rota do shell antes do /reportar-problema (a "página de onde veio" do relato)
     public-layout.tsx      # PublicFrame (card centralizado) + PublicLayout (Outlet)
     wordmark.tsx
+    ensaio/                # shell, navegação e rotas do Ensaio (outra moldura, fora do nav-config)
   pages/
     <secao>/               # uma pasta por tela; cada tela um arquivo
       index.tsx | <tela>.tsx

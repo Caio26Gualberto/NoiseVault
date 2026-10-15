@@ -3,7 +3,9 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { RedirectIfAuthenticated } from './auth/redirect-if-authenticated'
 import { RequireAuth } from './auth/require-auth'
 import { homePath, initialPasswordPath } from './auth/routes'
+import { isEnsaioHost } from './ensaio/frame'
 import { AppShell } from './layout/app-shell'
+import { EnsaioRoutes } from './layout/ensaio/ensaio-routes'
 import { hiddenRoutes, navSections, publicRoutes, welcomeRoute } from './layout/nav-config'
 import { PublicLayout } from './layout/public-layout'
 import { DefinirSenhaPage } from './pages/definir-senha'
@@ -21,8 +23,12 @@ const shellRoutes = [
 ]
 
 export function App() {
+  if (isEnsaioHost) return <EnsaioRoutes />
+
   return (
     <Routes>
+      <Route path="/ensaio/*" element={<EnsaioRoutes />} />
+
       <Route element={<PublicLayout />}>
         {publicRoutes.map((route) => (
           <Route

@@ -6,6 +6,7 @@ import './theme/global.css'
 import './i18n'
 
 import { App } from './app'
+import { applyEnsaioFrame } from './ensaio/boot'
 import { AuthProvider } from './auth/auth-provider'
 import { AppConfirmProvider } from './components/app-confirm'
 import { Toaster } from './components/ui/sonner'
@@ -19,6 +20,7 @@ registerToastFeedback()
 listenInstallPrompt()
 registerServiceWorker()
 applyColorScheme(readColorScheme())
+applyEnsaioFrame()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

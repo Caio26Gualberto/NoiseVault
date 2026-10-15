@@ -1,4 +1,4 @@
-import { CalendarIcon, GuitarIcon, MapPinIcon, PencilIcon, PlusIcon, UserRoundXIcon } from 'lucide-react'
+import { CalendarIcon, GuitarIcon, MapPinIcon, MegaphoneIcon, PencilIcon, PlusIcon, UserRoundXIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router-dom'
@@ -16,6 +16,7 @@ import { AppGenreBadges } from '@/components/app-genre-badges'
 import { AppProfileHero } from '@/components/app-profile-hero'
 import { AppSkeleton } from '@/components/app-skeleton'
 import { AppSocialLinks } from '@/components/app-social-links'
+import { EnsaioLink } from '@/ensaio/ensaio-link'
 import { formatDate } from '@/lib/format'
 import { OwnerPosts } from '@/pages/feed/components/owner-posts'
 
@@ -102,6 +103,15 @@ export function PerfilPage() {
         }
       >
         <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
+          {profile.isLookingForBand ? (
+            <EnsaioLink
+              to={`/musicos/${profile.nickname}`}
+              className="inline-flex items-center gap-1.5 rounded-full bg-success/15 px-2.5 py-1 font-medium text-success hover:bg-success/25"
+            >
+              <MegaphoneIcon className="size-4" />
+              {t('lookingForBand')}
+            </EnsaioLink>
+          ) : null}
           {formatCity(profile) ? (
             <span className="inline-flex items-center gap-1.5">
               <MapPinIcon className="size-4" />
