@@ -3,6 +3,7 @@ using NoiseVault.Application.Abstractions.Repository;
 using NoiseVault.Application.Auth;
 using NoiseVault.Application.Bands.Interfaces;
 using NoiseVault.Application.Interfaces;
+using NoiseVault.Application.Musicians.Interfaces;
 using NoiseVault.Application.Pagination;
 using NoiseVault.Application.Posts.Interfaces;
 using NoiseVault.Application.Profiles.Dtos;
@@ -21,9 +22,11 @@ namespace NoiseVault.Application.PublicProfiles
         private readonly IFileStorage _fileStorage;
         private readonly IBandAppService _bandAppService;
         private readonly IPostRepository _postRepository;
+        private readonly IMusicianAppService _musicianAppService;
 
-        public PublicProfileAppService(IRepository<User> userRepository, IFileStorage fileStorage, IBandAppService bandAppService, IPostRepository postRepository)
+        public PublicProfileAppService(IRepository<User> userRepository, IFileStorage fileStorage, IBandAppService bandAppService, IPostRepository postRepository, IMusicianAppService musicianAppService)
         {
+            _musicianAppService = musicianAppService;
             _postRepository = postRepository;
             _userRepository = userRepository;
             _fileStorage = fileStorage;
@@ -66,6 +69,7 @@ namespace NoiseVault.Application.PublicProfiles
                 MemberSince = user.CreatedAt,
                 Bands = await _bandAppService.ListSummariesForUser(user.Id),
                 PostCount = await _postRepository.CountPublishedByAuthorAsync(user.Id),
+                IsLookingForBand = await _musicianAppService.IsLooking(user.Id),
             }, "USER_PROFILE_FOUND", "Profile found");
         }
 

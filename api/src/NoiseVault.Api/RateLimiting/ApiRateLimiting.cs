@@ -30,6 +30,8 @@ namespace NoiseVault.Api.RateLimiting
         public const string ArchiveSubmit = "archive-submit";
         public const string PhotoTag = "photo-tag";
         public const string SharePreview = "share-preview";
+        public const string OpeningCreate = "opening-create";
+        public const string OpeningInterest = "opening-interest";
     }
 
     public static class ApiRateLimiting
@@ -73,6 +75,8 @@ namespace NoiseVault.Api.RateLimiting
                 AddFixedWindow(options, ApiRateLimitPolicies.ArchiveSubmit, permitLimit: 10, windowMinutes: 60);
                 AddFixedWindow(options, ApiRateLimitPolicies.PhotoTag, permitLimit: 60, windowMinutes: 60);
                 AddFixedWindow(options, ApiRateLimitPolicies.SharePreview, permitLimit: 120, windowMinutes: 1);
+                AddFixedWindow(options, ApiRateLimitPolicies.OpeningCreate, permitLimit: 10, windowMinutes: 60);
+                AddFixedWindow(options, ApiRateLimitPolicies.OpeningInterest, permitLimit: 20, windowMinutes: 60);
 
                 options.OnRejected = async (context, token) =>
                 {

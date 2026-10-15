@@ -23,5 +23,7 @@ namespace NoiseVault.Application.Posts.Interfaces
         Task DeleteForEvent(int eventId);
         Task CreateForArchive(int archiveEntryId, int authorUserId);
         Task DeleteForArchive(int archiveEntryId);
+        Task CreateForOpening(int bandOpeningId, int authorUserId, int bandId);
+        Task DeleteForOpening(int bandOpeningId);
     }
 }

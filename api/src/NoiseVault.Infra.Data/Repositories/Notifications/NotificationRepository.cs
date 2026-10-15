@@ -119,7 +119,8 @@ namespace NoiseVault.Infra.Data.Repositories.Notifications
                     || (n.ArchiveEntryId != null && n.ArchiveEntry!.IsDeleted)
                     || (n.BandId != null && n.Band!.IsDeleted)
                     || (n.BandInvitationId != null && n.BandInvitation!.Status == EBandInvitationStatus.Revoked)
-                    || (n.SupportTicketId != null && n.SupportTicket!.IsDeleted))
+                    || (n.SupportTicketId != null && n.SupportTicket!.IsDeleted)
+                    || (n.BandOpeningId != null && n.BandOpening!.IsDeleted))
                 .ExecuteDeleteAsync();
 
         private IQueryable<Notification> Visible(int userId) =>
@@ -132,7 +133,8 @@ namespace NoiseVault.Infra.Data.Repositories.Notifications
                 && (n.ArchiveEntryId == null || !n.ArchiveEntry!.IsDeleted)
                 && (n.BandId == null || !n.Band!.IsDeleted)
                 && (n.BandInvitationId == null || n.BandInvitation!.Status != EBandInvitationStatus.Revoked)
-                && (n.SupportTicketId == null || !n.SupportTicket!.IsDeleted));
+                && (n.SupportTicketId == null || !n.SupportTicket!.IsDeleted)
+                && (n.BandOpeningId == null || !n.BandOpening!.IsDeleted));
 
         private static IQueryable<NotificationReadModel> Project(IQueryable<Notification> query) =>
             query.Select(n => new NotificationReadModel
@@ -167,6 +169,9 @@ namespace NoiseVault.Infra.Data.Repositories.Notifications
                 TicketTitle = n.SupportTicket != null ? n.SupportTicket.Title : null,
                 TicketStatus = n.SupportTicket != null ? n.SupportTicket.Status : null,
                 TicketMine = n.SupportTicket != null && n.SupportTicket.ReporterUserId == n.UserId,
+                OpeningId = n.BandOpeningId,
+                OpeningInstrument = n.BandOpening != null ? n.BandOpening.Instrument : null,
+                OpeningOtherName = n.BandOpening != null ? n.BandOpening.OtherName : null,
             });
     }
 }

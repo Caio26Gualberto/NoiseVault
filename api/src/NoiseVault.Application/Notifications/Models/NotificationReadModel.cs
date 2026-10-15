@@ -1,4 +1,5 @@
 using NoiseVault.Domain.Enums.Bands;
+using NoiseVault.Domain.Enums.Ensaio;
 using NoiseVault.Domain.Enums.Notifications;
 using NoiseVault.Domain.Enums.Profiles;
 using NoiseVault.Domain.Enums.Support;
@@ -44,5 +45,9 @@ namespace NoiseVault.Application.Notifications.Models
         public string? TicketTitle { get; init; }
         public ESupportTicketStatus? TicketStatus { get; init; }
         public bool TicketMine { get; init; }
+
+        public int? OpeningId { get; init; }
+        public EInstrument? OpeningInstrument { get; init; }
+        public string? OpeningOtherName { get; init; }
     }
 }

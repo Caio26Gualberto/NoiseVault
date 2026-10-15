@@ -116,6 +116,7 @@ namespace NoiseVault.Infra.Data.Repositories.Posts
                 BandId = p.BandId,
                 EventId = p.EventId,
                 ArchiveEntryId = p.ArchiveEntryId,
+                BandOpeningId = p.BandOpeningId,
                 Content = p.Content,
                 CreatedAt = p.CreatedAt,
                 PublishedAt = p.PublishedAt,

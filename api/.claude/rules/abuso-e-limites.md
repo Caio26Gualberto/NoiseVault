@@ -42,6 +42,8 @@ Só rate limit não basta porque IP roda barato. Só regra de negócio não bast
 | `archive-submit` | 10/h por conta | enviar para o mural é raro; quem tem uma caixa de fotos manda alguns de uma vez. Somado ao limite de volume de 5 envios pendentes por pessoa (`mural.md`) |
 | `photo-tag` | 60/h por conta | marcar pessoas nas fotos (`marcacoes.md`): uma foto de show cheia de gente cabe; robô marcando em massa não |
 | `share-preview` | 120/min por IP | a rota `/s/...` da prévia de link (`compartilhamento.md`): o robô pede algumas vezes por link; varrer ids em sequência não |
+| `opening-create` | 10/h por conta | abrir vaga de banda (`ensaio.md`); o limite de negócio é 5 abertas por banda |
+| `opening-interest` | 20/h por conta | "Tenho interesse" numa vaga (`ensaio.md`): cada um notifica os Owners da banda |
 
 Endpoint novo que **cria**, **envia** ou **chama fora** nasce com política própria e uma linha nesta tabela. Os números são ponto de partida; o projeto ajusta e registra o porquê.
 

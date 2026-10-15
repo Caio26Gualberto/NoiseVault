@@ -14,6 +14,7 @@ namespace NoiseVault.Application.Bands.Interfaces
         Task<Result<BandProfileDto>> Update(string slug, BandInputDto input);
         Task<Result<List<BandSummaryDto>>> Suggested();
         Task<Result<List<BandSummaryDto>>> Mine();
+        Task<Result<List<BandSummaryDto>>> Owned();
         Task<Result<PagedResultDto<BandSummaryDto>>> Search(BandSearchQueryDto query);
         Task<Result<BandProfileDto>> SetAvatar(string slug, ImageUploadInput? file, CancellationToken cancellationToken = default);
         Task<Result<BandProfileDto>> RemoveAvatar(string slug);

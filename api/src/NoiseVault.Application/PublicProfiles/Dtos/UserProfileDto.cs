@@ -22,5 +22,6 @@ namespace NoiseVault.Application.PublicProfiles.Dtos
         public DateTime MemberSince { get; set; }
         public List<BandSummaryDto> Bands { get; set; } = [];
         public int PostCount { get; set; }
+        public bool IsLookingForBand { get; set; }
     }
 }

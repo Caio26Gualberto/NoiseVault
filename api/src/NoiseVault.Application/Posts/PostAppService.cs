@@ -1,6 +1,7 @@
 using NoiseVault.Application.Media.Dtos;
 using NoiseVault.Application.PhotoTags.Dtos;
 using NoiseVault.Application.Abstractions.Authentication;
+using NoiseVault.Application.BandOpenings.Dtos;
 using NoiseVault.Application.Archive.Dtos;
 using NoiseVault.Application.Archive.Interfaces;
 using NoiseVault.Application.Abstractions.Logging;
@@ -44,6 +45,7 @@ namespace NoiseVault.Application.Posts
         private readonly IEventRepository _eventRepository;
         private readonly IArchiveRepository _archiveRepository;
         private readonly IRepository<MediaUpload> _mediaRepository;
+        private readonly IRepository<BandOpening> _openingRepository;
         private readonly INotificationAppService _notificationAppService;
         private readonly IPhotoTagAppService _photoTagAppService;
         private readonly IMentionAppService _mentionAppService;
@@ -61,6 +63,7 @@ namespace NoiseVault.Application.Posts
             IEventRepository eventRepository,
             IArchiveRepository archiveRepository,
             IRepository<MediaUpload> mediaRepository,
+            IRepository<BandOpening> openingRepository,
             INotificationAppService notificationAppService,
             IPhotoTagAppService photoTagAppService,
             IMentionAppService mentionAppService,
@@ -70,6 +73,7 @@ namespace NoiseVault.Application.Posts
             _mentionAppService = mentionAppService;
             _archiveRepository = archiveRepository;
             _mediaRepository = mediaRepository;
+            _openingRepository = openingRepository;
             _eventRepository = eventRepository;
             _postRepository = postRepository;
             _postMediaRepository = postMediaRepository;
@@ -225,7 +229,7 @@ namespace NoiseVault.Application.Posts
             if (post == null)
                 return Fail(await DeniedAsync(id));
 
-            if (content.Length == 0 && post.Media.Count == 0 && post.EventId == null && post.ArchiveEntryId == null)
+            if (content.Length == 0 && post.Media.Count == 0 && post.EventId == null && post.ArchiveEntryId == null && post.BandOpeningId == null)
                 return Fail(Invalid("POST_EMPTY", "Write something or attach a photo or video"));
 
             if (content != post.Content)
@@ -323,6 +327,24 @@ namespace NoiseVault.Application.Posts
                 await _postRepository.SoftDelete(post);
         }
 
+        public Task CreateForOpening(int bandOpeningId, int authorUserId, int bandId) =>
+            _postRepository.AddAsync(new Post
+            {
+                AuthorUserId = authorUserId,
+                BandId = bandId,
+                BandOpeningId = bandOpeningId,
+                Content = string.Empty,
+                PublishedAt = DateTime.UtcNow,
+            });
+
+        public async Task DeleteForOpening(int bandOpeningId)
+        {
+            var post = await _postRepository.FirstOrDefaultAsync(new QueryOptions<Post> { Predicate = p => p.BandOpeningId == bandOpeningId });
+
+            if (post != null)
+                await _postRepository.SoftDelete(post);
+        }
+
         public async Task DeleteForEvent(int eventId)
         {
             var post = await _postRepository.FirstOrDefaultAsync(new QueryOptions<Post> { Predicate = p => p.EventId == eventId });
@@ -386,6 +408,7 @@ namespace NoiseVault.Application.Posts
             var bands = await _bandAppService.SummariesByIds(bandIds);
 
             var archives = await ArchiveSummariesAsync(rows);
+            var openings = await OpeningSummariesAsync(rows);
 
             var eventIds = rows.Where(r => r.EventId != null).Select(r => r.EventId!.Value).Distinct().ToList();
             var now = DateTime.UtcNow;
@@ -430,6 +453,7 @@ namespace NoiseVault.Application.Posts
                 Band = r.BandId != null && bands.TryGetValue(r.BandId.Value, out var band) ? band : null,
                 Event = r.EventId != null && events.TryGetValue(r.EventId.Value, out var linkedEvent) ? linkedEvent : null,
                 Archive = r.ArchiveEntryId != null && archives.TryGetValue(r.ArchiveEntryId.Value, out var linkedArchive) ? linkedArchive : null,
+                Opening = r.BandOpeningId != null && openings.TryGetValue(r.BandOpeningId.Value, out var linkedOpening) ? linkedOpening : null,
                 Content = r.Content,
                 Mentions = _mentionAppService.Pick(r.Content, mentions),
                 Media = media[r.Id].Select(pm => WithTags(_mediaAppService.Describe(pm.MediaUpload!), tags)).ToList(),
@@ -444,6 +468,27 @@ namespace NoiseVault.Application.Posts
                 CanEdit = r.AuthorUserId == me,
                 CanDelete = r.AuthorUserId == me || r.ViewerOwnsBand,
             }).ToList();
+        }
+
+        private async Task<Dictionary<int, BandOpeningSummaryDto>> OpeningSummariesAsync(List<PostReadModel> rows)
+        {
+            var ids = rows.Where(r => r.BandOpeningId != null).Select(r => r.BandOpeningId!.Value).Distinct().ToList();
+
+            if (ids.Count == 0)
+                return [];
+
+            var now = DateTime.UtcNow;
+            var openings = await _openingRepository.ListAsync(new QueryOptions<BandOpening> { Predicate = o => ids.Contains(o.Id), AsNoTracking = true });
+
+            return openings.ToDictionary(o => o.Id, o => new BandOpeningSummaryDto
+            {
+                Id = o.Id,
+                Instrument = o.Instrument,
+                OtherName = o.OtherName,
+                Description = o.Description,
+                Status = o.Status,
+                IsExpired = o.ExpiresAt <= now,
+            });
         }
 
         private async Task<Dictionary<int, ArchiveSummaryDto>> ArchiveSummariesAsync(List<PostReadModel> rows)

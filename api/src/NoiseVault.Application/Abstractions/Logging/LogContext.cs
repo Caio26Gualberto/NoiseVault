@@ -15,6 +15,7 @@ namespace NoiseVault.Application.Abstractions.Logging
         Events,
         Archive,
         Notifications,
-        Support
+        Support,
+        Ensaio
     }
 }

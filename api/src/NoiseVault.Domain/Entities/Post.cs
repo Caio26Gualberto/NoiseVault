@@ -6,6 +6,7 @@ namespace NoiseVault.Domain.Entities
         public int? BandId { get; set; }
         public int? EventId { get; set; }
         public int? ArchiveEntryId { get; set; }
+        public int? BandOpeningId { get; set; }
         public string Content { get; set; } = string.Empty;
         public DateTime? PublishedAt { get; set; }
         public DateTime? EditedAt { get; set; }
@@ -14,6 +15,7 @@ namespace NoiseVault.Domain.Entities
         public Band? Band { get; set; }
         public Event? Event { get; set; }
         public ArchiveEntry? ArchiveEntry { get; set; }
+        public BandOpening? BandOpening { get; set; }
         public List<PostMedia> Media { get; set; } = [];
         public List<PostLike> Likes { get; set; } = [];
         public List<Comment> Comments { get; set; } = [];

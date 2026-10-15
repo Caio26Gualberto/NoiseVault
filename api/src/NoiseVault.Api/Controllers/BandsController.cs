@@ -54,6 +54,13 @@ namespace NoiseVault.Api.Controllers
             return ToResponse(result);
         }
 
+        [HttpGet("owned")]
+        public async Task<ActionResult> Owned()
+        {
+            var result = await _bandAppService.Owned();
+            return ToResponse(result);
+        }
+
         [HttpGet("{slug}")]
         public async Task<ActionResult> GetBySlug(string slug)
         {

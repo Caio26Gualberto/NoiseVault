@@ -49,7 +49,7 @@ Comprado pelo usuário em 14/10/2026. O `.com` já tinha dono, o `.com.br` o usu
 | `api.noisevault.net` | o Lightsail (Caddy com HTTPS) | API, SignalR (`/hubs`) e a rota de prévia `/s/...` (que o Amplify repassa) |
 | `media.noisevault.net` | o CloudFront do bucket | `Storage:PublicBaseUrl` |
 | e-mail `nao-responda@noisevault.net` | SES | o domínio verificado no SES, com SPF, DKIM e DMARC no DNS, para confirmação e redefinição de senha não caírem no spam |
-| `ensaio.noisevault.net` | o mesmo app do Amplify, que mostra a moldura do módulo de músicos e bandas pelo endereço | planejado (`IDEIAS.md`, 8a); a sessão por cookie em `.noisevault.net` já existe (`auth-e-contas.md`) |
+| `ensaio.noisevault.net` | o mesmo app do Amplify, que mostra a moldura do módulo Ensaio pelo endereço | o módulo existe (`ensaio.md`, `frontend/.claude/rules/ensaio.md`); no deploy, o domínio entra no Amplify como domínio do mesmo app, `https://ensaio.noisevault.net` entra em `Cors:AllowedOrigins` e o build do front leva `VITE_ENSAIO_URL` e `VITE_MAIN_URL` |
 | `mercado.noisevault.net` | idem, para venda e troca | planejado (`IDEIAS.md`, 8b) |
 
 - Quem guarda o DNS ainda não foi decidido. O caminho mais simples é o **Route 53**, junto do resto da AWS; se o domínio ficar em outro registrador, ele aponta os servidores de nome para o Route 53.

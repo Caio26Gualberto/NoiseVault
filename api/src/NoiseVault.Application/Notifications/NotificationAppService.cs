@@ -126,6 +126,7 @@ namespace NoiseVault.Application.Notifications
                         BandId = input.BandId,
                         BandInvitationId = input.BandInvitationId,
                         SupportTicketId = input.SupportTicketId,
+                        BandOpeningId = input.BandOpeningId,
                         CreatedAt = now,
                         LastActivityAt = now,
                     })
@@ -141,7 +142,7 @@ namespace NoiseVault.Application.Notifications
                     "Notification could not be stored",
                     exception: ex,
                     userId: input.ActorUserId,
-                    extra: new { input.Kind, Recipients = recipients.Count, input.PostId, input.EventId, input.ArchiveEntryId, input.BandId, input.BandInvitationId, input.SupportTicketId });
+                    extra: new { input.Kind, Recipients = recipients.Count, input.PostId, input.EventId, input.ArchiveEntryId, input.BandId, input.BandInvitationId, input.SupportTicketId, input.BandOpeningId });
                 return;
             }
 
@@ -223,6 +224,9 @@ namespace NoiseVault.Application.Notifications
                     Instrument = row.InvitationInstrument,
                     ExpiresAt = row.InvitationExpiresAt ?? default,
                 },
+            Opening = row.OpeningId == null
+                ? null
+                : new NotificationOpeningDto { Id = row.OpeningId.Value, Instrument = row.OpeningInstrument ?? default, OtherName = row.OpeningOtherName },
             Ticket = row.TicketId == null
                 ? null
                 : new NotificationTicketDto

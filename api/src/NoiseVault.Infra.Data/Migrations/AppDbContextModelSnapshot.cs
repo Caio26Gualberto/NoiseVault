@@ -862,6 +862,129 @@ namespace NoiseVault.Infra.Data.Migrations
                     b.ToTable("BandMembers", (string)null);
                 });
 
+            modelBuilder.Entity("NoiseVault.Domain.Entities.BandOpening", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BandId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("ClosedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("CreatedBy")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("DeletedBy")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("Goal")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Instrument")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("OtherName")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("UpdatedBy")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BandId", "Status");
+
+                    b.HasIndex("Status", "ExpiresAt");
+
+                    b.ToTable("BandOpenings", (string)null);
+                });
+
+            modelBuilder.Entity("NoiseVault.Domain.Entities.BandOpeningInterest", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("BandInvitationId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("BandOpeningId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("CreatedBy")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("DeletedBy")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Message")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("UpdatedBy")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BandInvitationId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("BandOpeningId", "UserId")
+                        .IsUnique()
+                        .HasFilter("\"IsDeleted\" = false");
+
+                    b.ToTable("BandOpeningInterests", (string)null);
+                });
+
             modelBuilder.Entity("NoiseVault.Domain.Entities.City", b =>
                 {
                     b.Property<int>("Id")
@@ -1258,6 +1381,165 @@ namespace NoiseVault.Infra.Data.Migrations
                     b.ToTable("MediaUploads", (string)null);
                 });
 
+            modelBuilder.Entity("NoiseVault.Domain.Entities.MusicianAvailability", b =>
+                {
+                    b.Property<int>("MusicianProfileId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Day")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Period")
+                        .HasColumnType("integer");
+
+                    b.HasKey("MusicianProfileId", "Day", "Period");
+
+                    b.ToTable("MusicianAvailability", (string)null);
+                });
+
+            modelBuilder.Entity("NoiseVault.Domain.Entities.MusicianGenre", b =>
+                {
+                    b.Property<int>("MusicianProfileId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Genre")
+                        .HasColumnType("integer");
+
+                    b.HasKey("MusicianProfileId", "Genre");
+
+                    b.ToTable("MusicianGenres", (string)null);
+                });
+
+            modelBuilder.Entity("NoiseVault.Domain.Entities.MusicianInstrument", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Instrument")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Level")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("MusicianProfileId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("OtherName")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MusicianProfileId");
+
+                    b.HasIndex("Instrument", "MusicianProfileId");
+
+                    b.ToTable("MusicianInstruments", (string)null);
+                });
+
+            modelBuilder.Entity("NoiseVault.Domain.Entities.MusicianProfile", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Commitment")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("CreatedBy")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("DeletedBy")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Goal")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("HasGear")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("HasRehearsalSpace")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("HasTransport")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Influences")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsLookingForBand")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("LookingSince")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Reach")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("UpdatedBy")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique()
+                        .HasFilter("\"IsDeleted\" = false");
+
+                    b.HasIndex("IsLookingForBand", "LookingSince");
+
+                    b.ToTable("MusicianProfiles", (string)null);
+                });
+
+            modelBuilder.Entity("NoiseVault.Domain.Entities.MusicianSampleLink", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("MusicianProfileId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MusicianProfileId");
+
+                    b.ToTable("MusicianSampleLinks", (string)null);
+                });
+
             modelBuilder.Entity("NoiseVault.Domain.Entities.Notification", b =>
                 {
                     b.Property<int>("Id")
@@ -1279,6 +1561,9 @@ namespace NoiseVault.Infra.Data.Migrations
                         .HasColumnType("integer");
 
                     b.Property<int?>("BandInvitationId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("BandOpeningId")
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("CreatedAt")
@@ -1314,6 +1599,8 @@ namespace NoiseVault.Infra.Data.Migrations
                     b.HasIndex("BandId");
 
                     b.HasIndex("BandInvitationId");
+
+                    b.HasIndex("BandOpeningId");
 
                     b.HasIndex("EventId");
 
@@ -1408,6 +1695,9 @@ namespace NoiseVault.Infra.Data.Migrations
                     b.Property<int?>("BandId")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("BandOpeningId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasMaxLength(5000)
@@ -1448,6 +1738,10 @@ namespace NoiseVault.Infra.Data.Migrations
                     b.HasIndex("ArchiveEntryId")
                         .IsUnique()
                         .HasFilter("\"ArchiveEntryId\" IS NOT NULL AND \"IsDeleted\" = false");
+
+                    b.HasIndex("BandOpeningId")
+                        .IsUnique()
+                        .HasFilter("\"BandOpeningId\" IS NOT NULL AND \"IsDeleted\" = false");
 
                     b.HasIndex("EventId")
                         .IsUnique()
@@ -2240,6 +2534,41 @@ namespace NoiseVault.Infra.Data.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("NoiseVault.Domain.Entities.BandOpening", b =>
+                {
+                    b.HasOne("NoiseVault.Domain.Entities.Band", "Band")
+                        .WithMany()
+                        .HasForeignKey("BandId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Band");
+                });
+
+            modelBuilder.Entity("NoiseVault.Domain.Entities.BandOpeningInterest", b =>
+                {
+                    b.HasOne("NoiseVault.Domain.Entities.BandInvitation", null)
+                        .WithMany()
+                        .HasForeignKey("BandInvitationId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("NoiseVault.Domain.Entities.BandOpening", "BandOpening")
+                        .WithMany("Interests")
+                        .HasForeignKey("BandOpeningId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("NoiseVault.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("BandOpening");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("NoiseVault.Domain.Entities.Comment", b =>
                 {
                     b.HasOne("NoiseVault.Domain.Entities.User", "Author")
@@ -2356,6 +2685,53 @@ namespace NoiseVault.Infra.Data.Migrations
                     b.Navigation("Owner");
                 });
 
+            modelBuilder.Entity("NoiseVault.Domain.Entities.MusicianAvailability", b =>
+                {
+                    b.HasOne("NoiseVault.Domain.Entities.MusicianProfile", null)
+                        .WithMany("Availability")
+                        .HasForeignKey("MusicianProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("NoiseVault.Domain.Entities.MusicianGenre", b =>
+                {
+                    b.HasOne("NoiseVault.Domain.Entities.MusicianProfile", null)
+                        .WithMany("Genres")
+                        .HasForeignKey("MusicianProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("NoiseVault.Domain.Entities.MusicianInstrument", b =>
+                {
+                    b.HasOne("NoiseVault.Domain.Entities.MusicianProfile", null)
+                        .WithMany("Instruments")
+                        .HasForeignKey("MusicianProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("NoiseVault.Domain.Entities.MusicianProfile", b =>
+                {
+                    b.HasOne("NoiseVault.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("NoiseVault.Domain.Entities.MusicianSampleLink", b =>
+                {
+                    b.HasOne("NoiseVault.Domain.Entities.MusicianProfile", null)
+                        .WithMany("SampleLinks")
+                        .HasForeignKey("MusicianProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("NoiseVault.Domain.Entities.Notification", b =>
                 {
                     b.HasOne("NoiseVault.Domain.Entities.User", "Actor")
@@ -2376,6 +2752,11 @@ namespace NoiseVault.Infra.Data.Migrations
                     b.HasOne("NoiseVault.Domain.Entities.BandInvitation", "BandInvitation")
                         .WithMany()
                         .HasForeignKey("BandInvitationId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("NoiseVault.Domain.Entities.BandOpening", "BandOpening")
+                        .WithMany()
+                        .HasForeignKey("BandOpeningId")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("NoiseVault.Domain.Entities.Event", "Event")
@@ -2406,6 +2787,8 @@ namespace NoiseVault.Infra.Data.Migrations
                     b.Navigation("Band");
 
                     b.Navigation("BandInvitation");
+
+                    b.Navigation("BandOpening");
 
                     b.Navigation("Event");
 
@@ -2458,6 +2841,11 @@ namespace NoiseVault.Infra.Data.Migrations
                         .HasForeignKey("BandId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("NoiseVault.Domain.Entities.BandOpening", "BandOpening")
+                        .WithMany()
+                        .HasForeignKey("BandOpeningId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("NoiseVault.Domain.Entities.Event", "Event")
                         .WithMany()
                         .HasForeignKey("EventId")
@@ -2468,6 +2856,8 @@ namespace NoiseVault.Infra.Data.Migrations
                     b.Navigation("Author");
 
                     b.Navigation("Band");
+
+                    b.Navigation("BandOpening");
 
                     b.Navigation("Event");
                 });
@@ -2634,6 +3024,11 @@ namespace NoiseVault.Infra.Data.Migrations
                     b.Navigation("Members");
                 });
 
+            modelBuilder.Entity("NoiseVault.Domain.Entities.BandOpening", b =>
+                {
+                    b.Navigation("Interests");
+                });
+
             modelBuilder.Entity("NoiseVault.Domain.Entities.Event", b =>
                 {
                     b.Navigation("Comments");
@@ -2652,6 +3047,17 @@ namespace NoiseVault.Infra.Data.Migrations
                     b.Navigation("Attachment");
 
                     b.Navigation("SupportAttachment");
+                });
+
+            modelBuilder.Entity("NoiseVault.Domain.Entities.MusicianProfile", b =>
+                {
+                    b.Navigation("Availability");
+
+                    b.Navigation("Genres");
+
+                    b.Navigation("Instruments");
+
+                    b.Navigation("SampleLinks");
                 });
 
             modelBuilder.Entity("NoiseVault.Domain.Entities.Post", b =>

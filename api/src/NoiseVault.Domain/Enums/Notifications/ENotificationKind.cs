@@ -30,5 +30,6 @@ namespace NoiseVault.Domain.Enums.Notifications
         BandMentionedInPost = 25,
         BandMentionedInComment = 26,
         PhotoTagged = 27,
+        BandOpeningInterest = 28,
     }
 }

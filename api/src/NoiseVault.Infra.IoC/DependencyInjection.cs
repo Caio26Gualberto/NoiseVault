@@ -7,6 +7,10 @@ using NoiseVault.Application.Mentions;
 using NoiseVault.Application.Mentions.Interfaces;
 using NoiseVault.Application.Bands;
 using NoiseVault.Application.Bands.Interfaces;
+using NoiseVault.Application.BandOpenings;
+using NoiseVault.Application.BandOpenings.Interfaces;
+using NoiseVault.Application.Musicians;
+using NoiseVault.Application.Musicians.Interfaces;
 using NoiseVault.Infra.Data.Repositories.BandInvitations;
 using NoiseVault.Application.Archive;
 using NoiseVault.Application.Archive.Interfaces;
@@ -191,6 +195,10 @@ namespace NoiseVault.Infra.IoC
             // Bandas
             services.AddScoped<IBandAppService, BandAppService>();
             services.AddScoped<IBandInvitationAppService, BandInvitationAppService>();
+
+            // Ensaio
+            services.AddScoped<IMusicianAppService, MusicianAppService>();
+            services.AddScoped<IBandOpeningAppService, BandOpeningAppService>();
 
             // Feed e mídia
             services.AddScoped<IMediaUploadAppService, MediaUploadAppService>();

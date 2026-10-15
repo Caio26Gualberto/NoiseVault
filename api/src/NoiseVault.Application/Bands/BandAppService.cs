@@ -198,6 +198,21 @@ namespace NoiseVault.Application.Bands
         public async Task<Result<List<BandSummaryDto>>> Mine() =>
             Result<List<BandSummaryDto>>.Ok(await ListSummariesForUser(_currentUser.UserId), "BANDS_FOUND", "Bands found");
 
+        public async Task<Result<List<BandSummaryDto>>> Owned()
+        {
+            var me = _currentUser.UserId;
+
+            var bands = await _bandRepository.ListAsync(new QueryOptions<Band>
+            {
+                Predicate = b => b.Members.Any(m => m.UserId == me && m.Role == EBandMemberRole.Owner),
+                Includes = [b => b.Genres],
+                OrderBy = q => q.OrderBy(b => b.Name).ThenBy(b => b.Id),
+                AsNoTracking = true,
+            });
+
+            return Result<List<BandSummaryDto>>.Ok(bands.Select(MapSummary).ToList(), "BANDS_FOUND", "Bands found");
+        }
+
         public Task<Result<BandProfileDto>> SetAvatar(string slug, ImageUploadInput? file, CancellationToken cancellationToken = default) =>
             ReplaceImageAsync(
                 slug,

@@ -30,6 +30,13 @@ namespace NoiseVault.Infra.Data.Context
         public DbSet<Post> Posts => Set<Post>();
         public DbSet<PostMedia> PostMedia => Set<PostMedia>();
         public DbSet<PhotoTag> PhotoTags => Set<PhotoTag>();
+        public DbSet<MusicianProfile> MusicianProfiles => Set<MusicianProfile>();
+        public DbSet<MusicianInstrument> MusicianInstruments => Set<MusicianInstrument>();
+        public DbSet<MusicianGenre> MusicianGenres => Set<MusicianGenre>();
+        public DbSet<MusicianAvailability> MusicianAvailability => Set<MusicianAvailability>();
+        public DbSet<MusicianSampleLink> MusicianSampleLinks => Set<MusicianSampleLink>();
+        public DbSet<BandOpening> BandOpenings => Set<BandOpening>();
+        public DbSet<BandOpeningInterest> BandOpeningInterests => Set<BandOpeningInterest>();
         public DbSet<PostLike> PostLikes => Set<PostLike>();
         public DbSet<Comment> Comments => Set<Comment>();
         public DbSet<Event> Events => Set<Event>();
@@ -281,6 +288,15 @@ namespace NoiseVault.Infra.Data.Context
                 b.HasIndex(x => x.PublishedAt);
                 b.HasIndex(x => new { x.AuthorUserId, x.PublishedAt });
                 b.HasIndex(x => new { x.BandId, x.PublishedAt });
+
+                b.HasOne(x => x.BandOpening)
+                    .WithMany()
+                    .HasForeignKey(x => x.BandOpeningId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasIndex(x => x.BandOpeningId)
+                    .IsUnique()
+                    .HasFilter(DatabaseProvider.NotNullIndexFilter(this, nameof(Post.BandOpeningId)));
             });
 
             builder.Entity<PostMedia>(b =>
@@ -492,6 +508,121 @@ namespace NoiseVault.Infra.Data.Context
                 b.HasIndex(x => x.BandId);
             });
 
+            builder.Entity<MusicianProfile>(b =>
+            {
+                b.ToTable("MusicianProfiles");
+                b.HasKey(x => x.Id);
+
+                b.Property(x => x.Influences).HasMaxLength(300);
+
+                b.HasOne(x => x.User)
+                    .WithMany()
+                    .HasForeignKey(x => x.UserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasIndex(x => x.UserId)
+                    .IsUnique()
+                    .HasFilter(DatabaseProvider.SoftDeleteIndexFilter(this));
+
+                b.HasIndex(x => new { x.IsLookingForBand, x.LookingSince });
+            });
+
+            builder.Entity<MusicianInstrument>(b =>
+            {
+                b.ToTable("MusicianInstruments");
+                b.HasKey(x => x.Id);
+
+                b.Property(x => x.OtherName).HasMaxLength(60);
+
+                b.HasOne<MusicianProfile>()
+                    .WithMany(x => x.Instruments)
+                    .HasForeignKey(x => x.MusicianProfileId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                b.HasIndex(x => new { x.Instrument, x.MusicianProfileId });
+            });
+
+            builder.Entity<MusicianGenre>(b =>
+            {
+                b.ToTable("MusicianGenres");
+                b.HasKey(g => new { g.MusicianProfileId, g.Genre });
+
+                b.HasOne<MusicianProfile>()
+                    .WithMany(x => x.Genres)
+                    .HasForeignKey(x => x.MusicianProfileId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            builder.Entity<MusicianAvailability>(b =>
+            {
+                b.ToTable("MusicianAvailability");
+                b.HasKey(a => new { a.MusicianProfileId, a.Day, a.Period });
+
+                b.HasOne<MusicianProfile>()
+                    .WithMany(x => x.Availability)
+                    .HasForeignKey(x => x.MusicianProfileId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            builder.Entity<MusicianSampleLink>(b =>
+            {
+                b.ToTable("MusicianSampleLinks");
+                b.HasKey(x => x.Id);
+
+                b.Property(x => x.Url).HasMaxLength(300).IsRequired();
+
+                b.HasOne<MusicianProfile>()
+                    .WithMany(x => x.SampleLinks)
+                    .HasForeignKey(x => x.MusicianProfileId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            builder.Entity<BandOpening>(b =>
+            {
+                b.ToTable("BandOpenings");
+                b.HasKey(x => x.Id);
+
+                b.Property(x => x.OtherName).HasMaxLength(60);
+                b.Property(x => x.Description).HasMaxLength(500).IsRequired();
+
+                b.HasOne(x => x.Band)
+                    .WithMany()
+                    .HasForeignKey(x => x.BandId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasIndex(x => new { x.BandId, x.Status });
+                b.HasIndex(x => new { x.Status, x.ExpiresAt });
+            });
+
+            builder.Entity<BandOpeningInterest>(b =>
+            {
+                b.ToTable("BandOpeningInterests");
+                b.HasKey(x => x.Id);
+
+                b.Property(x => x.Message).HasMaxLength(300);
+
+                b.HasOne(x => x.BandOpening)
+                    .WithMany(x => x.Interests)
+                    .HasForeignKey(x => x.BandOpeningId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasOne(x => x.User)
+                    .WithMany()
+                    .HasForeignKey(x => x.UserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasOne<BandInvitation>()
+                    .WithMany()
+                    .HasForeignKey(x => x.BandInvitationId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasIndex(x => new { x.BandOpeningId, x.UserId })
+                    .IsUnique()
+                    .HasFilter(DatabaseProvider.SoftDeleteIndexFilter(this));
+
+                b.HasIndex(x => x.UserId);
+            });
+
             builder.Entity<PhotoTag>(b =>
             {
                 b.ToTable("PhotoTags");
@@ -638,6 +769,11 @@ namespace NoiseVault.Infra.Data.Context
                 b.HasOne(x => x.SupportTicket)
                     .WithMany()
                     .HasForeignKey(x => x.SupportTicketId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasOne(x => x.BandOpening)
+                    .WithMany()
+                    .HasForeignKey(x => x.BandOpeningId)
                     .OnDelete(DeleteBehavior.Restrict);
 
                 b.HasIndex(x => new { x.UserId, x.ReadAt, x.LastActivityAt });

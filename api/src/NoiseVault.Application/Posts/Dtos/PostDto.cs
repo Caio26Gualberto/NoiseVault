@@ -1,4 +1,5 @@
 using NoiseVault.Application.Mentions.Dtos;
+using NoiseVault.Application.BandOpenings.Dtos;
 using NoiseVault.Application.Archive.Dtos;
 using NoiseVault.Application.Bands.Dtos;
 using NoiseVault.Application.Events.Dtos;
@@ -15,6 +16,7 @@ namespace NoiseVault.Application.Posts.Dtos
         public BandSummaryDto? Band { get; set; }
         public EventSummaryDto? Event { get; set; }
         public ArchiveSummaryDto? Archive { get; set; }
+        public BandOpeningSummaryDto? Opening { get; set; }
         public string Content { get; set; } = string.Empty;
         public List<MentionDto> Mentions { get; set; } = [];
         public List<MediaDto> Media { get; set; } = [];
