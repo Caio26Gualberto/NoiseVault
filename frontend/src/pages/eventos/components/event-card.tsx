@@ -26,7 +26,7 @@ export function EventCard({ event, onToggleInterest }: EventCardProps) {
 
   return (
     <article className={cn('flex flex-col overflow-hidden rounded-xl border bg-card', closed && 'opacity-80')}>
-      <Link to={`/eventos/${event.id}`} className="relative block aspect-video bg-muted focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none">
+      <Link to={`/eventos/${event.id}`} className="relative block aspect-video overflow-hidden bg-muted focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none">
         {event.bannerUrl ? (
           <img src={event.bannerUrl} alt="" loading="lazy" className={cn('size-full object-cover', closed && 'grayscale-[60%]')} style={{ objectPosition: `center ${event.bannerPosition}%` }} />
         ) : null}
