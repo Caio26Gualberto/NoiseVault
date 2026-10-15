@@ -39,7 +39,7 @@
     "dateTime": "Use dia, mês, ano e hora, como 25/10/2026 21:00."
   },
   "city": {
-    "searchPlaceholder": "Buscar cidade…",
+    "searchPlaceholder": "Buscar qualquer cidade do Brasil…",
     "typeMore": "Digite pelo menos 2 letras do nome da cidade.",
     "loading": "Buscando…",
     "empty": "Nenhuma cidade encontrada.",
@@ -48,7 +48,8 @@
     "abroadPlaceholder": "Ex.: Lisboa, Portugal",
     "abroadUse": "Usar esta cidade",
     "backToBrazil": "Voltar para o Brasil",
-    "suggestions": "Cidades do ABC"
+    "suggestions": "Sugestões do ABC",
+    "moreHint": "Não é daqui? Digite o nome de qualquer cidade do Brasil."
   },
   "field": {
     "hint": "Saiba mais sobre {{label}}"

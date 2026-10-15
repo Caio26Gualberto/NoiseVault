@@ -1,12 +1,14 @@
 import { CalendarIcon } from 'lucide-react'
 import { useState } from 'react'
 import type { ChangeEvent } from 'react'
+import type { DropdownProps } from 'react-day-picker'
 import { useTranslation } from 'react-i18next'
 import { ptBR } from 'react-day-picker/locale'
 
 import { AppButton } from '@/components/app-button'
 import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 
 export const invalidDateTime = 'invalid'
@@ -57,6 +59,33 @@ function toText(value: string) {
 function toDate(value: string) {
   const match = /^(\d{4})-(\d{2})-(\d{2})T/.exec(value)
   return match ? new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3])) : undefined
+}
+
+const monthName = new Intl.DateTimeFormat('pt-BR', { month: 'long' })
+
+function formatMonth(date: Date) {
+  const name = monthName.format(date)
+  return name.charAt(0).toUpperCase() + name.slice(1)
+}
+
+function CalendarDropdown({ options = [], value, onChange, 'aria-label': ariaLabel }: DropdownProps) {
+  return (
+    <Select
+      value={String(value)}
+      onValueChange={(next) => onChange?.({ target: { value: next } } as ChangeEvent<HTMLSelectElement>)}
+    >
+      <SelectTrigger size="sm" aria-label={ariaLabel} className="relative z-10 h-8 w-auto gap-1 border-none bg-transparent px-2 font-medium shadow-none hover:bg-accent dark:bg-transparent dark:hover:bg-accent">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent className="max-h-72">
+        {options.map((option) => (
+          <SelectItem key={option.value} value={String(option.value)} disabled={option.disabled}>
+            {option.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  )
 }
 
 type AppDateTimeInputProps = {
@@ -139,6 +168,8 @@ export function AppDateTimeInput({ value, onChange, onBlur, id, invalid, describ
             onSelect={setDraftDay}
             defaultMonth={draftDay}
             captionLayout="dropdown"
+            components={{ Dropdown: CalendarDropdown }}
+            formatters={{ formatMonthDropdown: formatMonth }}
             className="[--cell-size:--spacing(9)]"
           />
           <div className="flex items-end gap-2 border-t p-3">

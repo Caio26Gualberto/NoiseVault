@@ -196,7 +196,10 @@ export function AppCitySelect({
                 className="h-10 w-full bg-transparent pr-3 pl-9 text-sm placeholder:text-muted-foreground focus-visible:outline-none"
               />
             </div>
-            <div className="max-h-64 overflow-y-auto py-1">
+            {showingSuggestions ? (
+              <p className="border-b bg-muted/40 px-3 py-2 text-xs text-muted-foreground">{t('city.moreHint')}</p>
+            ) : null}
+            <div className="max-h-72 overflow-y-auto py-1">
               {query.trim().length < searchMinLength && !showingSuggestions ? (
                 <p className="px-3 py-2.5 text-sm text-muted-foreground">{t('city.typeMore')}</p>
               ) : items.length > 0 ? (
