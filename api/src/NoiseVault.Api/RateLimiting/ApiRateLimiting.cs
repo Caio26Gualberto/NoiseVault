@@ -34,6 +34,7 @@ namespace NoiseVault.Api.RateLimiting
         public const string OpeningInterest = "opening-interest";
         public const string LocationUpdate = "location-update";
         public const string BandVerification = "band-verification";
+        public const string DiscographyImport = "discography-import";
     }
 
     public static class ApiRateLimiting
@@ -81,6 +82,7 @@ namespace NoiseVault.Api.RateLimiting
                 AddFixedWindow(options, ApiRateLimitPolicies.OpeningInterest, permitLimit: 20, windowMinutes: 60);
                 AddFixedWindow(options, ApiRateLimitPolicies.LocationUpdate, permitLimit: 10, windowMinutes: 1440);
                 AddFixedWindow(options, ApiRateLimitPolicies.BandVerification, permitLimit: 3, windowMinutes: 1440);
+                AddFixedWindow(options, ApiRateLimitPolicies.DiscographyImport, permitLimit: 5, windowMinutes: 60);
 
                 options.OnRejected = async (context, token) =>
                 {

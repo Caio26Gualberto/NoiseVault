@@ -53,6 +53,7 @@ Copiar `AutomaticRetry(3)` + `DisableConcurrentExecution(300)` em todo job produ
 | `notifications:purge` (recorrente, diário às 4 h) | `notifications` | `2 · 60, 600` | 30s | `DELETE` idempotente; repetir não faz mal |
 | `SendBandInviteEmailAsync(invitationId)` (enfileirado) | `notifications` | `2 · 60, 600`, `OnAttemptsExceeded = Fail` | — | SMTP fora do ar é transitório; o job relê o convite a cada tentativa, então não manda e-mail de convite já respondido |
 | `SendBandVerificationEmailAsync(requestId)` (enfileirado) | `notifications` | `2 · 60, 600`, `OnAttemptsExceeded = Fail` | — | mesmo desenho do convite; o job relê o pedido e só manda se ainda estiver pendente |
+| `discography:refresh` (`DiscographyRecurringJobsTrigger.RefreshAsync`) | `default` | `2 · 60, 600`, `DisableConcurrentExecution(60)` | diário às 5 h | reimporta do Spotify as bandas com sync de mais de 24 h, uma por vez com pausa de 1 s; para no primeiro 429 e tenta amanhã (`discografia.md`) |
 | `TranscodeVideoAsync(mediaId)` (enfileirado) | `media` | `2 · 60, 300`, `OnAttemptsExceeded = Fail` | — | falha transitória (S3, ffmpeg) merece nova tentativa; a **última** marca a mídia `Failed` em vez de relançar (o trigger lê `RetryCount` do `PerformContext`), senão o post ficaria "processando" para sempre. Rejeição definitiva (não é vídeo, longo demais) não relança. |
 
 ⚠️ **`DisableConcurrentExecution(timeoutInSeconds)` é o tempo de espera pelo lock distribuído, não um teto de duração.** Para job periódico o certo é estourar rápido (15–30s) e deixar o `[AutomaticRetry]` reagendar.

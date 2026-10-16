@@ -15,6 +15,8 @@ namespace NoiseVault.Domain.Entities
         public string? YoutubeUrl { get; set; }
         public string? SpotifyUrl { get; set; }
         public bool IsVerified { get; set; }
+        public string? SpotifyArtistId { get; set; }
+        public DateTime? DiscographySyncedAt { get; set; }
         public string? AvatarKey { get; set; }
         public string? BannerKey { get; set; }
         public int BannerPosition { get; set; } = DefaultBannerPosition;

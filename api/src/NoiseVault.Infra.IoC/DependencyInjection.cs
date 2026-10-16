@@ -16,6 +16,9 @@ using NoiseVault.Application.Archive;
 using NoiseVault.Application.Archive.Interfaces;
 using NoiseVault.Infra.Data.Repositories.Archive;
 using NoiseVault.Infra.Data.Repositories.BandVerifications;
+using NoiseVault.Infra.Data.Spotify;
+using NoiseVault.Workers.Triggers.Recurring.Discography;
+using NoiseVault.Workers.Wrappers.Recurring.Discography;
 using NoiseVault.Application.Notifications;
 using NoiseVault.Application.Notifications.Interfaces;
 using NoiseVault.Infra.Data.Repositories.Notifications;
@@ -199,6 +202,7 @@ namespace NoiseVault.Infra.IoC
             services.AddScoped<IBandAppService, BandAppService>();
             services.AddScoped<IBandInvitationAppService, BandInvitationAppService>();
             services.AddScoped<IBandVerificationAppService, BandVerificationAppService>();
+            services.AddScoped<IBandDiscographyAppService, BandDiscographyAppService>();
 
             // Ensaio
             services.AddScoped<IMusicianAppService, MusicianAppService>();
@@ -245,6 +249,14 @@ namespace NoiseVault.Infra.IoC
 
             services.AddFileStorage(config);
 
+            var spotifySettings = SpotifySettings.FromConfiguration(config);
+            services.AddSingleton(spotifySettings);
+            services.AddSingleton<SpotifyTokenCache>();
+            services.AddHttpClient<ISpotifyCatalog, SpotifyCatalogClient>(client => client.Timeout = TimeSpan.FromSeconds(20));
+
+            if (!spotifySettings.IsConfigured)
+                Console.WriteLine("[Noise Vault] Spotify:ClientId e Spotify:ClientSecret vazios — a importação de discografia responde SPOTIFY_NOT_CONFIGURED.");
+
             // Jobs
             services.AddScoped<IRecurringJobReader, RecurringJobReader>();
             services.AddScoped<IEnqueuedJobDispatcher, EnqueuedJobDispatcher>();
@@ -256,6 +268,8 @@ namespace NoiseVault.Infra.IoC
             services.AddScoped<NotificationsEnqueuedJobsTrigger>();
             services.AddScoped<NotificationsRecurringJobsTrigger>();
             services.AddScoped<NotificationsRecurringJobsWrapper>();
+            services.AddScoped<DiscographyRecurringJobsTrigger>();
+            services.AddScoped<DiscographyRecurringJobsWrapper>();
 
             // Repositories
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));

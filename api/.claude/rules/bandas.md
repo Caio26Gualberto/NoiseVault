@@ -117,6 +117,7 @@ Todos autenticados, em `Controllers/` (escopo do próprio usuário, sem permiss�
 - **`suggested` e `mine` não são paginados de propósito.** `suggested` é um widget de tamanho fixo (5). `mine` é limitado pela regra de volume (no máximo 10 bandas por pessoa).
 - **Perfil público**: `UserProfileDto` ganhou `bands: BandSummaryDto[]`, vindo de `IBandAppService.ListSummariesForUser`.
 - **Vagas abertas** (`BandOpening`) e o "Tenho interesse" que vira convite moram em `ensaio.md`. `GET /api/bands/owned` lista as bandas de que a pessoa é Owner, para o front escolher em nome de qual abrir vaga ou convidar.
+- **Discografia** (`BandRelease`, `BandTrack`, importação do Spotify, faixa em destaque) mora em `discografia.md`; as rotas ficam em `/api/bands/{slug}/discography`.
 
 **Validação** (as mesmas regras do perfil quando o campo é o mesmo):
 

@@ -681,6 +681,9 @@ namespace NoiseVault.Infra.Data.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
 
+                    b.Property<DateTime?>("DiscographySyncedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<int?>("FoundedYear")
                         .HasColumnType("integer");
 
@@ -703,6 +706,9 @@ namespace NoiseVault.Infra.Data.Migrations
                         .IsRequired()
                         .HasMaxLength(60)
                         .HasColumnType("character varying(60)");
+
+                    b.Property<string>("SpotifyArtistId")
+                        .HasColumnType("text");
 
                     b.Property<string>("SpotifyUrl")
                         .HasMaxLength(300)
@@ -983,6 +989,152 @@ namespace NoiseVault.Infra.Data.Migrations
                         .HasFilter("\"IsDeleted\" = false");
 
                     b.ToTable("BandOpeningInterests", (string)null);
+                });
+
+            modelBuilder.Entity("NoiseVault.Domain.Entities.BandRelease", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BandId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("CoverKey")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("CoverUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("CreatedBy")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("DeletedBy")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ExternalUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsHidden")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("ReleaseDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Source")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("SpotifyAlbumId")
+                        .HasMaxLength(22)
+                        .HasColumnType("character varying(22)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("UpdatedBy")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BandId", "Order");
+
+                    b.HasIndex("BandId", "SpotifyAlbumId")
+                        .IsUnique()
+                        .HasFilter("\"SpotifyAlbumId\" IS NOT NULL AND \"IsDeleted\" = false");
+
+                    b.ToTable("BandReleases", (string)null);
+                });
+
+            modelBuilder.Entity("NoiseVault.Domain.Entities.BandTrack", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BandReleaseId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("CreatedBy")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("DeletedBy")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("DiscNumber")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("DurationSeconds")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ExternalUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsFeatured")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("Number")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("SpotifyTrackId")
+                        .HasMaxLength(22)
+                        .HasColumnType("character varying(22)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("UpdatedBy")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BandReleaseId", "DiscNumber", "Number");
+
+                    b.ToTable("BandTracks", (string)null);
                 });
 
             modelBuilder.Entity("NoiseVault.Domain.Entities.BandVerificationRequest", b =>
@@ -2660,6 +2812,28 @@ namespace NoiseVault.Infra.Data.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("NoiseVault.Domain.Entities.BandRelease", b =>
+                {
+                    b.HasOne("NoiseVault.Domain.Entities.Band", "Band")
+                        .WithMany()
+                        .HasForeignKey("BandId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Band");
+                });
+
+            modelBuilder.Entity("NoiseVault.Domain.Entities.BandTrack", b =>
+                {
+                    b.HasOne("NoiseVault.Domain.Entities.BandRelease", "Release")
+                        .WithMany("Tracks")
+                        .HasForeignKey("BandReleaseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Release");
+                });
+
             modelBuilder.Entity("NoiseVault.Domain.Entities.BandVerificationRequest", b =>
                 {
                     b.HasOne("NoiseVault.Domain.Entities.Band", "Band")
@@ -3144,6 +3318,11 @@ namespace NoiseVault.Infra.Data.Migrations
             modelBuilder.Entity("NoiseVault.Domain.Entities.BandOpening", b =>
                 {
                     b.Navigation("Interests");
+                });
+
+            modelBuilder.Entity("NoiseVault.Domain.Entities.BandRelease", b =>
+                {
+                    b.Navigation("Tracks");
                 });
 
             modelBuilder.Entity("NoiseVault.Domain.Entities.Event", b =>

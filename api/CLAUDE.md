@@ -18,6 +18,7 @@ As **decisões** — o porquê de cada regra — vivem em `.claude/rules/`, um a
 | `.claude/rules/dominio.md` | o modelo da comunidade (pessoa, banda, integrante, convite, conteúdo, moderação), enums herdados e a ordem dos módulos |
 | `.claude/rules/perfil-e-midia.md` | campos do perfil, edição, avatar e capa, perfil público, busca de pessoas |
 | `.claude/rules/bandas.md` | banda sem login, slug imutável, quem é Owner, convite com estado e aceite atômico, endpoints, limites |
+| `.claude/rules/discografia.md` | discografia da banda: `BandRelease` e `BandTrack`, importação do Spotify pelo link do artista (client credentials em modo desenvolvimento, cópia no banco, job diário), dedupe e upsert que preserva ordem, ocultos e destaque, cadastro manual, política de uso do Spotify |
 | `.claude/rules/feed.md` | post de pessoa e de banda, visibilidade do post em processamento, quem edita e apaga, curtida, comentário, contadores |
 | `.claude/rules/mural.md` | mural das antigas: registro com data aproximada, envio da comunidade com aprovação ou recusa (`Archive.Review`, 5 pendentes por pessoa), mídias de arquivo (4 GB/2 h, 40 MB), permissões `Archive.*`, "Eu estava lá", linha do tempo, post no feed |
 | `.claude/rules/marcacoes.md` | @menção de pessoas e bandas em post e comentários (texto com handle, resolvido na leitura, notificação), marcação de pessoas nas fotos do feed e do mural (`PhotoTag`, quem remove) |

@@ -98,7 +98,7 @@ Parte 1 feita em 14/10/2026: ícone na tela inicial, tela cheia, página sem con
 
 ### 9. Página da banda como press kit
 
-- Player do Spotify, Bandcamp ou YouTube embutido, discografia, contato para show.
+- ~~Player do Spotify, Bandcamp ou YouTube embutido, discografia~~ (feito em 16/10/2026: discografia importada do Spotify ou manual, com player embutido, `api/.claude/rules/discografia.md`), contato para show.
 - "Chamar para tocar": mensagem para quem é responsável pela banda.
 - A casa de show acha a banda, e a banda acha show.
 

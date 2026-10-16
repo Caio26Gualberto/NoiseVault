@@ -61,6 +61,7 @@ Comprado pelo usuário em 14/10/2026. O `.com` já tinha dono, o `.com.br` o usu
   - S3 no bucket da mídia e no prefixo de backup;
   - `mediaconvert:CreateJob`, `mediaconvert:GetJob` e `iam:PassRole` só na role de serviço do MediaConvert;
   - as credenciais SMTP do SES são de outro usuário IAM, também por variável de ambiente (`Email__Smtp__*`).
+- **Spotify**: `Spotify__ClientId` e `Spotify__ClientSecret` do app no painel de desenvolvedor (modo desenvolvimento basta; `discografia.md`), por variável de ambiente. Renomear o app "A New Level Music" para Noise Vault, site `https://noisevault.net`, e apagar o redirect de `localhost:7213`.
 - **Postgres no servidor**: `pg_dump` diário para o S3 (prefixo próprio, retenção definida no deploy) e snapshot automático do Lightsail. Restaurar um backup faz parte do roteiro de verificação do deploy, não fica para quando precisar.
 - **Data Protection**: persistir as chaves antes de subir (`auth-e-contas.md`), senão cada restart do container invalida os links de confirmação e de redefinição.
 - **Hangfire**: o dashboard já não é mapeado em `Production` (`jobs-hangfire.md`).

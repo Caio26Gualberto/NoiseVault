@@ -25,6 +25,8 @@ Se o LocalStack já estava rodando antes de uma mudança em `infra/localstack/re
 
 Migration e seed rodam no boot da API em Development. Admin de dev: `caiogualbertodev@outlook.com` / `12341234`. E-mails de confirmação e de redefinição de senha caem no Mailpit.
 
+Para importar discografia do Spotify, crie um app em https://developer.spotify.com/dashboard (o modo desenvolvimento basta) e passe `Spotify__ClientId` e `Spotify__ClientSecret` como variáveis de ambiente da API; sem elas o botão "Importar do Spotify" responde que não está configurado e o resto da discografia funciona (`api/.claude/rules/discografia.md`).
+
 Em Development a API também cria um conjunto de exemplo (`Seed:DevData` no `appsettings.Development.json`): oito pessoas com e-mail `{nickname}@noisevault.dev` e senha `12341234` (`lucia.ferraz`, `rafa.tavares`, `marina.k`, `denis.moura`, `paty.lins`, `jorge.okamoto`, `bia.santana`, `tiago.nunes`), quatro bandas (o admin é Owner da Ferrugem), feed com fotos e vídeo, eventos, mural, fichas e vagas do Ensaio, tickets de suporte e notificações. As fotos e os vídeos vêm de uma pasta no seu PC (`%LOCALAPPDATA%\NoiseVault\seed-media`), preenchida uma vez por `api\scripts\baixar-midia-seed.ps1` (fotos de Metallica, Slayer, Kreator e cia., retratos de ícones do metal e vídeos de show, tudo do Wikimedia Commons com licença CC, uns 180 MB; o script corta os vídeos com o ffmpeg e grava os créditos), e são reenviados ao LocalStack sempre que faltarem. Sem a pasta, o seed usa imagens geradas e avisa no log. Para subir sem o conjunto, `Seed__DevData=false`; para voltar ao original, `docker compose down -v`.
 
 ## Documentação

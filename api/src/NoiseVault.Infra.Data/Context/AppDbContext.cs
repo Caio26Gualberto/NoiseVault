@@ -27,6 +27,8 @@ namespace NoiseVault.Infra.Data.Context
         public DbSet<BandMember> BandMembers => Set<BandMember>();
         public DbSet<BandInvitation> BandInvitations => Set<BandInvitation>();
         public DbSet<BandVerificationRequest> BandVerificationRequests => Set<BandVerificationRequest>();
+        public DbSet<BandRelease> BandReleases => Set<BandRelease>();
+        public DbSet<BandTrack> BandTracks => Set<BandTrack>();
         public DbSet<MediaUpload> MediaUploads => Set<MediaUpload>();
         public DbSet<Post> Posts => Set<Post>();
         public DbSet<PostMedia> PostMedia => Set<PostMedia>();
@@ -229,6 +231,46 @@ namespace NoiseVault.Infra.Data.Context
                     .HasFilter(DatabaseProvider.ValueIndexFilter(this, nameof(BandInvitation.Status), (int)EBandInvitationStatus.Pending));
 
                 b.HasIndex(x => new { x.InvitedUserId, x.Status });
+            });
+
+            builder.Entity<BandRelease>(b =>
+            {
+                b.ToTable("BandReleases");
+                b.HasKey(x => x.Id);
+
+                b.Property(x => x.Title).IsRequired().HasMaxLength(200);
+                b.Property(x => x.CoverUrl).HasMaxLength(500);
+                b.Property(x => x.CoverKey).HasMaxLength(200);
+                b.Property(x => x.SpotifyAlbumId).HasMaxLength(22);
+                b.Property(x => x.ExternalUrl).HasMaxLength(500);
+
+                b.HasOne(x => x.Band)
+                    .WithMany()
+                    .HasForeignKey(x => x.BandId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasMany(x => x.Tracks)
+                    .WithOne(x => x.Release)
+                    .HasForeignKey(x => x.BandReleaseId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasIndex(x => new { x.BandId, x.Order });
+
+                b.HasIndex(x => new { x.BandId, x.SpotifyAlbumId })
+                    .IsUnique()
+                    .HasFilter(DatabaseProvider.NotNullIndexFilter(this, nameof(BandRelease.SpotifyAlbumId)));
+            });
+
+            builder.Entity<BandTrack>(b =>
+            {
+                b.ToTable("BandTracks");
+                b.HasKey(x => x.Id);
+
+                b.Property(x => x.Title).IsRequired().HasMaxLength(200);
+                b.Property(x => x.SpotifyTrackId).HasMaxLength(22);
+                b.Property(x => x.ExternalUrl).HasMaxLength(500);
+
+                b.HasIndex(x => new { x.BandReleaseId, x.DiscNumber, x.Number });
             });
 
             builder.Entity<BandVerificationRequest>(b =>

@@ -289,6 +289,22 @@ namespace NoiseVault.Infra.Data.Context.Seeding
 
             await _context.SaveChangesAsync(cancellationToken);
 
+            var releaseLamina = NewRelease(ferrugem, "Lâmina Fria", EReleaseKind.Album, 2001, 0, "https://www.youtube.com/@ferrugemthrash",
+                [("Lâmina Fria", 254), ("Ferro e Sal", 198), ("Noite de Aço", 312), ("Sacolão", 221), ("Cidade Cinza", 287)]);
+            var releaseDemo = NewRelease(ferrugem, "Demo 98", EReleaseKind.Ep, 1998, 1, null,
+                [("Ferrugem", 203), ("Vila Luzita", 176), ("Trem das Seis", 240)]);
+            var releaseCinzas = NewRelease(cinzas, "Cinzas do Amanhã", EReleaseKind.Album, 2014, 0, "https://cinzas.bandcamp.com",
+                [("Cinzas do Amanhã", 301), ("Enxofre", 244), ("Última Fileira", 278), ("Mortalha", 332)]);
+            releaseLamina.Tracks[0].IsFeatured = true;
+
+            _context.BandReleases.AddRange(releaseLamina, releaseDemo, releaseCinzas);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            foreach (var release in new[] { releaseLamina, releaseDemo, releaseCinzas })
+                release.CoverKey = DevSeedMedia.ImageKey($"bands/{release.BandId}/releases", $"release-{release.Id}");
+
+            await _context.SaveChangesAsync(cancellationToken);
+
             var verificationPogo = Backdate(new BandVerificationRequest
             {
                 BandId = pogo.Id,
@@ -525,6 +541,18 @@ namespace NoiseVault.Infra.Data.Context.Seeding
                 Status = status,
                 ExpiresAt = expiresAt,
             }, createdAt);
+
+        private static BandRelease NewRelease(Band band, string title, EReleaseKind kind, int year, int order, string? externalUrl, (string Title, int Seconds)[] tracks) => new()
+        {
+            BandId = band.Id,
+            Title = title,
+            Kind = kind,
+            Year = year,
+            Source = EReleaseSource.Manual,
+            ExternalUrl = externalUrl,
+            Order = order,
+            Tracks = tracks.Select((t, index) => new BandTrack { Title = t.Title, DiscNumber = 1, Number = index + 1, DurationSeconds = t.Seconds, ExternalUrl = externalUrl }).ToList(),
+        };
 
         private SupportTicket NewTicket(User reporter, string title, string description, ESupportTicketStatus status, ESupportTicketPriority priority, ESupportTag[] tags, ESupportArea[] areas,
             string originPath, string userAgent, int viewportWidth, int viewportHeight, DateTime createdAt, DateTime? closedAt, MediaUpload[] media) =>

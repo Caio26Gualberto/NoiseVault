@@ -18,12 +18,14 @@ namespace NoiseVault.Api.Controllers
         private readonly IBandAppService _bandAppService;
         private readonly IBandInvitationAppService _invitationAppService;
         private readonly IBandVerificationAppService _verificationAppService;
+        private readonly IBandDiscographyAppService _discographyAppService;
 
-        public BandsController(IBandAppService bandAppService, IBandInvitationAppService invitationAppService, IBandVerificationAppService verificationAppService)
+        public BandsController(IBandAppService bandAppService, IBandInvitationAppService invitationAppService, IBandVerificationAppService verificationAppService, IBandDiscographyAppService discographyAppService)
         {
             _bandAppService = bandAppService;
             _invitationAppService = invitationAppService;
             _verificationAppService = verificationAppService;
+            _discographyAppService = discographyAppService;
         }
 
         [EnableRateLimiting(ApiRateLimitPolicies.BandCreate)]
@@ -155,6 +157,75 @@ namespace NoiseVault.Api.Controllers
         public async Task<ActionResult> Leave(string slug)
         {
             var result = await _bandAppService.Leave(slug);
+            return ToResponse(result);
+        }
+
+        [HttpGet("{slug}/discography")]
+        public async Task<ActionResult> Discography(string slug)
+        {
+            var result = await _discographyAppService.Get(slug);
+            return ToResponse(result);
+        }
+
+        [EnableRateLimiting(ApiRateLimitPolicies.DiscographyImport)]
+        [HttpPost("{slug}/discography/import")]
+        public async Task<ActionResult> ImportDiscography(string slug)
+        {
+            var result = await _discographyAppService.Import(slug);
+            return ToResponse(result);
+        }
+
+        [HttpPost("{slug}/discography/releases")]
+        public async Task<ActionResult> CreateRelease(string slug, [FromBody] BandReleaseInputDto input)
+        {
+            var result = await _discographyAppService.CreateRelease(slug, input);
+            return ToResponse(result);
+        }
+
+        [HttpPut("{slug}/discography/releases/{releaseId:int}")]
+        public async Task<ActionResult> UpdateRelease(string slug, int releaseId, [FromBody] BandReleaseInputDto input)
+        {
+            var result = await _discographyAppService.UpdateRelease(slug, releaseId, input);
+            return ToResponse(result);
+        }
+
+        [HttpDelete("{slug}/discography/releases/{releaseId:int}")]
+        public async Task<ActionResult> DeleteRelease(string slug, int releaseId)
+        {
+            var result = await _discographyAppService.DeleteRelease(slug, releaseId);
+            return ToResponse(result);
+        }
+
+        [EnableRateLimiting(ApiRateLimitPolicies.ProfileUpload)]
+        [RequestSizeLimit(AvatarRequestLimit)]
+        [RequestFormLimits(MultipartBodyLengthLimit = AvatarRequestLimit)]
+        [HttpPost("{slug}/discography/releases/{releaseId:int}/cover")]
+        public async Task<ActionResult> SetReleaseCover(string slug, int releaseId, IFormFile? file, CancellationToken cancellationToken)
+        {
+            await using var stream = file?.OpenReadStream();
+            var input = stream is null ? null : new ImageUploadInput(stream, file!.Length);
+            var result = await _discographyAppService.SetCover(slug, releaseId, input, cancellationToken);
+            return ToResponse(result);
+        }
+
+        [HttpPut("{slug}/discography/order")]
+        public async Task<ActionResult> ReorderDiscography(string slug, [FromBody] DiscographyOrderInputDto input)
+        {
+            var result = await _discographyAppService.Reorder(slug, input);
+            return ToResponse(result);
+        }
+
+        [HttpPatch("{slug}/discography/releases/{releaseId:int}/visibility")]
+        public async Task<ActionResult> SetReleaseVisibility(string slug, int releaseId, [FromBody] ReleaseVisibilityInputDto input)
+        {
+            var result = await _discographyAppService.SetHidden(slug, releaseId, input);
+            return ToResponse(result);
+        }
+
+        [HttpPut("{slug}/discography/featured")]
+        public async Task<ActionResult> SetFeaturedTrack(string slug, [FromBody] FeaturedTrackInputDto input)
+        {
+            var result = await _discographyAppService.SetFeatured(slug, input);
             return ToResponse(result);
         }
 

@@ -215,6 +215,11 @@ namespace NoiseVault.Infra.Data.Context.Seeding
             foreach (var item in events)
                 restored += await RestoreImageAsync(item.BannerKey, cancellationToken);
 
+            var bandIds = bands.Select(b => b.Id).ToList();
+            var releases = await _context.BandReleases.Where(r => bandIds.Contains(r.BandId) && r.CoverKey != null).ToListAsync(cancellationToken);
+            foreach (var release in releases)
+                restored += await RestoreImageAsync(release.CoverKey, cancellationToken);
+
             var musicians = await _context.MusicianProfiles.Where(p => ownerIds.Contains(p.UserId) && p.PhotoKey != null).ToListAsync(cancellationToken);
             foreach (var musician in musicians)
                 restored += await RestoreImageAsync(musician.PhotoKey, cancellationToken);

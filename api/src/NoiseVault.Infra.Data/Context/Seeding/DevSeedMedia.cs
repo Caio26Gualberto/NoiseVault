@@ -270,7 +270,7 @@ namespace NoiseVault.Infra.Data.Context.Seeding
 
         private static EImagePreset PresetOf(string key)
         {
-            if (key.Contains("/avatar/", StringComparison.Ordinal))
+            if (key.Contains("/avatar/", StringComparison.Ordinal) || key.Contains("/releases/", StringComparison.Ordinal))
                 return EImagePreset.Avatar;
             if (key.Contains("/banner/", StringComparison.Ordinal))
                 return EImagePreset.Banner;
