@@ -736,6 +736,24 @@ namespace NoiseVault.Infra.Data.Migrations
                     b.ToTable("Bands", (string)null);
                 });
 
+            modelBuilder.Entity("NoiseVault.Domain.Entities.BandFollower", b =>
+                {
+                    b.Property<int>("BandId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("BandId", "UserId");
+
+                    b.HasIndex("UserId", "CreatedAt");
+
+                    b.ToTable("BandFollowers", (string)null);
+                });
+
             modelBuilder.Entity("NoiseVault.Domain.Entities.BandGenre", b =>
                 {
                     b.Property<int>("BandId")
@@ -2722,6 +2740,25 @@ namespace NoiseVault.Infra.Data.Migrations
                     b.Navigation("City");
                 });
 
+            modelBuilder.Entity("NoiseVault.Domain.Entities.BandFollower", b =>
+                {
+                    b.HasOne("NoiseVault.Domain.Entities.Band", "Band")
+                        .WithMany("Followers")
+                        .HasForeignKey("BandId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("NoiseVault.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Band");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("NoiseVault.Domain.Entities.BandGenre", b =>
                 {
                     b.HasOne("NoiseVault.Domain.Entities.Band", null)
@@ -3310,6 +3347,8 @@ namespace NoiseVault.Infra.Data.Migrations
 
             modelBuilder.Entity("NoiseVault.Domain.Entities.Band", b =>
                 {
+                    b.Navigation("Followers");
+
                     b.Navigation("Genres");
 
                     b.Navigation("Members");

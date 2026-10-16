@@ -33,6 +33,7 @@ namespace NoiseVault.Application.Bands
         private readonly IFileStorage _fileStorage;
         private readonly IPostRepository _postRepository;
         private readonly IEventRepository _eventRepository;
+        private readonly IBandFollowerRepository _followerRepository;
         private readonly ImageReplacement _images;
         private readonly INotificationAppService _notificationAppService;
         private readonly ICityAppService _cityAppService;
@@ -48,11 +49,13 @@ namespace NoiseVault.Application.Bands
             IImageProcessor imageProcessor,
             IPostRepository postRepository,
             IEventRepository eventRepository,
+            IBandFollowerRepository followerRepository,
             INotificationAppService notificationAppService,
             ICityAppService cityAppService,
             IApplicationLoggerFactory loggerFactory)
         {
             _eventRepository = eventRepository;
+            _followerRepository = followerRepository;
             _postRepository = postRepository;
             _bandRepository = bandRepository;
             _memberRepository = memberRepository;
@@ -464,8 +467,9 @@ namespace NoiseVault.Application.Bands
         public Task<int> CountMemberships(int userId) =>
             _memberRepository.CountAsync(new QueryOptions<BandMember> { Predicate = m => m.UserId == userId });
 
-        public Task AddMember(int bandId, int userId, string? instrument) =>
-            _memberRepository.AddAsync(new BandMember
+        public async Task AddMember(int bandId, int userId, string? instrument)
+        {
+            await _memberRepository.AddAsync(new BandMember
             {
                 BandId = bandId,
                 UserId = userId,
@@ -473,6 +477,76 @@ namespace NoiseVault.Application.Bands
                 Role = EBandMemberRole.Member,
                 JoinedAt = DateTime.UtcNow,
             });
+
+            await _followerRepository.RemoveAsync(bandId, userId);
+        }
+
+        public Task<List<int>> FollowerUserIds(int bandId) =>
+            _followerRepository.FollowerUserIdsAsync(bandId);
+
+        public async Task<Result<BandProfileDto>> Follow(string slug)
+        {
+            _logger.SetOperation("FollowBand");
+
+            var (band, role) = await FindForFollowAsync(slug);
+
+            if (band == null)
+                return Result<BandProfileDto>.Fail(BandNotFound());
+
+            if (role != null)
+                return Result<BandProfileDto>.Fail(new Error("BAND_MEMBER_CANNOT_FOLLOW", "Band members already see everything the band posts", ErrorType.Validation));
+
+            if (await _followerRepository.AddAsync(band.Id, _currentUser.UserId))
+                _logger.Info("BAND_FOLLOWED", "Band followed", userId: _currentUser.UserId, extra: new { BandId = band.Id });
+
+            return Result<BandProfileDto>.Ok(await MapAsync(band), "BAND_FOLLOWED", "You are now following this band");
+        }
+
+        public async Task<Result<BandProfileDto>> Unfollow(string slug)
+        {
+            _logger.SetOperation("UnfollowBand");
+
+            var (band, _) = await FindForFollowAsync(slug);
+
+            if (band == null)
+                return Result<BandProfileDto>.Fail(BandNotFound());
+
+            if (await _followerRepository.RemoveAsync(band.Id, _currentUser.UserId))
+                _logger.Info("BAND_UNFOLLOWED", "Band unfollowed", userId: _currentUser.UserId, extra: new { BandId = band.Id });
+
+            return Result<BandProfileDto>.Ok(await MapAsync(band), "BAND_UNFOLLOWED", "You are no longer following this band");
+        }
+
+        public async Task<Result<PagedResultDto<BandSummaryDto>>> Following(PagedRequestDto query)
+        {
+            query.Normalize();
+
+            var (bandIds, totalCount) = await _followerRepository.PageFollowedBandIdsAsync(_currentUser.UserId, query.Skip, query.PageSize);
+            var summaries = await SummariesByIds(bandIds);
+            var items = bandIds.Where(summaries.ContainsKey).Select(id => summaries[id]).ToList();
+
+            return Result<PagedResultDto<BandSummaryDto>>.Ok(
+                PagedResultDto<BandSummaryDto>.Create(items, query.Page, query.PageSize, totalCount),
+                "BANDS_FOUND",
+                "Bands found");
+        }
+
+        private async Task<(Band? Band, EBandMemberRole? Role)> FindForFollowAsync(string slug)
+        {
+            var band = await _bandRepository.FirstOrDefaultAsync(new QueryOptions<Band>
+            {
+                Predicate = b => b.Slug == slug && !b.IsDeleted,
+                Includes = [b => b.Genres],
+                AsNoTracking = true,
+            });
+
+            if (band == null)
+                return (null, null);
+
+            var member = await FindMemberAsync(band.Id, _currentUser.UserId);
+
+            return (band, member?.Role);
+        }
 
         private async Task<Result<BandProfileDto>> ReplaceImageAsync(
             string slug,
@@ -715,6 +789,8 @@ namespace NoiseVault.Application.Bands
                 Verification = members.Any(m => m.UserId == me && m.Role == EBandMemberRole.Owner) ? await VerificationStateAsync(band.Id) : null,
                 PostCount = await _postRepository.CountPublishedByBandAsync(band.Id),
                 UpcomingEventCount = await _eventRepository.CountUpcomingByBandAsync(band.Id, DateTime.UtcNow),
+                FollowerCount = await _followerRepository.CountAsync(band.Id),
+                FollowedByMe = me != null && await _followerRepository.IsFollowingAsync(band.Id, me.Value),
             };
         }
 

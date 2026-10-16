@@ -16,6 +16,7 @@ using NoiseVault.Application.Archive;
 using NoiseVault.Application.Archive.Interfaces;
 using NoiseVault.Infra.Data.Repositories.Archive;
 using NoiseVault.Infra.Data.Repositories.BandVerifications;
+using NoiseVault.Infra.Data.Repositories.BandFollowers;
 using NoiseVault.Infra.Data.Spotify;
 using NoiseVault.Workers.Triggers.Recurring.Discography;
 using NoiseVault.Workers.Wrappers.Recurring.Discography;
@@ -281,6 +282,7 @@ namespace NoiseVault.Infra.IoC
             services.AddScoped<IEventRepository, EventRepository>();
             services.AddScoped<IArchiveRepository, ArchiveRepository>();
             services.AddScoped<IBandVerificationRepository, BandVerificationRepository>();
+            services.AddScoped<IBandFollowerRepository, BandFollowerRepository>();
             services.AddScoped<IPhotoTagRepository, PhotoTagRepository>();
             services.AddScoped<INotificationRepository, NotificationRepository>();
             services.AddScoped<ISupportTicketRepository, SupportTicketRepository>();

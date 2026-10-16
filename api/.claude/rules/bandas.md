@@ -24,7 +24,12 @@ Módulo 2 da ordem em `dominio.md`. Banda é entidade própria, **sem login**; q
   - Antes de criar um convite novo para o mesmo par, os pendentes já vencidos viram `Revoked` (`RetireExpiredAsync`). Sem isso, o índice único travaria o reconvite.
 - `IsVerified` é o selo. ~~Não há ação para verificar neste módulo~~: desde 15/10/2026 existe o pedido de verificação com fila de revisão ("Verificação", abaixo).
 - **`BandVerificationRequest`** (`BandId`, `RequestedByUserId`, `Message` 20–1000, `ContactPhone?` até 30, `Status: Pending | Approved | Rejected`, `ReviewedByUserId?`, `ReviewedAt?`, `RejectionReason?` 3–500). Índice único filtrado `(BandId) WHERE Status = Pending`: um pedido em análise por banda. O histórico fica: recusar não apaga, e o pedido seguinte é outra linha.
-- **Seguir banda e contadores de seguidores e eventos** não existem. Seguir não está no domínio, e eventos chegam no módulo 4. `postCount` (posts publicados da banda) entrou com o módulo 3 (`feed.md`). O DTO não traz campo vazio "para o futuro".
+- ~~**Seguir banda e contadores de seguidores e eventos** não existem.~~ Eventos chegaram no módulo 4 e `postCount` no módulo 3 (`feed.md`). **Seguir banda existe desde 16/10/2026** (decisão do usuário: é a relação natural da cena, fã segue banda sem aprovação, e o primeiro sinal honesto para o feed). O DTO continua sem campo vazio "para o futuro".
+- **`BandFollower`** (`BandId`, `UserId`, `CreatedAt`), chave composta, sem `EntityBase`, no molde do `EventInterest`. Índice `(UserId, CreatedAt)` para a lista "bandas que sigo". Não existe tabela genérica de relação: amizade entre pessoas, se vier, nasce como entidade própria, e chat não tem nada a ver com nenhuma das duas.
+  - **Integrante não segue a própria banda**: `PUT …/follow` de quem é Owner ou Member devolve `BAND_MEMBER_CANNOT_FOLLOW`, e aceitar um convite apaga a linha de seguidor que a pessoa tivesse (`AddMember`). Integrante já vê tudo da banda; contar duas vezes seria contador falso.
+  - Seguir e deixar de seguir são **idempotentes** (`PUT`/`DELETE`, como curtida e "Vou") e devolvem o `BandProfileDto` novo. Ficam no limite global de requisições, como curtida: barato e idempotente.
+  - `BandProfileDto.FollowerCount` conta seguidores ativos por query, como `PostCount`; `FollowedByMe` diz se quem lê segue. Nada materializado.
+  - Quem segue recebe a notificação `FollowedBandPosted` (kind 33) quando a banda publica, inclusive os posts automáticos de evento e de vaga, e o post com vídeo só quando o vídeo fica pronto (`feed.md`, `notificacoes.md`).
 
 ## Verificação: o selo diz que a banda é quem diz ser
 
@@ -103,6 +108,8 @@ Todos autenticados, em `Controllers/` (escopo do próprio usuário, sem permiss�
 | `DELETE /api/bands/{slug}/members/{userId}` | `BAND_MEMBER_REMOVED` |
 | `POST /api/bands/{slug}/members/{userId}/promote` (idempotente) | `BAND_MEMBER_PROMOTED` |
 | `POST /api/bands/{slug}/leave` | `BAND_LEFT` |
+| `PUT /api/bands/{slug}/follow` · `DELETE …/follow` (idempotentes, devolvem o perfil) | `BAND_FOLLOWED` / `BAND_UNFOLLOWED` |
+| `GET /api/bands/following` (paginado, do seguido mais recente para o mais antigo) | `BANDS_FOUND` |
 | `GET /api/band-invitations/mine` (paginado, pendentes válidos) | `BAND_INVITATIONS_FOUND` |
 | `POST /api/band-invitations/{id}/accept` / `decline` | `BAND_INVITATION_ACCEPTED` / `BAND_INVITATION_DECLINED` |
 | `DELETE /api/band-invitations/{id}` | `BAND_INVITATION_REVOKED` |
@@ -161,6 +168,7 @@ Volume (regra de negócio): no máximo **10 bandas por pessoa** (contando partic
 | `BAND_MEMBER_JOINED` | Info | `InvitationId`, `BandId` (aceite) |
 | `BAND_INVITATION_DECLINED` / `BAND_INVITATION_REVOKED` | Info | `InvitationId` (+ `BandId`) |
 | `BAND_MEMBER_PROMOTED` / `BAND_MEMBER_REMOVED` / `BAND_MEMBER_LEFT` | Info | `BandId`, usuário afetado |
+| `BAND_FOLLOWED` / `BAND_UNFOLLOWED` | Info | `BandId` (só quando a linha muda de fato) |
 | `AVATAR_*` / `BANNER_*` | Info | `BandId`, `Key` |
 | `BAND_VERIFICATION_REQUESTED` / `BAND_VERIFICATION_APPROVED` / `BAND_VERIFICATION_REJECTED` | Info | `RequestId`, `BandId` (mensagem, telefone e motivo não entram) |
 | `BAND_VERIFICATION_REVOKED` | Info | `BandId` |
@@ -200,3 +208,11 @@ Conta A (admin), conta B (Owner de uma banda) e conta C (integrante). Mailpit no
 4. **Recusa e novo pedido.** A recusa sem motivo → `INVALID_VERIFICATION_REJECTION_REASON`; com motivo → `BAND_VERIFICATION_REJECTED`, B recebe a 31 e vê o motivo em `verification.rejectionReason`. B pede de novo → nova linha pendente; aprovar a antiga → `BAND_VERIFICATION_NOT_PENDING`.
 5. **Aprovação e nome.** A aprova → `BAND_VERIFICATION_APPROVED`, `isVerified: true`, B e os outros Owners recebem a 30. Criar outra banda com o mesmo nome (em caixa diferente) → `BAND_NAME_RESERVED`; renomear uma banda para esse nome → `BAND_NAME_RESERVED`. Pedir de novo → `BAND_ALREADY_VERIFIED`.
 6. **Selo removido.** `POST /api/admin/bands/{id}/unverify` → `BAND_VERIFICATION_REVOKED`, `isVerified: false`, os Owners recebem a 32; de novo → `BAND_NOT_VERIFIED`. O 4º pedido no mesmo dia → 429.
+
+### Seguir
+
+1. B segue `furia-de-aco` (`PUT /api/bands/furia-de-aco/follow`) → `BAND_FOLLOWED`, `followedByMe: true`, `followerCount: 1`; de novo → o mesmo, sem segunda linha. A (Owner) tenta seguir → `BAND_MEMBER_CANNOT_FOLLOW`.
+2. `GET /api/bands/following` de B lista a banda; `GET /api/posts?following=true` de B traz só posts com `BandId` das bandas que B segue.
+3. A publica como a banda → B recebe a notificação 33 com `post` e `band`; A não recebe. Com vídeo, a 33 só chega quando o Hangfire publica o post.
+4. A convida B e B aceita → B deixa de ser seguidor (`followerCount: 0`) e passa a integrante.
+5. `DELETE …/follow` → `BAND_UNFOLLOWED`; de novo → o mesmo code, nada apagado.

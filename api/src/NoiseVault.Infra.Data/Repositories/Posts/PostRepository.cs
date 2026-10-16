@@ -24,6 +24,9 @@ namespace NoiseVault.Infra.Data.Repositories.Posts
             if (scope.BandId != null)
                 query = query.Where(p => p.BandId == scope.BandId);
 
+            if (scope.FollowedByUserId != null)
+                query = query.Where(p => p.BandId != null && p.Band!.Followers.Any(f => f.UserId == scope.FollowedByUserId));
+
             var totalCount = await query.CountAsync();
 
             var items = await Project(

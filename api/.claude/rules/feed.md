@@ -18,9 +18,10 @@ Módulo 3 da ordem em `dominio.md`. A mídia (fotos e vídeo) é de `midia-e-vid
 - **Qualquer integrante** (Owner ou Member) publica como a banda. Decisão do usuário em 13/10/2026: banda pequena costuma ter uma pessoa só cuidando da divulgação. Quem não é integrante recebe `NOT_BAND_MEMBER` (403).
 - **Comentário é sempre da pessoa.** Responder "como banda" ficou fora do primeiro corte.
 
-## Feed único e cronológico
+## Feed cronológico, com o recorte "Seguindo"
 
-- `GET /api/posts` lista tudo, do mais novo para o mais velho (`PublishedAt ?? CreatedAt`, desempate por `Id`). As abas "Tudo/Bandas" do mock morreram: sem "seguir" no domínio, uma aba "Seguindo" seria dado falso, e o usuário preferiu feed único.
+- `GET /api/posts` lista tudo, do mais novo para o mais velho (`PublishedAt ?? CreatedAt`, desempate por `Id`). ~~As abas "Tudo/Bandas" do mock morreram: sem "seguir" no domínio, uma aba "Seguindo" seria dado falso~~. Desde 16/10/2026 existe seguir banda (`bandas.md`), e `GET /api/posts?following=true` (`FeedQueryDto`) devolve só os posts com `BandId` de banda que quem lê segue (`PostScope.FollowedByUserId`), na mesma ordem. Sem ranqueamento: cronológico nos dois recortes, até o volume pedir outra coisa.
+- **Quem segue é avisado ao publicar.** `NotifyFollowersAsync` dispara a `FollowedBandPosted` (kind 33) para os seguidores da banda **no momento em que o post fica visível**: no `Create` quando nasce publicado, no `ProcessVideo` quando o Hangfire publica o post de vídeo (relê o post, porque ali não há `_currentUser`), e nos posts automáticos de evento e de vaga. Post de pessoa não avisa ninguém: seguir é de banda.
 - `GET /api/users/{nickname}/posts` lista o que a pessoa publicou (inclusive como banda). `GET /api/bands/{slug}/posts` lista o que tem o `BandId` da banda.
 - **Contadores reais no hero**: `UserProfileDto.PostCount` e `BandProfileDto.PostCount` contam só posts publicados. A regra "sem contador falso" (`bandas.md`) continua valendo; agora o número existe.
 - Autor desativado (`IsActive = false`) some do feed, das listas e das contagens de comentário.
@@ -83,7 +84,7 @@ Todos autenticados, em `Controllers/`.
 
 | Método e rota | Code de sucesso |
 |---|---|
-| `GET /api/posts` (paginado) | `POSTS_FOUND` |
+| `GET /api/posts?following=` (paginado; `following=true` recorta pelas bandas que sigo) | `POSTS_FOUND` |
 | `GET /api/users/{nickname}/posts`, `GET /api/bands/{slug}/posts` | `POSTS_FOUND` |
 | `POST /api/posts { content, bandSlug?, mediaIds[] }` | `POST_CREATED` |
 | `GET /api/posts/{id}` | `POST_FOUND` |

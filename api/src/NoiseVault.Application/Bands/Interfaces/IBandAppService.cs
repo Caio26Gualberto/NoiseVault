@@ -24,6 +24,9 @@ namespace NoiseVault.Application.Bands.Interfaces
         Task<Result<BandProfileDto>> RemoveMember(string slug, int userId);
         Task<Result<BandProfileDto>> PromoteMember(string slug, int userId);
         Task<Result> Leave(string slug);
+        Task<Result<BandProfileDto>> Follow(string slug);
+        Task<Result<BandProfileDto>> Unfollow(string slug);
+        Task<Result<PagedResultDto<BandSummaryDto>>> Following(PagedRequestDto query);
 
         Task<List<BandSummaryDto>> ListSummariesForUser(int userId);
         Task<Dictionary<int, BandSummaryDto>> SummariesByIds(IReadOnlyCollection<int> bandIds);
@@ -31,6 +34,7 @@ namespace NoiseVault.Application.Bands.Interfaces
         Task<(int? BandId, EBandMemberRole? Role)> FindAccess(string slug);
         Task<bool> IsMember(int bandId, int userId);
         Task<List<int>> MemberUserIds(int bandId, EBandMemberRole? role = null);
+        Task<List<int>> FollowerUserIds(int bandId);
         Task<int> CountMemberships(int userId);
         Task AddMember(int bandId, int userId, string? instrument);
     }

@@ -20,7 +20,7 @@ namespace NoiseVault.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult> Feed([FromQuery] PagedRequestDto query)
+        public async Task<ActionResult> Feed([FromQuery] FeedQueryDto query)
         {
             var result = await _postAppService.Feed(query);
             return ToResponse(result);

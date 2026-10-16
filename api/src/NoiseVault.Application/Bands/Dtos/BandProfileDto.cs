@@ -25,5 +25,7 @@ namespace NoiseVault.Application.Bands.Dtos
         public BandVerificationStateDto? Verification { get; set; }
         public int PostCount { get; set; }
         public int UpcomingEventCount { get; set; }
+        public int FollowerCount { get; set; }
+        public bool FollowedByMe { get; set; }
     }
 }

@@ -108,6 +108,11 @@ namespace NoiseVault.Infra.Data.Context.Seeding
             _context.Posts.AddRange(postRehearsalTalk, postShow, postRehearsalVideo, postFlyer, postBackstage, postPit, postRoom, postBlast, postTape);
             await _context.SaveChangesAsync(cancellationToken);
 
+            AddFollowers(ferrugem, paty, jorge, rafa, bia, tiago);
+            AddFollowers(pogo, admin, paty, lucia);
+            AddFollowers(vulto, admin, paty, jorge);
+            AddFollowers(cinzas, admin, lucia);
+
             AddLikes(postShow, lucia, marina, paty, rafa, jorge, bia);
             AddLikes(postRehearsalVideo, lucia, denis, marina, tiago);
             AddLikes(postFlyer, tiago, paty, admin);
@@ -370,6 +375,7 @@ namespace NoiseVault.Infra.Data.Context.Seeding
                 NewNotification(denis, ENotificationKind.PostCommented, tiago, now.AddHours(-4), postId: postRoom.Id, actorCount: 2),
                 NewNotification(bia, ENotificationKind.BandInvite, rafa, now.AddDays(-5), bandId: cinzas.Id, bandInvitationId: inviteBia.Id),
                 NewNotification(paty, ENotificationKind.PostCommented, admin, now.AddDays(-2).AddHours(3), postId: postShow.Id),
+                NewNotification(paty, ENotificationKind.FollowedBandPosted, admin, now.AddDays(-1), postId: postRehearsalVideo.Id, bandId: ferrugem.Id),
                 NewNotification(tiago, ENotificationKind.SupportTicketStatusChanged, admin, now.AddDays(-5), supportTicketId: ticketResolved.Id, readAt: now.AddDays(-5)));
 
             await _context.SaveChangesAsync(cancellationToken);
@@ -445,6 +451,9 @@ namespace NoiseVault.Infra.Data.Context.Seeding
                 PublishedAt = publishedAt,
                 Media = media.Select((m, index) => new PostMedia { MediaUploadId = m.Id, Order = index }).ToList(),
             }, publishedAt);
+
+        private void AddFollowers(Band band, params User[] users) =>
+            _context.BandFollowers.AddRange(users.Select((u, index) => new BandFollower { BandId = band.Id, UserId = u.Id, CreatedAt = DateTime.UtcNow.AddDays(-30 + index) }));
 
         private void AddLikes(Post post, params User[] users) =>
             _context.PostLikes.AddRange(users.Select((u, index) => new PostLike { PostId = post.Id, UserId = u.Id, CreatedAt = (post.PublishedAt ?? DateTime.UtcNow).AddMinutes(30 + index) }));

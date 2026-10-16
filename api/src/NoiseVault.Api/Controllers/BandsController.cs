@@ -58,6 +58,13 @@ namespace NoiseVault.Api.Controllers
             return ToResponse(result);
         }
 
+        [HttpGet("following")]
+        public async Task<ActionResult> Following([FromQuery] PagedRequestDto query)
+        {
+            var result = await _bandAppService.Following(query);
+            return ToResponse(result);
+        }
+
         [HttpGet("owned")]
         public async Task<ActionResult> Owned()
         {
@@ -150,6 +157,20 @@ namespace NoiseVault.Api.Controllers
         public async Task<ActionResult> PromoteMember(string slug, int userId)
         {
             var result = await _bandAppService.PromoteMember(slug, userId);
+            return ToResponse(result);
+        }
+
+        [HttpPut("{slug}/follow")]
+        public async Task<ActionResult> Follow(string slug)
+        {
+            var result = await _bandAppService.Follow(slug);
+            return ToResponse(result);
+        }
+
+        [HttpDelete("{slug}/follow")]
+        public async Task<ActionResult> Unfollow(string slug)
+        {
+            var result = await _bandAppService.Unfollow(slug);
             return ToResponse(result);
         }
 

@@ -60,6 +60,7 @@ Por que é assim:
 | `BandOpeningInterest` 28 | os Owners da banda, quando alguém mostra interesse numa vaga (`ensaio.md`) | não | `BandOpeningAppService.ExpressInterest` |
 | `BandVerificationRequested` 29 | quem tem `Bands.Verifications.View` (menos quem pediu), com `BandId`; mais o e-mail para `Email:VerificationInbox` por job | não | `BandVerificationAppService.Request` |
 | `BandVerificationApproved` 30 · `BandVerificationRejected` 31 · `BandVerificationRevoked` 32 | os Owners da banda, com `BandId` (`bandas.md`) | não | `Approve` / `Reject` / `Unverify` |
+| `FollowedBandPosted` 33 | quem segue a banda (`BandFollower`), com `PostId` e `BandId`; o ator é quem publicou, por isso integrante nunca recebe | não (uma por post) | `PostAppService.NotifyFollowersAsync`, quando o post fica visível (`feed.md`) |
 
 **Regras gerais:**
 - **Ninguém é notificado da própria ação**: o `NotifyMany` tira o ator da lista.

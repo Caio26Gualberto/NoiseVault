@@ -23,5 +23,6 @@ namespace NoiseVault.Domain.Entities
 
         public List<BandGenre> Genres { get; set; } = [];
         public List<BandMember> Members { get; set; } = [];
+        public List<BandFollower> Followers { get; set; } = [];
     }
 }

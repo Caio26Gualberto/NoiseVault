@@ -7,7 +7,7 @@ namespace NoiseVault.Application.Posts.Interfaces
 {
     public interface IPostAppService
     {
-        Task<Result<PagedResultDto<PostDto>>> Feed(PagedRequestDto query);
+        Task<Result<PagedResultDto<PostDto>>> Feed(FeedQueryDto query);
         Task<Result<PagedResultDto<PostDto>>> ByUser(string nickname, PagedRequestDto query);
         Task<Result<PagedResultDto<PostDto>>> ByBand(string slug, PagedRequestDto query);
         Task<Result<PostDto>> Get(int id);

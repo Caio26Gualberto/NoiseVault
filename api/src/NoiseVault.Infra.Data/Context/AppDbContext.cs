@@ -25,6 +25,7 @@ namespace NoiseVault.Infra.Data.Context
         public DbSet<Band> Bands => Set<Band>();
         public DbSet<BandGenre> BandGenres => Set<BandGenre>();
         public DbSet<BandMember> BandMembers => Set<BandMember>();
+        public DbSet<BandFollower> BandFollowers => Set<BandFollower>();
         public DbSet<BandInvitation> BandInvitations => Set<BandInvitation>();
         public DbSet<BandVerificationRequest> BandVerificationRequests => Set<BandVerificationRequest>();
         public DbSet<BandRelease> BandReleases => Set<BandRelease>();
@@ -202,6 +203,24 @@ namespace NoiseVault.Infra.Data.Context
 
                 b.HasIndex(x => new { x.BandId, x.UserId }).IsUnique();
                 b.HasIndex(x => x.UserId);
+            });
+
+            builder.Entity<BandFollower>(b =>
+            {
+                b.ToTable("BandFollowers");
+                b.HasKey(x => new { x.BandId, x.UserId });
+
+                b.HasOne(x => x.Band)
+                    .WithMany(x => x.Followers)
+                    .HasForeignKey(x => x.BandId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasOne(x => x.User)
+                    .WithMany()
+                    .HasForeignKey(x => x.UserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasIndex(x => new { x.UserId, x.CreatedAt });
             });
 
             builder.Entity<BandInvitation>(b =>

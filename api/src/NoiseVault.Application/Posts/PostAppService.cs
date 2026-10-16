@@ -87,8 +87,8 @@ namespace NoiseVault.Application.Posts
             _logger = loggerFactory.Create(LogContext.Posts);
         }
 
-        public Task<Result<PagedResultDto<PostDto>>> Feed(PagedRequestDto query) =>
-            PageAsync(PostScope.Everyone, query);
+        public Task<Result<PagedResultDto<PostDto>>> Feed(FeedQueryDto query) =>
+            PageAsync(query.Following ? new PostScope(FollowedByUserId: _currentUser.UserId) : PostScope.Everyone, query);
 
         public async Task<Result<PagedResultDto<PostDto>>> ByUser(string nickname, PagedRequestDto query)
         {
@@ -201,6 +201,9 @@ namespace NoiseVault.Application.Posts
 
             await _mentionAppService.Notify(content, null, new MentionTarget(InComment: false, PostId: post.Id), me, []);
 
+            if (published)
+                await NotifyFollowersAsync(post.Id, bandId, me);
+
             var created = await FindVisible(post.Id);
 
             return Result<PostDto>.Ok(await MapOneAsync(created!), "POST_CREATED", published ? "Post published" : "Post created; it is published when the video is ready");
@@ -295,20 +298,32 @@ namespace NoiseVault.Application.Posts
 
             foreach (var postId in await _postRepository.PendingPostIdsWithMediaAsync(mediaUploadId))
             {
-                if (await _postRepository.TryPublishAsync(postId, DateTime.UtcNow))
-                    _logger.Info("POST_PUBLISHED", "Post published after its video was processed", extra: new { PostId = postId, MediaId = mediaUploadId });
+                if (!await _postRepository.TryPublishAsync(postId, DateTime.UtcNow))
+                    continue;
+
+                _logger.Info("POST_PUBLISHED", "Post published after its video was processed", extra: new { PostId = postId, MediaId = mediaUploadId });
+
+                var post = await _postRepository.FirstOrDefaultAsync(new QueryOptions<Post> { Predicate = p => p.Id == postId, AsNoTracking = true });
+
+                if (post != null)
+                    await NotifyFollowersAsync(post.Id, post.BandId, post.AuthorUserId);
             }
         }
 
-        public Task CreateForEvent(int eventId, int authorUserId, int? bandId) =>
-            _postRepository.AddAsync(new Post
+        public async Task CreateForEvent(int eventId, int authorUserId, int? bandId)
+        {
+            var post = new Post
             {
                 AuthorUserId = authorUserId,
                 BandId = bandId,
                 EventId = eventId,
                 Content = string.Empty,
                 PublishedAt = DateTime.UtcNow,
-            });
+            };
+
+            await _postRepository.AddAsync(post);
+            await NotifyFollowersAsync(post.Id, bandId, authorUserId);
+        }
 
         public Task CreateForArchive(int archiveEntryId, int authorUserId) =>
             _postRepository.AddAsync(new Post
@@ -327,15 +342,33 @@ namespace NoiseVault.Application.Posts
                 await _postRepository.SoftDelete(post);
         }
 
-        public Task CreateForOpening(int bandOpeningId, int authorUserId, int bandId) =>
-            _postRepository.AddAsync(new Post
+        public async Task CreateForOpening(int bandOpeningId, int authorUserId, int bandId)
+        {
+            var post = new Post
             {
                 AuthorUserId = authorUserId,
                 BandId = bandId,
                 BandOpeningId = bandOpeningId,
                 Content = string.Empty,
                 PublishedAt = DateTime.UtcNow,
-            });
+            };
+
+            await _postRepository.AddAsync(post);
+            await NotifyFollowersAsync(post.Id, bandId, authorUserId);
+        }
+
+        private async Task NotifyFollowersAsync(int postId, int? bandId, int authorUserId)
+        {
+            if (bandId == null)
+                return;
+
+            var followers = await _bandAppService.FollowerUserIds(bandId.Value);
+
+            if (followers.Count == 0)
+                return;
+
+            await _notificationAppService.NotifyMany(followers, new NotificationInput(ENotificationKind.FollowedBandPosted, authorUserId, PostId: postId, BandId: bandId));
+        }
 
         public async Task DeleteForOpening(int bandOpeningId)
         {
