@@ -16,6 +16,7 @@ import { toBandForm, toBandInput } from './band-validators'
 import type { BandFormValues } from './band-validators'
 import { BandForm } from './components/band-form'
 import { InvitationsManager } from './components/invitations-manager'
+import { DiscographyManager } from './components/discography-manager'
 import { MembersManager } from './components/members-manager'
 import { useBand } from './hooks/use-band'
 import {
@@ -103,6 +104,7 @@ export function BandaEditarPage() {
       <MembersManager band={band} onChange={replace} onLeft={() => navigate(user ? `/perfil/${user.nickname}` : `/bandas/${band.slug}`)} />
 
       <InvitationsManager band={band} />
+      <DiscographyManager band={band} />
     </div>
   )
 }

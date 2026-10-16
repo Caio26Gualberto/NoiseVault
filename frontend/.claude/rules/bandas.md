@@ -44,6 +44,15 @@ Rule irmã: a seção "Verificação" de `../api/.claude/rules/bandas.md` (15/10
 - `band-verification-status.ts` espelha `EBandVerificationStatus` (`pending: 0, approved: 1, rejected: 2`), com tom do badge e `adminBandsPath`.
 - As notificações 29 a 32 (`notificacoes.md`): o pedido leva a equipe para `/admin/bandas`; aprovado, recusado e selo removido levam os Owners à página da banda.
 
+## Discografia
+
+Rule irmã: `../api/.claude/rules/discografia.md` (16/10/2026).
+
+- **Na página pública**, `components/band-discography.tsx` entra entre Integrantes e Vagas, busca `GET /api/bands/{slug}/discography` sozinho e some quando não há lançamento. No topo, a faixa em destaque: o embed do Spotify quando a faixa é importada, ou um cartão com o link próprio quando é manual. Depois, a grade de capas (`aspect-square overflow-hidden`, duas colunas no celular, quatro a partir de `md`) com tipo e ano. Clicar abre `release-dialog.tsx`: capa, link de origem, lista de faixas com número e duração e **um player por vez**, carregado só ao clicar na faixa (`spotify-embed.tsx`); nunca um iframe por faixa, porque cada embed pesa e o Spotify limita. Faixa manual abre o link próprio; faixa sem nada é só texto.
+- **Atribuição**: quando há lançamento importado, o rodapé da seção e do diálogo mostra o logo do Spotify (`SpotifyLogo`, o ícone oficial em SVG inline) com "Dados e capas do Spotify" e o link para o artista. Lançamento manual não mostra Spotify em lugar nenhum: a política deles proíbe misturar os dois na mesma faixa.
+- **Na edição** (`/bandas/:slug/editar`), o `AppCard` "Discografia" (`components/discography-manager.tsx`) vem depois dos convites: caixa "Importar do Spotify" (desabilitada sem link de artista ou sem o servidor configurado, com a frase explicando; mostra "Atualizado há X"), lista com ↑/↓ (o `move` por `splice` do `lineup-editor`), olho para esconder, "Trocar capa", "Editar" e "Apagar" só no manual, e a lista de faixas expandida com a estrela de destaque. Reordenar guarda a ordem local e mostra "Salvar ordem" / "Desfazer"; só o salvar chama a API. "Adicionar lançamento" abre `release-form-dialog.tsx` (título, tipo em chips, ano, link, faixas com nome, link e ordem), que também edita o manual.
+- `release-kind.ts` espelha `EReleaseKind` (`album: 0, ep: 1, single: 2`) e `EReleaseSource` (`spotify: 0, manual: 1`) e monta as URLs do embed.
+
 ## Convite
 
 - **Busca:** a pessoa é escolhida pela busca de pessoas real (`searchPeople` do `perfil-service`, debounce de 350 ms, 2+ caracteres, até 6 resultados, integrantes já filtrados). Escolher alguém trava o campo num cartão com "Trocar". Digitar o nickname inteiro e enviar sem escolher também funciona: a API resolve o nickname e devolve `INVITEE_NOT_FOUND` se não houver ninguém.

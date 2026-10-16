@@ -7,6 +7,7 @@ import type { ProfileSummaryDto, SocialLinksDto } from '@/pages/perfil/services/
 import type { BandInvitationStatus } from '../band-invitation-status'
 import type { BandMemberRole } from '../band-member-role'
 import type { BandVerificationStatus } from '../band-verification-status'
+import type { ReleaseKind, ReleaseSource } from '../release-kind'
 
 export type BandSummaryDto = {
   id: number
@@ -194,4 +195,105 @@ export const bandVerificationPhoneMaxLength = 30
 
 export function requestBandVerification(slug: string, input: BandVerificationRequestInput) {
   return apiPost<BandVerificationDto>(`${bandPath(slug)}/verification`, input, { toastSuccess: true })
+}
+
+export type BandTrackDto = {
+  id: number
+  title: string
+  discNumber: number
+  number: number
+  durationSeconds: number | null
+  spotifyTrackId: string | null
+  externalUrl: string | null
+  isFeatured: boolean
+}
+
+export type BandReleaseDto = {
+  id: number
+  title: string
+  kind: ReleaseKind
+  year: number
+  releaseDate: string | null
+  coverUrl: string | null
+  source: ReleaseSource
+  spotifyAlbumId: string | null
+  externalUrl: string | null
+  order: number
+  isHidden: boolean
+  tracks: BandTrackDto[]
+}
+
+export type FeaturedTrackDto = {
+  track: BandTrackDto
+  releaseId: number
+  releaseTitle: string
+  coverUrl: string | null
+}
+
+export type BandDiscographyDto = {
+  syncedAt: string | null
+  spotifyArtistId: string | null
+  spotifyArtistUrl: string | null
+  canEdit: boolean
+  canImport: boolean
+  featuredTrack: FeaturedTrackDto | null
+  releases: BandReleaseDto[]
+}
+
+export type BandTrackInput = {
+  title: string
+  externalUrl: string | null
+  durationSeconds: number | null
+}
+
+export type BandReleaseInput = {
+  title: string
+  kind: ReleaseKind
+  year: number
+  externalUrl: string | null
+  tracks: BandTrackInput[]
+}
+
+export const releaseTitleMaxLength = 200
+export const releaseMinYear = 1950
+export const maxTracksPerRelease = 100
+
+const discographyPath = (slug: string) => `${bandPath(slug)}/discography`
+
+export function getBandDiscography(slug: string) {
+  return apiGet<BandDiscographyDto>(discographyPath(slug))
+}
+
+export function importDiscography(slug: string) {
+  return apiPost<BandDiscographyDto>(`${discographyPath(slug)}/import`, undefined, { toastSuccess: true })
+}
+
+export function createRelease(slug: string, input: BandReleaseInput) {
+  return apiPost<BandDiscographyDto>(`${discographyPath(slug)}/releases`, input, { toastSuccess: true })
+}
+
+export function updateRelease(slug: string, releaseId: number, input: BandReleaseInput) {
+  return apiPut<BandDiscographyDto>(`${discographyPath(slug)}/releases/${releaseId}`, input, { toastSuccess: true })
+}
+
+export function deleteRelease(slug: string, releaseId: number) {
+  return apiDelete<BandDiscographyDto>(`${discographyPath(slug)}/releases/${releaseId}`, { toastSuccess: true })
+}
+
+export function setReleaseCover(slug: string, releaseId: number, file: File) {
+  const form = new FormData()
+  form.append('file', file)
+  return apiPostForm<BandDiscographyDto>(`${discographyPath(slug)}/releases/${releaseId}/cover`, form, { toastSuccess: true })
+}
+
+export function reorderDiscography(slug: string, releaseIds: number[]) {
+  return apiPut<BandDiscographyDto>(`${discographyPath(slug)}/order`, { releaseIds }, { toastSuccess: true })
+}
+
+export function setReleaseHidden(slug: string, releaseId: number, hidden: boolean) {
+  return apiPatch<BandDiscographyDto>(`${discographyPath(slug)}/releases/${releaseId}/visibility`, { hidden })
+}
+
+export function setFeaturedTrack(slug: string, trackId: number | null) {
+  return apiPut<BandDiscographyDto>(`${discographyPath(slug)}/featured`, { trackId }, { toastSuccess: true })
 }

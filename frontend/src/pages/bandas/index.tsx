@@ -17,6 +17,7 @@ import { AppSkeleton } from '@/components/app-skeleton'
 import { AppSocialLinks } from '@/components/app-social-links'
 import { formatDate } from '@/lib/format'
 import { BandOpenings } from '@/pages/ensaio/components/band-openings'
+import { BandDiscography } from './components/band-discography'
 import { BandEvents } from '@/pages/eventos/components/band-events'
 import { BandArchive } from '@/pages/mural/components/band-archive'
 import { OwnerPosts } from '@/pages/feed/components/owner-posts'
@@ -185,6 +186,7 @@ export function BandasPage() {
         </ul>
       </section>
 
+      <BandDiscography slug={band.slug} />
       <BandOpenings slug={band.slug} isOwner={isOwner} />
 
       <BandEvents slug={band.slug} />
