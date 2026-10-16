@@ -18,7 +18,7 @@ type BandDiscographyProps = {
 }
 
 const arrowClass =
-  'absolute top-1/2 z-10 flex size-10 -translate-y-1/2 items-center justify-center rounded-full border bg-card/95 text-foreground shadow-sm transition-all hover:border-primary hover:text-primary focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-0'
+  'pointer-events-auto absolute top-1/2 z-10 flex size-10 -translate-y-1/2 items-center justify-center rounded-full border bg-card/95 text-foreground shadow-sm transition-all hover:border-primary hover:text-primary focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-0'
 
 export function BandDiscography({ slug }: BandDiscographyProps) {
   const { t } = useTranslation('bandas')
@@ -79,13 +79,26 @@ export function BandDiscography({ slug }: BandDiscographyProps) {
         </div>
       ) : null}
 
-      <div className="relative">
-        <button type="button" aria-label={t('discography.previous')} disabled={current === 0} onClick={() => setPage(current - 1)} className={cn(arrowClass, '-left-3 md:-left-5')}>
-          <ChevronLeftIcon className="size-5" />
-        </button>
+      <div className="relative px-12 md:px-14">
+        <div className="pointer-events-none absolute inset-x-12 top-0 grid grid-cols-2 gap-3 md:inset-x-14 md:grid-cols-4">
+          {Array.from({ length: pageSize }, (_, index) => (
+            <div key={index} className="relative aspect-square">
+              {index === 0 ? (
+                <button type="button" aria-label={t('discography.previous')} disabled={current === 0} onClick={() => setPage(current - 1)} className={cn(arrowClass, '-left-12 md:-left-14')}>
+                  <ChevronLeftIcon className="size-5" />
+                </button>
+              ) : null}
+              {index === pageSize - 1 ? (
+                <button type="button" aria-label={t('discography.next')} disabled={current >= totalPages - 1} onClick={() => setPage(current + 1)} className={cn(arrowClass, '-right-12 md:-right-14')}>
+                  <ChevronRightIcon className="size-5" />
+                </button>
+              ) : null}
+            </div>
+          ))}
+        </div>
         <div className="overflow-hidden">
           <ul
-            className="-mx-1.5 flex transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
+            className="-mx-1.5 flex transition-transform duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
             style={{ transform: `translateX(-${current * 100}%)` }}
           >
             {discography.releases.map((release, index) => {
@@ -120,9 +133,6 @@ export function BandDiscography({ slug }: BandDiscographyProps) {
             })}
           </ul>
         </div>
-        <button type="button" aria-label={t('discography.next')} disabled={current >= totalPages - 1} onClick={() => setPage(current + 1)} className={cn(arrowClass, '-right-3 md:-right-5')}>
-          <ChevronRightIcon className="size-5" />
-        </button>
       </div>
 
       {totalPages > 1 ? (
