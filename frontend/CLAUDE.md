@@ -130,7 +130,7 @@ Rota e item de menu **nascem do mesmo lugar**. `publicRoutes` (com `guestOnly` p
 
 ## Listagem: paginação e filtros
 
-**Toda listagem nasce paginada** no servidor (ou no mock, pelo `mockPage`). `PagedResult<T>` em `api/types.ts`; `emptyPage<T>()` para o estado inicial. `AppPagination` é o único paginador (`mode: 'pages' | 'loadMore'`); `defaultPageSize = 10`, teto 100. O estado de página/filtros mora num **hook local** (`hooks/use-<x>-page.ts`) que devolve `{ items, page, …, loading, change<Filtro>, setPage, refresh, reload }`. **Toda mudança de filtro reseta a página para 1** (por isso `changeX`, não `setX`). Busca textual passa por `useDebouncedValue` (350 ms). Ação que muda a lista chama o service e o hook **refetcha** — nunca edita o array local.
+**Toda listagem nasce paginada** no servidor (ou no mock, pelo `mockPage`). `PagedResult<T>` em `api/types.ts`; `emptyPage<T>()` para o estado inicial. `AppPagination` é o único paginador (`mode: 'pages' | 'loadMore' | 'infinite'`); `defaultPageSize = 10`, teto 100. O estado de página/filtros mora num **hook local** (`hooks/use-<x>-page.ts`) que devolve `{ items, page, …, loading, change<Filtro>, setPage, refresh, reload }`. **Toda mudança de filtro reseta a página para 1** (por isso `changeX`, não `setX`). Busca textual passa por `useDebouncedValue` (350 ms). Ação que muda a lista chama o service e o hook **refetcha** — nunca edita o array local.
 
 ## Perfis e acesso
 

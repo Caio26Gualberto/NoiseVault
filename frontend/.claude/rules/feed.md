@@ -25,7 +25,8 @@ Rules irmãs: `../api/.claude/rules/feed.md` (post, curtida, comentário, quem p
 ## Lista: acumula e troca o item pelo DTO do servidor
 
 `hooks/use-post-list.ts` é o hook das três listas:
-- **"Carregar mais" soma as páginas** (o mock substituía a página 1 pela 2, um bug). Itens repetidos entre páginas são descartados por `id`.
+- **As páginas se somam** (o mock substituía a página 1 pela 2, um bug). Itens repetidos entre páginas são descartados por `id`.
+- **Rolagem infinita, como no Facebook e no Instagram** (pedido do usuário em 16/10/2026): o `PostFeed` usa `AppPagination` em `mode="infinite"`, que troca o botão "Carregar mais" por uma sentinela no fim da lista; quando ela chega a 600 px da janela, o hook pede a página seguinte e um spinner aparece enquanto carrega. Vale para o `/feed` e para as Publicações do perfil e da banda, que passam pelo mesmo componente. Os comentários do `/feed/:id` continuam com "Carregar mais": lá a pessoa está lendo um post, não rolando um fluxo.
 - **Publicar** recarrega a partir da página 1.
 - **Curtir e editar** trocam só aquele item pelo `PostDto` que a API devolve (`replace`). **Apagar** tira o item depois do `DELETE` com sucesso (`remove`).
   - É a mesma ideia do `replace(dto)` de bandas: o dado é do servidor, não simulado.

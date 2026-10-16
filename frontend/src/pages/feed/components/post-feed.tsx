@@ -28,7 +28,7 @@ export function PostFeed({ list, emptyTitle, emptyDescription }: PostFeedProps) 
         totalPages={list.totalPages}
         totalCount={list.totalCount}
         onChange={list.setPage}
-        mode="loadMore"
+        mode="infinite"
         loading={list.loading}
       />
     </div>

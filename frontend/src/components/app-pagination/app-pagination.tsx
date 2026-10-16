@@ -1,4 +1,5 @@
-import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
+import { ChevronLeftIcon, ChevronRightIcon, Loader2Icon } from 'lucide-react'
+import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { AppButton } from '@/components/app-button'
@@ -8,7 +9,7 @@ type AppPaginationProps = {
   totalPages: number
   totalCount: number
   onChange: (page: number) => void
-  mode?: 'pages' | 'loadMore'
+  mode?: 'pages' | 'loadMore' | 'infinite'
   loading?: boolean
 }
 
@@ -16,6 +17,10 @@ export function AppPagination({ page, totalPages, totalCount, onChange, mode = '
   const { t } = useTranslation()
 
   if (totalPages <= 1) return null
+
+  if (mode === 'infinite') {
+    return <InfiniteSentinel hasMore={page < totalPages} loading={loading} onMore={() => onChange(page + 1)} label={t('loading')} />
+  }
 
   if (mode === 'loadMore') {
     if (page >= totalPages) return null
@@ -44,5 +49,43 @@ export function AppPagination({ page, totalPages, totalCount, onChange, mode = '
         </AppButton>
       </div>
     </nav>
+  )
+}
+
+type InfiniteSentinelProps = {
+  hasMore: boolean
+  loading: boolean
+  onMore: () => void
+  label: string
+}
+
+const sentinelMargin = '600px 0px'
+
+function InfiniteSentinel({ hasMore, loading, onMore, label }: InfiniteSentinelProps) {
+  const ref = useRef<HTMLDivElement>(null)
+  const onMoreRef = useRef(onMore)
+  useEffect(() => {
+    onMoreRef.current = onMore
+  }, [onMore])
+
+  useEffect(() => {
+    const element = ref.current
+    if (!element || !hasMore || loading || typeof IntersectionObserver === 'undefined') return
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) onMoreRef.current()
+      },
+      { rootMargin: sentinelMargin },
+    )
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [hasMore, loading])
+
+  if (!hasMore) return null
+
+  return (
+    <div ref={ref} className="flex justify-center py-6" role="status" aria-label={label}>
+      {loading ? <Loader2Icon className="size-6 animate-spin text-muted-foreground" /> : null}
+    </div>
   )
 }
