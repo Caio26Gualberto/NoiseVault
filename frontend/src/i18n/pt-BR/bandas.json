@@ -127,6 +127,9 @@
     "playerTitle": "Player do Spotify: {{title}}",
     "attribution": "Dados e capas do Spotify",
     "attributionLink": "Dados e capas do Spotify. Ver o artista no Spotify",
+    "previous": "Lançamentos anteriores",
+    "next": "Próximos lançamentos",
+    "pageOf": "{{page}} de {{total}}",
     "kinds": {
       "album": "Álbum",
       "ep": "EP",
