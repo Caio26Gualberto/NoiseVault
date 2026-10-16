@@ -7,7 +7,7 @@ import { useAuth } from '@/auth/use-auth'
 import { AppAvatarUploader } from '@/components/app-avatar-uploader'
 import { AppBannerEditor } from '@/components/app-banner-editor'
 import { AppButton } from '@/components/app-button'
-import { AppCard } from '@/components/app-card'
+import { AppFormAsideBox, AppFormPanel } from '@/components/app-form-layout'
 import { AppPageHeader } from '@/components/app-page-header'
 import { AppSkeleton } from '@/components/app-skeleton'
 
@@ -65,7 +65,7 @@ export function BandaEditarPage() {
   }
 
   return (
-    <div className="app-page-enter mx-auto flex max-w-2xl flex-col gap-6">
+    <div className="app-page-enter flex flex-col gap-6">
       <AppPageHeader
         title={t('edit.title', { name: band.name })}
         description={t('edit.description')}
@@ -79,27 +79,34 @@ export function BandaEditarPage() {
         }
       />
 
-      <AppCard title={t('edit.appearance.title')} description={t('edit.appearance.description')}>
-        <div className="flex flex-col gap-6">
-          <AppAvatarUploader
-            name={band.name}
-            avatarUrl={band.avatarUrl}
-            onUpload={(file) => apply(setBandAvatar(band.slug, file))}
-            onRemove={() => apply(removeBandAvatar(band.slug))}
-          />
-          <AppBannerEditor
-            bannerUrl={band.bannerUrl}
-            bannerPosition={band.bannerPosition}
-            onUpload={(file, position) => apply(setBandBanner(band.slug, file, position))}
-            onPosition={(position) => apply(setBandBannerPosition(band.slug, position))}
-            onRemove={() => apply(removeBandBanner(band.slug))}
-          />
-        </div>
-      </AppCard>
-
-      <AppCard title={t('edit.data.title')} description={t('edit.data.description', { slug: band.slug })}>
-        <BandForm key={band.id} defaultValues={toBandForm(band)} submitLabel={t('form.save')} saving={saving} onSubmit={saveData} />
-      </AppCard>
+      <BandForm
+        key={band.id}
+        defaultValues={toBandForm(band)}
+        submitLabel={t('form.save')}
+        saving={saving}
+        onSubmit={saveData}
+        preview={{ slug: band.slug, avatarUrl: band.avatarUrl, bannerUrl: band.bannerUrl, bannerPosition: band.bannerPosition, isVerified: band.isVerified }}
+        asideNote={<AppFormAsideBox title={t('edit.data.title')} description={t('edit.data.description', { slug: band.slug })} />}
+        appearance={
+          <AppFormPanel title={t('edit.appearance.title')} description={t('edit.appearance.description')} wide>
+            <div className="grid gap-6 md:grid-cols-[auto_minmax(0,1fr)]">
+              <AppAvatarUploader
+                name={band.name}
+                avatarUrl={band.avatarUrl}
+                onUpload={(file) => apply(setBandAvatar(band.slug, file))}
+                onRemove={() => apply(removeBandAvatar(band.slug))}
+              />
+              <AppBannerEditor
+                bannerUrl={band.bannerUrl}
+                bannerPosition={band.bannerPosition}
+                onUpload={(file, position) => apply(setBandBanner(band.slug, file, position))}
+                onPosition={(position) => apply(setBandBannerPosition(band.slug, position))}
+                onRemove={() => apply(removeBandBanner(band.slug))}
+              />
+            </div>
+          </AppFormPanel>
+        }
+      />
 
       <MembersManager band={band} onChange={replace} onLeft={() => navigate(user ? `/perfil/${user.nickname}` : `/bandas/${band.slug}`)} />
 

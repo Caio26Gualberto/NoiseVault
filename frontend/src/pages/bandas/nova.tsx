@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 
-import { AppCard } from '@/components/app-card'
 import { AppPageHeader } from '@/components/app-page-header'
 
 import { emptyBandForm, instrumentOf, toBandInput } from './band-validators'
@@ -28,11 +27,16 @@ export function BandaNovaPage() {
   }
 
   return (
-    <div className="app-page-enter mx-auto flex max-w-2xl flex-col gap-6">
+    <div className="app-page-enter flex flex-col gap-6">
       <AppPageHeader title={t('create.title')} description={t('create.description')} />
-      <AppCard>
-        <BandForm defaultValues={emptyBandForm} withInstrument submitLabel={t('create.submit')} saving={saving} onSubmit={submit} />
-      </AppCard>
+      <BandForm
+        defaultValues={emptyBandForm}
+        withInstrument
+        submitLabel={t('create.submit')}
+        saving={saving}
+        onSubmit={submit}
+        onCancel={() => navigate(-1)}
+      />
     </div>
   )
 }

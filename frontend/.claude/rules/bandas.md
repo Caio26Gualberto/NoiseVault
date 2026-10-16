@@ -13,8 +13,8 @@ Rule irmã: `../api/.claude/rules/bandas.md`. A regra é do backend; a tela só 
 | Caminho | Tela | Quem vê |
 |---|---|---|
 | `/bandas/:slug` | página pública da banda: capa, avatar, descrição, cidade, "Desde {ano}", gêneros, links e integrantes; a seção "Vagas abertas" vem do Ensaio (`ensaio.md`) | qualquer pessoa logada |
-| `/bandas/nova` | criar banda (`BandForm` com o campo "seu instrumento na banda") | qualquer pessoa logada; entra pelo botão "Criar banda" no próprio perfil |
-| `/bandas/:slug/editar` | avatar e capa, dados, integrantes e convites | só Owner (`myRole === owner`); quem não é Owner é redirecionado para `/bandas/:slug` |
+| `/bandas/nova` | criar banda (`BandForm` com o campo "seu instrumento na banda" e "Cancelar" na coluna fixa) | qualquer pessoa logada; entra pelo botão "Criar banda" no próprio perfil |
+| `/bandas/:slug/editar` | o `BandForm` (com avatar e capa no primeiro painel), depois os cards de integrantes, convites e discografia | só Owner (`myRole === owner`); quem não é Owner é redirecionado para `/bandas/:slug` |
 | `/admin/bandas` | fila de pedidos de verificação (ver "Verificação") | `Bands.Verifications.View`; decidir exige `Bands.Verify` |
 
 - As três estão em `hiddenRoutes` no `nav-config`, com `/bandas/nova` antes de `/bandas/:slug`.
@@ -67,7 +67,7 @@ Rule irmã: `../api/.claude/rules/discografia.md` (16/10/2026).
 
 - `BandSummaryDto` mora em `bandas-service.ts` (a página dona). Perfil, feed, eventos e notificações importam de lá.
 - Os uploaders de avatar e capa viraram globais (`AppAvatarUploader`, `AppBannerEditor`), recebendo callbacks: a conta e a banda usam o mesmo componente. Validação de arquivo em `src/lib/image-file.ts`; textos em `common.json` (`imageUpload.*`).
-- O formulário (`components/band-form.tsx` + `band-validators.ts`) é o mesmo na criação e na edição. Os campos repetidos do perfil (cidade, gêneros, links, limite de instrumento) reaproveitam `meu-perfil/profile-validators.ts`.
+- O formulário (`components/band-form.tsx` + `band-validators.ts`) é o mesmo na criação e na edição, em `AppFormLayout` (`design-system.md`): a coluna fixa tem a prévia ao vivo do cartão da banda (capa e avatar atuais, nome, cidade, "Desde {ano}", descrição e gêneros lidos do formulário), o botão de enviar e, na criação, "Cancelar"; os painéis são "Sobre a banda", "De onde e desde quando" (com o instrumento na criação), "Redes" e "Sons". A edição passa `preview` (imagens, slug e selo), `asideNote` (a caixa que avisa que o endereço não muda) e `appearance` (o painel largo com `AppAvatarUploader` e `AppBannerEditor`, que salvam na hora, fora do submit). Pedido do usuário em 16/10/2026: o formulário de banda tinha ficado vertical num `AppCard` enquanto os outros já eram em duas colunas. Os campos repetidos do perfil (cidade, gêneros, links, limite de instrumento) reaproveitam `meu-perfil/profile-validators.ts`.
 - `band-invitation-status.ts` espelha `EBandInvitationStatus` (`pending: 0, accepted: 1, declined: 2, revoked: 3`).
 
 ## Roteiro de verificação

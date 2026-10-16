@@ -45,7 +45,15 @@
     "instagram": "Instagram",
     "youtube": "YouTube",
     "spotify": "Spotify",
-    "save": "Salvar dados"
+    "save": "Salvar dados",
+    "preview": "Assim a banda aparece",
+    "previewName": "Nome da banda",
+    "sections": {
+      "about": "Sobre a banda",
+      "origin": "De onde e desde quando",
+      "links": "Redes",
+      "genres": "Sons"
+    }
   },
   "edit": {
     "title": "Editar {{name}}",
@@ -56,7 +64,7 @@
       "description": "Aparecem na página da banda e em tudo que for marcado com ela."
     },
     "data": {
-      "title": "Dados da banda",
+      "title": "Endereço da banda",
       "description": "O endereço /bandas/{{slug}} não muda, mesmo se você trocar o nome."
     }
   },
