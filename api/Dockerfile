@@ -1,6 +1,5 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
-ARG SIXLABORS_LICENSE_KEY=
 WORKDIR /src
 
 COPY src/NoiseVault.Api/NoiseVault.Api.csproj                 src/NoiseVault.Api/
@@ -12,11 +11,11 @@ COPY src/NoiseVault.Workers/NoiseVault.Workers.csproj         src/NoiseVault.Wor
 RUN dotnet restore src/NoiseVault.Api/NoiseVault.Api.csproj
 
 COPY src/ src/
-RUN dotnet publish src/NoiseVault.Api/NoiseVault.Api.csproj \
+RUN --mount=type=secret,id=sixlabors,target=/src/src/NoiseVault.Infra.Data/sixlabors.lic \
+    dotnet publish src/NoiseVault.Api/NoiseVault.Api.csproj \
     -c $BUILD_CONFIGURATION \
     -o /app/publish \
-    /p:UseAppHost=false \
-    /p:SixLaborsLicenseKey="$SIXLABORS_LICENSE_KEY"
+    /p:UseAppHost=false
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 RUN apt-get update \

@@ -21,8 +21,8 @@ services:
     image: ghcr.io/caio26gualberto/noisevault-api:latest
     build:
       context: ../../api
-      args:
-        SIXLABORS_LICENSE_KEY: ${SIXLABORS_LICENSE_KEY}
+      secrets:
+        - sixlabors
     container_name: noisevault-api
     restart: unless-stopped
     depends_on:
@@ -60,3 +60,7 @@ volumes:
   pgdata:
   caddy_data:
   caddy_config:
+
+secrets:
+  sixlabors:
+    environment: SIXLABORS_LICENSE_KEY

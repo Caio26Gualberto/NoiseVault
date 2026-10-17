@@ -41,8 +41,8 @@ jobs:
           tags: |
             ${{ env.IMAGE }}:latest
             ${{ env.IMAGE }}:${{ github.sha }}
-          build-args: |
-            SIXLABORS_LICENSE_KEY=${{ secrets.SIXLABORS_LICENSE_KEY }}
+          secrets: |
+            sixlabors=${{ secrets.SIXLABORS_LICENSE_KEY }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
