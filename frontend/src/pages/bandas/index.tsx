@@ -145,7 +145,7 @@ export function BandasPage() {
               {t('since', { year: band.foundedYear })}
             </span>
           ) : null}
-          {band.isVerified ? <AppBadge tone="highlight">{t('verified')}</AppBadge> : null}
+          {band.isVerified ? <AppBadge tone="info">{t('verified')}</AppBadge> : null}
         </div>
         <AppGenreBadges genres={band.genres} max={5} tone="brand" />
       </AppProfileHero>
@@ -153,7 +153,7 @@ export function BandasPage() {
       {isOwner && !band.isVerified ? (
         <section className="flex flex-col gap-3 rounded-xl border border-dashed p-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
-            <BadgeCheckIcon className="mt-0.5 size-5 shrink-0 text-highlight" />
+            <BadgeCheckIcon className="mt-0.5 size-5 shrink-0 text-info" />
             <div className="flex flex-col gap-1 text-sm">
               {band.verification?.status === BandVerificationStatus.pending ? (
                 <>

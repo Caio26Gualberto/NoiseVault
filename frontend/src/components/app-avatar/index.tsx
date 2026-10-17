@@ -41,11 +41,11 @@ export function AppAvatar({ name, src, size = 'md', verified = false, className 
       {verified ? (
         <span
           className={cn(
-            'absolute flex items-center justify-center rounded-full bg-background text-highlight',
+            'absolute flex items-center justify-center rounded-full bg-background text-info',
             badgeClass[size],
           )}
         >
-          <BadgeCheckIcon className="size-full fill-highlight text-background" />
+          <BadgeCheckIcon className="size-full fill-info text-background" />
         </span>
       ) : null}
     </span>
