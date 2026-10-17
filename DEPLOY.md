@@ -351,3 +351,27 @@ Pendências abertas em 17/10/2026, no fim do deploy:
 - **Fila de e-mail.** O envio do "esqueci a senha" é síncrono; com o SES real, mover para a fila `emails` (`auth-e-contas.md`).
 - **Plano do CloudFront.** Começa no flat-rate Free; subir para Pro quando o console avisar que está perto do limite.
 - **RDS e Fargate.** O roteiro de sair do Postgres do servidor está em `hospedagem.md`, seção "Quando o banco sair do Lightsail para o RDS".
+
+## 13. Entrar com Google e Facebook
+
+As decisões estão em `api/.claude/rules/login-social.md`. Aqui ficam só os cliques. As páginas `/privacidade` e `/apagar-dados` já sobem com o front.
+
+### 13.1 Google
+
+1. **Google Cloud Console → New project** `noisevault`.
+2. **APIs & Services → OAuth consent screen**: tipo **External**, nome "Noise Vault", e-mail de suporte, logo opcional, domínio autorizado `noisevault.net`, página inicial `https://noisevault.net`, política de privacidade `https://noisevault.net/privacidade`. Escopos: só os básicos (`openid`, `email`, `profile`). **Publish app**: com escopos básicos não precisa de verificação do Google.
+3. **Credentials → Create credentials → OAuth client ID**, tipo **Web application**. Em **Authorized JavaScript origins**: `https://noisevault.net` e `http://localhost:5173`. Não precisa de redirect URI (o login é por popup). Copie o **Client ID**. O Client Secret não é usado.
+
+### 13.2 Facebook
+
+1. **developers.facebook.com → Meus apps → Criar app**, caso de uso **"Autenticar e solicitar dados de usuários com o Login do Facebook"**, nome "Noise Vault".
+2. **Casos de uso → Login do Facebook → Permissões**: `public_profile` e `email` (as duas já vêm com acesso padrão; não precisa de análise do app).
+3. **Configurações do app → Básico**: domínio `noisevault.net`, URL da política de privacidade `https://noisevault.net/privacidade`, URL das instruções de exclusão de dados `https://noisevault.net/apagar-dados`, categoria, ícone de 1024 px. Copie o **ID do app** e a **Chave secreta do app**.
+4. **Login do Facebook → Configurações**: "Login com o SDK do JavaScript" **ligado**, domínios permitidos para o SDK `https://noisevault.net`.
+5. **Publicar** o app (modo Ativo). Antes disso, só quem é administrador ou testador do app consegue entrar; é assim que se testa em `localhost`.
+
+### 13.3 Onde vão as chaves
+
+- **Lightsail** (`~/noisevault/infra/lightsail/.env`): `Auth__Google__ClientId`, `Auth__Facebook__AppId` e `Auth__Facebook__AppSecret`; depois `docker compose up -d api`. O boot deixa de avisar `EXTERNAL_PROVIDER_DISABLED`.
+- **Amplify → Environment variables**: `VITE_GOOGLE_CLIENT_ID` e `VITE_FACEBOOK_APP_ID` (os mesmos valores públicos), e **Redeploy**. Sem elas os botões não aparecem.
+- **Dev**: `frontend/.env` com as duas `VITE_*`, e na API o bloco `Auth` do `appsettings.Development.json` (`Google:ClientId`, `Facebook:AppId`, `Facebook:AppSecret`). O arquivo fica fora do Git.

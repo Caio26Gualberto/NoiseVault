@@ -13,10 +13,11 @@ dist/
 *.tsbuildinfo
 .vite/
 
-# Ambiente — .env.example e appsettings.Development.json são de dev local e ficam versionados
+# Ambiente — o .env e o appsettings.Development.json carregam as chaves reais de dev e ficam fora; o modelo é o .env.example e o appsettings.json
 .env
 .env.*
 !.env.example
+appsettings.Development.json
 appsettings.Local.json
 appsettings.*.local.json
 

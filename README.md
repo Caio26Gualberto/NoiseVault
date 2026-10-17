@@ -17,6 +17,8 @@ cd api && dotnet run --project src/NoiseVault.Api     # http://localhost:5041 �
 cd frontend && npm install && npm run dev             # http://localhost:5173
 ```
 
+O `api/src/NoiseVault.Api/appsettings.Development.json` não vai para o Git: ele guarda as chaves reais de dev. Num clone novo, crie o arquivo a partir do `appsettings.json` (que lista todas as chaves, vazias) apontando para o Docker local.
+
 ⚠️ O LocalStack Community guarda os arquivos em memória: parar o container apaga avatares, capas e mídias, mas o banco continua apontando para eles. O que você subiu pela tela é descartável; o que veio do seed de desenvolvimento volta sozinho no próximo boot da API (`api/.claude/rules/seed-de-desenvolvimento.md`).
 
 O LocalStack está fixado na 4.14.0, que roda sem conta. Ao atualizar a imagem para uma versão mais nova, crie uma conta gratuita em https://app.localstack.cloud, copie o auth token e coloque em `LOCALSTACK_AUTH_TOKEN` num `.env` na raiz (veja `.env.example`; o `.env` não vai para o Git).

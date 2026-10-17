@@ -46,7 +46,10 @@ Virou módulo em 14/10/2026, ampliado pelo usuário para ficar "igual Facebook":
 - Gente mais velha lê e-mail: é o lembrete que faz voltar.
 - **Apoio**: o envio de e-mail já existe (`email.md`). Faltam a preferência em Minha conta (como a do convite de banda) e um job semanal no Hangfire.
 
-### 6. Entrar com Google ou Facebook
+### ~~6. Entrar com Google ou Facebook~~
+
+Feito em 17/10/2026, com o site no ar: Facebook primeiro, Google com vínculo automático, Facebook vinculando com a senha, e o Facebook sem e-mail pedindo o e-mail na hora (opção "a"). Ver `api/.claude/rules/login-social.md` e `frontend/.claude/rules/login-social.md`. O registro abaixo fica como histórico.
+
 
 - Ficou **fora do escopo** no início (`CLAUDE.md`), mas para esse público pode decidir se a pessoa entra ou desiste no cadastro. Senha nova e confirmação de e-mail afastam.
 - Entrar com Facebook especialmente, já que a comunidade vem de lá.
@@ -149,6 +152,6 @@ Parte 1 feita em 14/10/2026: ícone na tela inicial, tela cheia, página sem con
 2. ~~Envio para o mural com aprovação (2)~~ (feito em 14/10/2026).
 3. ~~Marcar pessoas nas fotos (3)~~ (feito em 14/10/2026, com @menções); falta o "pedir remoção" da foto.
 4. "Neste dia" (4) e resumo semanal (5).
-5. Entrar com Google ou Facebook (6), antes de divulgar no grupo.
+5. ~~Entrar com Google ou Facebook (6), antes de divulgar no grupo.~~ Feito em 17/10/2026.
 6. Bandas: seguir banda e lançamentos (10), classificados (8), press kit (9).
 7. Casas de show (11), áudio (13), histórias (14), banda da semana (12), ~~PWA (7)~~ (parte 1 feita; falta o Web Push, 7b) e podcast (15), conforme o uso pedir.
