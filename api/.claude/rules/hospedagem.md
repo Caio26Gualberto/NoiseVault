@@ -84,6 +84,26 @@ Com o Amplify, a prévia sai por **rota de compartilhamento**: um rewrite `/s/<*
 
 A alternativa que cobre os dois links é o front em **S3 + o mesmo CloudFront da mídia** (sem custo extra no plano flat-rate), com uma CloudFront Function de viewer request que manda os robôs (`facebookexternalhit`, `WhatsApp`, `Twitterbot`, `TelegramBot`, `Discordbot`) para a API com `cf.updateRequestOrigin`. O deploy vira `aws s3 sync` + invalidação no CI. **A escolha fica para quando a ideia 1 virar módulo.**
 
+## Quando o banco sair do Lightsail para o RDS
+
+Decisão do usuário em 16/10/2026: a migração pode parar a produção (madrugada, menor fluxo), e a API deve ir para o Fargate num segundo momento, quando o RDS já existir. O caminho é `pg_dump` + `pg_restore`, nunca exportar tabela em JSON: o dump leva tabelas, índices, chaves estrangeiras, sequências e a `__EFMigrationsHistory` de uma vez. Mídia não se move: já está no S3.
+
+1. Criar o RDS Postgres 17 na mesma região, acessível só pelo IP do Lightsail. Ensaiar o roteiro inteiro num RDS de teste uma semana antes.
+2. Parar a API no servidor (`docker compose stop api`), para ninguém escrever durante a cópia.
+3. No Lightsail:
+
+```
+pg_dump -Fc -h localhost -U postgres noisevault > noisevault.dump
+pg_restore -h <endpoint-do-rds> -U <usuario> -d noisevault --no-owner --no-privileges noisevault.dump
+```
+
+4. Trocar a connection string da API pela do RDS (variável de ambiente) e subir de novo. As migrations já constam no banco; a API só segue.
+5. Conferir login, feed, upload e um link de e-mail pendente (as chaves do Data Protection vão no dump se `PersistKeysToDbContext` estiver ligado, `auth-e-contas.md`). Só então apagar o container do Postgres e o volume.
+
+O tempo parado é o do dump mais o do restore: minutos para alguns GB. Migração sem parar (AWS DMS replicando ao vivo) só se esses minutos passarem a incomodar.
+
+Depois do RDS, a API vai para o **Fargate** com Load Balancer (a primeira estimativa, descartada em 14/10/2026 pelo custo fixo): nesse passo entram o backplane do SignalR (`notificacoes.md`) e o Hangfire numa instância só, e o Lightsail é desligado.
+
 ## Quando revisar
 
 - A CPU do bundle vive no teto fora das conversões: subir de bundle, ou ir para os bundles "compute-optimized".
