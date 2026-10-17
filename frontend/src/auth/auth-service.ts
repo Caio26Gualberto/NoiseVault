@@ -1,11 +1,13 @@
 import { apiGet, apiPost } from '../api/base-service'
 import type {
   ConfirmEmailResultDto,
+  ExternalLoginResponseDto,
   LoginResponseDto,
   ProfileDto,
   RegistrationPendingDto,
   TokensDto,
 } from '../api/types'
+import type { ExternalProvider } from './external/providers'
 
 export type RoleRef = {
   id: number
@@ -75,4 +77,23 @@ export function changePassword(currentPassword: string, newPassword: string) {
 
 export function setInitialPassword(newPassword: string) {
   return apiPost<TokensDto>('/api/profile/set-initial-password', { newPassword }, { toastSuccess: true })
+}
+
+export type ExternalRegisterInput = {
+  ticket: string
+  name: string
+  nickname: string
+  email: string | null
+}
+
+export function externalLogin(provider: ExternalProvider, token: string) {
+  return apiPost<ExternalLoginResponseDto>('/api/auth/external', { provider, token })
+}
+
+export function externalRegister(input: ExternalRegisterInput) {
+  return apiPost<ExternalLoginResponseDto>('/api/auth/external/register', input, { toastSuccess: true })
+}
+
+export function externalLink(ticket: string, password: string) {
+  return apiPost<ExternalLoginResponseDto>('/api/auth/external/link', { ticket, password })
 }

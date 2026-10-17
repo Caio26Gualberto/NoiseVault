@@ -11,6 +11,7 @@ import { loginPath } from '@/auth/routes'
 import { emailSchema, nameSchema, nicknameSchema, passwordSchema, withPasswordConfirmation } from '@/auth/validators'
 import { AppButton } from '@/components/app-button'
 import { AppField, AppForm, AppPasswordField } from '@/components/app-field'
+import { SocialSignIn } from '@/pages/entrar/components/social-sign-in'
 
 const schema = withPasswordConfirmation(
   z.object({
@@ -93,6 +94,8 @@ export function CriarContaPage() {
         <h1 className="app-h2">{t('register.title')}</h1>
         <p className="text-sm text-muted-foreground">{t('register.subtitle')}</p>
       </div>
+
+      <SocialSignIn />
 
       <AppForm form={form} onSubmit={submit}>
         <AppField name="name" label={t('fields.name')} autoComplete="name" placeholder={t('fields.namePlaceholder')} />

@@ -1,17 +1,15 @@
 import { useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
 
 import { ApiCodes } from '@/api/api-codes'
 import { ApiError } from '@/api/types'
 import { resendConfirmation } from '@/auth/auth-service'
-import { homePath } from '@/auth/routes'
 import { useAuth } from '@/auth/use-auth'
-import { returnUrlFrom } from '@/ensaio/frame'
+
+import { useFinishSignIn } from './use-finish-sign-in'
 
 export function useLogin() {
   const { login } = useAuth()
-  const navigate = useNavigate()
-  const location = useLocation()
+  const finish = useFinishSignIn()
   const [submitting, setSubmitting] = useState(false)
   const [resending, setResending] = useState(false)
   const [pendingEmail, setPendingEmail] = useState<string | null>(null)
@@ -21,13 +19,7 @@ export function useLogin() {
     setPendingEmail(null)
     try {
       await login(email, password)
-      const external = returnUrlFrom(location.search)
-      if (external) {
-        window.location.assign(external)
-        return
-      }
-      const from = (location.state as { from?: string } | null)?.from
-      navigate(from ?? homePath, { replace: true })
+      finish()
     } catch (error) {
       if (error instanceof ApiError && error.code === ApiCodes.emailNotConfirmed) {
         setPendingEmail(email)

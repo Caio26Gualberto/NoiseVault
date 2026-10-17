@@ -78,3 +78,27 @@ export type RegistrationPendingDto = {
 export type ConfirmEmailResultDto = {
   alreadyConfirmed: boolean
 }
+
+export const ExternalLoginOutcome = {
+  signedIn: 1,
+  signupRequired: 2,
+  linkRequired: 3,
+} as const
+
+export type ExternalLoginOutcome = (typeof ExternalLoginOutcome)[keyof typeof ExternalLoginOutcome]
+
+export type ExternalLoginResponseDto = {
+  outcome: ExternalLoginOutcome
+  tokens: TokensDto | null
+  ticket: string | null
+  name: string | null
+  email: string | null
+  suggestedNickname: string | null
+  hasPassword: boolean
+}
+
+export type SignInMethodsDto = {
+  hasPassword: boolean
+  emailConfirmed: boolean
+  providers: number[]
+}

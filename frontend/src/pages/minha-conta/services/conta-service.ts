@@ -1,5 +1,6 @@
-import { apiDelete, apiPatch, apiPostForm, apiPut } from '@/api/base-service'
-import type { ProfileDto } from '@/api/types'
+import { apiDelete, apiGet, apiPatch, apiPost, apiPostForm, apiPut } from '@/api/base-service'
+import type { ProfileDto, SignInMethodsDto } from '@/api/types'
+import type { ExternalProvider } from '@/auth/external/providers'
 import type { MusicGenre } from '@/pages/perfil/genres'
 import type { SocialLinksDto } from '@/pages/perfil/services/perfil-service'
 
@@ -52,4 +53,20 @@ export function setBannerPosition(position: number) {
 
 export function removeBanner() {
   return apiDelete<ProfileDto>('/api/profile/banner', { toastSuccess: true })
+}
+
+export function getSignInMethods() {
+  return apiGet<SignInMethodsDto>('/api/profile/sign-in-methods', undefined, { toastError: false })
+}
+
+export function linkSignInMethod(provider: ExternalProvider, token: string) {
+  return apiPost<SignInMethodsDto>('/api/profile/sign-in-methods', { provider, token }, { toastSuccess: true })
+}
+
+export function unlinkSignInMethod(provider: ExternalProvider) {
+  return apiDelete<SignInMethodsDto>(`/api/profile/sign-in-methods/${provider}`, { toastSuccess: true })
+}
+
+export function createPassword(newPassword: string) {
+  return apiPost<SignInMethodsDto>('/api/profile/create-password', { newPassword }, { toastSuccess: true })
 }

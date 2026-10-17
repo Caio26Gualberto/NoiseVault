@@ -10,6 +10,7 @@ import { forgotPasswordPath, registerPath } from '@/auth/routes'
 import { AppButton } from '@/components/app-button'
 import { AppField, AppForm, AppPasswordField } from '@/components/app-field'
 
+import { SocialSignIn } from './components/social-sign-in'
 import { useLogin } from './hooks/use-login'
 
 const schema = z.object({
@@ -33,6 +34,8 @@ export function EntrarPage() {
         <h1 className="app-h2">{t('login.title')}</h1>
         <p className="text-sm text-muted-foreground">{t('login.subtitle')}</p>
       </div>
+
+      <SocialSignIn />
 
       {pendingEmail ? (
         <div role="status" className="flex flex-col gap-3 rounded-lg border border-warning/40 bg-warning/10 p-4">

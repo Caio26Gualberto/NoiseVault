@@ -19,9 +19,13 @@ import {
   accountPath,
   profileEditPath,
   confirmEmailPath,
+  dataDeletionPath,
+  externalLinkPath,
+  externalSignupPath,
   forgotPasswordPath,
   homePath,
   loginPath,
+  privacyPath,
   registerPath,
   resetPasswordPath,
   welcomePath,
@@ -33,6 +37,8 @@ import { BemVindoPage } from '../pages/bem-vindo'
 import { ConfirmarEmailPage } from '../pages/confirmar-email'
 import { CriarContaPage } from '../pages/criar-conta'
 import { EntrarPage } from '../pages/entrar'
+import { EscolherApelidoPage } from '../pages/entrar/apelido'
+import { VincularContaPage } from '../pages/entrar/vincular'
 import { EsqueciSenhaPage } from '../pages/esqueci-senha'
 import { EventosPage } from '../pages/eventos'
 import { EventoDetalhePage } from '../pages/eventos/detalhe'
@@ -40,7 +46,9 @@ import { EventoFormPage } from '../pages/eventos/form'
 import { FeedPage } from '../pages/feed'
 import { PostDetalhePage } from '../pages/feed/detalhe'
 import { PodcastsPage } from '../pages/institucional'
+import { ApagarDadosPage } from '../pages/institucional/apagar-dados'
 import { LojaParceiraPage } from '../pages/institucional/loja'
+import { PrivacidadePage } from '../pages/institucional/privacidade'
 import { SobrePage } from '../pages/institucional/sobre'
 import { MinhaContaPage } from '../pages/minha-conta'
 import { MeuPerfilPage } from '../pages/meu-perfil'
@@ -64,6 +72,7 @@ export type PublicRoute = {
   path: string
   element: ReactNode
   guestOnly?: boolean
+  wide?: boolean
 }
 
 export type NavLeaf = {
@@ -92,10 +101,14 @@ export type HiddenRoute = {
 
 export const publicRoutes: PublicRoute[] = [
   { path: loginPath, element: <EntrarPage />, guestOnly: true },
+  { path: externalSignupPath, element: <EscolherApelidoPage />, guestOnly: true },
+  { path: externalLinkPath, element: <VincularContaPage />, guestOnly: true },
   { path: registerPath, element: <CriarContaPage />, guestOnly: true },
   { path: forgotPasswordPath, element: <EsqueciSenhaPage />, guestOnly: true },
   { path: confirmEmailPath, element: <ConfirmarEmailPage /> },
   { path: resetPasswordPath, element: <RedefinirSenhaPage /> },
+  { path: privacyPath, element: <PrivacidadePage />, wide: true },
+  { path: dataDeletionPath, element: <ApagarDadosPage />, wide: true },
 ]
 
 export const navSections: NavSection[] = [

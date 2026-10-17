@@ -27,7 +27,10 @@
   "password": {
     "title": "Senha",
     "description": "Trocar a senha encerra as outras sessões abertas.",
-    "save": "Alterar senha"
+    "save": "Alterar senha",
+    "createTitle": "Criar senha",
+    "createDescription": "Sua conta entra só pelo Google ou pelo Facebook. Crie uma senha para entrar também com o e-mail.",
+    "create": "Criar senha"
   },
   "appearance": {
     "title": "Aparência do perfil",
@@ -59,6 +62,18 @@
     "accessDescription": "Os dados com que você entra no Noise Vault.",
     "emailHint": "É o seu login. Ele nunca aparece no perfil.",
     "locationTitle": "Localização aproximada",
-    "locationDescription": "Usada só para mostrar a distância no Ensaio. Fica guardada com cerca de 1 km de imprecisão."
+    "locationDescription": "Usada só para mostrar a distância no Ensaio. Fica guardada com cerca de 1 km de imprecisão.",
+    "emailPendingTitle": "E-mail ainda não confirmado",
+    "emailPendingDescription": "Enquanto não confirmar, convites de banda e a redefinição de senha não chegam nele.",
+    "emailPendingResend": "Reenviar confirmação"
+  },
+  "methods": {
+    "title": "Formas de entrar",
+    "description": "Além do e-mail e senha, você pode entrar com estas contas.",
+    "connected": "Conectado",
+    "disconnect": "Desconectar",
+    "connectFacebook": "Conectar Facebook",
+    "disconnectTitle": "Desconectar o {{provider}}?",
+    "disconnectMessage": "Você deixa de entrar com o {{provider}}. Pode conectar de novo quando quiser."
   }
 }

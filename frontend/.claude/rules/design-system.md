@@ -28,6 +28,7 @@ Paleta (valores em `tokens.css`, aqui só a intenção):
 - **`--highlight`**: âmbar discreto, só para destaques raros. ~~O selo de banda verificada~~ passou para `--info` (azul) em 16/10/2026, pedido do usuário: o selo azul é o que a pessoa reconhece de outras redes, e o âmbar parecia aviso. Vale para o `AppAvatar verified`, o badge "Verificada" e a caixa de pedido de verificação. Não é segunda cor de botão. (`--accent` continua sendo o hover neutro do shadcn, não a cor de destaque.)
 - **`--scrim` / `--on-scrim`**: véu escuro e texto claro **sobre imagem** (capa do Celtic Frost no `/bem-vindo`, play sobre miniatura, legenda de foto, "+N" da grade de mídia). Fixos nos dois temas, porque a imagem não muda com o tema. `bg-black`, `text-white` e afins são bug: usar `bg-scrim/60`, `text-on-scrim`.
 - **Semânticos**: `--success`, `--warning`, `--info`, `--destructive` para toast, badge e estado. `--destructive` é diferente de `--primary` de propósito: excluir não pode parecer "a ação principal".
+- **`--facebook` / `--facebook-foreground`**: o azul do Facebook e o branco, fixos nos dois temas, só no botão "Continuar com Facebook" (`login-social.md`). A marca exige a cor dela; o botão do Google é desenhado pelo próprio Google.
 - **`--ring`** = `--primary`. Foco visível sempre.
 
 ## Tipografia: cartaz de show, corpo limpo

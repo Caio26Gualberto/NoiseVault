@@ -30,13 +30,23 @@ export function App() {
       <Route path="/ensaio/*" element={<EnsaioRoutes />} />
 
       <Route element={<PublicLayout />}>
-        {publicRoutes.map((route) => (
-          <Route
-            key={route.path}
-            path={route.path}
-            element={route.guestOnly ? <RedirectIfAuthenticated>{route.element}</RedirectIfAuthenticated> : route.element}
-          />
-        ))}
+        {publicRoutes
+          .filter((route) => !route.wide)
+          .map((route) => (
+            <Route
+              key={route.path}
+              path={route.path}
+              element={route.guestOnly ? <RedirectIfAuthenticated>{route.element}</RedirectIfAuthenticated> : route.element}
+            />
+          ))}
+      </Route>
+
+      <Route element={<PublicLayout wide />}>
+        {publicRoutes
+          .filter((route) => route.wide)
+          .map((route) => (
+            <Route key={route.path} path={route.path} element={route.element} />
+          ))}
       </Route>
 
       <Route

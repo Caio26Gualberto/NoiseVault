@@ -171,5 +171,10 @@
     "openCalendar": "Abrir calendário",
     "time": "Horário",
     "apply": "Pronto"
+  },
+  "legal": {
+    "label": "Documentos do site",
+    "privacy": "Privacidade",
+    "dataDeletion": "Apagar seus dados"
   }
 }

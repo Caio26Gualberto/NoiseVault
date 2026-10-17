@@ -55,6 +55,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .catch(() => clearSession())
   }, [clearSession])
 
+  const openSession = useCallback(
+    async (token: string) => {
+      const role = decodeJwt(token)?.role ?? null
+
+      tokenStorage.saveToken(token)
+
+      try {
+        const [user, access] = await Promise.all([authService.fetchMe(), loadAccess()])
+        setState({ status: 'authenticated', user, role: user.role || role, access })
+      } catch (error) {
+        clearSession()
+        feedback.error(ApiCodes.unknownError, '')
+        throw error
+      }
+    },
+    [clearSession],
+  )
+
   const login = useCallback(
     async (email: string, password: string) => {
       setState((current) => ({ ...current, status: 'authenticating' }))
@@ -74,20 +92,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new ApiError(ApiCodes.unknownError)
       }
 
-      const role = decodeJwt(tokens.token)?.role ?? null
-
-      tokenStorage.saveToken(tokens.token)
-
-      try {
-        const [user, access] = await Promise.all([authService.fetchMe(), loadAccess()])
-        setState({ status: 'authenticated', user, role: user.role || role, access })
-      } catch (error) {
-        clearSession()
-        feedback.error(ApiCodes.unknownError, '')
-        throw error
-      }
+      await openSession(tokens.token)
     },
-    [clearSession],
+    [openSession],
+  )
+
+  const acceptToken = useCallback(
+    async (token: string) => {
+      setState((current) => ({ ...current, status: 'authenticating' }))
+      await openSession(token)
+    },
+    [openSession],
   )
 
   const logout = useCallback(async () => {
@@ -112,8 +127,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const value = useMemo<AuthContextValue>(
-    () => ({ ...state, login, logout, refreshAccess, refreshUser, replaceUser }),
-    [state, login, logout, refreshAccess, refreshUser, replaceUser],
+    () => ({ ...state, login, acceptToken, logout, refreshAccess, refreshUser, replaceUser }),
+    [state, login, acceptToken, logout, refreshAccess, refreshUser, replaceUser],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

@@ -39,7 +39,8 @@ Decidido em 14/10/2026, antes dos subdomínios (`IDEIAS.md`, item 8). A regra é
 
 | Caminho | Tela | Observação |
 |---|---|---|
-| `/entrar` | login | e-mail + senha; link para criar conta e para esqueci a senha |
+| `/entrar` | login | Facebook e Google em cima (`login-social.md`), e-mail + senha; link para criar conta e para esqueci a senha |
+| `/entrar/apelido`, `/entrar/vincular` | segundo passo do login social | só com o ticket no `state` da rota (`login-social.md`) |
 | `/criar-conta` | registro | nome, nickname, e-mail, senha, confirmação; sucesso vira o estado "confira seu e-mail" **na mesma tela**, com botão de reenviar |
 | `/confirmar-email?userId&token` | confirmação | chama `confirm-email` na montagem; estados: confirmando / confirmado (botão "Entrar") / inválido (campo de e-mail + "Reenviar") |
 | `/esqueci-senha` | pedido de reset | só e-mail; sucesso vira "confira seu e-mail" sem dizer se existe |
@@ -78,7 +79,7 @@ Quem já viu a tela de boas-vindas fica marcado em `localStorage` na chave `app-
 
 ## A única exceção à regra "página não trata erro"
 
-O toast global cobre todo erro de API. **`EMAIL_NOT_CONFIRMED` no login é a exceção**: além do toast, a tela de login mostra uma faixa inline "Seu e-mail ainda não foi confirmado" com o botão "Reenviar e-mail", porque a ação de reenviar é da tela e a pessoa precisa dela ali, não num toast que some. O hook `use-login.ts` captura o `ApiError` por `code` e expõe `pendingConfirmation`. Nenhuma outra tela faz isso sem registrar aqui.
+O toast global cobre todo erro de API. **`EMAIL_NOT_CONFIRMED` no login é a exceção**: além do toast, a tela de login mostra uma faixa inline "Seu e-mail ainda não foi confirmado" com o botão "Reenviar e-mail", porque a ação de reenviar é da tela e a pessoa precisa dela ali, não num toast que some. O hook `use-login.ts` captura o `ApiError` por `code` e expõe `pendingConfirmation`. A outra é o `EXTERNAL_TICKET_INVALID` em `/entrar/apelido` e `/entrar/vincular`, que troca a tela por "Essa etapa expirou" (`login-social.md`). Nenhuma outra tela faz isso sem registrar aqui.
 
 ## "Apelido", não "nickname"
 

@@ -37,12 +37,30 @@
     "categoriesTitle": "O que tem lá",
     "categoriesDescription": "Cada categoria abre direto no site da Metal Music.",
     "categories": {
-      "apparel": { "title": "Roupas e calçados", "description": "Camisetas, moletons, regatas e jaqueta de couro." },
-      "records": { "title": "CDs, DVDs e LPs", "description": "Vinil e CD usado, do thrash ao jazz, garimpado um a um." },
-      "instruments": { "title": "Instrumentos", "description": "Instrumentos e pedais usados, com preço de quem toca." },
-      "accessories": { "title": "Acessórios", "description": "Anel, brinco, colar, pulseira, patch e chaveiro." },
-      "tickets": { "title": "Ingressos", "description": "Ingresso de show da região, sem taxa de site." },
-      "giftCard": { "title": "Vale-presente", "description": "Para quem não sabe qual disco a pessoa já tem." }
+      "apparel": {
+        "title": "Roupas e calçados",
+        "description": "Camisetas, moletons, regatas e jaqueta de couro."
+      },
+      "records": {
+        "title": "CDs, DVDs e LPs",
+        "description": "Vinil e CD usado, do thrash ao jazz, garimpado um a um."
+      },
+      "instruments": {
+        "title": "Instrumentos",
+        "description": "Instrumentos e pedais usados, com preço de quem toca."
+      },
+      "accessories": {
+        "title": "Acessórios",
+        "description": "Anel, brinco, colar, pulseira, patch e chaveiro."
+      },
+      "tickets": {
+        "title": "Ingressos",
+        "description": "Ingresso de show da região, sem taxa de site."
+      },
+      "giftCard": {
+        "title": "Vale-presente",
+        "description": "Para quem não sabe qual disco a pessoa já tem."
+      }
     },
     "visitTitle": "Onde fica",
     "address": "Rua Álvares de Azevedo, 159 e 163, Centro, Santo André, SP",
@@ -51,5 +69,97 @@
     "shipping": "Entrega de 3 a 7 dias úteis para o resto do Brasil.",
     "communityTitle": "A loja da comunidade",
     "communityBody": "A Metal Music é parceira do Noise Vault: é onde a cena compra, troca e descobre disco. Divulgue a loja, marque ela nos posts e leve o pessoal do balcão para os shows da agenda."
+  },
+  "legal": {
+    "updated": "Atualizada em 17 de outubro de 2026"
+  },
+  "privacy": {
+    "title": "Política de privacidade",
+    "intro": "O Noise Vault é um projeto independente, mantido por Caio Gualberto, para reunir a cena do ABC Paulista. Esta página explica quais dados guardamos, para que servem e o que você pode fazer com eles, nos termos da Lei Geral de Proteção de Dados (Lei 13.709/2018).",
+    "sections": [
+      {
+        "title": "O que guardamos",
+        "paragraphs": [
+          "Conta: nome, apelido, e-mail e senha. A senha fica guardada só de forma cifrada, e ninguém consegue lê-la.",
+          "Perfil: o que você escolhe preencher, como foto, capa, bio, cidade, instrumento, gêneros e os links das suas redes.",
+          "O que você publica: posts, fotos, vídeos, comentários, eventos, registros do mural, marcações, bandas e a ficha do Ensaio.",
+          "Localização aproximada, só se você ativar no Ensaio, arredondada para cerca de 1 km.",
+          "Registros técnicos: endereço IP e as ações feitas na conta, para segurança e para investigar erros."
+        ]
+      },
+      {
+        "title": "Entrar com Google ou Facebook",
+        "paragraphs": [
+          "Se você entrar com o Google ou com o Facebook, recebemos deles só o seu nome, o seu e-mail e um identificador da sua conta lá. Não recebemos sua senha, seus amigos nem suas publicações, e nunca publicamos nada em seu nome.",
+          "Você pode desconectar o Google ou o Facebook em Minha conta quando quiser. Remover o Noise Vault nas configurações do Google ou do Facebook impede novos logins por ali, mas não apaga a sua conta aqui: para isso, veja a página Apagar seus dados."
+        ]
+      },
+      {
+        "title": "Para que usamos",
+        "paragraphs": [
+          "Para o site funcionar: entrar na conta, mostrar seu perfil e o que você publica, mandar notificações e os e-mails da conta (confirmação, redefinição de senha, convite de banda e avisos de segurança).",
+          "Não vendemos, não alugamos e não passamos seus dados para anunciantes. O Noise Vault não tem anúncios."
+        ]
+      },
+      {
+        "title": "Quem mais tem acesso",
+        "paragraphs": [
+          "O que você publica é visto por quem tem conta no Noise Vault. Seu e-mail nunca aparece no perfil.",
+          "Os dados ficam na Amazon Web Services (AWS), em São Paulo, que hospeda o site, os arquivos e o envio de e-mails. O Google e o Facebook só participam quando você escolhe entrar por eles.",
+          "Entregamos dados a autoridades apenas quando a lei obrigar."
+        ]
+      },
+      {
+        "title": "Cookies e o que fica no navegador",
+        "paragraphs": [
+          "Usamos um único cookie, o da sessão, para manter você conectado. Ele não serve para rastrear nem para publicidade. O navegador também guarda preferências, como o tema e se você já viu a tela de boas-vindas.",
+          "O Google e o Facebook podem usar os próprios cookies quando você clica nos botões deles."
+        ]
+      },
+      {
+        "title": "Seus direitos",
+        "paragraphs": [
+          "Você pode ver e corrigir seus dados em Meu perfil e Minha conta, pedir uma cópia deles, desconectar o Google ou o Facebook e pedir que a conta seja apagada. Para qualquer pedido, escreva para {{email}}."
+        ]
+      },
+      {
+        "title": "Por quanto tempo",
+        "paragraphs": [
+          "Enquanto a conta existir. Quando a conta é apagada, os dados pessoais e o conteúdo publicado saem em até 30 dias. Registros técnicos de acesso ficam por até 6 meses, como pede o Marco Civil da Internet."
+        ]
+      },
+      {
+        "title": "Mudanças nesta política",
+        "paragraphs": [
+          "Se esta política mudar, a data no topo muda junto, e mudanças importantes são avisadas no site."
+        ]
+      }
+    ]
+  },
+  "dataDeletion": {
+    "title": "Como apagar seus dados",
+    "intro": "Você pode pedir a exclusão da sua conta no Noise Vault e dos dados ligados a ela a qualquer momento, tenha entrado com e-mail, Google ou Facebook.",
+    "sections": [
+      {
+        "title": "Como pedir",
+        "paragraphs": [
+          "Mande um e-mail para {{email}} com o assunto \"Apagar meus dados\", de preferência a partir do e-mail da sua conta, ou informe o seu apelido.",
+          "Se você estiver logado, também pode pedir pela página Reportar problema."
+        ]
+      },
+      {
+        "title": "O que acontece depois",
+        "paragraphs": [
+          "Confirmamos o pedido por e-mail e apagamos a conta em até 30 dias: nome, e-mail, foto, capa, bio, localização, os vínculos com o Google e o Facebook e o conteúdo que você publicou.",
+          "Pode ficar: registros técnicos de acesso, pelo prazo da lei (até 6 meses), e publicações de outras pessoas em que você aparece. Nesse caso, peça para tirarmos a sua marcação."
+        ]
+      },
+      {
+        "title": "Se você entrou pelo Facebook",
+        "paragraphs": [
+          "Você também pode remover o Noise Vault no Facebook, em Configurações e privacidade > Configurações > Apps e sites. Isso corta o acesso pelo Facebook, mas não apaga a conta aqui: faça também o pedido acima."
+        ]
+      }
+    ]
   }
 }
