@@ -40,7 +40,7 @@ Cada pasta tem o seu `CLAUDE.md` (leia primeiro) e `.claude/rules/`. Os dois nas
 
 ## Como subir
 
-1. `docker compose up -d` (Postgres em `localhost:5436`, banco `noisevault`, `postgres`/`postgres`; Mailpit em `http://localhost:8025`; LocalStack S3 em `http://localhost:4566`, bucket `noisevault-media` criado no boot). Produção é **AWS**: domínio `noisevault.net`, Lightsail em São Paulo (API + Postgres + Caddy, com ffmpeg no container até o MediaConvert existir), S3 + CloudFront, SES e o front no Amplify — o porquê em `api/.claude/rules/hospedagem.md`, o passo a passo em `DEPLOY.md`. O LocalStack emula só o S3 (`armazenamento.md`).
+1. `docker compose up -d` (Postgres em `localhost:5436`, banco `noisevault`, `postgres`/`postgres`; Mailpit em `http://localhost:8025`; LocalStack S3 em `http://localhost:4566`, bucket `noisevault-media` criado no boot). Produção é **AWS**: domínio `noisevault.net`, Lightsail em São Paulo (API + Postgres + Caddy), S3 + CloudFront, MediaConvert, SES e o front no Amplify — o porquê em `api/.claude/rules/hospedagem.md`, o passo a passo em `DEPLOY.md`. O LocalStack emula só o S3 (`armazenamento.md`).
 2. ffmpeg instalado (`winget install Gyan.FFmpeg`) para a conversão de vídeo. `cd api && dotnet run --project src/NoiseVault.Api` → `http://localhost:5041` (`/health`, `/swagger`, `/hangfire`). Migration e seed rodam no boot; admin de dev `caiogualbertodev@outlook.com` / `12341234`. Em Development o `DevSeed` também cria o conjunto de exemplo (pessoas `@noisevault.dev` com senha `12341234`, bandas, feed, eventos, mural, Ensaio, suporte) e reenvia ao LocalStack a mídia que sumiu no restart (`api/.claude/rules/seed-de-desenvolvimento.md`).
 3. `cd frontend && npm install && npm run dev` → `http://localhost:5173`.
 

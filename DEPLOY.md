@@ -8,6 +8,7 @@ O que vai existir no fim:
 |---|---|---|
 | API, Hangfire, SignalR, Postgres, Caddy | Lightsail (1 instância, Docker) | `api.noisevault.net` |
 | Fotos e vídeos | S3 privado + CloudFront | `media.noisevault.net` |
+| Conversão de vídeo | MediaConvert (por uso) | sem endereço; a API cria o job |
 | E-mail de confirmação e redefinição | SES por SMTP | `nao-responda@noisevault.net` |
 | Site e o Ensaio | Amplify (um app, dois domínios) | `noisevault.net`, `ensaio.noisevault.net` |
 | DNS | Route 53 | zona `noisevault.net` |
@@ -83,11 +84,32 @@ O CloudFront só aceita certificado emitido na região **us-east-1 (N. Virginia)
 2. **Route 53 → zona → Create record.** Nome `media`, tipo **A**, **Alias** ligado, destino "Alias to CloudFront distribution", escolha a distribuição. Crie.
 3. Teste depois do passo 7 (quando houver um arquivo): `https://media.noisevault.net/<chave>` abre a imagem.
 
-## 5. IAM: o usuário que a API usa
+## 5. IAM: a role do MediaConvert e o usuário da API
+
+### 5.1 A role que o MediaConvert assume
+
+1. **IAM → Policies → Create policy → JSON**, cole:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    { "Effect": "Allow", "Action": "s3:GetObject", "Resource": "arn:aws:s3:::noisevault-media/uploads/*" },
+    { "Effect": "Allow", "Action": "s3:PutObject", "Resource": "arn:aws:s3:::noisevault-media/users/*" }
+  ]
+}
+```
+
+Nome `noisevault-mediaconvert-storage`. Crie.
+
+2. **IAM → Roles → Create role.** Trusted entity type **AWS service**, use case **MediaConvert**. Em permissões, marque `noisevault-mediaconvert-storage`. Nome `noisevault-mediaconvert`. Crie.
+3. Abra a role e copie o **ARN** (`arn:aws:iam::<conta>:role/noisevault-mediaconvert`): vira `MediaConvert__RoleArn` no `.env`.
+
+### 5.2 O usuário que a API usa
 
 O Lightsail não tem IAM role; a API usa uma chave de acesso.
 
-1. **IAM → Policies → Create policy → JSON**, cole:
+1. **IAM → Policies → Create policy → JSON**, cole (troque `<conta>` pelo número da sua conta, que aparece no ARN da role acima):
 
 ```json
 {
@@ -110,14 +132,26 @@ O Lightsail não tem IAM role; a API usa uma chave de acesso.
       "Effect": "Allow",
       "Action": ["s3:ListBucket", "s3:ListBucketMultipartUploads"],
       "Resource": "arn:aws:s3:::noisevault-media"
+    },
+    {
+      "Sid": "MediaConvert",
+      "Effect": "Allow",
+      "Action": ["mediaconvert:CreateJob", "mediaconvert:GetJob", "mediaconvert:DescribeEndpoints"],
+      "Resource": "*"
+    },
+    {
+      "Sid": "PassMediaConvertRole",
+      "Effect": "Allow",
+      "Action": "iam:PassRole",
+      "Resource": "arn:aws:iam::<conta>:role/noisevault-mediaconvert"
     }
   ]
 }
 ```
 
-Nome `noisevault-api-storage`. Crie.
+Nome `noisevault-api-access`. Crie.
 
-2. **IAM → Users → Create user.** Nome `noisevault-api`, **sem** acesso ao console. Em permissões, "Attach policies directly" → `noisevault-api-storage`. Crie.
+2. **IAM → Users → Create user.** Nome `noisevault-api`, **sem** acesso ao console. Em permissões, "Attach policies directly" → `noisevault-api-access`. Crie.
 3. Abra o usuário → **Security credentials → Create access key → Application running outside AWS**. Guarde o **Access key ID** e a **Secret access key**: viram `Storage__AccessKey` e `Storage__SecretKey` no `.env` do servidor. A secret só aparece uma vez.
 
 A mesma chave serve para o `backup.sh` (ele grava em `backups/` do mesmo bucket).
@@ -166,7 +200,7 @@ cp .env.example .env
 nano .env
 ```
 
-Preencha o `.env` com tudo que você guardou: senha do Postgres (invente uma longa), chave da Six Labors, segredo do JWT, chaves do IAM, credenciais SMTP, Spotify, e o seu e-mail em `Email__VerificationInbox`. Nenhum valor fica vazio exceto os que o exemplo já deixa em branco de propósito.
+Preencha o `.env` com tudo que você guardou: senha do Postgres (invente uma longa), chave da Six Labors, segredo do JWT, chaves do IAM, o ARN da role do MediaConvert, credenciais SMTP, Spotify, e o seu e-mail em `Email__VerificationInbox`. Nenhum valor fica vazio exceto os que o exemplo já deixa em branco de propósito.
 
 ```bash
 docker compose build
@@ -270,7 +304,7 @@ Faça na ordem, com uma segunda conta de teste:
 1. `https://api.noisevault.net/health` → `Healthy`. `https://noisevault.net` abre o site com cadeado, e `https://www.noisevault.net` redireciona.
 2. Criar conta → e-mail chega na caixa de entrada (não no spam) → confirmar → entrar. Esqueci a senha → o link funciona **depois de** `docker compose restart api` (as chaves do Data Protection estão no banco).
 3. Editar o perfil: subir avatar e capa → a imagem abre por `https://media.noisevault.net/...`.
-4. Publicar um post com foto e outro com vídeo curto → o vídeo processa (ffmpeg no container, acompanhe em `docker compose logs -f api`) e toca com o menu de qualidade.
+4. Publicar um post com foto e outro com vídeo curto → no log aparece `VIDEO_TRANSCODE_SUBMITTED`; em **MediaConvert → Jobs** o job sai de "Progressing" para "Complete" em um ou dois minutos; no minuto seguinte o log mostra `VIDEO_TRANSCODED` e `POST_PUBLISHED`, e o vídeo toca com o menu de qualidade e o poster. Se o job der erro, a mensagem do MediaConvert está em `VIDEO_TRANSCODE_FAILED` no log e na aba do job; para seguir enquanto ajusta, `Video__Engine=Ffmpeg` no `.env` e `docker compose up -d api` converte no container.
 5. Com duas abas, uma em cada conta: curtir o post da outra → o sino sobe sem recarregar (SignalR passou pelo Caddy).
 6. Criar uma banda, convidar a outra conta → e-mail do convite chega.
 7. Botão "Compartilhar" num post → colar o link `/s/...` numa conversa do WhatsApp → a prévia mostra foto e título.
@@ -298,7 +332,7 @@ A migration roda no boot. O site fica fora do ar o tempo da troca do container (
 
 ## 12. O que fica para depois do primeiro deploy
 
-- **MediaConvert.** A conversão roda no ffmpeg dentro do container (o `Dockerfile` instala o ffmpeg). Uma fita de 2 h do mural vai ocupar a CPU do servidor por um bom tempo; enquanto for raro, aceita-se. O desenho do MediaConvert está em `api/.claude/rules/midia-e-video.md`.
+- **MediaConvert.** Primeiro vídeo real confirma o job (`api/.claude/rules/midia-e-video.md`, "O que o primeiro vídeo em produção precisa confirmar"). O ffmpeg continua no container como saída de emergência.
 - **CloudWatch.** Os logs ficam no Docker do servidor (5 arquivos de 50 MB). Se precisar de busca ou alarme, o agente do CloudWatch entra no Lightsail.
 - **Fila de e-mail.** O envio do "esqueci a senha" é síncrono; com o SES real, mover para a fila `emails` (`auth-e-contas.md`).
 - **Plano do CloudFront.** Começa no flat-rate Free; subir para Pro quando o console avisar que está perto do limite.
