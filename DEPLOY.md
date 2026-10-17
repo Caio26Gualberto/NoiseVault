@@ -15,7 +15,7 @@ O que vai existir no fim:
 | Site e o Ensaio | Amplify (um app, dois domínios) | `noisevault.net`, `ensaio.noisevault.net` |
 | DNS | Cloudflare (onde o domínio está registrado) | zona `noisevault.net` |
 
-Arquivos do repositório usados aqui: `infra/lightsail/` (compose, Caddyfile, `.env.example`, `backup.sh`), `api/Dockerfile`, `amplify.yml` e `customHttp.yml`, os dois na raiz (o Amplify só lê os dois da raiz, mesmo em monorepo).
+Arquivos do repositório usados aqui: `infra/lightsail/` (compose, Caddyfile, `.env.example`, `backup.sh`), `api/Dockerfile`, `amplify.yml` e `customHttp.yml`, os dois na raiz (o Amplify só lê os dois da raiz, mesmo em monorepo). Em monorepo o `customHttp.yml` também precisa do formato `applications: - appRoot: frontend` com os `customHeaders` dentro; sem isso o build passa e a etapa de deploy falha com `Monorepo spec provided without "applications" key` (os deploys 2 a 8 de 17/10/2026 falharam assim).
 
 ## 0. Antes de abrir o console
 
