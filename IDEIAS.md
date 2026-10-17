@@ -105,7 +105,7 @@ Parte 1 feita em 14/10/2026: ícone na tela inicial, tela cheia, página sem con
 ### 10. Lançamentos e "seguir banda"
 
 - Um tipo de post "lançamento" (EP, clipe, single) que aparece em destaque e notifica quem segue a banda.
-- Pede o **seguir banda**, que hoje não existe e ajudaria o feed inteiro (hoje ele é único e cronológico, sem recorte por quem você segue).
+- ~~Pede o **seguir banda**, que hoje não existe~~ **Feito em 16/10/2026**: `BandFollower`, botão e contador no hero, aba "Seguindo" no feed e a notificação 33 (`api/.claude/rules/bandas.md`). Fica o post de "lançamento" em destaque. Amizade entre pessoas e chat ficaram de fora de propósito: a relação da cena é assimétrica (fã segue banda), e chat no Brasil é o WhatsApp.
 
 ### 11. Casas de show como página própria
 
