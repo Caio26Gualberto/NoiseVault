@@ -242,5 +242,16 @@
   "showsLabel_other": "shows marcados",
   "membersLabel_zero": "integrantes",
   "postsLabel_zero": "publicações",
-  "showsLabel_zero": "shows marcados"
+  "showsLabel_zero": "shows marcados",
+  "follow": {
+    "action": "Seguir",
+    "following": "Seguindo"
+  },
+  "following": {
+    "title": "Bandas que sigo",
+    "empty": "Você ainda não segue nenhuma banda. Abra a página de uma banda e toque em \"Seguir\"."
+  },
+  "followersLabel_zero": "seguidores",
+  "followersLabel_one": "seguidor",
+  "followersLabel_other": "seguidores"
 }

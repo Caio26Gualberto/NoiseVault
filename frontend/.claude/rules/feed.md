@@ -19,12 +19,13 @@ Rules irmãs: `../api/.claude/rules/feed.md` (post, curtida, comentário, quem p
 | `/perfil/:nickname` | seção "Publicações" com os posts da pessoa (inclusive os que ela publicou como banda) e o contador no hero |
 | `/bandas/:slug` | seção "Publicações" com os posts da banda, depois de Integrantes, e o contador no hero |
 
-- **Sem abas.** "Tudo/Bandas" saiu junto com o mock: sem "seguir", não existe recorte honesto. Decisão do usuário em 13/10/2026.
+- ~~**Sem abas.** "Tudo/Bandas" saiu junto com o mock: sem "seguir", não existe recorte honesto. Decisão do usuário em 13/10/2026.~~ Desde 16/10/2026 existe seguir banda (`bandas.md`) e o feed tem as abas **"Tudo" e "Seguindo"** (`Tabs` do shadcn, como em eventos), abaixo do composer. "Seguindo" chama `getFollowingFeed` (`GET /api/posts?following=true`): só posts das bandas que a pessoa segue, cronológicos. O composer fica fora das abas e publicar recarrega a aba aberta. Vazio da aba "Seguindo" explica onde fica o "Seguir". A aba não persiste entre visitas: o padrão é "Tudo", porque a comunidade pequena vive do feed inteiro.
 - Perfil e banda usam `OwnerPosts` (`pages/feed/components/owner-posts.tsx`), dono: feed. A segunda página importa do caminho da primeira, como os services.
 
 ## Lista: acumula e troca o item pelo DTO do servidor
 
 `hooks/use-post-list.ts` é o hook das três listas:
+- **Trocar o loader zera a lista**: o hook guarda com qual `load` carregou e, quando a aba troca a função, volta à página 1, limpa os itens e mostra o skeleton (ajuste de estado durante o render, o padrão do React para estado derivado). Por isso o loader da página é um `useCallback` por aba, e nenhum `key` é preciso.
 - **As páginas se somam** (o mock substituía a página 1 pela 2, um bug). Itens repetidos entre páginas são descartados por `id`.
 - **Rolagem infinita, como no Facebook e no Instagram** (pedido do usuário em 16/10/2026): o `PostFeed` usa `AppPagination` em `mode="infinite"`, que troca o botão "Carregar mais" por uma sentinela no fim da lista; quando ela chega a 600 px da janela, o hook pede a página seguinte e um spinner aparece enquanto carrega. Vale para o `/feed` e para as Publicações do perfil e da banda, que passam pelo mesmo componente. Os comentários do `/feed/:id` continuam com "Carregar mais": lá a pessoa está lendo um post, não rolando um fluxo.
 - **Publicar** recarrega a partir da página 1.

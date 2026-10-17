@@ -76,5 +76,13 @@
     "photos_other": "{{count}} fotos",
     "videos_one": "{{count}} vídeo",
     "videos_other": "{{count}} vídeos"
+  },
+  "tabs": {
+    "all": "Tudo",
+    "following": "Seguindo"
+  },
+  "emptyFollowing": {
+    "title": "Nada das bandas que você segue",
+    "description": "Siga bandas na página delas para ver os posts aqui."
   }
 }

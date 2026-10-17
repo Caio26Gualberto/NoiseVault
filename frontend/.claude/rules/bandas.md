@@ -19,12 +19,18 @@ Rule irmã: `../api/.claude/rules/bandas.md`. A regra é do backend; a tela só 
 
 - As três estão em `hiddenRoutes` no `nav-config`, com `/bandas/nova` antes de `/bandas/:slug`.
 - Criar banda leva direto a `/editar`, porque o próximo passo natural é subir imagem e convidar a formação.
-- **Sem "Seguir" e sem contadores falsos.** O hero mostra integrantes, publicações (`postCount`, módulo 3) e shows marcados (`upcomingEventCount`, módulo 4). A seção "Shows" (`eventos/components/band-events.tsx`) vem antes de Publicações, seguida de "Das antigas" (`mural/components/band-archive.tsx`), que só aparece quando a banda tem registro no mural. Seguidores e eventos voltam quando existirem, não antes.
+- ~~**Sem "Seguir" e sem contadores falsos.**~~ **Seguir banda existe desde 16/10/2026** (`../api/.claude/rules/bandas.md`). O hero mostra integrantes, **seguidores** (`followerCount`), publicações (`postCount`, módulo 3) e shows marcados (`upcomingEventCount`, módulo 4). "Sem contador falso" continua valendo: todos vêm da API. A seção "Shows" (`eventos/components/band-events.tsx`) vem antes de Publicações, seguida de "Das antigas" (`mural/components/band-archive.tsx`), que só aparece quando a banda tem registro no mural. Eventos voltaram no módulo 4 e seguidores em 16/10/2026.
 - A seção "Publicações" vem depois de Integrantes, com `OwnerPosts` do feed (`feed.md`). Integrante publica como banda pelo composer do `/feed`.
 - `BAND_NOT_FOUND` é tratado na tela, como `PROFILE_NOT_FOUND` no perfil:
   - `getBandProfile` chama com `toastError: false`;
   - `useBand` (`hooks/use-band.ts`) devolve `notFound`, que vira `AppEmptyState`;
   - qualquer outro erro passa pelo `feedback.error` e cai no estado `failed`.
+
+## Seguir
+
+- **Na página pública**, quem não é integrante vê o botão "Seguir" (`primary`, ícone +) ao lado de Compartilhar; seguindo, vira "Seguindo" (`neutral`, ícone ✓, `aria-pressed`). Clicar alterna (`PUT`/`DELETE …/follow`, `followBand`/`unfollowBand`) e a tela chama `replace(dto)`, como toda ação de banda; o botão mostra `loading` enquanto espera, sem otimismo, no molde do "Vou" do evento. Integrante não vê o botão: a API recusaria com `BAND_MEMBER_CANNOT_FOLLOW`.
+- **"Bandas que sigo"** (`components/followed-bands.tsx`, dono: bandas) aparece **só no próprio perfil**, abaixo de "Bandas", com o mesmo cartão e "Carregar mais" (`GET /api/bands/following`, páginas de 10 que se somam). Lista vazia mostra a frase explicando onde fica o "Seguir". O perfil de outra pessoa não mostra quem ela segue: não há decisão de produto sobre isso ser público.
+- **Feed "Seguindo"** e a notificação 33 estão em `feed.md` e `notificacoes.md`.
 
 ## Quem faz o quê na tela
 
@@ -77,7 +83,8 @@ Com a API, o Docker e o Vite no ar, conta A (admin) e conta B confirmada:
 1. **Criar.** A abre o próprio perfil, vê a seção "Bandas" com "Criar banda", cria "Serra Negra" com ano 1991 e "Vocal", e cai em `/bandas/serra-negra/editar` com A como Responsável.
 2. **Convidar.** A digita parte do nickname de B no convite, escolhe a pessoa na lista, põe "Guitarra" e envia: toast "Convite enviado." e B aparece em "Convites pendentes" com a data de vencimento.
 3. **Aceitar no celular.** B, a 390px, abre o balão do sino, vê "Admin convidou você para tocar Guitarra na Serra Negra." no topo, toca "Aceitar" e vai para `/bandas/serra-negra` como integrante, com "Sair da banda".
-4. **Ver como Owner.** A, a 1440px, abre a banda: dois integrantes, "Editar banda" e "2 integrantes" no hero, sem "Seguir".
+4. **Ver como Owner.** A, a 1440px, abre a banda: dois integrantes, "Editar banda" e "2 integrantes" no hero, sem "Seguir" (integrante não segue).
 5. **Não encontrada.** `/bandas/nao-existe` mostra o estado vazio "Banda não encontrada"; B abrindo `/bandas/serra-negra/editar` é redirecionado para a página da banda.
 6. **Promover e sair.** A promove B, sai da banda e vai para o próprio perfil. Na página da banda, B passa a ver "Editar banda".
 7. **Imagens.** Avatar e capa sobem pela edição e aparecem no hero; o perfil de B lista a banda na seção "Bandas".
+8. **Seguir.** Conta C (sem banda) abre a Serra Negra, vê "0 seguidores" e "Seguir"; clica → toast "Você está seguindo a banda.", "1 seguidor", botão "Seguindo". No próprio perfil de C aparece "Bandas que sigo" com a Serra Negra. No `/feed`, a aba "Seguindo" lista só os posts da Serra Negra; A publica como a banda e C recebe "A **Serra Negra** publicou um post" no sino, levando ao post. "Seguindo" de novo → "Você deixou de seguir a banda." e o contador volta.

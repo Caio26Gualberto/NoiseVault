@@ -32,5 +32,6 @@ export const NotificationKind = {
   bandVerificationApproved: 30,
   bandVerificationRejected: 31,
   bandVerificationRevoked: 32,
+  followedBandPosted: 33,
 } as const
 export type NotificationKind = (typeof NotificationKind)[keyof typeof NotificationKind]

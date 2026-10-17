@@ -18,6 +18,7 @@ import { AppSkeleton } from '@/components/app-skeleton'
 import { AppSocialLinks } from '@/components/app-social-links'
 import { EnsaioLink } from '@/ensaio/ensaio-link'
 import { formatDate } from '@/lib/format'
+import { FollowedBands } from '@/pages/bandas/components/followed-bands'
 import { OwnerPosts } from '@/pages/feed/components/owner-posts'
 
 import { formatCity } from './city'
@@ -167,6 +168,8 @@ export function PerfilPage() {
           )}
         </section>
       ) : null}
+
+      {isMe ? <FollowedBands /> : null}
 
       <div className="mx-auto w-full max-w-2xl">
         <OwnerPosts

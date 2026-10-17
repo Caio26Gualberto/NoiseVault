@@ -44,6 +44,8 @@ export type BandProfileDto = {
   verification: BandVerificationStateDto | null
   postCount: number
   upcomingEventCount: number
+  followerCount: number
+  followedByMe: boolean
 }
 
 export type BandInput = {
@@ -136,6 +138,18 @@ export function promoteBandMember(slug: string, userId: number) {
 
 export function leaveBand(slug: string) {
   return apiPost<null>(`${bandPath(slug)}/leave`, undefined, { toastSuccess: true })
+}
+
+export function followBand(slug: string) {
+  return apiPut<BandProfileDto>(`${bandPath(slug)}/follow`, undefined, { toastSuccess: true })
+}
+
+export function unfollowBand(slug: string) {
+  return apiDelete<BandProfileDto>(`${bandPath(slug)}/follow`, { toastSuccess: true })
+}
+
+export function getFollowedBands(query: PagedRequest) {
+  return apiGet<PagedResult<BandSummaryDto>>('/api/bands/following', query)
 }
 
 export function getBandInvitations(slug: string, query: PagedRequest) {

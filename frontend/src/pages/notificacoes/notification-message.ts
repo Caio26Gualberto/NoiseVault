@@ -13,6 +13,7 @@ import {
   MegaphoneIcon,
   MessageCircleIcon,
   MicVocalIcon,
+  RssIcon,
   TagIcon,
   UserMinusIcon,
   UserPlusIcon,
@@ -79,6 +80,7 @@ export const notificationKinds: Record<NotificationKind, KindConfig> = {
   [NotificationKind.bandVerificationApproved]: { key: 'bandVerificationApproved', icon: BadgeCheckIcon, link: bandLink },
   [NotificationKind.bandVerificationRejected]: { key: 'bandVerificationRejected', icon: BadgeXIcon, link: bandLink },
   [NotificationKind.bandVerificationRevoked]: { key: 'bandVerificationRevoked', icon: BadgeXIcon, link: bandLink },
+  [NotificationKind.followedBandPosted]: { key: 'followedBandPosted', icon: RssIcon, link: postLink },
 }
 
 const withPlace = new Set<NotificationKind>([NotificationKind.mentionedInComment, NotificationKind.bandMentionedInComment, NotificationKind.photoTagged])

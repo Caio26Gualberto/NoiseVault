@@ -92,7 +92,8 @@
     "bandVerificationRequested": "<b>{{actor}}</b> pediu a verificação da <b>{{band}}</b>",
     "bandVerificationApproved": "A <b>{{band}}</b> foi verificada. O selo já aparece na página da banda",
     "bandVerificationRejected": "O pedido de verificação da <b>{{band}}</b> foi recusado. Veja o motivo na página da banda",
-    "bandVerificationRevoked": "A <b>{{band}}</b> perdeu o selo de verificada"
+    "bandVerificationRevoked": "A <b>{{band}}</b> perdeu o selo de verificada",
+    "followedBandPosted": "A <b>{{band}}</b> publicou um post"
   },
   "invitations": {
     "title": "Convites de banda",

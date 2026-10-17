@@ -49,6 +49,10 @@ export function getFeed(query: PagedRequest): Promise<PagedResult<PostDto>> {
   return apiGet<PagedResult<PostDto>>('/api/posts', query)
 }
 
+export function getFollowingFeed(query: PagedRequest): Promise<PagedResult<PostDto>> {
+  return apiGet<PagedResult<PostDto>>('/api/posts', { ...query, following: true })
+}
+
 export function getUserPosts(nickname: string, query: PagedRequest): Promise<PagedResult<PostDto>> {
   return apiGet<PagedResult<PostDto>>(`/api/users/${encodeURIComponent(nickname)}/posts`, query)
 }

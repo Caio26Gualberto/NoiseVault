@@ -19,6 +19,14 @@ export function usePostList(load: PostListLoader) {
   const [totalCount, setTotalCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [version, setVersion] = useState(0)
+  const [loadedWith, setLoadedWith] = useState(() => load)
+
+  if (loadedWith !== load) {
+    setLoadedWith(load)
+    setPage(1)
+    setItems([])
+    setLoading(true)
+  }
 
   useEffect(() => {
     let cancelled = false

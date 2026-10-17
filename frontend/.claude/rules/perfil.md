@@ -21,6 +21,7 @@ Rule irmã: `../api/.claude/rules/perfil-e-midia.md` (campos, validação, codes
 | `/meu-perfil` | `GET /api/profile` (sessão), `PUT /api/profile`, avatar e capa |
 | Busca da topbar | `GET /api/users/search` |
 | Bandas no perfil | seção "Bandas" com os `BandSummaryDto` de `profile.bands` (módulo 2, `bandas.md`); no próprio perfil aparece "Criar banda" mesmo sem nenhuma |
+| Bandas que sigo | só no próprio perfil, abaixo de "Bandas": `FollowedBands` de `pages/bandas/components/` com `GET /api/bands/following` paginado (`bandas.md`, 16/10/2026) |
 | Publicações no perfil | contador "N publicações" no hero (`postCount`) e a seção "Publicações" com `OwnerPosts` do feed (módulo 3, `feed.md`) |
 | Selo "Procurando banda" | `isLookingForBand` do `UserProfileDto` acende o selo ao lado da cidade e leva à ficha no Ensaio (`ensaio.md`) |
 | Abas de fotos e vídeos de galeria | **não existem**: voltam com o módulo 5 |

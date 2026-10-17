@@ -1,4 +1,4 @@
-import { BadgeCheckIcon, CalendarIcon, LogOutIcon, MapPinIcon, PencilIcon, UsersRoundIcon } from 'lucide-react'
+import { BadgeCheckIcon, CalendarIcon, CheckIcon, LogOutIcon, MapPinIcon, PencilIcon, PlusIcon, UsersRoundIcon } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams } from 'react-router-dom'
@@ -27,7 +27,7 @@ import { BandMemberRole } from './band-member-role'
 import { useBand } from './hooks/use-band'
 import { BandVerificationStatus } from './band-verification-status'
 import { VerificationRequestDialog } from './components/verification-request-dialog'
-import { leaveBand } from './services/bandas-service'
+import { followBand, leaveBand, unfollowBand } from './services/bandas-service'
 
 export function BandasPage() {
   const { t } = useTranslation('bandas')
@@ -36,7 +36,8 @@ export function BandasPage() {
   const navigate = useNavigate()
   const confirm = useAppConfirm()
   const [verifying, setVerifying] = useState(false)
-  const { state, reload } = useBand(slug)
+  const [following, setFollowing] = useState(false)
+  const { state, reload, replace } = useBand(slug)
 
   if (state.status === 'loading') {
     return <AppSkeleton preset="profile" className="app-page-enter mx-auto max-w-4xl" />
@@ -62,6 +63,18 @@ export function BandasPage() {
   const { band } = state
   const isOwner = band.myRole === BandMemberRole.owner
   const isMember = band.myRole === BandMemberRole.member
+  const canFollow = !isOwner && !isMember
+
+  const toggleFollow = async () => {
+    setFollowing(true)
+    try {
+      replace(await (band.followedByMe ? unfollowBand(band.slug) : followBand(band.slug)))
+    } catch {
+      return
+    } finally {
+      setFollowing(false)
+    }
+  }
 
   const leave = () =>
     confirm({
@@ -88,6 +101,7 @@ export function BandasPage() {
         subtitle={band.description ? <p className="whitespace-pre-line">{band.description}</p> : null}
         stats={[
           { label: t('membersLabel', { count: band.members.length }), value: band.members.length },
+          { label: t('followersLabel', { count: band.followerCount }), value: band.followerCount },
           { label: t('postsLabel', { count: band.postCount }), value: band.postCount },
           { label: t('showsLabel', { count: band.upcomingEventCount }), value: band.upcomingEventCount },
         ]}
@@ -95,6 +109,12 @@ export function BandasPage() {
           <>
             <AppSocialLinks links={band.socialLinks} />
             <AppShareButton path={`/bandas/${band.slug}`} title={band.name} label size="md" />
+            {canFollow ? (
+              <AppButton intent={band.followedByMe ? 'neutral' : 'primary'} aria-pressed={band.followedByMe} loading={following} onClick={() => void toggleFollow()}>
+                {band.followedByMe ? <CheckIcon /> : <PlusIcon />}
+                {band.followedByMe ? t('follow.following') : t('follow.action')}
+              </AppButton>
+            ) : null}
             {isOwner ? (
               <AppButton intent="neutral" asChild>
                 <Link to={`/bandas/${band.slug}/editar`}>

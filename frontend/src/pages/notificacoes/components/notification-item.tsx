@@ -11,6 +11,8 @@ import { formatRelative } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { BandInvitationStatus } from '@/pages/bandas/band-invitation-status'
 
+import { NotificationKind } from '../notification-kind'
+
 import { notificationKinds, notificationMessage } from '../notification-message'
 import type { NotificationDto } from '../services/notificacoes-service'
 
@@ -50,8 +52,9 @@ export function NotificationItem({ item, onOpen, onMarkRead, onRemove }: Notific
   const link = config.link(item)
   const isUnread = item.readAt === null
   const { key, values } = notificationMessage(item)
-  const avatarName = item.actor?.name ?? item.band?.name ?? null
-  const avatarSrc = item.actor?.avatarUrl ?? item.band?.avatarUrl ?? null
+  const bandFirst = item.kind === NotificationKind.followedBandPosted
+  const avatarName = (bandFirst ? item.band?.name : item.actor?.name) ?? item.band?.name ?? item.actor?.name ?? null
+  const avatarSrc = (bandFirst ? item.band?.avatarUrl : item.actor?.avatarUrl) ?? item.band?.avatarUrl ?? item.actor?.avatarUrl ?? null
   const invitation = item.invitation ? invitationState(item.invitation) : null
 
   const body = (
