@@ -23,7 +23,7 @@ Tenha em mãos:
 - o painel do **Cloudflare**, onde o `noisevault.net` está registrado: é lá que todo registro de DNS entra. Domínio do Cloudflare Registrar não pode trocar de servidores de nome, então o Route 53 fica de fora;
 - a **chave de licença da Six Labors** (ImageSharp). A licença Split é gratuita abaixo de US$ 1 milhão de receita, pedida em https://sixlabors.com/pricing/. Sem ela o build em Release falha;
 - o **Client ID e Client Secret do Spotify** (painel de desenvolvedor). Renomeie o app para "Noise Vault", site `https://noisevault.net`, e apague o redirect de `localhost:7213`;
-- o repositório no GitHub com a `main` atualizada (o Amplify vai ler de lá);
+- o repositório no GitHub com a `main` atualizada (o Amplify e o pipeline da API leem de lá);
 - um segredo para o JWT. Gere no seu terminal e guarde: `openssl rand -base64 48`.
 
 No canto superior direito do console, escolha a região **South America (São Paulo)**. Tudo abaixo é nessa região, com uma exceção marcada no CloudFront.
@@ -183,45 +183,35 @@ A mesma chave serve para o `backup.sh` (ele grava em `backups/` do mesmo bucket)
 4. No Cloudflare, **Add record** tipo **A**, Name `api`, IPv4 address o IP estático, **DNS only** (nuvem cinza; com o proxy laranja o Caddy não consegue emitir o certificado e o WebSocket cai).
 5. **Lightsail → instância → Snapshots → Automatic snapshots: Enable**, horário de madrugada. É o backup do disco inteiro.
 
-### 7.2 Preparar o servidor
+### 7.2 Preparar o servidor (uma vez, pelo SSH do navegador)
 
-Conecte pelo botão **Connect using SSH** do console (ou baixe a chave em Account → SSH keys e use `ssh ubuntu@<ip>`). No terminal:
-
-```bash
-sudo apt-get update && sudo apt-get upgrade -y
-curl -fsSL https://get.docker.com | sudo sh
-sudo usermod -aG docker ubuntu
-sudo apt-get install -y git unzip
-curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o awscliv2.zip && unzip -q awscliv2.zip && sudo ./aws/install && rm -rf aws awscliv2.zip
-
-sudo fallocate -l 2G /swapfile && sudo chmod 600 /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile
-echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
-```
-
-O swap é para o build da imagem .NET caber em 4 GB. Saia e entre de novo no SSH para o grupo `docker` valer.
-
-### 7.3 Subir
+É a única sessão manual no servidor. Clique **Connect using SSH** na página da instância e cole:
 
 ```bash
-git clone https://github.com/Caio26Gualberto/NoiseVault.git ~/noisevault
-cd ~/noisevault/infra/lightsail
-cp .env.example .env
-nano .env
+curl -fsSL https://raw.githubusercontent.com/Caio26Gualberto/NoiseVault/main/infra/lightsail/bootstrap.sh | bash
 ```
 
-Preencha o `.env` com tudo que você guardou: senha do Postgres (invente uma longa), chave da Six Labors, segredo do JWT, chaves do IAM, o ARN da role do MediaConvert, Spotify, e o seu e-mail em `Email__VerificationInbox`. Nenhum valor fica vazio exceto os que o exemplo já deixa em branco de propósito.
+O `bootstrap.sh` atualiza o Ubuntu, instala Docker e AWS CLI, cria 2 GB de swap, clona o repositório em `~/noisevault` e copia o `.env.example` para `.env`. Leva uns 3 minutos. Ao terminar, ele lista o que falta; faça nesta ordem:
 
-```bash
-docker compose build
-docker compose up -d
-docker compose logs -f api
-```
+1. `nano ~/noisevault/infra/lightsail/.env` e preencha tudo que você guardou: senha do Postgres (invente uma longa), chave da Six Labors, segredo do JWT, chaves do IAM, o ARN da role do MediaConvert, Spotify, e o seu e-mail em `Email__VerificationInbox`. Nenhum valor fica vazio exceto os que o exemplo já deixa em branco de propósito.
+2. `docker login ghcr.io -u <seu usuário do GitHub>`, com um **token clássico** do GitHub só com `read:packages` (GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic)). É o que deixa o servidor baixar a imagem que o pipeline publica. O token fica em `~/.docker/config.json`.
+3. Saia do SSH e entre de novo, para o grupo `docker` valer.
 
-O primeiro build leva uns 10 minutos. No log da API, espere `Now listening on: http://[::]:8080`. O compose liga `Database__MigrateOnStartup=true`, então as migrations rodam nesse primeiro boot (e em todo boot seguinte, sem efeito quando não há nada novo).
+### 7.3 O pipeline que sobe a API
+
+A API **não é compilada no servidor**: o workflow `.github/workflows/deploy-api.yml` builda a imagem no GitHub Actions a cada push na `main` que toque `api/` ou `infra/lightsail/`, publica em `ghcr.io/caio26gualberto/noisevault-api` e entra no Lightsail por SSH para `docker compose pull` e `up -d`. Antes do primeiro deploy, cadastre os segredos em **GitHub → repositório → Settings → Secrets and variables → Actions**:
+
+| Secret | Valor |
+|---|---|
+| `SIXLABORS_LICENSE_KEY` | a chave da Six Labors (o build da imagem precisa dela) |
+| `LIGHTSAIL_HOST` | o IP estático da instância |
+| `LIGHTSAIL_SSH_KEY` | a chave privada SSH da instância, inteira, com as linhas `-----BEGIN ... KEY-----`. No Lightsail: **Account → SSH keys → Download** a chave padrão da região São Paulo (`LightsailDefaultKey-sa-east-1.pem`) e cole o conteúdo do arquivo |
+
+Depois, **Actions → Deploy API → Run workflow** (ou qualquer push na `main`). O job "Build and push image" leva uns 5 minutos na primeira vez; o "Deploy to Lightsail" termina com o `docker compose ps` mostrando os três containers de pé. O compose liga `Database__MigrateOnStartup=true`, então as migrations rodam no primeiro boot (e em todo boot seguinte, sem efeito quando não há nada novo).
 
 O Caddy pede o certificado do `api.noisevault.net` sozinho na primeira requisição. Teste no navegador: `https://api.noisevault.net/health` responde `Healthy`.
 
-Se o log mostrar `Cors:AllowedOrigins não configurado` ou `JWT:SecretKey não configurado`, falta variável no `.env`. Corrija e `docker compose up -d` de novo.
+Se der errado, no SSH: `cd ~/noisevault/infra/lightsail && docker compose logs --tail 100 api`. `Cors:AllowedOrigins não configurado` ou `JWT:SecretKey não configurado` é variável faltando no `.env`; corrija e `docker compose up -d`. O `build:` continua no compose como saída de emergência: `docker compose build api && docker compose up -d api` compila no próprio servidor se o GitHub estiver fora do ar.
 
 ### 7.4 Backup diário do banco
 
@@ -327,15 +317,16 @@ Faça na ordem, com uma segunda conta de teste:
 
 ## 11. Operação do dia a dia
 
-**Nova versão da API:**
+**Nova versão da API:** `git push` na `main`. O workflow "Deploy API" builda a imagem, publica e troca o container no Lightsail; acompanhe em **Actions**. A migration roda no boot. O site fica fora do ar o tempo da troca do container (segundos). **Voltar atrás**: cada imagem também é publicada com a tag do commit (`ghcr.io/caio26gualberto/noisevault-api:<sha>`). No SSH, sem mexer em arquivo nenhum:
 
 ```bash
-cd ~/noisevault && git pull
-cd infra/lightsail && docker compose build api && docker compose up -d api
-docker compose logs -f api
+cd ~/noisevault/infra/lightsail
+docker pull ghcr.io/caio26gualberto/noisevault-api:<sha-anterior>
+docker tag ghcr.io/caio26gualberto/noisevault-api:<sha-anterior> ghcr.io/caio26gualberto/noisevault-api:latest
+docker compose up -d api
 ```
 
-A migration roda no boot. O site fica fora do ar o tempo da troca do container (segundos). **Voltar atrás**: `git checkout <commit anterior>` e os mesmos dois comandos; migration já aplicada não é desfeita sozinha, então antes de um `git checkout` para trás, restaure o backup se a versão nova criou tabela.
+Migration já aplicada não é desfeita sozinha: se a versão nova criou tabela, restaure o backup antes. O próximo push na `main` volta a publicar o `latest` novo.
 
 **Nova versão do front:** `git push` na `main`. O Amplify builda e publica sozinho; o CI do GitHub continua validando antes.
 

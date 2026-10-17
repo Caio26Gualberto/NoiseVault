@@ -20,7 +20,7 @@ NoiseVault/
 ├── docker-compose.yml   ← Postgres 17 na porta 5436, Mailpit (SMTP 1025, caixa em http://localhost:8025) e LocalStack S3 (http://localhost:4566)
 ├── infra/localstack/    ← init hook do bucket noisevault-media (leitura pública, CORS do PUT pré-assinado, lifecycle de multipart)
 ├── infra/lightsail/     ← produção: compose (API + Postgres + Caddy), Caddyfile, .env.example e backup.sh
-├── .github/workflows/   ← CI (build da API, lint + typecheck + build do frontend)
+├── .github/workflows/   ← CI (build da API, lint + typecheck + build do frontend) e Deploy API (imagem no GHCR + compose no Lightsail)
 ├── api/                 ← .NET 10 · EF Core (Postgres) · Identity + JWT · Hangfire · MailKit — ver api/CLAUDE.md
 └── frontend/            ← Vite · React 19 · TypeScript · Tailwind v4 · shadcn/ui — ver frontend/CLAUDE.md
 ```

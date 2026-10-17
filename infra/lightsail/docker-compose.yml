@@ -18,11 +18,11 @@ services:
       retries: 5
 
   api:
+    image: ghcr.io/caio26gualberto/noisevault-api:latest
     build:
       context: ../../api
       args:
         SIXLABORS_LICENSE_KEY: ${SIXLABORS_LICENSE_KEY}
-    image: noisevault-api
     container_name: noisevault-api
     restart: unless-stopped
     depends_on:
