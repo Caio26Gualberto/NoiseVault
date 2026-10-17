@@ -21,6 +21,11 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
+      - name: Licença do ImageSharp
+        run: printf '%s' "$SIXLABORS_LICENSE_KEY" > src/NoiseVault.Infra.Data/sixlabors.lic
+        env:
+          SIXLABORS_LICENSE_KEY: ${{ secrets.SIXLABORS_LICENSE_KEY }}
+
       - name: Restore
         run: dotnet restore NoiseVault.slnx
 
