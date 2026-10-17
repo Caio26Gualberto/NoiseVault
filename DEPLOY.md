@@ -11,7 +11,7 @@ O que vai existir no fim:
 | Conversão de vídeo | MediaConvert (por uso) | sem endereço; a API cria o job |
 | E-mail de confirmação e redefinição | SES por SMTP | `nao-responda@noisevault.net` |
 | Site e o Ensaio | Amplify (um app, dois domínios) | `noisevault.net`, `ensaio.noisevault.net` |
-| DNS | Route 53 | zona `noisevault.net` |
+| DNS | Cloudflare (onde o domínio está registrado) | zona `noisevault.net` |
 
 Arquivos do repositório usados aqui: `infra/lightsail/` (compose, Caddyfile, `.env.example`, `backup.sh`), `api/Dockerfile`, `amplify.yml` na raiz e `frontend/customHttp.yml`.
 
@@ -20,7 +20,7 @@ Arquivos do repositório usados aqui: `infra/lightsail/` (compose, Caddyfile, `.
 Tenha em mãos:
 
 - a conta AWS com MFA ligado no usuário root, e um usuário IAM administrador para o dia a dia (nunca opere com o root);
-- o acesso ao registrador onde o `noisevault.net` foi comprado, para trocar os servidores de nome;
+- o painel do **Cloudflare**, onde o `noisevault.net` está registrado: é lá que todo registro de DNS entra. Domínio do Cloudflare Registrar não pode trocar de servidores de nome, então o Route 53 fica de fora;
 - a **chave de licença da Six Labors** (ImageSharp). A licença Split é gratuita abaixo de US$ 1 milhão de receita, pedida em https://sixlabors.com/pricing/. Sem ela o build em Release falha;
 - o **Client ID e Client Secret do Spotify** (painel de desenvolvedor). Renomeie o app para "Noise Vault", site `https://noisevault.net`, e apague o redirect de `localhost:7213`;
 - o repositório no GitHub com a `main` atualizada (o Amplify vai ler de lá);
@@ -28,13 +28,14 @@ Tenha em mãos:
 
 No canto superior direito do console, escolha a região **South America (São Paulo)**. Tudo abaixo é nessa região, com uma exceção marcada no CloudFront.
 
-## 1. Route 53: a zona do domínio
+## 1. DNS: a zona no Cloudflare
 
-1. **Route 53 → Hosted zones → Create hosted zone.** Domain name `noisevault.net`, tipo Public. Crie.
-2. Abra a zona e copie os quatro servidores de nome do registro **NS** (terminam em `awsdns-xx.org`, `.com`, `.net`, `.co.uk`).
-3. No **registrador** do domínio, troque os servidores de nome pelos quatro. A propagação leva de minutos a algumas horas. Enquanto não propaga, os passos seguintes funcionam; só a validação de certificado e o acesso pelo nome esperam.
+Nada a criar: a zona `noisevault.net` já existe no Cloudflare, em **DNS → Records**. Os registros entram à mão nos passos de cada serviço, sempre por **Add record**. Duas regras valem para todos:
 
-Os registros A e CNAME entram nos passos de cada serviço.
+- **Proxy status: DNS only** (a nuvem cinza, não a laranja). Com o proxy ligado, o Cloudflare se põe na frente do tráfego e quebra a validação de certificado da AWS, o HTTPS do Caddy e o WebSocket do sino. O CDN da mídia já é o CloudFront.
+- **TTL: Auto.**
+
+O Cloudflare aceita CNAME na raiz (`noisevault.net`) por "CNAME flattening", que é o que o Amplify precisa no passo 8.
 
 ## 2. S3: o bucket da mídia
 
@@ -65,7 +66,7 @@ A política do bucket (quem pode ler) é escrita no passo do CloudFront.
 O CloudFront só aceita certificado emitido na região **us-east-1 (N. Virginia)**. Troque a região só para este passo.
 
 1. **Certificate Manager → Request → Request a public certificate.** Nome `media.noisevault.net`. Validação por DNS. Request.
-2. Abra o certificado e clique **Create records in Route 53**. Ele cria o CNAME de validação na zona. Em alguns minutos o status vira **Issued**.
+2. Abra o certificado. Em **Domains** aparece um registro de validação, com **CNAME name** e **CNAME value**. No Cloudflare, **Add record** tipo **CNAME**: em Name cole o CNAME name **sem** o `.noisevault.net.` do fim (o Cloudflare completa), em Target o CNAME value, DNS only. Em alguns minutos o status vira **Issued**.
 3. Volte a região para **São Paulo**.
 
 ## 4. CloudFront: servir a mídia
@@ -81,7 +82,7 @@ O CloudFront só aceita certificado emitido na região **us-east-1 (N. Virginia)
    - Price class: **Use only North America, Europe and South America**, ou all edge locations se preferir.
    - Alternate domain name (CNAME): `media.noisevault.net`. Custom SSL certificate: o certificado do passo 3.
    - Crie. A distribuição leva uns minutos para "Deployed".
-2. **Route 53 → zona → Create record.** Nome `media`, tipo **A**, **Alias** ligado, destino "Alias to CloudFront distribution", escolha a distribuição. Crie.
+2. Na distribuição, copie o **Distribution domain name** (`dxxxx.cloudfront.net`). No Cloudflare, **Add record** tipo **CNAME**, Name `media`, Target o domínio da distribuição, DNS only.
 3. Teste depois do passo 7 (quando houver um arquivo): `https://media.noisevault.net/<chave>` abre a imagem.
 
 ## 5. IAM: a role do MediaConvert e o usuário da API
@@ -158,9 +159,9 @@ A mesma chave serve para o `backup.sh` (ele grava em `backups/` do mesmo bucket)
 
 ## 6. SES: o e-mail
 
-1. **Amazon SES → Identities → Create identity → Domain.** `noisevault.net`. Deixe **Easy DKIM** ligado, e marque **Publish DNS records to Route 53**. Crie. Em minutos a identidade fica **Verified**.
-2. Na identidade → **Custom MAIL FROM domain → Edit**: `mail.noisevault.net`, com publicação no Route 53. Isso alinha o SPF.
-3. **Route 53 → zona → Create record** tipo **TXT**, nome `_dmarc`, valor `"v=DMARC1; p=quarantine; rua=mailto:<seu e-mail>"`. Com SPF e DKIM alinhados, a confirmação de conta não cai no spam.
+1. **Amazon SES → Identities → Create identity → Domain.** `noisevault.net`, com **Easy DKIM** ligado. Crie. A tela da identidade mostra **três CNAMEs de DKIM** (nome `xxxx._domainkey.noisevault.net`, valor `xxxx.dkim.amazonses.com`). No Cloudflare, três **Add record** tipo **CNAME**, DNS only, com o nome sem o `.noisevault.net` do fim. Em minutos a identidade fica **Verified**.
+2. Na identidade → **Custom MAIL FROM domain → Edit**: `mail.noisevault.net`. O SES mostra dois registros para criar no Cloudflare: um **MX** com Name `mail`, Mail server `feedback-smtp.sa-east-1.amazonses.com`, Priority 10; e um **TXT** com Name `mail`, Content `v=spf1 include:amazonses.com ~all`. Isso alinha o SPF.
+3. No Cloudflare, **Add record** tipo **TXT**, Name `_dmarc`, Content `v=DMARC1; p=quarantine; rua=mailto:<seu e-mail>`. Com SPF e DKIM alinhados, a confirmação de conta não cai no spam.
 4. **SES → SMTP settings → Create SMTP credentials.** Nome `noisevault-smtp`. Guarde o **SMTP user name** e a **SMTP password** (`Email__Smtp__Username` e `Email__Smtp__Password`). O host é `email-smtp.sa-east-1.amazonaws.com`, porta 587, STARTTLS.
 5. **SES → Account dashboard → Request production access.** A conta nasce em *sandbox* (só manda para endereços verificados). Preencha: caso de uso "transactional", site `https://noisevault.net`, descrição "confirmação de cadastro e redefinição de senha de uma comunidade musical; sem marketing", volume baixo. A aprovação leva até 24 h. Enquanto espera, verifique o seu próprio e-mail em **Identities → Create identity → Email address** para testar.
 
@@ -171,7 +172,7 @@ A mesma chave serve para o `backup.sh` (ele grava em `backups/` do mesmo bucket)
 1. **Lightsail → Instances → Create instance.** Região São Paulo (`sa-east-1`, zona A). Plataforma Linux, blueprint **OS Only → Ubuntu 24.04 LTS**. Plano **4 GB RAM, 2 vCPUs, 80 GB SSD** (23,54 USD). Nome `noisevault-api`. Crie.
 2. **Networking → IPv4 networking → Attach static IP**: crie `noisevault-api-ip` e anexe. Anote o IP.
 3. Na instância → **Networking → IPv4 Firewall**: deixe `SSH 22`, `HTTP 80` e adicione **HTTPS 443** (TCP). Adicione também **443 UDP** se quiser HTTP/3 pelo Caddy; opcional.
-4. **Route 53 → zona → Create record.** Nome `api`, tipo **A**, valor o IP estático, TTL 300. Crie.
+4. No Cloudflare, **Add record** tipo **A**, Name `api`, IPv4 address o IP estático, **DNS only** (nuvem cinza; com o proxy laranja o Caddy não consegue emitir o certificado e o WebSocket cai).
 5. **Lightsail → instância → Snapshots → Automatic snapshots: Enable**, horário de madrugada. É o backup do disco inteiro.
 
 ### 7.2 Preparar o servidor
@@ -270,12 +271,17 @@ Regra 2, a SPA. Source (uma linha só) e target:
 A primeira é a prévia de link do botão "Compartilhar" (a API devolve o HTML com as tags Open Graph). A segunda é a SPA. Se a primeira ficar depois da segunda, o link `/s/...` cai no `index.html` e a prévia some.
 
 6. **Hosting → Custom headers**: o Amplify lê o `frontend/customHttp.yml` do repositório (`sw.js` e manifestos sem cache, `assets/` com cache de um ano). Confira que aparece na tela; se não, cole o conteúdo do arquivo ali.
-7. **Hosting → Custom domains → Add domain.** Escolha `noisevault.net` (ele acha a zona no Route 53). Configure:
+7. **Hosting → Custom domains → Add domain.** Digite `noisevault.net` (ele não vai achar zona, porque o DNS é do Cloudflare; siga em frente). Configure:
    - `noisevault.net` → branch `main`;
    - `www` → **Redirect to** `https://noisevault.net` (marque a opção de redirect, não de branch);
    - **Add** `ensaio` → branch `main`.
-   
-   O Amplify emite o certificado e cria os registros na zona. Leva de 10 a 30 minutos para "Available".
+
+   Ao salvar, o Amplify mostra os registros que você precisa criar (botão **View DNS records**). São três tipos; todos **CNAME**, **DNS only**, no Cloudflare:
+   - um de **verificação** do certificado (Name `_xxxx`, Target `_yyyy.acm-validations.aws.`);
+   - o da raiz: Name `@` (ou `noisevault.net`), Target o domínio `xxxx.cloudfront.net` que o Amplify mostra (o Cloudflare aceita CNAME na raiz);
+   - `www` e `ensaio`, cada um com o mesmo Target do Amplify.
+
+   O Amplify valida e emite o certificado sozinho depois que os registros propagam. Leva de 10 a 30 minutos para "Available". Se ficar parado em "Pending verification" por mais de uma hora, confira se algum registro ficou com o proxy laranja.
 
 ## 9. O primeiro administrador
 

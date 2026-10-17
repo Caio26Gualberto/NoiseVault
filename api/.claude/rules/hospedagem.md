@@ -52,7 +52,7 @@ Comprado pelo usuário em 14/10/2026. O `.com` já tinha dono, o `.com.br` o usu
 | `ensaio.noisevault.net` | o mesmo app do Amplify, que mostra a moldura do módulo Ensaio pelo endereço | o módulo existe (`ensaio.md`, `frontend/.claude/rules/ensaio.md`); no deploy, o domínio entra no Amplify como domínio do mesmo app, `https://ensaio.noisevault.net` entra em `Cors:AllowedOrigins` e o build do front leva `VITE_ENSAIO_URL` e `VITE_MAIN_URL` |
 | `mercado.noisevault.net` | idem, para venda e troca | planejado (`IDEIAS.md`, 8b) |
 
-- Quem guarda o DNS ainda não foi decidido. O caminho mais simples é o **Route 53**, junto do resto da AWS; se o domínio ficar em outro registrador, ele aponta os servidores de nome para o Route 53.
+- ~~Quem guarda o DNS ainda não foi decidido.~~ **O DNS fica no Cloudflare**, onde o domínio foi registrado (visto em 17/10/2026, no dia do deploy): domínio do Cloudflare Registrar não pode apontar para outros servidores de nome, então o Route 53 saiu. Todo registro entra à mão no painel do Cloudflare, sempre com **proxy desligado** ("DNS only"): o proxy laranja na frente da API quebraria o certificado do Caddy e o WebSocket do SignalR, e na frente do Amplify e do CloudFront só duplicaria CDN. O `DEPLOY.md` tem cada registro.
 - O login social (`IDEIAS.md`, item 6) volta a ser possível com o site em `https://noisevault.net`: as origens do Google e os domínios do SDK do Facebook são esses.
 
 ## Pendências antes do primeiro deploy
