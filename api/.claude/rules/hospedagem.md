@@ -9,7 +9,7 @@ paths:
 
 # Decisões — Hospedagem em produção
 
-Decidido em 14/10/2026. Decisão do usuário: "vai ser tudo na AWS". **O roteiro do deploy pelo console, passo a passo, é o `DEPLOY.md` da raiz** (escrito em 17/10/2026, quando o usuário disse "chegou o dia"); os arquivos do servidor estão em `infra/lightsail/` (compose de produção, `Caddyfile`, `.env.example`, `backup.sh`), e os do front em `amplify.yml` (raiz, monorepo) e `frontend/customHttp.yml`. Esta rule guarda o porquê; o `DEPLOY.md` guarda o como.
+Decidido em 14/10/2026. Decisão do usuário: "vai ser tudo na AWS". **O roteiro do deploy pelo console, passo a passo, é o `DEPLOY.md` da raiz** (escrito em 17/10/2026, quando o usuário disse "chegou o dia"); os arquivos do servidor estão em `infra/lightsail/` (compose de produção, `Caddyfile`, `.env.example`, `backup.sh`), e os do front em `amplify.yml` (raiz, monorepo) e `customHttp.yml`. Esta rule guarda o porquê; o `DEPLOY.md` guarda o como.
 
 ## A arquitetura: um servidor e serviços gerenciados por uso
 

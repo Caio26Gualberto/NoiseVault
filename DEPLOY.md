@@ -13,7 +13,7 @@ O que vai existir no fim:
 | Site e o Ensaio | Amplify (um app, dois domínios) | `noisevault.net`, `ensaio.noisevault.net` |
 | DNS | Cloudflare (onde o domínio está registrado) | zona `noisevault.net` |
 
-Arquivos do repositório usados aqui: `infra/lightsail/` (compose, Caddyfile, `.env.example`, `backup.sh`), `api/Dockerfile`, `amplify.yml` na raiz e `frontend/customHttp.yml`.
+Arquivos do repositório usados aqui: `infra/lightsail/` (compose, Caddyfile, `.env.example`, `backup.sh`), `api/Dockerfile`, `amplify.yml` e `customHttp.yml`, os dois na raiz (o Amplify só lê os dois da raiz, mesmo em monorepo).
 
 ## 0. Antes de abrir o console
 
@@ -268,7 +268,7 @@ Regra 2, a SPA. Source (uma linha só) e target:
 
 A primeira é a prévia de link do botão "Compartilhar" (a API devolve o HTML com as tags Open Graph). A segunda é a SPA. Se a primeira ficar depois da segunda, o link `/s/...` cai no `index.html` e a prévia some.
 
-6. **Hosting → Custom headers**: o Amplify lê o `frontend/customHttp.yml` do repositório (`sw.js` e manifestos sem cache, `assets/` com cache de um ano). Confira que aparece na tela; se não, cole o conteúdo do arquivo ali.
+6. **Hosting → Custom headers**: o Amplify lê o `customHttp.yml` da raiz do repositório (`sw.js` e manifestos sem cache, `assets/` com cache de um ano). Confira que aparece na tela; se não, cole o conteúdo do arquivo ali.
 7. **Hosting → Custom domains → Add domain.** Digite `noisevault.net` (ele não vai achar zona, porque o DNS é do Cloudflare; siga em frente). Em **Custom SSL certificate**, escolha o certificado coringa do passo 3 (aparece pelo ARN). Configure:
    - `noisevault.net` → branch `main`;
    - `www` → **Redirect to** `https://noisevault.net` (marque a opção de redirect, não de branch);
