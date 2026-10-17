@@ -9,7 +9,7 @@ O que vai existir no fim:
 | API, Hangfire, SignalR, Postgres, Caddy | Lightsail (1 instância, Docker) | `api.noisevault.net` |
 | Fotos e vídeos | S3 privado + CloudFront | `media.noisevault.net` |
 | Conversão de vídeo | MediaConvert (por uso) | sem endereço; a API cria o job |
-| E-mail de confirmação e redefinição | SES por SMTP | `nao-responda@noisevault.net` |
+| E-mail de confirmação e redefinição | SES pela SDK, com a chave da API | `nao-responda@noisevault.net` |
 | Site e o Ensaio | Amplify (um app, dois domínios) | `noisevault.net`, `ensaio.noisevault.net` |
 | DNS | Cloudflare (onde o domínio está registrado) | zona `noisevault.net` |
 
@@ -137,6 +137,12 @@ O Lightsail não tem IAM role; a API usa uma chave de acesso.
       "Resource": "arn:aws:s3:::noisevault-media"
     },
     {
+      "Sid": "Email",
+      "Effect": "Allow",
+      "Action": "ses:SendEmail",
+      "Resource": "*"
+    },
+    {
       "Sid": "MediaConvert",
       "Effect": "Allow",
       "Action": ["mediaconvert:CreateJob", "mediaconvert:GetJob", "mediaconvert:DescribeEndpoints"],
@@ -164,7 +170,7 @@ A mesma chave serve para o `backup.sh` (ele grava em `backups/` do mesmo bucket)
 1. **Amazon SES → Identities → Create identity → Domain.** `noisevault.net`, com **Easy DKIM** ligado. Crie. A tela da identidade mostra **três CNAMEs de DKIM** (nome `xxxx._domainkey.noisevault.net`, valor `xxxx.dkim.amazonses.com`). No Cloudflare, três **Add record** tipo **CNAME**, DNS only, com o nome sem o `.noisevault.net` do fim. Em minutos a identidade fica **Verified**.
 2. Na identidade → **Custom MAIL FROM domain → Edit**: `mail.noisevault.net`. O SES mostra dois registros para criar no Cloudflare: um **MX** com Name `mail`, Mail server `feedback-smtp.sa-east-1.amazonses.com`, Priority 10; e um **TXT** com Name `mail`, Content `v=spf1 include:amazonses.com ~all`. Isso alinha o SPF.
 3. No Cloudflare, **Add record** tipo **TXT**, Name `_dmarc`, Content `v=DMARC1; p=quarantine; rua=mailto:<seu e-mail>`. Com SPF e DKIM alinhados, a confirmação de conta não cai no spam.
-4. **SES → SMTP settings → Create SMTP credentials.** Nome `noisevault-smtp`. Guarde o **SMTP user name** e a **SMTP password** (`Email__Smtp__Username` e `Email__Smtp__Password`). O host é `email-smtp.sa-east-1.amazonaws.com`, porta 587, STARTTLS.
+4. Nada de credencial SMTP: a API manda pela SDK com a chave do `noisevault-api`, cuja política já tem `ses:SendEmail`. No `.env`, `Email__Provider=Ses`.
 5. **SES → Account dashboard → Request production access.** A conta nasce em *sandbox* (só manda para endereços verificados). Preencha: caso de uso "transactional", site `https://noisevault.net`, descrição "confirmação de cadastro e redefinição de senha de uma comunidade musical; sem marketing", volume baixo. A aprovação leva até 24 h. Enquanto espera, verifique o seu próprio e-mail em **Identities → Create identity → Email address** para testar.
 
 ## 7. Lightsail: o servidor da API
@@ -203,7 +209,7 @@ cp .env.example .env
 nano .env
 ```
 
-Preencha o `.env` com tudo que você guardou: senha do Postgres (invente uma longa), chave da Six Labors, segredo do JWT, chaves do IAM, o ARN da role do MediaConvert, credenciais SMTP, Spotify, e o seu e-mail em `Email__VerificationInbox`. Nenhum valor fica vazio exceto os que o exemplo já deixa em branco de propósito.
+Preencha o `.env` com tudo que você guardou: senha do Postgres (invente uma longa), chave da Six Labors, segredo do JWT, chaves do IAM, o ARN da role do MediaConvert, Spotify, e o seu e-mail em `Email__VerificationInbox`. Nenhum valor fica vazio exceto os que o exemplo já deixa em branco de propósito.
 
 ```bash
 docker compose build

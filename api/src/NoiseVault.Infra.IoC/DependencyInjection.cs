@@ -2,6 +2,7 @@ using NoiseVault.Application.Share;
 using NoiseVault.Application.Share.Interfaces;
 using NoiseVault.Application.PhotoTags;
 using NoiseVault.Application.PhotoTags.Interfaces;
+using Amazon.SimpleEmailV2;
 using NoiseVault.Infra.Data.Repositories.PhotoTags;
 using NoiseVault.Application.Mentions;
 using NoiseVault.Application.Mentions.Interfaces;
@@ -245,9 +246,14 @@ namespace NoiseVault.Infra.IoC
 
             if (emailSettings.UsesSmtp)
                 services.AddScoped<IEmailSender, SmtpEmailSender>();
+            else if (emailSettings.UsesSes)
+            {
+                services.AddSingleton<IAmazonSimpleEmailServiceV2>(_ => StorageRegistration.CreateSesClient(StorageSettings.FromConfiguration(config)));
+                services.AddScoped<IEmailSender, SesEmailSender>();
+            }
             else
             {
-                Console.WriteLine("[Noise Vault] Email:Provider não é Smtp — e-mails serão apenas logados (EMAIL_STUBBED).");
+                Console.WriteLine("[Noise Vault] Email:Provider não é Smtp nem Ses — e-mails serão apenas logados (EMAIL_STUBBED).");
                 services.AddScoped<IEmailSender, ConsoleEmailSender>();
             }
 

@@ -13,14 +13,15 @@ Hoje o produto manda cinco e-mails: **confirmação de cadastro**, **redefiniç�
 
 - **`IEmailService`** (`Application/Interfaces/`) é tipado por caso de uso: `SendEmailConfirmationAsync(EmailConfirmationEmailDto)`, `SendPasswordResetAsync(PasswordResetEmailDto)`, `SendUserInviteEmail(...)`. Recebe **dados** (nome, destinatário, token), nunca HTML nem URL — a Application não sabe de layout nem de onde o site está hospedado. Devolve `false` quando o transporte não aceitou; quem chama decide o que fazer com isso (`auth-e-contas.md`).
 - **`EmailService`** (`Infra.Data/Email/`) monta assunto, HTML e versão texto, e monta os links a partir de `Frontend:BaseUrl`. Layout herdado do Buscaprocesso: tabela de 560 px, cabeçalho na cor da marca, preheader, um botão, rodapé dizendo por que a pessoa recebe. `<meta name="color-scheme" content="light">` de propósito: e-mail em modo escuro é imprevisível entre clientes e o site já é escuro — o e-mail é o lugar claro.
-- **`IEmailSender`** é o transporte: `SmtpEmailSender` (MailKit) ou `ConsoleEmailSender`. `Email:Provider` (`Smtp` | qualquer outro valor) escolhe no `AddInfra`, e o boot avisa quando cai no console.
+- **`IEmailSender`** é o transporte: `SmtpEmailSender` (MailKit), `SesEmailSender` (SDK do SES) ou `ConsoleEmailSender`. `Email:Provider` (`Smtp` | `Ses` | qualquer outro valor) escolhe no `AddInfra`, e o boot avisa quando cai no console.
 
 ## Dev: Mailpit no docker-compose, SMTP como denominador comum
 
 - O compose sobe `axllent/mailpit` (`noisevault-mailpit`): SMTP em `localhost:1025` sem TLS nem autenticação, caixa de entrada web em **http://localhost:8025**. `appsettings.Development.json` já aponta para ele com `Email:Provider=Smtp`.
-- Escolha: SMTP genérico em vez de emular um provedor específico. Qualquer provedor fala SMTP; quando a escolha vier com API própria, entra um segundo `IEmailSender` e o `SmtpEmailSender` continua servindo o dev. **O provedor de produção é o SES, por SMTP** (14/10/2026, `hospedagem.md`): o `SmtpEmailSender` serve como está.
+- Escolha: SMTP genérico em vez de emular um provedor específico. Qualquer provedor fala SMTP; quando a escolha vier com API própria, entra um segundo `IEmailSender` e o `SmtpEmailSender` continua servindo o dev. ~~**O provedor de produção é o SES, por SMTP**~~ **Em produção o SES entra pela SDK** (`SesEmailSender`, `AWSSDK.SimpleEmailV2`, decisão do usuário em 17/10/2026, no deploy): o SMTP do SES exigiria um segundo usuário IAM com senha SMTP derivada; pela SDK a API usa a mesma chave do `noisevault-api` (`Storage__AccessKey`/`SecretKey`, região do `Storage__Region`) com `ses:SendEmail` na política. O `SmtpEmailSender` continua sendo o do dev, contra o Mailpit.
+- `SesEmailSender`: `SendEmail` da API v2 com conteúdo `Simple` (assunto, HTML e texto em UTF-8), remetente `Nome <endereço>` de `Email:From`. Mesmo contrato do SMTP: aceito vira `EMAIL_SENT` com o `MessageId` do SES; exceção vira `EMAIL_SEND_FAILED` (Warning) e `false`. Com a conta em sandbox o SES recusa destinatário não verificado, e isso aparece como `EMAIL_SEND_FAILED` com `MessageRejected`.
 - `SmtpEmailSender`: `SecureSocketOptions.StartTls` quando `Email:Smtp:UseStartTls=true`, `None` caso contrário (Mailpit); autentica só se `Email:Smtp:Username` estiver preenchido; timeout de 10 s. Exceção vira `EMAIL_SEND_FAILED` (Warning) e `false` — nunca sobe para o request.
-- Produção: `Email__Smtp__Host/Port/Username/Password` por variável de ambiente; `Email:From` fica no `appsettings.json` porque não é segredo.
+- Produção: `Email__Provider=Ses` e nenhuma variável de SMTP; `Email:From` fica no `appsettings.json` porque não é segredo. SMTP em produção continua possível (`Email__Provider=Smtp` com `Email__Smtp__*`), só não é o caminho escolhido.
 
 ## Links: o front recebe `userId`+`token` ou `email`+`token`
 
@@ -41,9 +42,9 @@ Hoje o produto manda cinco e-mails: **confirmação de cadastro**, **redefiniç�
 
 | Evento | Nível | Quando |
 |---|---|---|
-| `EMAIL_SENT` | Info | SMTP aceitou: `MessageId`, `Subject` |
+| `EMAIL_SENT` | Info | SMTP ou SES aceitou: `MessageId`, `Subject` |
 | `EMAIL_SEND_FAILED` | Warning | conexão, autenticação ou envio falharam; devolve `false` |
-| `EMAIL_STUBBED` | Info | `Email:Provider` não é `Smtp`; nada foi enviado |
+| `EMAIL_STUBBED` | Info | `Email:Provider` não é `Smtp` nem `Ses`; nada foi enviado |
 
 ## Roteiro de verificação
 

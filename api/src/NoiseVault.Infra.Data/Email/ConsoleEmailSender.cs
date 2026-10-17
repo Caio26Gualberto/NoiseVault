@@ -15,7 +15,7 @@ namespace NoiseVault.Infra.Data.Email
         {
             _logger.Info(
                 eventName: "EMAIL_STUBBED",
-                message: "E-mail delivery is disabled (Email:Provider is not Smtp); nothing was sent",
+                message: "E-mail delivery is disabled (Email:Provider is neither Smtp nor Ses); nothing was sent",
                 extra: new { Subject = subject, TextLength = text.Length });
 
             return Task.FromResult(true);

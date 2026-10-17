@@ -18,7 +18,7 @@ Decidido em 14/10/2026. Decisão do usuário: "vai ser tudo na AWS". **O roteiro
 | API + Hangfire + SignalR + Postgres | **Lightsail em São Paulo**, bundle de 4 GB (2 vCPU, 80 GB SSD, 4 TB de transferência), 23,54 USD/mês | `docker compose` com a API, o Postgres e um Caddy na frente (HTTPS e WebSocket) |
 | Fotos e vídeos | **S3** em São Paulo, bucket privado + **CloudFront** com OAC | como já previsto em `armazenamento.md`. Plano flat-rate Free do CloudFront no começo, Pro (15 USD) quando chegar perto do limite |
 | Conversão de vídeo | **MediaConvert** em São Paulo, por uso (`Video__Engine=MediaConvert`) | implementado em 17/10/2026 (`midia-e-video.md`): a API cria o job e um recorrente consulta o fim. O `Dockerfile` ainda leva o ffmpeg como saída de emergência (`Video__Engine=Ffmpeg`) |
-| E-mail | **SES** por SMTP | o `SmtpEmailSender` atual serve (`email.md`) |
+| E-mail | **SES** pela SDK (`Email__Provider=Ses`) | `SesEmailSender`, com a mesma chave IAM da API (`email.md`) |
 | Front | **Amplify** | ver "Front e a prévia de links" abaixo |
 
 ### Por que não Fargate + Load Balancer + RDS
@@ -60,7 +60,7 @@ Comprado pelo usuário em 14/10/2026. O `.com` já tinha dono, o `.com.br` o usu
 - **Credenciais**: o Lightsail não tem IAM role como o EC2. Um usuário IAM com chave em variável de ambiente (`Storage__AccessKey`, `Storage__SecretKey`; o `StorageSettings` já aceita), com o mínimo:
   - S3 no bucket da mídia e no prefixo de backup;
   - `mediaconvert:CreateJob`, `mediaconvert:GetJob`, `mediaconvert:DescribeEndpoints` e `iam:PassRole` só na role de serviço do MediaConvert (`noisevault-mediaconvert`, que lê `uploads/*` e grava `users/*`); a role vai em `MediaConvert__RoleArn`;
-  - as credenciais SMTP do SES são de outro usuário IAM, também por variável de ambiente (`Email__Smtp__*`).
+  - ~~as credenciais SMTP do SES são de outro usuário IAM~~ o e-mail sai pela SDK com a mesma chave, então a política do `noisevault-api` leva `ses:SendEmail` (17/10/2026).
 - **Spotify**: `Spotify__ClientId` e `Spotify__ClientSecret` do app no painel de desenvolvedor (modo desenvolvimento basta; `discografia.md`), por variável de ambiente. Renomear o app "A New Level Music" para Noise Vault, site `https://noisevault.net`, e apagar o redirect de `localhost:7213`.
 - **Postgres no servidor**: `pg_dump` diário para o S3 (prefixo próprio, retenção definida no deploy) e snapshot automático do Lightsail. Restaurar um backup faz parte do roteiro de verificação do deploy, não fica para quando precisar.
 - ~~**Data Protection**: persistir as chaves antes de subir~~ feito em 17/10/2026: `PersistKeysToDbContext<AppDbContext>` com a tabela `DataProtectionKeys` (migration `AddDataProtectionKeys`) e `SetApplicationName("noisevault")`. As chaves vão no `pg_dump`.

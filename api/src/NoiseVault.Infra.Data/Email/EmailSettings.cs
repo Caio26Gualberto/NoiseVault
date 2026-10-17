@@ -5,6 +5,7 @@ namespace NoiseVault.Infra.Data.Email
     public class EmailSettings
     {
         public const string SmtpProvider = "Smtp";
+        public const string SesProvider = "Ses";
 
         public string Provider { get; init; } = string.Empty;
         public string FromAddress { get; init; } = string.Empty;
@@ -18,6 +19,7 @@ namespace NoiseVault.Infra.Data.Email
         public string SmtpPassword { get; init; } = string.Empty;
 
         public bool UsesSmtp => string.Equals(Provider, SmtpProvider, StringComparison.OrdinalIgnoreCase);
+        public bool UsesSes => string.Equals(Provider, SesProvider, StringComparison.OrdinalIgnoreCase);
 
         public static EmailSettings FromConfiguration(IConfiguration config) => new()
         {

@@ -2,6 +2,7 @@ using Amazon;
 using Amazon.MediaConvert;
 using Amazon.Runtime;
 using Amazon.S3;
+using Amazon.SimpleEmailV2;
 using NoiseVault.Application.Interfaces;
 using NoiseVault.Infra.Data.Media;
 using Microsoft.Extensions.Configuration;
@@ -35,6 +36,15 @@ namespace NoiseVault.Infra.Data.Storage
             }
 
             return services;
+        }
+
+        public static AmazonSimpleEmailServiceV2Client CreateSesClient(StorageSettings settings)
+        {
+            var clientConfig = new AmazonSimpleEmailServiceV2Config { RegionEndpoint = RegionEndpoint.GetBySystemName(settings.Region) };
+
+            return settings.HasStaticCredentials
+                ? new AmazonSimpleEmailServiceV2Client(new BasicAWSCredentials(settings.AccessKey, settings.SecretKey), clientConfig)
+                : new AmazonSimpleEmailServiceV2Client(clientConfig);
         }
 
         private static AmazonMediaConvertClient CreateMediaConvertClient(StorageSettings settings, VideoSettings video)
