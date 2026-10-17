@@ -45,7 +45,7 @@ export function AppGoogleButton({ onToken, text = 'continue_with', disabled = fa
         theme: isDark ? 'filled_black' : 'outline',
         size: 'large',
         text,
-        shape: 'pill',
+        shape: 'rectangular',
         logo_alignment: 'center',
         width,
         locale: 'pt-BR',
@@ -69,6 +69,7 @@ export function AppGoogleButton({ onToken, text = 'continue_with', disabled = fa
   return (
     <div
       ref={container}
+      style={{ colorScheme: 'light' }}
       aria-busy={disabled || undefined}
       className={cn('flex min-h-11 w-full items-center justify-center', disabled && 'pointer-events-none opacity-60', className)}
     />
@@ -120,7 +121,7 @@ export function AppFacebookButton({ onToken, label, loading = false, disabled = 
         loading={loading}
         disabled={disabled || !sdk}
         onClick={signIn}
-        className={cn('rounded-full bg-facebook text-facebook-foreground hover:bg-facebook/90', className)}
+        className={cn('bg-facebook text-facebook-foreground hover:bg-facebook/90', className)}
       >
         <FacebookGlyph />
         {label}
