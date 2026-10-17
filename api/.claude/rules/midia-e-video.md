@@ -133,6 +133,8 @@ Montado em código (`MediaConvertVideoTranscoder`), não em template do console,
 - **Desentrelaçamento** `ADAPTIVE`: só age quando o original é entrelaçado (VHS e fita digitalizada), como o `bwdif` condicional do ffmpeg;
 - **Poster**: grupo File com Frame Capture JPEG (qualidade 80), 1 frame por segundo, 2 capturas: a API prefere `poster.0000001.jpg` (1 s) e cai para `poster.0000000.jpg` em vídeo curto, o mesmo critério do ffmpeg. O poster fica **JPEG do tamanho do original**, não WebP 720p: converter exigiria baixar o frame no servidor, e a diferença de bytes não paga a ida.
 
+**O primeiro vídeo em produção (17/10/2026) recusou o job**: com Automated ABR o `qualityTuningLevel` do H.264 é obrigatório (`BadRequestException: qualityTuningLevel is a required property`); entrou `MULTI_PASS_HQ`, que é o que o ABR automático exige. Visto no log como `VIDEO_TRANSCODE_RETRY`, sem ir ao painel.
+
 **O que o primeiro vídeo em produção precisa confirmar**, porque o LocalStack não emula o MediaConvert e nada disto rodou antes do deploy: o job é aceito com o Automated ABR sem `QvbrSettings` explícito; vídeo **sem áudio** não falha por causa do seletor padrão; o poster de 1 s existe; o `master.m3u8` toca no hls.js pelo CloudFront com os nomes `master_N`. Qualquer ajuste entra nesta seção.
 
 ### Infra
