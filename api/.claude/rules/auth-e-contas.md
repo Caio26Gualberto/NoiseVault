@@ -42,7 +42,7 @@ As três escritas do registro (`Users`, `UsersIdentity`, `UserRoles`) rodam dent
 - Reset de senha vale **1 h** por um provider próprio (`PasswordResetTokenProvider`, registrado em `options.Tokens.PasswordResetTokenProvider`). O default do Identity é 24 h para tudo; um link de reset vivo por um dia é tempo demais para quem teve a caixa de entrada vazada.
 - Os dois tokens são de uso único por construção: mudam com o `SecurityStamp`, e `ConfirmEmailAsync`/`ResetPasswordAsync` o atualizam.
 
-🔴 **Data Protection em container é efêmero.** Os tokens são protegidos pelas chaves do Data Protection; em dev no Windows elas persistem em `%LOCALAPPDATA%\ASP.NET\DataProtection-Keys`. Num container sem volume, reiniciar a API invalida **todo** link pendente de confirmação e de reset. Antes do primeiro deploy em container: `PersistKeysToDbContext` ou filesystem montado. Está registrado aqui para não virar "o link não funciona" em produção.
+🔴 **Data Protection em container é efêmero.** Os tokens são protegidos pelas chaves do Data Protection; em dev no Windows elas persistem em `%LOCALAPPDATA%\ASP.NET\DataProtection-Keys`. Num container sem volume, reiniciar a API invalida **todo** link pendente de confirmação e de reset. ~~Antes do primeiro deploy em container: `PersistKeysToDbContext` ou filesystem montado.~~ Feito em 17/10/2026: `AddDataProtection().SetApplicationName("noisevault").PersistKeysToDbContext<AppDbContext>()` no `AddInfra`, tabela `DataProtectionKeys` (o `AppDbContext` implementa `IDataProtectionKeyContext`). Em dev também passa a usar o banco: derrubar o volume do Postgres invalida os links pendentes, o que é o esperado.
 
 ## Redefinir senha: provar posse do e-mail não é abrir sessão
 

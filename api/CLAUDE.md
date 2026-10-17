@@ -353,7 +353,7 @@ Sem projeto de teste: verificação é por execução real.
 - A conversão de vídeo chama o `ffmpeg` do PATH. Visual Studio ou terminal abertos antes de instalar não enxergam o PATH novo: reinicie, ou passe `Video__FfmpegPath` e `Video__FfprobePath`.
 - A colação `case_insensitive` de `Users.Email` é não determinística: Postgres recusa `LIKE`/`Contains` nela. Busca textual é por `Name`/`Nickname` (colação default); e-mail só por igualdade.
 - O pacote transitivo `Newtonsoft.Json 11.0.1` (via Hangfire) dispara `NU1903` no build. Aviso, não erro; herdado do boilerplate e pendente de bump.
-- Os tokens de confirmação de e-mail e de redefinição de senha dependem das chaves do Data Protection. Em container sem volume, reiniciar a API invalida todo link pendente — `PersistKeysToDbContext` antes do primeiro deploy (`auth-e-contas.md`).
+- ~~Os tokens de confirmação de e-mail e de redefinição de senha dependem das chaves do Data Protection; em container sem volume, reiniciar a API invalida todo link pendente~~: desde 17/10/2026 as chaves ficam na tabela `DataProtectionKeys` (`auth-e-contas.md`).
 - `Infra.Data` usa `FrameworkReference` do ASP.NET Core (o pacote `Microsoft.AspNetCore.Identity 2.3` do boilerplate foi removido): sem isso o `DataProtectorTokenProvider` resolvia para a versão 2.x e o `PasswordResetTokenProvider` não compilava.
 
 ## Como este arquivo evolui

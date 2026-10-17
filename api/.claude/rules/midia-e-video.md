@@ -107,7 +107,7 @@ Para um LocalStack que já estava de pé: `docker exec noisevault-localstack bas
 
 ## Produção: AWS MediaConvert
 
-O ffmpeg no processo da API serve para dev. Em produção, a conversão vai para o **AWS Elemental MediaConvert** desde o primeiro deploy: o servidor é um Lightsail pequeno, de CPU "burstable", e uma fita de 2 h derrubaria a API (decisão de 14/10/2026, `hospedagem.md`). Ainda não implementado:
+O ffmpeg no processo da API serve para dev. Em produção, a conversão vai para o **AWS Elemental MediaConvert** ~~desde o primeiro deploy~~: o servidor é um Lightsail pequeno, de CPU "burstable", e uma fita de 2 h derrubaria a API (decisão de 14/10/2026, `hospedagem.md`). **Não foi implementado antes do deploy** (17/10/2026): o `api/Dockerfile` instala o ffmpeg e o primeiro deploy converte no container, com o risco da CPU aceito enquanto vídeo longo for raro. O desenho continua valendo para quando entrar:
 
 - **Disparo**: o `CompleteVideo` continua igual, mas em vez de enfileirar o job do ffmpeg ele cria um job do MediaConvert (`CreateJob`), com o original em `s3://…/uploads/…` e um **job template** que reproduz a escada de dev.
 - **Saída** (o mesmo layout que o ffmpeg já gera, então tela e banco não mudam):

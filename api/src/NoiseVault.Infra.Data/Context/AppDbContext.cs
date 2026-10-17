@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -8,7 +9,7 @@ using NoiseVault.Infra.Data.Identity;
 
 namespace NoiseVault.Infra.Data.Context
 {
-    public class AppDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, int>
+    public class AppDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, int>, IDataProtectionKeyContext
     {
         public const string CaseInsensitiveCollation = "case_insensitive";
 
@@ -20,6 +21,7 @@ namespace NoiseVault.Infra.Data.Context
         }
 
         public new DbSet<User> Users => Set<User>();
+        public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
         public DbSet<UserGenre> UserGenres => Set<UserGenre>();
         public DbSet<City> Cities => Set<City>();
         public DbSet<Band> Bands => Set<Band>();

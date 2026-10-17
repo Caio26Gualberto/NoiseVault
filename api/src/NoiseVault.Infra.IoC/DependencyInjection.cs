@@ -45,6 +45,7 @@ using NoiseVault.Workers.Triggers.Recurring.Notifications;
 using NoiseVault.Workers.Wrappers.Recurring.Notifications;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -119,6 +120,10 @@ namespace NoiseVault.Infra.IoC
                     .AddInterceptors(sp.GetRequiredService<AuditSaveChangesInterceptor>()));
 
             // Identity
+            services.AddDataProtection()
+                .SetApplicationName("noisevault")
+                .PersistKeysToDbContext<AppDbContext>();
+
             services.Configure<DataProtectionTokenProviderOptions>(options => options.TokenLifespan = TimeSpan.FromHours(24));
             services.Configure<PasswordResetTokenProviderOptions>(options => options.TokenLifespan = TimeSpan.FromHours(1));
 

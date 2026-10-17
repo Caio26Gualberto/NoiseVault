@@ -1,5 +1,6 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
+ARG SIXLABORS_LICENSE_KEY=
 WORKDIR /src
 
 COPY src/NoiseVault.Api/NoiseVault.Api.csproj                 src/NoiseVault.Api/
@@ -14,11 +15,12 @@ COPY src/ src/
 RUN dotnet publish src/NoiseVault.Api/NoiseVault.Api.csproj \
     -c $BUILD_CONFIGURATION \
     -o /app/publish \
-    /p:UseAppHost=false
+    /p:UseAppHost=false \
+    /p:SixLaborsLicenseKey="$SIXLABORS_LICENSE_KEY"
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends libgssapi-krb5-2 tzdata \
+    && apt-get install -y --no-install-recommends libgssapi-krb5-2 tzdata ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 EXPOSE 8080

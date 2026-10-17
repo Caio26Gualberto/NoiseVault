@@ -9,7 +9,7 @@ paths:
 
 # Decisões — Hospedagem em produção
 
-Decidido em 14/10/2026, **sem deploy ainda**. Nada aqui existe na AWS. A rule guarda a escolha e as pendências para o dia em que o deploy acontecer. Decisão do usuário: "vai ser tudo na AWS".
+Decidido em 14/10/2026. Decisão do usuário: "vai ser tudo na AWS". **O roteiro do deploy pelo console, passo a passo, é o `DEPLOY.md` da raiz** (escrito em 17/10/2026, quando o usuário disse "chegou o dia"); os arquivos do servidor estão em `infra/lightsail/` (compose de produção, `Caddyfile`, `.env.example`, `backup.sh`), e os do front em `amplify.yml` (raiz, monorepo) e `frontend/customHttp.yml`. Esta rule guarda o porquê; o `DEPLOY.md` guarda o como.
 
 ## A arquitetura: um servidor e serviços gerenciados por uso
 
@@ -17,7 +17,7 @@ Decidido em 14/10/2026, **sem deploy ainda**. Nada aqui existe na AWS. A rule gu
 |---|---|---|
 | API + Hangfire + SignalR + Postgres | **Lightsail em São Paulo**, bundle de 4 GB (2 vCPU, 80 GB SSD, 4 TB de transferência), 23,54 USD/mês | `docker compose` com a API, o Postgres e um Caddy na frente (HTTPS e WebSocket) |
 | Fotos e vídeos | **S3** em São Paulo, bucket privado + **CloudFront** com OAC | como já previsto em `armazenamento.md`. Plano flat-rate Free do CloudFront no começo, Pro (15 USD) quando chegar perto do limite |
-| Conversão de vídeo | **MediaConvert** em São Paulo, por uso | desde o primeiro deploy (`midia-e-video.md`). O ffmpeg fica só para dev |
+| Conversão de vídeo | ~~**MediaConvert** desde o primeiro deploy~~ **ffmpeg dentro do container** no primeiro deploy; MediaConvert quando for implementado | o MediaConvert não saiu do papel até o dia do deploy (17/10/2026), e o `Dockerfile` instala o ffmpeg para o vídeo funcionar. O risco da CPU burstable continua registrado abaixo; uma fita longa vai ocupar o servidor por um tempo, e enquanto for raro aceita-se (`midia-e-video.md`) |
 | E-mail | **SES** por SMTP | o `SmtpEmailSender` atual serve (`email.md`) |
 | Front | **Amplify** | ver "Front e a prévia de links" abaixo |
 
@@ -63,11 +63,15 @@ Comprado pelo usuário em 14/10/2026. O `.com` já tinha dono, o `.com.br` o usu
   - as credenciais SMTP do SES são de outro usuário IAM, também por variável de ambiente (`Email__Smtp__*`).
 - **Spotify**: `Spotify__ClientId` e `Spotify__ClientSecret` do app no painel de desenvolvedor (modo desenvolvimento basta; `discografia.md`), por variável de ambiente. Renomear o app "A New Level Music" para Noise Vault, site `https://noisevault.net`, e apagar o redirect de `localhost:7213`.
 - **Postgres no servidor**: `pg_dump` diário para o S3 (prefixo próprio, retenção definida no deploy) e snapshot automático do Lightsail. Restaurar um backup faz parte do roteiro de verificação do deploy, não fica para quando precisar.
-- **Data Protection**: persistir as chaves antes de subir (`auth-e-contas.md`), senão cada restart do container invalida os links de confirmação e de redefinição.
+- ~~**Data Protection**: persistir as chaves antes de subir~~ feito em 17/10/2026: `PersistKeysToDbContext<AppDbContext>` com a tabela `DataProtectionKeys` (migration `AddDataProtectionKeys`) e `SetApplicationName("noisevault")`. As chaves vão no `pg_dump`.
+- **Migrations em produção rodam no boot**: o compose de `infra/lightsail/` liga `Database__MigrateOnStartup=true`. É uma instância só, o servidor não tem o SDK do .NET para `dotnet ef`, e o `MigrateAsync` é idempotente. A frase "só em desenvolvimento" do `CLAUDE.md` vale para ambientes com mais de uma instância subindo ao mesmo tempo, que é quando duas migrations concorrem. Volta a ser proibido no Fargate.
+- **Caddy** na frente da API (`infra/lightsail/Caddyfile`): HTTPS automático, corpo de requisição até 60 MB (o maior upload que passa pela API é a foto do mural, 41 MB; vídeo vai direto ao S3) e `read_timeout` de 10 min para o upload lento. O `ForwardedHeaders` da API já confia em qualquer proxy (`KnownProxies` limpo), então o `X-Forwarded-Proto` do Caddy vale e o cookie sai `Secure`.
+- **Primeiro admin em produção**: o seed não cria conta de admin fora de Development. A pessoa se cadastra pelo site e recebe o papel por SQL no servidor (`DEPLOY.md`, passo 9).
+- **Backup**: `infra/lightsail/backup.sh` faz `pg_dump -Fc` e manda para `s3://noisevault-media/backups/postgres/`, por cron às 4h30; a regra de lifecycle do bucket apaga com 30 dias. Mais o snapshot automático do Lightsail.
 - **Hangfire**: o dashboard já não é mapeado em `Production` (`jobs-hangfire.md`).
 - **Prévia de link**: rewrite `/s/<*>` → `https://api.noisevault.net/s/<*>` (200, proxy) no Amplify, **antes** do rewrite da SPA (`compartilhamento.md`). Sem ele, o link do botão "Compartilhar" cai na SPA e a prévia some.
 - **PWA**: o `sw.js` vai com `Cache-Control: no-cache` no Amplify ou no CloudFront, e o `manifest.webmanifest` com `application/manifest+json` (`frontend/.claude/rules/pwa.md`). Com cache longo no `sw.js`, a versão nova do site demora a chegar em quem instalou.
-- **Licença do ImageSharp**: o build em `Release` **falha** sem chave da Six Labors ("No Six Labors license found"; o `Debug` só avisa). Visto em 14/10/2026. A licença Split é gratuita abaixo de US$ 1 milhão de receita (`armazenamento.md`), mas a chave precisa existir no build da imagem (`SixLaborsLicenseKey` por variável, nunca no Git).
+- **Licença do ImageSharp**: o build em `Release` **falha** sem chave da Six Labors ("No Six Labors license found"; o `Debug` só avisa). Visto em 14/10/2026. A licença Split é gratuita abaixo de US$ 1 milhão de receita (`armazenamento.md`). O `Dockerfile` recebe a chave pelo build arg `SIXLABORS_LICENSE_KEY` (o compose lê do `.env`) e passa como `/p:SixLaborsLicenseKey` ao `publish`; nunca no Git.
 - **SignalR**: uma instância, sem backplane. O Caddy repassa WebSocket; o keep-alive de 15 s sobra para qualquer idle timeout (`notificacoes.md`).
 - **CORS**: `Cors:AllowedOrigins` e o CORS do bucket com `https://noisevault.net` (`midia-e-video.md`). O CORS da API aceita credenciais (o cookie do refresh), então a lista é exata e ganha cada subdomínio do front quando ele nascer (`https://ensaio.noisevault.net`, `https://mercado.noisevault.net`); a mesma lista é a do `OriginGuard`.
 - **Cookie do refresh**: `Auth__RefreshCookie__Domain=.noisevault.net`, para a sessão valer em todos os subdomínios. Sem a variável, o cookie fica preso a `api.noisevault.net`, o que também funciona enquanto só existir o site principal (`auth-e-contas.md`).
