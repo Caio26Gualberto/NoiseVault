@@ -10,6 +10,7 @@ namespace NoiseVault.Application.Interfaces
         Task<long?> SizeAsync(string key, CancellationToken cancellationToken = default);
         Task<bool> DeleteAsync(string key, CancellationToken cancellationToken = default);
         Task<bool> DeletePrefixAsync(string prefix, CancellationToken cancellationToken = default);
+        Task<long> SizeOfPrefixAsync(string prefix, CancellationToken cancellationToken = default);
         string? PublicUrl(string? key);
 
         Task<string?> StartMultipartAsync(string key, string contentType, CancellationToken cancellationToken = default);

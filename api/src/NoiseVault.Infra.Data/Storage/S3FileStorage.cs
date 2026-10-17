@@ -76,6 +76,26 @@ namespace NoiseVault.Infra.Data.Storage
             }
         }
 
+        public async Task<long> SizeOfPrefixAsync(string prefix, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(prefix) || !prefix.EndsWith('/'))
+                throw new ArgumentException("O prefixo precisa terminar em / para não somar chaves vizinhas.", nameof(prefix));
+
+            var request = new ListObjectsV2Request { BucketName = _settings.Bucket, Prefix = prefix };
+            var total = 0L;
+            ListObjectsV2Response response;
+
+            do
+            {
+                response = await _client.ListObjectsV2Async(request, cancellationToken);
+                total += (response.S3Objects ?? []).Sum(o => o.Size ?? 0);
+                request.ContinuationToken = response.NextContinuationToken;
+            }
+            while (response.IsTruncated == true);
+
+            return total;
+        }
+
         public async Task<bool> DeletePrefixAsync(string prefix, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(prefix) || !prefix.EndsWith('/'))

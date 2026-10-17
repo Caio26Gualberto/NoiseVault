@@ -17,7 +17,7 @@ Decidido em 14/10/2026. Decisão do usuário: "vai ser tudo na AWS". **O roteiro
 |---|---|---|
 | API + Hangfire + SignalR + Postgres | **Lightsail em São Paulo**, bundle de 4 GB (2 vCPU, 80 GB SSD, 4 TB de transferência), 23,54 USD/mês | `docker compose` com a API, o Postgres e um Caddy na frente (HTTPS e WebSocket) |
 | Fotos e vídeos | **S3** em São Paulo, bucket privado + **CloudFront** com OAC | como já previsto em `armazenamento.md`. Plano flat-rate Free do CloudFront no começo, Pro (15 USD) quando chegar perto do limite |
-| Conversão de vídeo | ~~**MediaConvert** desde o primeiro deploy~~ **ffmpeg dentro do container** no primeiro deploy; MediaConvert quando for implementado | o MediaConvert não saiu do papel até o dia do deploy (17/10/2026), e o `Dockerfile` instala o ffmpeg para o vídeo funcionar. O risco da CPU burstable continua registrado abaixo; uma fita longa vai ocupar o servidor por um tempo, e enquanto for raro aceita-se (`midia-e-video.md`) |
+| Conversão de vídeo | **MediaConvert** em São Paulo, por uso (`Video__Engine=MediaConvert`) | implementado em 17/10/2026 (`midia-e-video.md`): a API cria o job e um recorrente consulta o fim. O `Dockerfile` ainda leva o ffmpeg como saída de emergência (`Video__Engine=Ffmpeg`) |
 | E-mail | **SES** por SMTP | o `SmtpEmailSender` atual serve (`email.md`) |
 | Front | **Amplify** | ver "Front e a prévia de links" abaixo |
 
@@ -59,7 +59,7 @@ Comprado pelo usuário em 14/10/2026. O `.com` já tinha dono, o `.com.br` o usu
 
 - **Credenciais**: o Lightsail não tem IAM role como o EC2. Um usuário IAM com chave em variável de ambiente (`Storage__AccessKey`, `Storage__SecretKey`; o `StorageSettings` já aceita), com o mínimo:
   - S3 no bucket da mídia e no prefixo de backup;
-  - `mediaconvert:CreateJob`, `mediaconvert:GetJob` e `iam:PassRole` só na role de serviço do MediaConvert;
+  - `mediaconvert:CreateJob`, `mediaconvert:GetJob`, `mediaconvert:DescribeEndpoints` e `iam:PassRole` só na role de serviço do MediaConvert (`noisevault-mediaconvert`, que lê `uploads/*` e grava `users/*`); a role vai em `MediaConvert__RoleArn`;
   - as credenciais SMTP do SES são de outro usuário IAM, também por variável de ambiente (`Email__Smtp__*`).
 - **Spotify**: `Spotify__ClientId` e `Spotify__ClientSecret` do app no painel de desenvolvedor (modo desenvolvimento basta; `discografia.md`), por variável de ambiente. Renomear o app "A New Level Music" para Noise Vault, site `https://noisevault.net`, e apagar o redirect de `localhost:7213`.
 - **Postgres no servidor**: `pg_dump` diário para o S3 (prefixo próprio, retenção definida no deploy) e snapshot automático do Lightsail. Restaurar um backup faz parte do roteiro de verificação do deploy, não fica para quando precisar.

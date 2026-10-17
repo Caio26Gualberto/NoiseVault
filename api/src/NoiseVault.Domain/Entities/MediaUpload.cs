@@ -12,6 +12,7 @@ namespace NoiseVault.Domain.Entities
         public string? OriginalKey { get; set; }
         public string? MultipartUploadId { get; set; }
         public string? PosterKey { get; set; }
+        public string? TranscodeJobId { get; set; }
         public int? Width { get; set; }
         public int? Height { get; set; }
         public int? DurationSeconds { get; set; }

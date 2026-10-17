@@ -26,6 +26,7 @@ namespace NoiseVault.Application.Media
         private readonly IFileStorage _fileStorage;
         private readonly IImageProcessor _imageProcessor;
         private readonly IVideoTranscoder _videoTranscoder;
+        private readonly IRemoteVideoTranscoder _remoteTranscoder;
         private readonly IEnqueuedJobDispatcher _jobDispatcher;
         private readonly ImageReplacement _images;
         private readonly IApplicationLogger _logger;
@@ -36,6 +37,7 @@ namespace NoiseVault.Application.Media
             IFileStorage fileStorage,
             IImageProcessor imageProcessor,
             IVideoTranscoder videoTranscoder,
+            IRemoteVideoTranscoder remoteTranscoder,
             IEnqueuedJobDispatcher jobDispatcher,
             IApplicationLoggerFactory loggerFactory)
         {
@@ -44,6 +46,7 @@ namespace NoiseVault.Application.Media
             _fileStorage = fileStorage;
             _imageProcessor = imageProcessor;
             _videoTranscoder = videoTranscoder;
+            _remoteTranscoder = remoteTranscoder;
             _jobDispatcher = jobDispatcher;
             _images = new ImageReplacement(fileStorage, imageProcessor);
             _logger = loggerFactory.Create(LogContext.Media);
@@ -313,6 +316,9 @@ namespace NoiseVault.Application.Media
             if (media == null || media.Status != EMediaStatus.Processing)
                 return media?.Status;
 
+            if (_remoteTranscoder.Enabled)
+                return await SubmitRemoteAsync(media, finalAttempt);
+
             var workDirectory = Path.Combine(Path.GetTempPath(), "noisevault-media", Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(workDirectory);
 
@@ -376,6 +382,136 @@ namespace NoiseVault.Application.Media
             }
         }
 
+        public async Task<List<int>> PollRemoteTranscodes()
+        {
+            _logger.SetOperation("PollRemoteTranscodes");
+
+            var pending = await _mediaRepository.ListAsync(new QueryOptions<MediaUpload>
+            {
+                Predicate = m => m.Kind == EMediaKind.Video && m.Status == EMediaStatus.Processing && m.TranscodeJobId != null,
+            });
+
+            var ready = new List<int>();
+
+            foreach (var media in pending)
+            {
+                RemoteTranscodeResult result;
+
+                try
+                {
+                    result = await _remoteTranscoder.CheckAsync(media.TranscodeJobId!);
+                }
+                catch (Exception ex)
+                {
+                    _logger.Warning("VIDEO_TRANSCODE_POLL_FAILED", "Could not read the remote transcode job; it is checked again next minute",
+                        extra: new { MediaId = media.Id, JobId = media.TranscodeJobId, Error = ex.GetType().Name, ex.Message });
+                    continue;
+                }
+
+                switch (result.State)
+                {
+                    case RemoteTranscodeState.Failed:
+                        _logger.Error("VIDEO_TRANSCODE_FAILED", "Remote transcode job failed", userId: media.OwnerUserId,
+                            extra: new { MediaId = media.Id, JobId = media.TranscodeJobId, result.Error });
+                        await DiscardRemoteOutputAsync(media);
+                        await MarkFailedAsync(media, FailureTranscode);
+                        break;
+
+                    case RemoteTranscodeState.Complete:
+                        if (await FinalizeRemoteAsync(media, result))
+                            ready.Add(media.Id);
+                        break;
+                }
+            }
+
+            return ready;
+        }
+
+        private async Task<EMediaStatus?> SubmitRemoteAsync(MediaUpload media, bool finalAttempt)
+        {
+            try
+            {
+                var folder = $"users/{media.OwnerUserId}/videos/{Guid.NewGuid():N}";
+                var jobId = await _remoteTranscoder.StartAsync(new RemoteTranscodeRequest(media.Id, media.OriginalKey!, folder));
+
+                media.TranscodeJobId = jobId;
+                media.StorageKey = $"{folder}/{_remoteTranscoder.PlaylistFile}";
+                await _mediaRepository.UpdateAsync(media);
+
+                _logger.Info("VIDEO_TRANSCODE_SUBMITTED", "Video sent to the remote transcoder", userId: media.OwnerUserId,
+                    extra: new { MediaId = media.Id, media.Profile, JobId = jobId });
+
+                return EMediaStatus.Processing;
+            }
+            catch (Exception ex) when (finalAttempt)
+            {
+                _logger.Error("VIDEO_TRANSCODE_FAILED", "Could not submit the video to the remote transcoder on the last attempt", exception: ex, userId: media.OwnerUserId, extra: new { MediaId = media.Id });
+                return await MarkFailedAsync(media, FailureTranscode);
+            }
+            catch (Exception ex)
+            {
+                _logger.Warning("VIDEO_TRANSCODE_RETRY", "Could not submit the video to the remote transcoder; Hangfire retries it", userId: media.OwnerUserId,
+                    extra: new { MediaId = media.Id, Error = ex.GetType().Name, ex.Message });
+                throw;
+            }
+        }
+
+        private async Task<bool> FinalizeRemoteAsync(MediaUpload media, RemoteTranscodeResult result)
+        {
+            var folder = FolderOf(media.StorageKey!);
+
+            if (result.DurationSeconds > MediaRules.For(media.Profile).VideoMaxDurationSeconds + MediaRules.VideoDurationToleranceSeconds)
+            {
+                await DiscardRemoteOutputAsync(media);
+                await RejectAsync(media, FailureTooLong);
+                return false;
+            }
+
+            string? posterKey = null;
+
+            foreach (var file in _remoteTranscoder.PosterFiles)
+            {
+                var key = folder + file;
+
+                if (await _fileStorage.SizeAsync(key) is > 0)
+                {
+                    posterKey = key;
+                    break;
+                }
+            }
+
+            var size = await _fileStorage.SizeOfPrefixAsync(folder);
+            var originalKey = media.OriginalKey!;
+            var jobId = media.TranscodeJobId;
+
+            media.Status = EMediaStatus.Ready;
+            media.PosterKey = posterKey;
+            media.OriginalKey = null;
+            media.TranscodeJobId = null;
+            media.Width = result.Width;
+            media.Height = result.Height;
+            media.DurationSeconds = result.DurationSeconds;
+            media.SizeBytes = size;
+            media.ExpiresAt = DateTime.UtcNow.Add(MediaRules.UnattachedLifetime);
+            await _mediaRepository.UpdateAsync(media);
+
+            await _fileStorage.DeleteAsync(originalKey);
+
+            _logger.Info("VIDEO_TRANSCODED", "Video transcoded", userId: media.OwnerUserId,
+                extra: new { MediaId = media.Id, media.Profile, media.Width, media.Height, media.DurationSeconds, media.SizeBytes, JobId = jobId, Poster = posterKey != null });
+
+            return true;
+        }
+
+        private async Task DiscardRemoteOutputAsync(MediaUpload media)
+        {
+            if (media.StorageKey != null)
+                await _fileStorage.DeletePrefixAsync(FolderOf(media.StorageKey));
+
+            media.StorageKey = null;
+            media.TranscodeJobId = null;
+        }
+
         public async Task<int> Cleanup()
         {
             _logger.SetOperation("CleanupMedia");
@@ -401,6 +537,9 @@ namespace NoiseVault.Application.Media
 
             foreach (var media in stuck)
             {
+                if (media.TranscodeJobId != null)
+                    await DiscardRemoteOutputAsync(media);
+
                 await MarkFailedAsync(media, FailureTimeout);
                 cleaned++;
             }

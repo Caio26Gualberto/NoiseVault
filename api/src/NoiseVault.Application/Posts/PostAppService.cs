@@ -296,6 +296,11 @@ namespace NoiseVault.Application.Posts
             if (status != EMediaStatus.Ready)
                 return;
 
+            await PublishPendingPosts(mediaUploadId);
+        }
+
+        public async Task PublishPendingPosts(int mediaUploadId)
+        {
             foreach (var postId in await _postRepository.PendingPostIdsWithMediaAsync(mediaUploadId))
             {
                 if (!await _postRepository.TryPublishAsync(postId, DateTime.UtcNow))

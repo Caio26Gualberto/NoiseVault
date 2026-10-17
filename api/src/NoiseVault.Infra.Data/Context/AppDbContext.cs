@@ -334,6 +334,7 @@ namespace NoiseVault.Infra.Data.Context
                 b.Property(x => x.OriginalKey).HasMaxLength(200);
                 b.Property(x => x.MultipartUploadId).HasMaxLength(1024);
                 b.Property(x => x.PosterKey).HasMaxLength(200);
+                b.Property(x => x.TranscodeJobId).HasMaxLength(100);
                 b.Property(x => x.FailureReason).HasMaxLength(60);
 
                 b.HasOne(x => x.Owner)

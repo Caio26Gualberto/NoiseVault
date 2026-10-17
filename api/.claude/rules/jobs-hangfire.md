@@ -19,7 +19,7 @@ Todo o código de jobs vive em `src/NoiseVault.Workers`, com **duas categorias s
 |---|---|---|
 | `notifications` | `noisevault-main` | e-mail do convite de banda, `events:remind-tomorrow` e `notifications:purge` (`notificacoes.md`). Vem antes de `default` na lista: é a prioridade. |
 | `default` | `noisevault-main` | ninguém de propósito — está na lista só para um job sem `[Queue]` não ficar invisível. |
-| `media` | `noisevault-media` (`WorkerCount = 2`) | conversão de vídeo e `media:cleanup`. Servidor próprio porque ffmpeg é CPU pesada: no máximo 2 conversões ao mesmo tempo, sem ocupar os workers do principal. |
+| `media` | `noisevault-media` (`WorkerCount = 2`) | conversão de vídeo, `media:cleanup` e `media:transcode-poll`. Servidor próprio porque ffmpeg é CPU pesada: no máximo 2 conversões ao mesmo tempo, sem ocupar os workers do principal. |
 
 🔴 **`[Queue]` é obrigatório em todo método de job.** O Hangfire enfileira em `default` qualquer método **sem** o atributo; se `default` não estiver na lista de nenhum servidor, o job fica `Enqueued` para sempre, sem erro, sem log. É a primeira coisa a conferir num job novo.
 
@@ -54,6 +54,7 @@ Copiar `AutomaticRetry(3)` + `DisableConcurrentExecution(300)` em todo job produ
 | `SendBandInviteEmailAsync(invitationId)` (enfileirado) | `notifications` | `2 · 60, 600`, `OnAttemptsExceeded = Fail` | — | SMTP fora do ar é transitório; o job relê o convite a cada tentativa, então não manda e-mail de convite já respondido |
 | `SendBandVerificationEmailAsync(requestId)` (enfileirado) | `notifications` | `2 · 60, 600`, `OnAttemptsExceeded = Fail` | — | mesmo desenho do convite; o job relê o pedido e só manda se ainda estiver pendente |
 | `discography:refresh` (`DiscographyRecurringJobsTrigger.RefreshAsync`) | `default` | `2 · 60, 600`, `DisableConcurrentExecution(60)` | diário às 5 h | reimporta do Spotify as bandas com sync de mais de 24 h, uma por vez com pausa de 1 s; para no primeiro 429 e tenta amanhã (`discografia.md`) |
+| `media:transcode-poll` (recorrente, a cada minuto; só existe com `Video:Engine=MediaConvert`, senão o wrapper o remove) | `media` | `0`, `DisableConcurrentExecution(15)` | 15s | consulta `GetJob` das mídias em processamento e publica os posts das que ficaram prontas; sem retry porque o minuto seguinte repete tudo; sobreposição seria duas consultas iguais (`midia-e-video.md`) |
 | `TranscodeVideoAsync(mediaId)` (enfileirado) | `media` | `2 · 60, 300`, `OnAttemptsExceeded = Fail` | — | falha transitória (S3, ffmpeg) merece nova tentativa; a **última** marca a mídia `Failed` em vez de relançar (o trigger lê `RetryCount` do `PerformContext`), senão o post ficaria "processando" para sempre. Rejeição definitiva (não é vídeo, longo demais) não relança. |
 
 ⚠️ **`DisableConcurrentExecution(timeoutInSeconds)` é o tempo de espera pelo lock distribuído, não um teto de duração.** Para job periódico o certo é estourar rápido (15–30s) e deixar o `[AutomaticRetry]` reagendar.

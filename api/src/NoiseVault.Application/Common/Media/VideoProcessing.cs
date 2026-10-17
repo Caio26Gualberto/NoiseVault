@@ -13,4 +13,20 @@ namespace NoiseVault.Application.Common.Media
         int DurationSeconds,
         IReadOnlyList<VideoRendition> Renditions,
         bool Deinterlaced);
+
+    public enum RemoteTranscodeState
+    {
+        Running,
+        Complete,
+        Failed,
+    }
+
+    public sealed record RemoteTranscodeRequest(int MediaId, string InputKey, string OutputFolder);
+
+    public sealed record RemoteTranscodeResult(
+        RemoteTranscodeState State,
+        int Width = 0,
+        int Height = 0,
+        int DurationSeconds = 0,
+        string? Error = null);
 }

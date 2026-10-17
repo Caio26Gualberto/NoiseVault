@@ -1,4 +1,5 @@
 using Amazon;
+using Amazon.MediaConvert;
 using Amazon.Runtime;
 using Amazon.S3;
 using NoiseVault.Application.Interfaces;
@@ -19,10 +20,33 @@ namespace NoiseVault.Infra.Data.Storage
             services.AddScoped<IFileStorage, S3FileStorage>();
             services.AddScoped<IImageProcessor, ImageSharpProcessor>();
 
-            services.AddSingleton(VideoSettings.FromConfiguration(config));
+            var video = VideoSettings.FromConfiguration(config);
+            services.AddSingleton(video);
             services.AddScoped<IVideoTranscoder, FfmpegVideoTranscoder>();
 
+            if (video.UsesMediaConvert)
+            {
+                services.AddSingleton<IAmazonMediaConvert>(_ => CreateMediaConvertClient(settings, video));
+                services.AddScoped<IRemoteVideoTranscoder, MediaConvertVideoTranscoder>();
+            }
+            else
+            {
+                services.AddSingleton<IRemoteVideoTranscoder, DisabledRemoteVideoTranscoder>();
+            }
+
             return services;
+        }
+
+        private static AmazonMediaConvertClient CreateMediaConvertClient(StorageSettings settings, VideoSettings video)
+        {
+            var clientConfig = new AmazonMediaConvertConfig { RegionEndpoint = RegionEndpoint.GetBySystemName(settings.Region) };
+
+            if (!string.IsNullOrWhiteSpace(video.MediaConvertEndpoint))
+                clientConfig.ServiceURL = video.MediaConvertEndpoint;
+
+            return settings.HasStaticCredentials
+                ? new AmazonMediaConvertClient(new BasicAWSCredentials(settings.AccessKey, settings.SecretKey), clientConfig)
+                : new AmazonMediaConvertClient(clientConfig);
         }
 
         private static AmazonS3Client CreateClient(StorageSettings settings)

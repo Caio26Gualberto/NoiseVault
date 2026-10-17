@@ -107,25 +107,41 @@ Para um LocalStack que já estava de pé: `docker exec noisevault-localstack bas
 
 ## Produção: AWS MediaConvert
 
-O ffmpeg no processo da API serve para dev. Em produção, a conversão vai para o **AWS Elemental MediaConvert** ~~desde o primeiro deploy~~: o servidor é um Lightsail pequeno, de CPU "burstable", e uma fita de 2 h derrubaria a API (decisão de 14/10/2026, `hospedagem.md`). **Não foi implementado antes do deploy** (17/10/2026): o `api/Dockerfile` instala o ffmpeg e o primeiro deploy converte no container, com o risco da CPU aceito enquanto vídeo longo for raro. O desenho continua valendo para quando entrar:
+O ffmpeg no processo da API serve para dev. Em produção, a conversão vai para o **AWS Elemental MediaConvert**: o servidor é um Lightsail pequeno, de CPU "burstable", e uma fita de 2 h derrubaria a API (decisão de 14/10/2026, `hospedagem.md`). **Implementado em 17/10/2026**, a pedido do usuário, antes do primeiro deploy. O MediaConvert é serviço gerenciado: não se instala nada, a API cria o job e consulta o resultado.
 
-- **Disparo**: o `CompleteVideo` continua igual, mas em vez de enfileirar o job do ffmpeg ele cria um job do MediaConvert (`CreateJob`), com o original em `s3://…/uploads/…` e um **job template** que reproduz a escada de dev.
-- **Saída** (o mesmo layout que o ffmpeg já gera, então tela e banco não mudam):
-  - grupo **Apple HLS** com 360p, 480p, 720p e 1080p (usar "Automated ABR" do MediaConvert para não gerar rendição acima do original), H.264 QVBR com os mesmos tetos de bitrate, segmentos de 4 s, `FramerateControl: INITIALIZE_FROM_SOURCE` limitado a 60;
-  - grupo **File group** com o frame de capa (Frame Capture → JPEG), que a API processa para WebP ou usa direto;
-  - destino `s3://…/users/{userId}/videos/{guid}/`, com `master.m3u8` como nome do manifesto; servido pelo **CloudFront**.
-  - Player: já é o hls.js com menu de qualidade (`frontend/.claude/rules/feed.md`).
-- **Conclusão**: um job recorrente do Hangfire consulta `GetJob` das mídias em `Processing` e marca `Ready`/`Failed`, chamando a mesma publicação de posts. Não pede infraestrutura nova, e a consulta não é cobrada. Quando o volume pedir, o fim do job passa a chegar pelo **EventBridge** numa fila **SQS** (com DLQ), lida pelo mesmo Hangfire.
-- **Escolha do motor por configuração**: ffmpeg em dev, MediaConvert em produção, sem `if` de ambiente no código.
-- **O que muda no código**: `IVideoTranscoder` ganha uma implementação assíncrona (disparar e esperar evento), e o `ProcessVideo` se divide em "disparar" e "concluir". Entidade, estados, DTO e tela continuam iguais.
-- **Infra**:
-  - IAM role do MediaConvert com leitura em `uploads/` e escrita em `users/`;
-  - permissão do usuário IAM do servidor para `CreateJob`, `GetJob` e `iam:PassRole` dessa role (o Lightsail não tem IAM role, `hospedagem.md`);
-  - CORS do bucket real com o domínio de produção, e uma **Response Headers Policy** no CloudFront com CORS para `GET` (o hls.js baixa `.m3u8` e `.ts` por XHR); cache longo para `.ts` e para o `master.m3u8` (as chaves têm GUID e nunca mudam);
-  - a regra de lifecycle de multipart;
-  - bucket privado + CloudFront com OAC (`armazenamento.md`); o `PUT` pré-assinado continua indo direto ao S3.
-- **Custo**: MediaConvert cobra por minuto de saída e por resolução. Ordem de grandeza: 0,30 a 0,50 USD por vídeo de 10 min em 1080p com as 4 resoluções, e uns 2 USD por fita VHS de 2 h (só 360p e 480p). A estimativa de 13/10/2026 (54 h de saída por mês) dá 43,99 USD em São Paulo. Medir antes de ligar 1080p para todo mundo.
-- **O template precisa reproduzir o ffmpeg**: desentrelaçamento do VHS, `FRAME-RATE` no `master.m3u8` (o player mostra "1080p60") e a capa. Conferir cada um na montagem.
+### O motor é escolhido por configuração
+
+`Video:Engine` = `Ffmpeg` (padrão; dev) ou `MediaConvert` (produção). Sem `if` de ambiente: `StorageRegistration` registra `IRemoteVideoTranscoder` como `MediaConvertVideoTranscoder` (com o `IAmazonMediaConvert` nas mesmas credenciais e região do S3) ou como `DisabledRemoteVideoTranscoder` (`Enabled = false`). O `IVideoTranscoder` do ffmpeg continua registrado sempre, porque o seed de dev usa. Com `MediaConvert`, `MediaConvert:RoleArn` é obrigatório (o boot lança sem ele); `MediaConvert:QueueArn` e `MediaConvert:Endpoint` são opcionais (fila padrão e endpoint regional do SDK).
+
+### Disparar e concluir, em dois jobs
+
+O mesmo `TranscodeVideoAsync` da fila `media` chama `MediaUploadAppService.ProcessVideo`; com o motor remoto ligado, ele vira **`SubmitRemoteAsync`**: escolhe a pasta `users/{userId}/videos/{guid}/`, cria o job (`CreateJob`) com o original em `s3://…/uploads/…`, guarda `TranscodeJobId` e já grava `StorageKey` = `{pasta}/master.m3u8` (a mídia segue `Processing`, então o DTO ainda não expõe a URL). Falha no `CreateJob` segue o retry do Hangfire, e a última tentativa marca `Failed` (`VIDEO_TRANSCODE_FAILED`), como no ffmpeg.
+
+O job recorrente **`media:transcode-poll`** (a cada minuto, só registrado quando o motor remoto está ligado; com ffmpeg ele é removido no boot) chama `PollRemoteTranscodes`: para cada mídia `Processing` com `TranscodeJobId`, um `GetJob`:
+- **em andamento**: nada;
+- **erro ou cancelado**: apaga o prefixo da pasta, `Failed` com `TRANSCODE_FAILED`, `VIDEO_TRANSCODE_FAILED` no log com a mensagem do MediaConvert;
+- **completo**: `FinalizeRemoteAsync` lê largura, altura e duração dos `OutputGroupDetails` do job, recusa com `TOO_LONG` se passou do limite do perfil (apagando a saída; não há `ffprobe` antes, então a duração só é conhecida no fim), acha o poster, soma o tamanho da pasta (`IFileStorage.SizeOfPrefixAsync`), marca `Ready`, apaga o original e loga `VIDEO_TRANSCODED` com o `JobId`. O trigger então chama `PostAppService.PublishPendingPosts` (extraído do `ProcessVideo`), que publica os posts que esperavam e avisa os seguidores da banda (`feed.md`).
+- `GetJob` que falha (rede, credencial) loga `VIDEO_TRANSCODE_POLL_FAILED` (Warning) e tenta no minuto seguinte. A consulta não é cobrada. Quando o volume pedir, o fim do job passa a chegar pelo EventBridge numa fila SQS; o polling fica como rede de segurança.
+- `media:cleanup` continua marcando `PROCESSING_TIMEOUT` quando o prazo do perfil vence; com `TranscodeJobId` ele também apaga a pasta de saída. O job no MediaConvert não é cancelado: ele termina sozinho e a pasta órfã some no próximo apagar da mídia.
+
+### O job reproduz a escada do ffmpeg
+
+Montado em código (`MediaConvertVideoTranscoder`), não em template do console, para a mudança de escada ser um commit:
+- **Entrada**: `Rotate: AUTO` (a rotação do celular), seletor de áudio padrão;
+- **Grupo Apple HLS**, destino `s3://{bucket}/{pasta}/master`: o manifesto principal sai como `master.m3u8`, e cada rendição como `master_N.m3u8` com segmentos `master_N_00001.ts` **na mesma pasta** (`SINGLE_DIRECTORY`); o layout por subpasta do ffmpeg (`360p/index.m3u8`) não é reproduzido, e não precisa: `StorageKey` aponta para o `master.m3u8` e apagar é por prefixo. Segmentos de 4 s, `STREAM-INF` com resolução e `FRAME-RATE` (o player mostra "1080p60");
+- **Automated ABR**: até 4 rendições entre 600 kbps e 5 Mbps, escolhidas pelo MediaConvert a partir do original, **nunca acima dele**; é o equivalente da escada 360/480/720/1080 limitada pelo lado menor. H.264 High, QVBR, GOP de 2 s fechado, detecção de corte de cena, fps do original. AAC 128k estéreo 48 kHz;
+- **Desentrelaçamento** `ADAPTIVE`: só age quando o original é entrelaçado (VHS e fita digitalizada), como o `bwdif` condicional do ffmpeg;
+- **Poster**: grupo File com Frame Capture JPEG (qualidade 80), 1 frame por segundo, 2 capturas: a API prefere `poster.0000001.jpg` (1 s) e cai para `poster.0000000.jpg` em vídeo curto, o mesmo critério do ffmpeg. O poster fica **JPEG do tamanho do original**, não WebP 720p: converter exigiria baixar o frame no servidor, e a diferença de bytes não paga a ida.
+
+**O que o primeiro vídeo em produção precisa confirmar**, porque o LocalStack não emula o MediaConvert e nada disto rodou antes do deploy: o job é aceito com o Automated ABR sem `QvbrSettings` explícito; vídeo **sem áudio** não falha por causa do seletor padrão; o poster de 1 s existe; o `master.m3u8` toca no hls.js pelo CloudFront com os nomes `master_N`. Qualquer ajuste entra nesta seção.
+
+### Infra
+
+- **IAM role do MediaConvert** (`noisevault-mediaconvert`, trust `mediaconvert.amazonaws.com`): `s3:GetObject` em `uploads/*`, `s3:PutObject` em `users/*`;
+- **usuário IAM da API**: `mediaconvert:CreateJob`, `mediaconvert:GetJob`, `mediaconvert:DescribeEndpoints` e `iam:PassRole` só nessa role (o Lightsail não tem IAM role, `hospedagem.md`);
+- CORS do bucket e a **Response Headers Policy** do CloudFront com CORS para `GET` (o hls.js baixa `.m3u8` e `.ts` por XHR); cache longo (as chaves têm GUID);
+- **Custo**: por minuto de saída e por resolução. Ordem de grandeza: 0,30 a 0,50 USD por vídeo de 10 min em 1080p com 4 rendições, uns 2 USD por fita VHS de 2 h. Mês sem vídeo custa zero. Medir antes de liberar vídeo longo para todo mundo.
+- O `Dockerfile` continua instalando o ffmpeg: é a saída de emergência (`Video__Engine=Ffmpeg`) se o MediaConvert falhar no primeiro dia.
 
 ## Eventos de log (contexto `Media`)
 
@@ -137,6 +153,9 @@ O ffmpeg no processo da API serve para dev. Em produção, a conversão vai para
 | `VIDEO_TRANSCODED` | Info | `MediaId`, `Width`, `Height`, `DurationSeconds`, `SizeBytes` |
 | `VIDEO_REJECTED` | Info | `MediaId`, `Reason` |
 | `VIDEO_TRANSCODE_RETRY` | Warning | `MediaId`, erro |
+| `VIDEO_TRANSCODE_SUBMITTED` | Info | `MediaId`, `Profile`, `JobId` (motor remoto) |
+| `VIDEO_TRANSCODE_POLL_FAILED` | Warning | `MediaId`, `JobId`, erro do `GetJob`; tenta no minuto seguinte |
+| `MEDIACONVERT_JOB_CREATED` | Info | `MediaId`, `JobId` |
 | `VIDEO_TRANSCODE_FAILED` | Error | `MediaId`, exceção |
 | `MEDIA_TEMP_CLEANUP_FAILED` | Warning | pasta temporária que sobrou |
 | `MEDIA_CLEANED` | Info | contagem por situação |

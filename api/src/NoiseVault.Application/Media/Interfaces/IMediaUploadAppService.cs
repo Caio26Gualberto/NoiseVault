@@ -19,6 +19,7 @@ namespace NoiseVault.Application.Media.Interfaces
         Task DeleteStoredFiles(IReadOnlyCollection<MediaUpload> media);
         Task Discard(IReadOnlyCollection<int> mediaIds);
         Task<EMediaStatus?> ProcessVideo(int mediaId, bool finalAttempt);
+        Task<List<int>> PollRemoteTranscodes();
         Task<int> Cleanup();
     }
 }
