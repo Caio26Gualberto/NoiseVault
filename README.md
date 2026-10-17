@@ -32,3 +32,7 @@ Em Development a API também cria um conjunto de exemplo (`Seed:DevData` no `app
 ## Documentação
 
 Comece por `CLAUDE.md` na raiz, depois `api/CLAUDE.md` e `frontend/CLAUDE.md`. As decisões por domínio estão em `*/.claude/rules/`.
+
+## Produção
+
+O deploy na AWS, pelo console e passo a passo, está em [`DEPLOY.md`](DEPLOY.md). Os arquivos do servidor ficam em `infra/lightsail/`.

@@ -1,0 +1,14 @@
+api.noisevault.net {
+	encode gzip
+
+	request_body {
+		max_size 60MB
+	}
+
+	reverse_proxy api:8080 {
+		header_up X-Forwarded-Proto {scheme}
+		transport http {
+			read_timeout 10m
+		}
+	}
+}

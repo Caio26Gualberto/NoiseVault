@@ -14,9 +14,12 @@
 NoiseVault/
 ├── CLAUDE.md            ← este arquivo: o que atravessa api e frontend
 ├── README.md            ← pré-requisitos e os comandos para subir tudo
+├── DEPLOY.md            ← o deploy em produção na AWS (São Paulo), passo a passo pelo console
+├── amplify.yml          ← build do front no Amplify (monorepo, appRoot frontend)
 ├── IDEIAS.md            ← backlog de produto para os próximos módulos (nada ali é decisão até virar rule)
 ├── docker-compose.yml   ← Postgres 17 na porta 5436, Mailpit (SMTP 1025, caixa em http://localhost:8025) e LocalStack S3 (http://localhost:4566)
 ├── infra/localstack/    ← init hook do bucket noisevault-media (leitura pública, CORS do PUT pré-assinado, lifecycle de multipart)
+├── infra/lightsail/     ← produção: compose (API + Postgres + Caddy), Caddyfile, .env.example e backup.sh
 ├── .github/workflows/   ← CI (build da API, lint + typecheck + build do frontend)
 ├── api/                 ← .NET 10 · EF Core (Postgres) · Identity + JWT · Hangfire · MailKit — ver api/CLAUDE.md
 └── frontend/            ← Vite · React 19 · TypeScript · Tailwind v4 · shadcn/ui — ver frontend/CLAUDE.md
@@ -37,7 +40,7 @@ Cada pasta tem o seu `CLAUDE.md` (leia primeiro) e `.claude/rules/`. Os dois nas
 
 ## Como subir
 
-1. `docker compose up -d` (Postgres em `localhost:5436`, banco `noisevault`, `postgres`/`postgres`; Mailpit em `http://localhost:8025`; LocalStack S3 em `http://localhost:4566`, bucket `noisevault-media` criado no boot). Produção é **AWS**, ainda sem deploy: domínio `noisevault.net`, Lightsail em São Paulo (API + Postgres), S3 + CloudFront, MediaConvert, SES e o front no Amplify — ver `api/.claude/rules/hospedagem.md`. O LocalStack emula só o S3 (`armazenamento.md`).
+1. `docker compose up -d` (Postgres em `localhost:5436`, banco `noisevault`, `postgres`/`postgres`; Mailpit em `http://localhost:8025`; LocalStack S3 em `http://localhost:4566`, bucket `noisevault-media` criado no boot). Produção é **AWS**: domínio `noisevault.net`, Lightsail em São Paulo (API + Postgres + Caddy, com ffmpeg no container até o MediaConvert existir), S3 + CloudFront, SES e o front no Amplify — o porquê em `api/.claude/rules/hospedagem.md`, o passo a passo em `DEPLOY.md`. O LocalStack emula só o S3 (`armazenamento.md`).
 2. ffmpeg instalado (`winget install Gyan.FFmpeg`) para a conversão de vídeo. `cd api && dotnet run --project src/NoiseVault.Api` → `http://localhost:5041` (`/health`, `/swagger`, `/hangfire`). Migration e seed rodam no boot; admin de dev `caiogualbertodev@outlook.com` / `12341234`. Em Development o `DevSeed` também cria o conjunto de exemplo (pessoas `@noisevault.dev` com senha `12341234`, bandas, feed, eventos, mural, Ensaio, suporte) e reenvia ao LocalStack a mídia que sumiu no restart (`api/.claude/rules/seed-de-desenvolvimento.md`).
 3. `cd frontend && npm install && npm run dev` → `http://localhost:5173`.
 

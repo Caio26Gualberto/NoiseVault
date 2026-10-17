@@ -1,0 +1,62 @@
+name: noisevault
+
+services:
+  postgres:
+    image: postgres:17
+    container_name: noisevault-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: noisevault
+      POSTGRES_USER: noisevault
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U noisevault -d noisevault"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ../../api
+      args:
+        SIXLABORS_LICENSE_KEY: ${SIXLABORS_LICENSE_KEY}
+    image: noisevault-api
+    container_name: noisevault-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=noisevault;Username=noisevault;Password=${POSTGRES_PASSWORD}
+      Database__MigrateOnStartup: "true"
+    expose:
+      - "8080"
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+  caddy:
+    image: caddy:2
+    container_name: noisevault-caddy
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:
