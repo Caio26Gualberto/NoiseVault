@@ -138,6 +138,7 @@ namespace NoiseVault.Infra.Data.Media
                             H264Settings = new H264Settings
                             {
                                 RateControlMode = H264RateControlMode.QVBR,
+                                QualityTuningLevel = H264QualityTuningLevel.MULTI_PASS_HQ,
                                 CodecProfile = H264CodecProfile.HIGH,
                                 CodecLevel = H264CodecLevel.AUTO,
                                 FramerateControl = H264FramerateControl.INITIALIZE_FROM_SOURCE,
