@@ -9,7 +9,7 @@ paths:
 
 # Decisões — Hospedagem em produção
 
-Decidido em 14/10/2026. Decisão do usuário: "vai ser tudo na AWS". **O roteiro do deploy pelo console, passo a passo, é o `DEPLOY.md` da raiz** (escrito em 17/10/2026, quando o usuário disse "chegou o dia"); os arquivos do servidor estão em `infra/lightsail/` (compose de produção, `Caddyfile`, `.env.example`, `backup.sh`), e os do front em `amplify.yml` (raiz, monorepo) e `customHttp.yml`. Esta rule guarda o porquê; o `DEPLOY.md` guarda o como.
+Decidido em 14/10/2026. Decisão do usuário: "vai ser tudo na AWS". **No ar desde 17/10/2026**: `https://noisevault.net` (Amplify), `https://api.noisevault.net` (Lightsail) e `https://media.noisevault.net` (CloudFront), com o primeiro admin criado pelo cadastro do site e o SQL do `DEPLOY.md`. O que saiu diferente do plano naquele dia está tachado nesta rule: DNS no Cloudflare em vez do Route 53, SES pela SDK em vez de SMTP, MediaConvert implementado antes do deploy, licença do ImageSharp como secret de build, deploy por pipeline em vez de SSH. **O roteiro do deploy pelo console, passo a passo, é o `DEPLOY.md` da raiz** (escrito em 17/10/2026, quando o usuário disse "chegou o dia"); os arquivos do servidor estão em `infra/lightsail/` (compose de produção, `Caddyfile`, `.env.example`, `backup.sh`), e os do front em `amplify.yml` (raiz, monorepo) e `customHttp.yml`. Esta rule guarda o porquê; o `DEPLOY.md` guarda o como.
 
 ## A arquitetura: um servidor e serviços gerenciados por uso
 

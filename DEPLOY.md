@@ -1,5 +1,7 @@
 # Deploy do Noise Vault na AWS (São Paulo), pelo console
 
+**Feito em 17/10/2026**: o site está no ar nos três endereços, com o pipeline da API funcionando. Este roteiro é o que foi seguido, corrigido no caminho onde o console divergiu; serve para recriar o ambiente do zero ou para conferir uma peça.
+
 Roteiro do primeiro deploy, feito pelo painel da AWS, na região **América do Sul (São Paulo), `sa-east-1`**. As decisões por trás de cada peça estão em `api/.claude/rules/hospedagem.md`; aqui é só o passo a passo. Siga na ordem: cada bloco usa algo criado no anterior.
 
 O que vai existir no fim:
@@ -335,6 +337,14 @@ Migration já aplicada não é desfeita sozinha: se a versão nova criou tabela,
 **Espaço em disco:** `docker system prune -f` de vez em quando apaga imagens antigas do build.
 
 ## 12. O que fica para depois do primeiro deploy
+
+Pendências abertas em 17/10/2026, no fim do deploy:
+
+- **SES fora do sandbox.** O pedido de produção está aberto num caso de suporte (resposta enviada com caso de uso, volume e tratamento de bounce). Até aprovar, só endereços verificados no SES recebem e-mail: cadastro de outra pessoa fica em "confirme seu e-mail" sem o e-mail chegar.
+- **Primeiro vídeo.** Nenhum vídeo passou pelo MediaConvert ainda; o passo 10.4 continua por fazer.
+- **WAF do CloudFront em modo monitor.** Desligar o monitor em CloudFront → Security depois que o vídeo tocar.
+- **`sudo reboot` do Lightsail** pelo kernel atualizado no bootstrap, num horário calmo.
+- **Backup.** Rodar o `backup.sh` à mão uma vez e conferir o arquivo em `backups/postgres/`; o cron está agendado.
 
 - **MediaConvert.** Primeiro vídeo real confirma o job (`api/.claude/rules/midia-e-video.md`, "O que o primeiro vídeo em produção precisa confirmar"). O ffmpeg continua no container como saída de emergência.
 - **CloudWatch.** Os logs ficam no Docker do servidor (5 arquivos de 50 MB). Se precisar de busca ou alarme, o agente do CloudWatch entra no Lightsail.

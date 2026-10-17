@@ -30,7 +30,7 @@ As **decisões** — o porquê de cada regra — vivem em `.claude/rules/`, um a
 | `.claude/rules/eventos.md` | evento com line-up de banda cadastrada ou nome livre, cidade fora do ABC, próximo/já rolou, cancelar, interesse, comentários, post automático no feed |
 | `.claude/rules/midia-e-video.md` | `MediaUpload`, foto de post, vídeo em multipart pré-assinado, conversão ffmpeg no Hangfire, limpeza, CORS/lifecycle do bucket, plano do MediaConvert em produção |
 | `.claude/rules/armazenamento.md` | S3 (LocalStack em dev, CloudFront em produção), processamento de imagem, chaves, ordem sobe-grava-apaga |
-| `.claude/rules/hospedagem.md` | produção planejada (sem deploy): Lightsail em São Paulo com API e Postgres, S3 + CloudFront, MediaConvert por uso, SES, front no Amplify; custos e pendências antes do deploy |
+| `.claude/rules/hospedagem.md` | produção na AWS (no ar desde 17/10/2026): Lightsail em São Paulo com API e Postgres atrás do Caddy, deploy por pipeline (imagem no GHCR), S3 + CloudFront, MediaConvert por uso, SES pela SDK, front no Amplify, DNS no Cloudflare; custos, o que foi diferente do plano e o caminho para RDS e Fargate |
 | `.claude/rules/email.md` | as duas camadas de e-mail, Mailpit em dev, SMTP via MailKit, links, o que nunca vai para o log |
 | `.claude/rules/auditoria.md` | as duas trilhas, o interceptor global, política de dados sensíveis |
 | `.claude/rules/jobs-hangfire.md` | filas, Wrapper + Trigger, jobs enfileirados com linha de status |
