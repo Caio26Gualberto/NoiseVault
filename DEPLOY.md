@@ -73,19 +73,19 @@ O `api.noisevault.net` não entra aqui: o certificado dele é do Let's Encrypt, 
 
 ## 4. CloudFront: servir a mídia
 
+O console novo cria a distribuição por um assistente de plano (flat-rate). Feito em 17/10/2026 assim:
+
 1. **CloudFront → Create distribution.**
-   - Origin domain: escolha o bucket `noisevault-media`.
-   - Origin access: **Origin access control settings (recommended)** → **Create new OAC**, aceite o padrão (Sign requests). Depois de criar a distribuição, o console mostra um aviso com **Copy policy**: copie e cole em **S3 → bucket → Permissions → Bucket policy**. É o que deixa só o CloudFront ler o bucket.
-   - Viewer protocol policy: **Redirect HTTP to HTTPS**.
-   - Allowed HTTP methods: **GET, HEAD**.
-   - Cache policy: **CachingOptimized**.
-   - Response headers policy: **Create policy** (abre em outra aba): nome `noisevault-media-cors`, ligue **CORS** com Access-Control-Allow-Origin `https://noisevault.net` e `https://ensaio.noisevault.net`, methods `GET, HEAD`, headers `*`, sem credentials, **Origin override** ligado. Volte e selecione. Sem isso o player de vídeo (hls.js) não consegue baixar as playlists.
-   - Web Application Firewall: **Do not enable** (custa).
-   - Price class: **Use only North America, Europe and South America**, ou all edge locations se preferir.
-   - Alternate domain name (CNAME): `media.noisevault.net`. Custom SSL certificate: o certificado coringa do passo 3.
-   - Crie. A distribuição leva uns minutos para "Deployed".
-2. Na distribuição, copie o **Distribution domain name** (`dxxxx.cloudfront.net`). No Cloudflare, **Add record** tipo **CNAME**, Name `media`, Target o domínio da distribuição, DNS only.
-3. Teste depois do passo 7 (quando houver um arquivo): `https://media.noisevault.net/<chave>` abre a imagem.
+   - **Choose a plan:** Flat-rate plans → **Free**. Sem excedente; o Pro (15 USD) entra quando o uso passar do que o Free foi pensado.
+   - **Get started:** nome `noisevault-media`.
+   - **Specify origin:** Amazon S3, origem `noisevault-media.s3.sa-east-1.amazonaws.com`, sem origin path. **Allow private S3 bucket access to CloudFront** marcado (é o Origin Access Control; o assistente grava a bucket policy sozinho). Origin settings e cache settings nos recomendados para S3.
+   - **Enable security:** as proteções incluídas ficam; marque **Use monitor mode** até o vídeo estar tocando, depois desmarque para bloquear de verdade. A proteção DDoS de camada 7 é do plano Business; fica desligada.
+   - **Review and create.** O assistente não pergunta domínio nem certificado.
+2. Na distribuição criada, **General → Alternate domain names → Add domain**: `media.noisevault.net`, com o certificado coringa do passo 3 (não peça outro).
+3. **Behaviors → behavior padrão → Edit → Response headers policy:** escolha a gerenciada **SimpleCORS** (`Access-Control-Allow-Origin: *` em `GET`/`HEAD`). É o que o player de vídeo (hls.js) precisa para baixar as playlists. A política personalizada com as duas origens exatas é do plano pago; como a mídia é pública e sem cookie, liberar toda origem não abre nada.
+4. **Origins:** a origem deve mostrar "Origin access control". Em **S3 → noisevault-media → Permissions → Bucket policy** deve existir uma regra permitindo `cloudfront.amazonaws.com` com o ARN desta distribuição; se estiver vazia, a aba Origins tem o botão para copiar a policy.
+5. Copie o **Distribution domain name** (`dxxxx.cloudfront.net`). No Cloudflare, **Add record** tipo **CNAME**, Name `media`, Target o domínio da distribuição, DNS only.
+6. Teste depois do passo 7 (quando houver um arquivo): `https://media.noisevault.net/<chave>` abre a imagem.
 
 ## 5. IAM: a role do MediaConvert e o usuário da API
 
