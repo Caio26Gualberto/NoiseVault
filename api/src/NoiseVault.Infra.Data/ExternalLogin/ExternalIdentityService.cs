@@ -3,8 +3,6 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.DataProtection;
-using Microsoft.IdentityModel.JsonWebTokens;
-using Microsoft.IdentityModel.Tokens;
 using NoiseVault.Application.Abstractions.Logging;
 using NoiseVault.Application.Interfaces;
 using NoiseVault.Domain.Enums.Auth;
@@ -13,27 +11,25 @@ namespace NoiseVault.Infra.Data.ExternalLogin
 {
     public class ExternalIdentityService : IExternalIdentityService
     {
+        private const string GoogleTokenInfoUrl = "https://oauth2.googleapis.com/tokeninfo";
+        private const string GoogleUserInfoUrl = "https://openidconnect.googleapis.com/v1/userinfo";
         private const string GraphBase = "https://graph.facebook.com/v24.0/";
         private const string TicketPurpose = "NoiseVault.ExternalLogin.Ticket";
-        private static readonly string[] GoogleIssuers = ["accounts.google.com", "https://accounts.google.com"];
         private static readonly TimeSpan TicketLifetime = TimeSpan.FromMinutes(15);
 
         private readonly HttpClient _http;
         private readonly ExternalLoginSettings _settings;
-        private readonly GoogleSigningKeyCache _googleKeys;
         private readonly ITimeLimitedDataProtector _ticketProtector;
         private readonly IApplicationLogger _logger;
 
         public ExternalIdentityService(
             HttpClient http,
             ExternalLoginSettings settings,
-            GoogleSigningKeyCache googleKeys,
             IDataProtectionProvider dataProtection,
             IApplicationLoggerFactory loggerFactory)
         {
             _http = http;
             _settings = settings;
-            _googleKeys = googleKeys;
             _ticketProtector = dataProtection.CreateProtector(TicketPurpose).ToTimeLimitedDataProtector();
             _logger = loggerFactory.Create(LogContext.Auth);
         }
@@ -84,47 +80,42 @@ namespace NoiseVault.Infra.Data.ExternalLogin
             if (!_settings.IsGoogleConfigured)
                 return ExternalVerification.Of(EExternalVerificationStatus.Disabled);
 
-            var handler = new JsonWebTokenHandler();
-            string keyId;
+            using var tokenInfo = await SendAsync(
+                new HttpRequestMessage(HttpMethod.Post, GoogleTokenInfoUrl)
+                {
+                    Content = new FormUrlEncodedContent([new KeyValuePair<string, string>("access_token", token)]),
+                },
+                cancellationToken);
 
-            try
-            {
-                keyId = handler.ReadJsonWebToken(token).Kid;
-            }
-            catch (ArgumentException)
-            {
-                return Rejected(EExternalProvider.Google, "malformed");
-            }
+            if (tokenInfo == null)
+                return Rejected(EExternalProvider.Google, "tokeninfo-refused");
 
-            var keys = await _googleKeys.GetAsync(_http, keyId, cancellationToken);
+            var info = tokenInfo.RootElement;
+            var audience = Text(info, "aud");
+            var subject = Text(info, "sub");
 
-            var result = await handler.ValidateTokenAsync(token, new TokenValidationParameters
-            {
-                ValidIssuers = GoogleIssuers,
-                ValidAudience = _settings.GoogleClientId,
-                IssuerSigningKeys = keys,
-                ValidateLifetime = true,
-                ClockSkew = TimeSpan.FromMinutes(2),
-            });
+            if (audience != _settings.GoogleClientId || string.IsNullOrWhiteSpace(subject))
+                return Rejected(EExternalProvider.Google, audience != _settings.GoogleClientId ? "other-app" : "missing-sub");
 
-            if (!result.IsValid)
-                return Rejected(EExternalProvider.Google, result.Exception?.GetType().Name ?? "invalid");
+            using var userInfo = await SendAsync(Bearer(GoogleUserInfoUrl, token), cancellationToken);
 
-            var subject = Claim(result.Claims, "sub");
+            if (userInfo == null)
+                return Rejected(EExternalProvider.Google, "userinfo-refused");
 
-            if (string.IsNullOrWhiteSpace(subject))
-                return Rejected(EExternalProvider.Google, "missing-sub");
+            var user = userInfo.RootElement;
 
-            var email = Claim(result.Claims, "email");
-            var emailVerified = result.Claims.TryGetValue("email_verified", out var verified)
-                && (verified is true || string.Equals(verified?.ToString(), "true", StringComparison.OrdinalIgnoreCase));
+            if (Text(user, "sub") != subject)
+                return Rejected(EExternalProvider.Google, "user-mismatch");
 
-            var name = Claim(result.Claims, "name");
+            var name = Text(user, "name");
 
             if (string.IsNullOrWhiteSpace(name))
-                name = $"{Claim(result.Claims, "given_name")} {Claim(result.Claims, "family_name")}".Trim();
+                name = $"{Text(user, "given_name")} {Text(user, "family_name")}".Trim();
 
-            return ExternalVerification.Valid(new ExternalIdentity(EExternalProvider.Google, subject, name ?? string.Empty, email, emailVerified));
+            var emailVerified = user.TryGetProperty("email_verified", out var verified)
+                && (verified.ValueKind == JsonValueKind.True || string.Equals(verified.ToString(), "true", StringComparison.OrdinalIgnoreCase));
+
+            return ExternalVerification.Valid(new ExternalIdentity(EExternalProvider.Google, subject, name, Text(user, "email"), emailVerified));
         }
 
         private async Task<ExternalVerification> VerifyFacebookAsync(string token, CancellationToken cancellationToken)
@@ -132,9 +123,8 @@ namespace NoiseVault.Infra.Data.ExternalLogin
             if (!_settings.IsFacebookConfigured)
                 return ExternalVerification.Of(EExternalVerificationStatus.Disabled);
 
-            using var debug = await GetGraphAsync(
-                $"{GraphBase}debug_token?input_token={Uri.EscapeDataString(token)}",
-                $"{_settings.FacebookAppId}|{_settings.FacebookAppSecret}",
+            using var debug = await SendAsync(
+                Bearer($"{GraphBase}debug_token?input_token={Uri.EscapeDataString(token)}", $"{_settings.FacebookAppId}|{_settings.FacebookAppSecret}"),
                 cancellationToken);
 
             if (debug == null || !debug.RootElement.TryGetProperty("data", out var data))
@@ -147,46 +137,49 @@ namespace NoiseVault.Infra.Data.ExternalLogin
             if (!isValid || appId != _settings.FacebookAppId || string.IsNullOrWhiteSpace(userId))
                 return Rejected(EExternalProvider.Facebook, isValid ? "other-app" : "invalid");
 
-            using var me = await GetGraphAsync(
-                $"{GraphBase}me?fields=id,name,email&appsecret_proof={AppSecretProof(token)}",
-                token,
+            using var me = await SendAsync(
+                Bearer($"{GraphBase}me?fields=id,name,email&appsecret_proof={AppSecretProof(token)}", token),
                 cancellationToken);
 
             if (me == null)
                 return Rejected(EExternalProvider.Facebook, "me-refused");
 
             var root = me.RootElement;
-            var id = root.TryGetProperty("id", out var idElement) ? idElement.GetString() : null;
 
-            if (id != userId)
+            if (Text(root, "id") != userId)
                 return Rejected(EExternalProvider.Facebook, "user-mismatch");
 
-            var name = root.TryGetProperty("name", out var nameElement) ? nameElement.GetString() : null;
-            var email = root.TryGetProperty("email", out var emailElement) ? emailElement.GetString() : null;
+            var email = Text(root, "email");
 
             return ExternalVerification.Valid(new ExternalIdentity(
                 EExternalProvider.Facebook,
                 userId,
-                name ?? string.Empty,
+                Text(root, "name") ?? string.Empty,
                 email,
                 EmailVerified: !string.IsNullOrWhiteSpace(email)));
         }
 
-        private async Task<JsonDocument?> GetGraphAsync(string url, string accessToken, CancellationToken cancellationToken)
+        private static HttpRequestMessage Bearer(string url, string accessToken)
         {
-            using var request = new HttpRequestMessage(HttpMethod.Get, url);
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            return request;
+        }
 
-            using var response = await _http.SendAsync(request, cancellationToken);
+        private async Task<JsonDocument?> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            using (request)
+            using (var response = await _http.SendAsync(request, cancellationToken))
+            {
+                if ((int)response.StatusCode >= 500)
+                    throw new HttpRequestException($"Provedor respondeu {(int)response.StatusCode}.");
 
-            if ((int)response.StatusCode >= 500)
-                throw new HttpRequestException($"Graph API respondeu {(int)response.StatusCode}.");
+                if (!response.IsSuccessStatusCode)
+                    return null;
 
-            if (!response.IsSuccessStatusCode)
-                return null;
-
-            await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
-            return await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken);
+                await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+                return await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken);
+            }
         }
 
         private string AppSecretProof(string token)
@@ -205,7 +198,7 @@ namespace NoiseVault.Infra.Data.ExternalLogin
             return ExternalVerification.Of(EExternalVerificationStatus.Invalid);
         }
 
-        private static string? Claim(IDictionary<string, object> claims, string name) =>
-            claims.TryGetValue(name, out var value) ? value?.ToString() : null;
+        private static string? Text(JsonElement element, string name) =>
+            element.TryGetProperty(name, out var value) && value.ValueKind != JsonValueKind.Null ? value.ToString() : null;
     }
 }

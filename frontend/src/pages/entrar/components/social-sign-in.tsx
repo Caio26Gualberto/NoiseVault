@@ -28,7 +28,13 @@ export function SocialSignIn() {
             onToken={(token) => void signIn(ExternalProvider.facebook, token)}
           />
         ) : null}
-        {isGoogleEnabled ? <GoogleOption disabled={busy !== null} onToken={(token) => void signIn(ExternalProvider.google, token)} /> : null}
+        {isGoogleEnabled ? (
+          <GoogleOption
+            loading={busy === ExternalProvider.google}
+            disabled={busy !== null}
+            onToken={(token) => void signIn(ExternalProvider.google, token)}
+          />
+        ) : null}
       </div>
       <div className="flex items-center gap-3 text-[13px] text-muted-foreground">
         <span className="h-px flex-1 bg-border" aria-hidden="true" />
@@ -39,12 +45,18 @@ export function SocialSignIn() {
   )
 }
 
-export function GoogleOption({ onToken, disabled = false }: { onToken: (token: string) => void; disabled?: boolean }) {
+type GoogleOptionProps = {
+  onToken: (token: string) => void
+  loading?: boolean
+  disabled?: boolean
+}
+
+export function GoogleOption({ onToken, loading = false, disabled = false }: GoogleOptionProps) {
   const { t } = useTranslation('auth')
 
   if (isInAppBrowser()) {
     return <p className="app-meta text-center">{t('social.googleInApp')}</p>
   }
 
-  return <AppGoogleButton disabled={disabled} onToken={onToken} />
+  return <AppGoogleButton label={t('social.google')} loading={loading} disabled={disabled} onToken={onToken} />
 }

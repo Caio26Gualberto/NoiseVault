@@ -272,7 +272,6 @@ namespace NoiseVault.Infra.IoC
 
             var externalLoginSettings = ExternalLoginSettings.FromConfiguration(config);
             services.AddSingleton(externalLoginSettings);
-            services.AddSingleton<GoogleSigningKeyCache>();
             services.AddHttpClient<IExternalIdentityService, ExternalIdentityService>(client => client.Timeout = TimeSpan.FromSeconds(10));
 
             if (!externalLoginSettings.IsGoogleConfigured)

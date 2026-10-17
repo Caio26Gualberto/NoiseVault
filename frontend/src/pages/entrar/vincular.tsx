@@ -88,7 +88,7 @@ export function VincularContaPage() {
         <div className="flex flex-col gap-4">
           <p className="text-sm text-muted-foreground">{t('external.linkWithoutPassword', { provider })}</p>
           {isGoogleEnabled && step.provider !== ExternalProvider.google ? (
-            <GoogleOption disabled={busy !== null} onToken={(token) => void signIn(ExternalProvider.google, token)} />
+            <GoogleOption loading={busy === ExternalProvider.google} disabled={busy !== null} onToken={(token) => void signIn(ExternalProvider.google, token)} />
           ) : null}
         </div>
       )}

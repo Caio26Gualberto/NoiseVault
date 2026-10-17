@@ -1,74 +1,63 @@
 import { loadScript } from './load-script'
 import { googleClientId } from './providers'
 
-type GoogleCredentialResponse = { credential?: string }
+type GoogleTokenResponse = { access_token?: string; error?: string }
 
-type GoogleButtonOptions = {
-  type?: 'standard' | 'icon'
-  theme?: 'outline' | 'filled_blue' | 'filled_black'
-  size?: 'large' | 'medium' | 'small'
-  text?: 'signin_with' | 'signup_with' | 'continue_with' | 'signin'
-  shape?: 'rectangular' | 'pill' | 'circle' | 'square'
-  logo_alignment?: 'left' | 'center'
-  width?: number
-  locale?: string
+type GoogleTokenClient = {
+  requestAccessToken: (overrides?: { prompt?: '' | 'none' | 'consent' | 'select_account' }) => void
 }
 
-type GoogleIdentity = {
-  initialize: (options: {
+type GoogleOAuth2 = {
+  initTokenClient: (options: {
     client_id: string
-    callback: (response: GoogleCredentialResponse) => void
-    ux_mode?: 'popup' | 'redirect'
-    auto_select?: boolean
-    cancel_on_tap_outside?: boolean
-    use_fedcm_for_button?: boolean
-  }) => void
-  renderButton: (parent: HTMLElement, options: GoogleButtonOptions) => void
-  disableAutoSelect: () => void
+    scope: string
+    callback: (response: GoogleTokenResponse) => void
+    error_callback?: (error: { type?: string }) => void
+  }) => GoogleTokenClient
 }
 
 declare global {
   interface Window {
-    google?: { accounts: { id: GoogleIdentity } }
+    google?: { accounts: { oauth2: GoogleOAuth2 } }
   }
 }
 
 const sdkUrl = 'https://accounts.google.com/gsi/client'
+const scope = 'openid email profile'
 
-let onCredential: ((token: string) => void) | null = null
-let initialized: Promise<GoogleIdentity> | null = null
+let pending: ((token: string | null) => void) | null = null
+let ready: Promise<GoogleTokenClient> | null = null
 
-function initialize(): Promise<GoogleIdentity> {
-  initialized ??= loadScript(sdkUrl)
+function settle(token: string | null) {
+  pending?.(token)
+  pending = null
+}
+
+export function loadGoogle(): Promise<GoogleTokenClient> {
+  ready ??= loadScript(sdkUrl)
     .then(() => {
-      const identity = window.google?.accounts.id
-      if (!identity) throw new Error('google')
-      identity.initialize({
+      const oauth2 = window.google?.accounts.oauth2
+      if (!oauth2) throw new Error('google')
+      return oauth2.initTokenClient({
         client_id: googleClientId,
-        callback: (response) => {
-          if (response.credential) onCredential?.(response.credential)
-        },
-        ux_mode: 'popup',
-        auto_select: false,
-        cancel_on_tap_outside: true,
-        use_fedcm_for_button: true,
+        scope,
+        callback: (response) => settle(response.access_token ?? null),
+        error_callback: () => settle(null),
       })
-      return identity
     })
     .catch((error: unknown) => {
-      initialized = null
+      ready = null
       throw error
     })
-  return initialized
+  return ready
 }
 
-export async function renderGoogleButton(
-  parent: HTMLElement,
-  options: GoogleButtonOptions,
-  handleCredential: (token: string) => void,
-) {
-  const identity = await initialize()
-  onCredential = handleCredential
-  parent.replaceChildren()
-  identity.renderButton(parent, options)
+export function googleLogin(client: GoogleTokenClient): Promise<string | null> {
+  settle(null)
+  return new Promise((resolve) => {
+    pending = resolve
+    client.requestAccessToken({ prompt: 'select_account' })
+  })
 }
+
+export type { GoogleTokenClient }

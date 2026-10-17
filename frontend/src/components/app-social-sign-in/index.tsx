@@ -1,82 +1,13 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
+import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { facebookLogin, loadFacebook } from '@/auth/external/facebook'
-import type { FacebookSdk } from '@/auth/external/facebook'
-import { renderGoogleButton } from '@/auth/external/google'
+import { googleLogin, loadGoogle } from '@/auth/external/google'
 import { AppButton } from '@/components/app-button'
 import { cn } from '@/lib/utils'
-import { useColorScheme } from '@/theme/color-scheme'
 
-type GoogleButtonText = 'continue_with' | 'signin_with'
-
-type AppGoogleButtonProps = {
-  onToken: (token: string) => void
-  text?: GoogleButtonText
-  disabled?: boolean
-  className?: string
-}
-
-const googleMinWidth = 200
-const googleMaxWidth = 400
-
-export function AppGoogleButton({ onToken, text = 'continue_with', disabled = false, className }: AppGoogleButtonProps) {
-  const { t } = useTranslation('auth')
-  const { isDark } = useColorScheme()
-  const container = useRef<HTMLDivElement>(null)
-  const handler = useRef(onToken)
-  const [failed, setFailed] = useState(false)
-
-  useEffect(() => {
-    handler.current = onToken
-  })
-
-  useEffect(() => {
-    const element = container.current
-    if (!element) return
-
-    let cancelled = false
-    const width = Math.max(googleMinWidth, Math.min(googleMaxWidth, Math.floor(element.getBoundingClientRect().width)))
-
-    renderGoogleButton(
-      element,
-      {
-        type: 'standard',
-        theme: isDark ? 'filled_black' : 'outline',
-        size: 'large',
-        text,
-        shape: 'rectangular',
-        logo_alignment: 'center',
-        width,
-        locale: 'pt-BR',
-      },
-      (token) => {
-        if (!cancelled) handler.current(token)
-      },
-    ).catch(() => {
-      if (!cancelled) setFailed(true)
-    })
-
-    return () => {
-      cancelled = true
-    }
-  }, [isDark, text])
-
-  if (failed) {
-    return <p className="app-meta text-center">{t('social.googleUnavailable')}</p>
-  }
-
-  return (
-    <div
-      ref={container}
-      style={{ colorScheme: 'light' }}
-      aria-busy={disabled || undefined}
-      className={cn('flex min-h-11 w-full items-center justify-center', disabled && 'pointer-events-none opacity-60', className)}
-    />
-  )
-}
-
-type AppFacebookButtonProps = {
+type ProviderButtonProps = {
   onToken: (token: string) => void
   label: string
   loading?: boolean
@@ -84,15 +15,14 @@ type AppFacebookButtonProps = {
   className?: string
 }
 
-export function AppFacebookButton({ onToken, label, loading = false, disabled = false, className }: AppFacebookButtonProps) {
-  const { t } = useTranslation('auth')
-  const [sdk, setSdk] = useState<FacebookSdk | null>(null)
+function useSdk<T>(load: () => Promise<T>) {
+  const [sdk, setSdk] = useState<T | null>(null)
   const [failed, setFailed] = useState(false)
 
   useEffect(() => {
     let cancelled = false
 
-    loadFacebook()
+    load()
       .then((loaded) => {
         if (!cancelled) setSdk(loaded)
       })
@@ -103,7 +33,62 @@ export function AppFacebookButton({ onToken, label, loading = false, disabled = 
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [load])
+
+  return { sdk, failed }
+}
+
+type ProviderButtonFrameProps = {
+  label: string
+  icon: ReactNode
+  ready: boolean
+  failedMessage: string | null
+  loading: boolean
+  disabled: boolean
+  onClick: () => void
+  className?: string
+}
+
+function ProviderButtonFrame({ label, icon, ready, failedMessage, loading, disabled, onClick, className }: ProviderButtonFrameProps) {
+  return (
+    <div className="flex w-full flex-col gap-1.5">
+      <AppButton type="button" size="lg" block loading={loading} disabled={disabled || !ready} onClick={onClick} className={className}>
+        {icon}
+        {label}
+      </AppButton>
+      {failedMessage ? <p className="app-meta text-center">{failedMessage}</p> : null}
+    </div>
+  )
+}
+
+export function AppGoogleButton({ onToken, label, loading = false, disabled = false, className }: ProviderButtonProps) {
+  const { t } = useTranslation('auth')
+  const { sdk, failed } = useSdk(loadGoogle)
+
+  const signIn = () => {
+    if (!sdk) return
+    void googleLogin(sdk).then((token) => {
+      if (token) onToken(token)
+    })
+  }
+
+  return (
+    <ProviderButtonFrame
+      label={label}
+      icon={<GoogleGlyph />}
+      ready={sdk !== null}
+      failedMessage={failed ? t('social.googleUnavailable') : null}
+      loading={loading}
+      disabled={disabled}
+      onClick={signIn}
+      className={cn('border bg-background font-semibold text-foreground hover:bg-accent', className)}
+    />
+  )
+}
+
+export function AppFacebookButton({ onToken, label, loading = false, disabled = false, className }: ProviderButtonProps) {
+  const { t } = useTranslation('auth')
+  const { sdk, failed } = useSdk(loadFacebook)
 
   const signIn = () => {
     if (!sdk) return
@@ -113,21 +98,27 @@ export function AppFacebookButton({ onToken, label, loading = false, disabled = 
   }
 
   return (
-    <div className="flex w-full flex-col gap-1.5">
-      <AppButton
-        type="button"
-        size="lg"
-        block
-        loading={loading}
-        disabled={disabled || !sdk}
-        onClick={signIn}
-        className={cn('bg-facebook text-facebook-foreground hover:bg-facebook/90', className)}
-      >
-        <FacebookGlyph />
-        {label}
-      </AppButton>
-      {failed ? <p className="app-meta text-center">{t('social.facebookUnavailable')}</p> : null}
-    </div>
+    <ProviderButtonFrame
+      label={label}
+      icon={<FacebookGlyph />}
+      ready={sdk !== null}
+      failedMessage={failed ? t('social.facebookUnavailable') : null}
+      loading={loading}
+      disabled={disabled}
+      onClick={signIn}
+      className={cn('bg-facebook text-facebook-foreground hover:bg-facebook/90', className)}
+    />
+  )
+}
+
+function GoogleGlyph() {
+  return (
+    <svg viewBox="0 0 48 48" aria-hidden="true" className="size-5">
+      <path fill="var(--google-red)" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+      <path fill="var(--google-blue)" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+      <path fill="var(--google-yellow)" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+      <path fill="var(--google-green)" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+    </svg>
   )
 }
 

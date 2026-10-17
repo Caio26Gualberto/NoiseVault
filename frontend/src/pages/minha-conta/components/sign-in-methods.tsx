@@ -88,7 +88,12 @@ export function SignInMethodsPanel({ methods, onChange }: SignInMethodsPanelProp
                   <span className="app-meta">{tAuth('social.googleInApp')}</span>
                 ) : (
                   <div className="w-full sm:w-60">
-                    <AppGoogleButton text="signin_with" disabled={busy !== null} onToken={(token) => void connect(provider, token)} />
+                    <AppGoogleButton
+                      label={t('methods.connectGoogle')}
+                      loading={busy === provider}
+                      disabled={busy !== null}
+                      onToken={(token) => void connect(provider, token)}
+                    />
                   </div>
                 )}
               </li>

@@ -74,6 +74,7 @@
     "disconnect": "Desconectar",
     "connectFacebook": "Conectar Facebook",
     "disconnectTitle": "Desconectar o {{provider}}?",
-    "disconnectMessage": "Você deixa de entrar com o {{provider}}. Pode conectar de novo quando quiser."
+    "disconnectMessage": "Você deixa de entrar com o {{provider}}. Pode conectar de novo quando quiser.",
+    "connectGoogle": "Conectar Google"
   }
 }
