@@ -61,13 +61,15 @@ O `PUT` é o envio de vídeo em partes, que vai do navegador direto para o bucke
 
 A política do bucket (quem pode ler) é escrita no passo do CloudFront.
 
-## 3. Certificado para a mídia (região Virgínia)
+## 3. Certificado coringa (região Virgínia)
 
-O CloudFront só aceita certificado emitido na região **us-east-1 (N. Virginia)**. Troque a região só para este passo.
+Um certificado só, coringa, cobre a mídia (CloudFront) e o site (Amplify): `*.noisevault.net` mais a raiz. O CloudFront e o Amplify só aceitam certificado emitido na região **us-east-1 (N. Virginia)**. Troque a região só para este passo.
 
-1. **Certificate Manager → Request → Request a public certificate.** Nome `media.noisevault.net`. Validação por DNS. Request.
-2. Abra o certificado. Em **Domains** aparece um registro de validação, com **CNAME name** e **CNAME value**. No Cloudflare, **Add record** tipo **CNAME**: em Name cole o CNAME name **sem** o `.noisevault.net.` do fim (o Cloudflare completa), em Target o CNAME value, DNS only. Em alguns minutos o status vira **Issued**.
-3. Volte a região para **São Paulo**.
+1. **Certificate Manager → Request → Request a public certificate.** Em Fully qualified domain name, `noisevault.net`; clique **Add another name to this certificate** e acrescente `*.noisevault.net`. Validação por DNS. Request.
+2. Abra o certificado. Em **Domains** os dois nomes mostram o **mesmo** registro de validação (um CNAME vale para a raiz e para o coringa), com **CNAME name** e **CNAME value**. No Cloudflare, **Add record** tipo **CNAME**: em Name cole o CNAME name **sem** o `.noisevault.net.` do fim (o Cloudflare completa), em Target o CNAME value, DNS only. Em alguns minutos o status vira **Issued**.
+3. Copie o **ARN** do certificado (começa com `arn:aws:acm:us-east-1:`): o Amplify pede no passo 8. Volte a região para **São Paulo**.
+
+O `api.noisevault.net` não entra aqui: o certificado dele é do Let's Encrypt, emitido pelo Caddy no próprio servidor, porque certificado do Certificate Manager não sai da AWS.
 
 ## 4. CloudFront: servir a mídia
 
@@ -80,7 +82,7 @@ O CloudFront só aceita certificado emitido na região **us-east-1 (N. Virginia)
    - Response headers policy: **Create policy** (abre em outra aba): nome `noisevault-media-cors`, ligue **CORS** com Access-Control-Allow-Origin `https://noisevault.net` e `https://ensaio.noisevault.net`, methods `GET, HEAD`, headers `*`, sem credentials, **Origin override** ligado. Volte e selecione. Sem isso o player de vídeo (hls.js) não consegue baixar as playlists.
    - Web Application Firewall: **Do not enable** (custa).
    - Price class: **Use only North America, Europe and South America**, ou all edge locations se preferir.
-   - Alternate domain name (CNAME): `media.noisevault.net`. Custom SSL certificate: o certificado do passo 3.
+   - Alternate domain name (CNAME): `media.noisevault.net`. Custom SSL certificate: o certificado coringa do passo 3.
    - Crie. A distribuição leva uns minutos para "Deployed".
 2. Na distribuição, copie o **Distribution domain name** (`dxxxx.cloudfront.net`). No Cloudflare, **Add record** tipo **CNAME**, Name `media`, Target o domínio da distribuição, DNS only.
 3. Teste depois do passo 7 (quando houver um arquivo): `https://media.noisevault.net/<chave>` abre a imagem.
@@ -271,17 +273,16 @@ Regra 2, a SPA. Source (uma linha só) e target:
 A primeira é a prévia de link do botão "Compartilhar" (a API devolve o HTML com as tags Open Graph). A segunda é a SPA. Se a primeira ficar depois da segunda, o link `/s/...` cai no `index.html` e a prévia some.
 
 6. **Hosting → Custom headers**: o Amplify lê o `frontend/customHttp.yml` do repositório (`sw.js` e manifestos sem cache, `assets/` com cache de um ano). Confira que aparece na tela; se não, cole o conteúdo do arquivo ali.
-7. **Hosting → Custom domains → Add domain.** Digite `noisevault.net` (ele não vai achar zona, porque o DNS é do Cloudflare; siga em frente). Configure:
+7. **Hosting → Custom domains → Add domain.** Digite `noisevault.net` (ele não vai achar zona, porque o DNS é do Cloudflare; siga em frente). Em **Custom SSL certificate**, escolha o certificado coringa do passo 3 (aparece pelo ARN). Configure:
    - `noisevault.net` → branch `main`;
    - `www` → **Redirect to** `https://noisevault.net` (marque a opção de redirect, não de branch);
    - **Add** `ensaio` → branch `main`.
 
-   Ao salvar, o Amplify mostra os registros que você precisa criar (botão **View DNS records**). São três tipos; todos **CNAME**, **DNS only**, no Cloudflare:
-   - um de **verificação** do certificado (Name `_xxxx`, Target `_yyyy.acm-validations.aws.`);
+   Ao salvar, o Amplify mostra os registros que você precisa criar (botão **View DNS records**). Com o certificado próprio não há CNAME de verificação; são só os de tráfego, todos **CNAME**, **DNS only**, no Cloudflare:
    - o da raiz: Name `@` (ou `noisevault.net`), Target o domínio `xxxx.cloudfront.net` que o Amplify mostra (o Cloudflare aceita CNAME na raiz);
    - `www` e `ensaio`, cada um com o mesmo Target do Amplify.
 
-   O Amplify valida e emite o certificado sozinho depois que os registros propagam. Leva de 10 a 30 minutos para "Available". Se ficar parado em "Pending verification" por mais de uma hora, confira se algum registro ficou com o proxy laranja.
+   O Amplify valida os registros depois que propagam. Leva de 10 a 30 minutos para "Available". Se ficar parado em "Pending verification" por mais de uma hora, confira se algum registro ficou com o proxy laranja.
 
 ## 9. O primeiro administrador
 
