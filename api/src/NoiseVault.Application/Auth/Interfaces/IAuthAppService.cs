@@ -15,5 +15,12 @@ namespace NoiseVault.Application.Auth.Interfaces
         Task<Result<bool>> Logout();
         Task<Result<TokensDto>> ChangePassword(ChangePasswordInputDto input);
         Task<Result<TokensDto>> SetInitialPassword(SetInitialPasswordInputDto input);
+        Task<Result<ExternalLoginResponseDto>> ExternalLogin(ExternalLoginInputDto input);
+        Task<Result<ExternalLoginResponseDto>> ExternalRegister(ExternalRegisterInputDto input);
+        Task<Result<ExternalLoginResponseDto>> ExternalLink(ExternalLinkInputDto input);
+        Task<Result<SignInMethodsDto>> GetSignInMethods();
+        Task<Result<SignInMethodsDto>> LinkSignInMethod(ExternalLoginInputDto input);
+        Task<Result<SignInMethodsDto>> UnlinkSignInMethod(int provider);
+        Task<Result<SignInMethodsDto>> CreatePassword(CreatePasswordInputDto input);
     }
 }

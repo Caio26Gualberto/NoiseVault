@@ -10,5 +10,6 @@ namespace NoiseVault.Application.Interfaces
         Task<bool> SendUserInviteEmail(string email, string name, string roleName, string temporaryPassword);
         Task<bool> SendBandInviteAsync(BandInviteEmailDto email);
         Task<bool> SendBandVerificationRequestedAsync(BandVerificationEmailDto email);
+        Task<bool> SendExternalLoginLinkedAsync(ExternalLoginLinkedEmailDto email);
     }
 }

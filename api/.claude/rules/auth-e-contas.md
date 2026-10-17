@@ -14,7 +14,7 @@ paths:
 
 # Decisões — Auth e contas
 
-Um único tipo de usuário (`User`, sempre uma pessoa — ver `dominio.md`) entra por dois caminhos: **registro público** (vira `User`, precisa confirmar o e-mail antes do primeiro login) e **convite de admin** (vira o papel escolhido, com senha temporária e e-mail já confirmado). O ciclo de permissões está no `CLAUDE.md`, que é convenção e não decisão.
+Um único tipo de usuário (`User`, sempre uma pessoa — ver `dominio.md`) entra por três caminhos: **registro público** (vira `User`, precisa confirmar o e-mail antes do primeiro login), **Google ou Facebook** (vira `User` sem senha, com o e-mail do provedor já confirmado; decisões em `login-social.md`) e **convite de admin** (vira o papel escolhido, com senha temporária e e-mail já confirmado). O ciclo de permissões está no `CLAUDE.md`, que é convenção e não decisão.
 
 ## Registro: validar antes de escrever, e devolver o motivo
 
@@ -133,6 +133,8 @@ O WebSocket do navegador não manda header, então o hub do SignalR recebe o JWT
 | `EMAIL_CONFIRMED` | Info | confirmação aceita (`UserId`) |
 | `PASSWORD_RESET` | Info | senha redefinida pelo link (`UserId`) |
 | `REFRESH_TOKEN_REUSE` | Warning | refresh revogado apresentado fora da janela; todos os tokens do usuário caíram (`ApplicationUserId`) |
+
+Os eventos do login social (`USER_REGISTERED_EXTERNAL`, `EXTERNAL_LOGIN_LINKED`, …) estão em `login-social.md`.
 
 Nenhum deles leva e-mail, token ou senha.
 

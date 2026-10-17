@@ -11,6 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 using NoiseVault.Application.Abstractions.Logging;
 using NoiseVault.Domain.Constants;
 using NoiseVault.Domain.Entities;
+using NoiseVault.Domain.Enums.Auth;
 using NoiseVault.Domain.Interfaces.Authenticate;
 using NoiseVault.Infra.Data.Context;
 
@@ -51,19 +52,23 @@ namespace NoiseVault.Infra.Data.Identity.AuthenticateService
         }
 
         public Task<UserCreationResult> RegisterUser(string email, string password, string name, string nickname) =>
-            CreateAsync(email, password, name, nickname, Roles.User, passwordChangeRequired: false, emailConfirmed: false);
+            CreateAsync(email, password, name, nickname, Roles.User, passwordChangeRequired: false, emailConfirmed: false, login: null);
 
         public Task<UserCreationResult> CreateUser(string email, string temporaryPassword, string name, string nickname, string role) =>
-            CreateAsync(email, temporaryPassword, name, nickname, role, passwordChangeRequired: true, emailConfirmed: true);
+            CreateAsync(email, temporaryPassword, name, nickname, role, passwordChangeRequired: true, emailConfirmed: true, login: null);
+
+        public Task<UserCreationResult> RegisterExternalUser(string email, bool emailConfirmed, string name, string nickname, EExternalProvider provider, string providerKey) =>
+            CreateAsync(email, password: null, name, nickname, Roles.User, passwordChangeRequired: false, emailConfirmed, ToLoginInfo(provider, providerKey));
 
         private async Task<UserCreationResult> CreateAsync(
             string email,
-            string password,
+            string? password,
             string name,
             string nickname,
             string role,
             bool passwordChangeRequired,
-            bool emailConfirmed)
+            bool emailConfirmed,
+            UserLoginInfo? login)
         {
             email = email.Trim().ToLowerInvariant();
 
@@ -89,7 +94,9 @@ namespace NoiseVault.Infra.Data.Identity.AuthenticateService
                 IsNeededChangePassword = passwordChangeRequired
             };
 
-            var result = await _userManager.CreateAsync(applicationUser, password);
+            var result = password == null
+                ? await _userManager.CreateAsync(applicationUser)
+                : await _userManager.CreateAsync(applicationUser, password);
 
             if (!result.Succeeded)
                 return UserCreationResult.Fail(
@@ -103,10 +110,107 @@ namespace NoiseVault.Infra.Data.Identity.AuthenticateService
                     EUserCreationFailure.Unknown,
                     roleResult.Errors.Select(e => e.Description).ToList());
 
+            if (login != null)
+            {
+                var loginResult = await _userManager.AddLoginAsync(applicationUser, login);
+
+                if (!loginResult.Succeeded)
+                    return UserCreationResult.Fail(
+                        EUserCreationFailure.Unknown,
+                        loginResult.Errors.Select(e => e.Description).ToList());
+            }
+
             return UserCreationResult.Ok(user.Id, applicationUser.Email ?? string.Empty);
         }
 
-        private async Task<UserCreationResult?> ValidateCredentialsAsync(string email, string password)
+        public async Task<int?> FindUserIdByLoginAsync(EExternalProvider provider, string providerKey)
+        {
+            var user = await _userManager.FindByLoginAsync(provider.ToString(), providerKey);
+            return user?.UserId;
+        }
+
+        public async Task<bool> AddLoginAsync(int userId, EExternalProvider provider, string providerKey)
+        {
+            var user = await FindByUserIdAsync(userId);
+            if (user == null) return false;
+
+            var logins = await _userManager.GetLoginsAsync(user);
+
+            if (logins.Any(l => l.LoginProvider == provider.ToString()))
+                return false;
+
+            var result = await _userManager.AddLoginAsync(user, ToLoginInfo(provider, providerKey));
+            return result.Succeeded;
+        }
+
+        public async Task<bool> RemoveLoginAsync(int userId, EExternalProvider provider)
+        {
+            var user = await FindByUserIdAsync(userId);
+            if (user == null) return false;
+
+            var login = (await _userManager.GetLoginsAsync(user)).FirstOrDefault(l => l.LoginProvider == provider.ToString());
+            if (login == null) return false;
+
+            var result = await _userManager.RemoveLoginAsync(user, login.LoginProvider, login.ProviderKey);
+            return result.Succeeded;
+        }
+
+        public async Task<SignInMethods> GetSignInMethodsAsync(int userId)
+        {
+            var user = await FindByUserIdAsync(userId);
+            if (user == null) return new SignInMethods(false, false, []);
+
+            var providers = (await _userManager.GetLoginsAsync(user))
+                .Select(l => Enum.TryParse<EExternalProvider>(l.LoginProvider, out var provider) ? provider : (EExternalProvider?)null)
+                .OfType<EExternalProvider>()
+                .Distinct()
+                .ToList();
+
+            return new SignInMethods(await _userManager.HasPasswordAsync(user), user.EmailConfirmed, providers);
+        }
+
+        public async Task ClaimUnconfirmedAccountAsync(int userId)
+        {
+            var user = await FindByUserIdAsync(userId);
+            if (user == null) return;
+
+            if (await _userManager.HasPasswordAsync(user))
+                await _userManager.RemovePasswordAsync(user);
+
+            user.EmailConfirmed = true;
+            await _userManager.UpdateSecurityStampAsync(user);
+            await RevokeAllRefreshTokensAsync(user.Id);
+        }
+
+        public async Task MarkEmailConfirmedAsync(int userId)
+        {
+            var user = await FindByUserIdAsync(userId);
+            if (user == null || user.EmailConfirmed) return;
+
+            user.EmailConfirmed = true;
+            await _userManager.UpdateAsync(user);
+        }
+
+        public async Task<EPasswordChangeResult> CreatePasswordAsync(int userId, string newPassword)
+        {
+            var user = await FindByUserIdAsync(userId);
+            if (user == null) return EPasswordChangeResult.NotFound;
+
+            if (await _userManager.HasPasswordAsync(user))
+                return EPasswordChangeResult.AlreadySet;
+
+            var result = await _userManager.AddPasswordAsync(user, newPassword);
+
+            if (!result.Succeeded)
+                return IsPasswordError(result.Errors) ? EPasswordChangeResult.WeakPassword : EPasswordChangeResult.NotFound;
+
+            return EPasswordChangeResult.Success;
+        }
+
+        private static UserLoginInfo ToLoginInfo(EExternalProvider provider, string providerKey) =>
+            new(provider.ToString(), providerKey, provider.ToString());
+
+        private async Task<UserCreationResult?> ValidateCredentialsAsync(string email, string? password)
         {
             var candidate = new ApplicationUser { UserName = email, Email = email };
             var errors = new List<IdentityError>();
@@ -119,7 +223,7 @@ namespace NoiseVault.Infra.Data.Identity.AuthenticateService
                     errors.AddRange(result.Errors);
             }
 
-            foreach (var passwordValidator in _userManager.PasswordValidators)
+            foreach (var passwordValidator in password == null ? Enumerable.Empty<IPasswordValidator<ApplicationUser>>() : _userManager.PasswordValidators)
             {
                 var result = await passwordValidator.ValidateAsync(_userManager, candidate, password);
 

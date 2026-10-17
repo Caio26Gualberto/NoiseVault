@@ -47,6 +47,8 @@ Só rate limit não basta porque IP roda barato. Só regra de negócio não bast
 | `location-update` | 10/dia por conta | trocar a localização aproximada (`ensaio.md`): mudar de lugar muitas vezes é o caminho da trilateração |
 | `band-verification` | 3/dia por conta | pedir a verificação da banda (`bandas.md`): cada pedido vira notificação e e-mail para a equipe |
 | `discography-import` | 5/h por conta | importar a discografia do Spotify (`discografia.md`): cada import faz dezenas de chamadas ao Spotify com a cota de desenvolvimento |
+| `external-login` | 20/5min por IP | entrar com Google ou Facebook (`login-social.md`): cada chamada vai ao provedor; o segundo passo usa `register` (criar conta) ou `login` (vincular com senha) |
+| `sign-in-method` | 10/h por conta | conectar, desconectar e criar senha em Minha conta: conectar chama o provedor e manda o aviso de vínculo |
 
 Endpoint novo que **cria**, **envia** ou **chama fora** nasce com política própria e uma linha nesta tabela. Os números são ponto de partida; o projeto ajusta e registra o porquê.
 

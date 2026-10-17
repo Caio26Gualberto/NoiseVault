@@ -129,5 +129,36 @@ namespace NoiseVault.Api.Controllers
 
             return ToResponse(result);
         }
+
+        [EnableRateLimiting(ApiRateLimitPolicies.SignInMethod)]
+        [HttpPost("create-password")]
+        public async Task<ActionResult> CreatePassword([FromBody] CreatePasswordInputDto input)
+        {
+            var result = await _authAppService.CreatePassword(input);
+            return ToResponse(result);
+        }
+
+        [HttpGet("sign-in-methods")]
+        public async Task<ActionResult> SignInMethods()
+        {
+            var result = await _authAppService.GetSignInMethods();
+            return ToResponse(result);
+        }
+
+        [EnableRateLimiting(ApiRateLimitPolicies.SignInMethod)]
+        [HttpPost("sign-in-methods")]
+        public async Task<ActionResult> LinkSignInMethod([FromBody] ExternalLoginInputDto input)
+        {
+            var result = await _authAppService.LinkSignInMethod(input);
+            return ToResponse(result);
+        }
+
+        [EnableRateLimiting(ApiRateLimitPolicies.SignInMethod)]
+        [HttpDelete("sign-in-methods/{provider:int}")]
+        public async Task<ActionResult> UnlinkSignInMethod(int provider)
+        {
+            var result = await _authAppService.UnlinkSignInMethod(provider);
+            return ToResponse(result);
+        }
     }
 }

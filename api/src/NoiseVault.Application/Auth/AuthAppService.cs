@@ -7,6 +7,7 @@ using NoiseVault.Application.Auth.Interfaces;
 using NoiseVault.Application.Interfaces;
 using NoiseVault.Application.Response;
 using NoiseVault.Domain.Entities;
+using NoiseVault.Domain.Enums.Auth;
 using NoiseVault.Domain.Interfaces.Authenticate;
 
 namespace NoiseVault.Application.Auth
@@ -18,6 +19,7 @@ namespace NoiseVault.Application.Auth
         private readonly ICurrentUser _currentUser;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IEmailService _emailService;
+        private readonly IExternalIdentityService _externalIdentity;
         private readonly IApplicationLogger _logger;
 
         public AuthAppService(
@@ -26,6 +28,7 @@ namespace NoiseVault.Application.Auth
             ICurrentUser currentUser,
             IUnitOfWork unitOfWork,
             IEmailService emailService,
+            IExternalIdentityService externalIdentity,
             IApplicationLoggerFactory loggerFactory)
         {
             _authService = authenticateService;
@@ -33,6 +36,7 @@ namespace NoiseVault.Application.Auth
             _currentUser = currentUser;
             _unitOfWork = unitOfWork;
             _emailService = emailService;
+            _externalIdentity = externalIdentity;
             _logger = loggerFactory.Create(LogContext.Auth);
         }
 
@@ -55,8 +59,7 @@ namespace NoiseVault.Application.Auth
                     new Error("EMAIL_NOT_CONFIRMED", "Confirm your email before signing in", ErrorType.Forbidden));
 
             if (!user.IsActive)
-                return Result<LoginResponseDto>.Fail(
-                    new Error("ACCOUNT_INACTIVE", "Account is inactive", ErrorType.Forbidden));
+                return Result<LoginResponseDto>.Fail(AccountInactive());
 
             return Result<LoginResponseDto>.Ok(
                 new LoginResponseDto
@@ -80,10 +83,7 @@ namespace NoiseVault.Application.Auth
             var nickname = NicknameRules.Normalize(input.Nickname);
 
             if (!NicknameRules.IsValid(nickname))
-                return Result<RegistrationPendingDto>.Fail(new Error(
-                    "INVALID_NICKNAME",
-                    $"Nickname must have {NicknameRules.MinLength} to {NicknameRules.MaxLength} lowercase letters, numbers, dots or underscores",
-                    ErrorType.Validation));
+                return Result<RegistrationPendingDto>.Fail(InvalidNickname());
 
             if (NicknameRules.IsReserved(nickname) || await IsNicknameTakenAsync(nickname))
                 return Result<RegistrationPendingDto>.Fail(NicknameTaken());
@@ -270,6 +270,422 @@ namespace NoiseVault.Application.Auth
             };
         }
 
+        public async Task<Result<ExternalLoginResponseDto>> ExternalLogin(ExternalLoginInputDto input)
+        {
+            _logger.SetOperation("ExternalLogin");
+
+            var (identity, error) = await VerifyExternalAsync(input);
+
+            if (identity == null)
+                return Result<ExternalLoginResponseDto>.Fail(error!);
+
+            var linkedUserId = await _authService.FindUserIdByLoginAsync(identity.Provider, identity.ProviderKey);
+
+            if (linkedUserId != null)
+                return await SignInExternalAsync(linkedUserId.Value, "LOGIN_SUCCESS", "Login successful");
+
+            var email = TrustedEmail(identity);
+            var existing = email == null ? null : await FindByEmailAsync(email);
+
+            if (existing != null)
+            {
+                if (!existing.IsActive)
+                    return Result<ExternalLoginResponseDto>.Fail(AccountInactive());
+
+                if (identity.Provider == EExternalProvider.Google)
+                    return await AutoLinkAsync(existing, identity);
+
+                var methods = await _authService.GetSignInMethodsAsync(existing.Id);
+
+                return Result<ExternalLoginResponseDto>.Ok(
+                    new ExternalLoginResponseDto
+                    {
+                        Outcome = EExternalLoginOutcome.LinkRequired,
+                        Ticket = _externalIdentity.IssueTicket(identity),
+                        Email = existing.Email,
+                        HasPassword = methods.HasPassword,
+                    },
+                    "EXTERNAL_LINK_REQUIRED",
+                    "An account with this email already exists. Confirm its password to connect");
+            }
+
+            return Result<ExternalLoginResponseDto>.Ok(
+                new ExternalLoginResponseDto
+                {
+                    Outcome = EExternalLoginOutcome.SignupRequired,
+                    Ticket = _externalIdentity.IssueTicket(identity),
+                    Name = UserNameRules.Normalize(identity.Name),
+                    Email = email,
+                    SuggestedNickname = await SuggestNicknameAsync(identity.Name),
+                },
+                "EXTERNAL_SIGNUP_REQUIRED",
+                "Choose a nickname to finish signing up");
+        }
+
+        public async Task<Result<ExternalLoginResponseDto>> ExternalRegister(ExternalRegisterInputDto input)
+        {
+            _logger.SetOperation("ExternalRegister");
+
+            var identity = _externalIdentity.ReadTicket(input.Ticket);
+
+            if (identity == null)
+                return Result<ExternalLoginResponseDto>.Fail(TicketInvalid());
+
+            var linkedUserId = await _authService.FindUserIdByLoginAsync(identity.Provider, identity.ProviderKey);
+
+            if (linkedUserId != null)
+                return await SignInExternalAsync(linkedUserId.Value, "LOGIN_SUCCESS", "Login successful");
+
+            var name = UserNameRules.Normalize(input.Name);
+
+            if (!UserNameRules.IsValid(name))
+                return Result<ExternalLoginResponseDto>.Fail(InvalidName());
+
+            var nickname = NicknameRules.Normalize(input.Nickname);
+
+            if (!NicknameRules.IsValid(nickname))
+                return Result<ExternalLoginResponseDto>.Fail(InvalidNickname());
+
+            if (NicknameRules.IsReserved(nickname) || await IsNicknameTakenAsync(nickname))
+                return Result<ExternalLoginResponseDto>.Fail(NicknameTaken());
+
+            var trustedEmail = TrustedEmail(identity);
+            var email = trustedEmail ?? NormalizeEmail(input.Email);
+            var emailConfirmed = trustedEmail != null;
+
+            if (email.Length == 0)
+                return Result<ExternalLoginResponseDto>.Fail(
+                    new Error("EXTERNAL_EMAIL_REQUIRED", "Enter an email to finish signing up", ErrorType.Validation));
+
+            if (!email.Contains('@'))
+                return Result<ExternalLoginResponseDto>.Fail(InvalidEmail());
+
+            UserCreationResult creation;
+            string? confirmationToken = null;
+
+            await _unitOfWork.BeginTransactionAsync();
+
+            try
+            {
+                creation = await _authService.RegisterExternalUser(email, emailConfirmed, name, nickname, identity.Provider, identity.ProviderKey);
+
+                if (!creation.Succeeded)
+                {
+                    await _unitOfWork.RollbackAsync();
+                    return Result<ExternalLoginResponseDto>.Fail(ToRegistrationError(creation));
+                }
+
+                if (!emailConfirmed)
+                    confirmationToken = await _authService.GenerateEmailConfirmationTokenAsync(creation.UserId);
+
+                await _unitOfWork.CommitAsync();
+            }
+            catch
+            {
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+
+            _logger.Info(
+                "USER_REGISTERED_EXTERNAL",
+                "User registered through an external provider",
+                userId: creation.UserId,
+                extra: new { Provider = identity.Provider.ToString(), EmailConfirmed = emailConfirmed });
+
+            if (!emailConfirmed)
+                await SendConfirmationAsync(creation.UserId, creation.Email, name, confirmationToken);
+
+            return emailConfirmed
+                ? await SignInExternalAsync(creation.UserId, "EXTERNAL_ACCOUNT_CREATED", "Account created")
+                : await SignInExternalAsync(creation.UserId, "EXTERNAL_ACCOUNT_CREATED_CONFIRM_EMAIL", "Account created. Check your inbox to confirm your email");
+        }
+
+        public async Task<Result<ExternalLoginResponseDto>> ExternalLink(ExternalLinkInputDto input)
+        {
+            _logger.SetOperation("ExternalLink");
+
+            var identity = _externalIdentity.ReadTicket(input.Ticket);
+            var email = identity == null ? null : TrustedEmail(identity);
+
+            if (identity == null || email == null)
+                return Result<ExternalLoginResponseDto>.Fail(TicketInvalid());
+
+            var linkedUserId = await _authService.FindUserIdByLoginAsync(identity.Provider, identity.ProviderKey);
+
+            if (linkedUserId != null)
+                return await SignInExternalAsync(linkedUserId.Value, "LOGIN_SUCCESS", "Login successful");
+
+            var user = await FindByEmailAsync(email);
+
+            if (user == null)
+                return Result<ExternalLoginResponseDto>.Fail(TicketInvalid());
+
+            var (isAuthenticated, _) = await _authService.Authenticate(user.Email, input.Password ?? string.Empty);
+
+            if (!isAuthenticated)
+                return Result<ExternalLoginResponseDto>.Fail(InvalidCredentials());
+
+            if (!user.IsActive)
+                return Result<ExternalLoginResponseDto>.Fail(AccountInactive());
+
+            var wasConfirmed = await _authService.IsEmailConfirmed(user.Email);
+
+            await _unitOfWork.BeginTransactionAsync();
+
+            try
+            {
+                if (!await _authService.AddLoginAsync(user.Id, identity.Provider, identity.ProviderKey))
+                {
+                    await _unitOfWork.RollbackAsync();
+                    return Result<ExternalLoginResponseDto>.Fail(ExternalLoginAlreadyLinked());
+                }
+
+                if (!wasConfirmed)
+                    await _authService.MarkEmailConfirmedAsync(user.Id);
+
+                await _unitOfWork.CommitAsync();
+            }
+            catch
+            {
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+
+            LogLinked(user.Id, identity.Provider, "password", claimedUnconfirmed: false);
+
+            await SendLinkedNoticeAsync(user, identity.Provider);
+
+            return await SignInExternalAsync(user.Id, "LOGIN_SUCCESS", "Login successful");
+        }
+
+        public async Task<Result<SignInMethodsDto>> GetSignInMethods()
+        {
+            var methods = await _authService.GetSignInMethodsAsync(_currentUser.UserId);
+            return Result<SignInMethodsDto>.Ok(ToDto(methods), "SIGN_IN_METHODS_FOUND", "Sign-in methods found");
+        }
+
+        public async Task<Result<SignInMethodsDto>> LinkSignInMethod(ExternalLoginInputDto input)
+        {
+            _logger.SetOperation("LinkSignInMethod");
+
+            var (identity, error) = await VerifyExternalAsync(input);
+
+            if (identity == null)
+                return Result<SignInMethodsDto>.Fail(error!);
+
+            var userId = _currentUser.UserId;
+            var linkedUserId = await _authService.FindUserIdByLoginAsync(identity.Provider, identity.ProviderKey);
+
+            if (linkedUserId == userId)
+                return Result<SignInMethodsDto>.Fail(ExternalLoginAlreadyLinked());
+
+            if (linkedUserId != null)
+                return Result<SignInMethodsDto>.Fail(
+                    new Error("EXTERNAL_LOGIN_IN_USE", "This account is already connected to another Noise Vault profile", ErrorType.Conflict));
+
+            var methods = await _authService.GetSignInMethodsAsync(userId);
+
+            if (methods.Providers.Contains(identity.Provider) || !await _authService.AddLoginAsync(userId, identity.Provider, identity.ProviderKey))
+                return Result<SignInMethodsDto>.Fail(ExternalLoginAlreadyLinked());
+
+            LogLinked(userId, identity.Provider, "account", claimedUnconfirmed: false);
+
+            var user = await _userRepository.FirstOrDefaultAsync(new QueryOptions<User> { Predicate = u => u.Id == userId, AsNoTracking = true });
+
+            if (user != null && methods.EmailConfirmed)
+                await SendLinkedNoticeAsync(user, identity.Provider);
+
+            return Result<SignInMethodsDto>.Ok(
+                ToDto(await _authService.GetSignInMethodsAsync(userId)),
+                "EXTERNAL_LOGIN_LINKED",
+                $"{identity.Provider} connected");
+        }
+
+        public async Task<Result<SignInMethodsDto>> UnlinkSignInMethod(int provider)
+        {
+            _logger.SetOperation("UnlinkSignInMethod");
+
+            if (!Enum.IsDefined(typeof(EExternalProvider), provider))
+                return Result<SignInMethodsDto>.Fail(ProviderInvalid());
+
+            var externalProvider = (EExternalProvider)provider;
+            var userId = _currentUser.UserId;
+            var methods = await _authService.GetSignInMethodsAsync(userId);
+
+            if (!methods.Providers.Contains(externalProvider))
+                return Result<SignInMethodsDto>.Fail(
+                    new Error("EXTERNAL_LOGIN_NOT_FOUND", "This sign-in method is not connected", ErrorType.NotFound));
+
+            if (!methods.HasPassword && methods.Providers.Count == 1)
+                return Result<SignInMethodsDto>.Fail(
+                    new Error("LAST_SIGN_IN_METHOD", "Create a password or connect another account before disconnecting this one", ErrorType.Validation));
+
+            await _authService.RemoveLoginAsync(userId, externalProvider);
+
+            _logger.Info("EXTERNAL_LOGIN_UNLINKED", "External login disconnected", userId: userId, extra: new { Provider = externalProvider.ToString() });
+
+            return Result<SignInMethodsDto>.Ok(
+                ToDto(await _authService.GetSignInMethodsAsync(userId)),
+                "EXTERNAL_LOGIN_UNLINKED",
+                $"{externalProvider} disconnected");
+        }
+
+        public async Task<Result<SignInMethodsDto>> CreatePassword(CreatePasswordInputDto input)
+        {
+            _logger.SetOperation("CreatePassword");
+
+            var userId = _currentUser.UserId;
+            var outcome = await _authService.CreatePasswordAsync(userId, input.NewPassword ?? string.Empty);
+
+            switch (outcome)
+            {
+                case EPasswordChangeResult.AlreadySet:
+                    return Result<SignInMethodsDto>.Fail(
+                        new Error("PASSWORD_ALREADY_SET", "This account already has a password. Use change password instead", ErrorType.Validation));
+
+                case EPasswordChangeResult.WeakPassword:
+                    return Result<SignInMethodsDto>.Fail(PasswordTooWeak());
+
+                case EPasswordChangeResult.Success:
+                    _logger.Info("PASSWORD_CREATED", "Password created for an account without one", userId: userId);
+                    return Result<SignInMethodsDto>.Ok(
+                        ToDto(await _authService.GetSignInMethodsAsync(userId)),
+                        "PASSWORD_CREATED",
+                        "Password created");
+
+                default:
+                    return Result<SignInMethodsDto>.Fail(new Error("PASSWORD_CHANGE_FAILED", "Failed to change password", ErrorType.Validation));
+            }
+        }
+
+        private async Task<(ExternalIdentity? Identity, Error? Error)> VerifyExternalAsync(ExternalLoginInputDto input)
+        {
+            if (!Enum.IsDefined(typeof(EExternalProvider), input.Provider))
+                return (null, ProviderInvalid());
+
+            var provider = (EExternalProvider)input.Provider;
+            _logger.Set("Provider", provider.ToString());
+
+            if (string.IsNullOrWhiteSpace(input.Token))
+                return (null, ExternalTokenInvalid());
+
+            var verification = await _externalIdentity.VerifyAsync(provider, input.Token);
+
+            return verification.Status switch
+            {
+                EExternalVerificationStatus.Valid => (verification.Identity, null),
+                EExternalVerificationStatus.Disabled => (null, new Error("EXTERNAL_PROVIDER_DISABLED", $"Sign in with {provider} is not available", ErrorType.Validation)),
+                EExternalVerificationStatus.Unavailable => (null, new Error("EXTERNAL_PROVIDER_UNAVAILABLE", $"{provider} did not respond. Try again", ErrorType.Unexpected)),
+                _ => (null, ExternalTokenInvalid()),
+            };
+        }
+
+        private async Task<Result<ExternalLoginResponseDto>> AutoLinkAsync(User user, ExternalIdentity identity)
+        {
+            var wasConfirmed = await _authService.IsEmailConfirmed(user.Email);
+
+            await _unitOfWork.BeginTransactionAsync();
+
+            try
+            {
+                if (!await _authService.AddLoginAsync(user.Id, identity.Provider, identity.ProviderKey))
+                {
+                    await _unitOfWork.RollbackAsync();
+                    return Result<ExternalLoginResponseDto>.Fail(ExternalLoginAlreadyLinked());
+                }
+
+                if (!wasConfirmed)
+                    await _authService.ClaimUnconfirmedAccountAsync(user.Id);
+
+                await _unitOfWork.CommitAsync();
+            }
+            catch
+            {
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+
+            LogLinked(user.Id, identity.Provider, "auto", claimedUnconfirmed: !wasConfirmed);
+
+            if (wasConfirmed)
+                await SendLinkedNoticeAsync(user, identity.Provider);
+
+            return await SignInExternalAsync(user.Id, "LOGIN_SUCCESS", "Login successful");
+        }
+
+        private async Task<Result<ExternalLoginResponseDto>> SignInExternalAsync(int userId, string code, string message)
+        {
+            var user = await _userRepository.FirstOrDefaultAsync(new QueryOptions<User> { Predicate = u => u.Id == userId });
+
+            if (user == null)
+                return Result<ExternalLoginResponseDto>.Fail(ExternalTokenInvalid());
+
+            if (!user.IsActive)
+                return Result<ExternalLoginResponseDto>.Fail(AccountInactive());
+
+            return Result<ExternalLoginResponseDto>.Ok(
+                new ExternalLoginResponseDto { Outcome = EExternalLoginOutcome.SignedIn, Tokens = await IssueTokensAsync(user) },
+                code,
+                message);
+        }
+
+        private async Task<string> SuggestNicknameAsync(string name)
+        {
+            var baseNickname = NicknameRules.DeriveFromName(name);
+            var candidate = baseNickname;
+
+            for (var suffix = 2; suffix < 100 && (NicknameRules.IsReserved(candidate) || await IsNicknameTakenAsync(candidate)); suffix++)
+                candidate = NicknameRules.WithSuffix(baseNickname, suffix);
+
+            return candidate;
+        }
+
+        private void LogLinked(int userId, EExternalProvider provider, string via, bool claimedUnconfirmed) =>
+            _logger.Info(
+                "EXTERNAL_LOGIN_LINKED",
+                "External login connected to an existing account",
+                userId: userId,
+                extra: new { Provider = provider.ToString(), Via = via, ClaimedUnconfirmed = claimedUnconfirmed });
+
+        private async Task SendLinkedNoticeAsync(User user, EExternalProvider provider)
+        {
+            var sent = false;
+
+            try
+            {
+                sent = await _emailService.SendExternalLoginLinkedAsync(new ExternalLoginLinkedEmailDto
+                {
+                    To = user.Email,
+                    Name = user.Name,
+                    ProviderName = provider.ToString(),
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.Error("EXTERNAL_LOGIN_NOTICE_SEND_FAILED", "External login notice threw", exception: ex, userId: user.Id);
+                return;
+            }
+
+            if (!sent)
+                _logger.Warning("EXTERNAL_LOGIN_NOTICE_SEND_FAILED", "External login notice was not accepted by the transport", userId: user.Id);
+        }
+
+        private static string? TrustedEmail(ExternalIdentity identity)
+        {
+            if (!identity.EmailVerified)
+                return null;
+
+            var email = NormalizeEmail(identity.Email);
+            return email.Contains('@') ? email : null;
+        }
+
+        private static SignInMethodsDto ToDto(SignInMethods methods) => new()
+        {
+            HasPassword = methods.HasPassword,
+            EmailConfirmed = methods.EmailConfirmed,
+            Providers = methods.Providers.Select(p => (int)p).Order().ToList(),
+        };
+
         private async Task SendConfirmationAsync(int userId, string email, string name, string? token)
         {
             if (string.IsNullOrEmpty(token))
@@ -354,6 +770,27 @@ namespace NoiseVault.Application.Auth
 
         private static Error InvalidEmail() =>
             new("INVALID_EMAIL", "Enter a valid email address", ErrorType.Validation);
+
+        private static Error InvalidNickname() =>
+            new(
+                "INVALID_NICKNAME",
+                $"Nickname must have {NicknameRules.MinLength} to {NicknameRules.MaxLength} lowercase letters, numbers, dots or underscores",
+                ErrorType.Validation);
+
+        private static Error AccountInactive() =>
+            new("ACCOUNT_INACTIVE", "Account is inactive", ErrorType.Forbidden);
+
+        private static Error ProviderInvalid() =>
+            new("EXTERNAL_PROVIDER_INVALID", "Unknown sign-in provider", ErrorType.Validation);
+
+        private static Error ExternalTokenInvalid() =>
+            new("EXTERNAL_TOKEN_INVALID", "The sign-in could not be verified. Try again", ErrorType.Validation);
+
+        private static Error TicketInvalid() =>
+            new("EXTERNAL_TICKET_INVALID", "This sign-in step expired. Start again", ErrorType.Validation);
+
+        private static Error ExternalLoginAlreadyLinked() =>
+            new("EXTERNAL_LOGIN_ALREADY_LINKED", "This sign-in method is already connected to your account", ErrorType.Conflict);
 
         private static Error NicknameTaken() =>
             new("NICKNAME_TAKEN", "This nickname is already taken", ErrorType.Conflict);

@@ -174,6 +174,33 @@ namespace NoiseVault.Infra.Data.Email
                 text.ToString());
         }
 
+        public Task<bool> SendExternalLoginLinkedAsync(ExternalLoginLinkedEmailDto email)
+        {
+            var url = $"{_settings.FrontendBaseUrl}/minha-conta";
+            var intro = $"{Greeting(email.Name)} O {email.ProviderName} foi conectado à sua conta no Noise Vault. A partir de agora você também entra com ele.";
+            var warning = $"Se não foi você, abra Minha conta, desconecte o {email.ProviderName} e troque sua senha.";
+
+            var html = new StringBuilder()
+                .Append(Paragraph(Encode(intro)))
+                .Append(Button("Abrir Minha conta", url))
+                .Append(Meta(warning));
+
+            var text = new StringBuilder()
+                .AppendLine($"{email.ProviderName} conectado")
+                .AppendLine()
+                .AppendLine(intro)
+                .AppendLine()
+                .AppendLine($"Minha conta: {url}")
+                .AppendLine()
+                .AppendLine(warning);
+
+            return _sender.SendAsync(
+                email.To,
+                $"{email.ProviderName} conectado à sua conta - Noise Vault",
+                Layout("Conta", $"{email.ProviderName} conectado", html.ToString(), intro, AutomaticFooter()),
+                text.ToString());
+        }
+
         private static string AutomaticFooter() =>
             "Mensagem automática do Noise Vault, a comunidade de metal e rock do ABC. Não responda.";
 

@@ -17,6 +17,7 @@ using NoiseVault.Application.Response;
 using NoiseVault.Domain.Entities;
 using NoiseVault.Domain.Enums.Notifications;
 using NoiseVault.Domain.Enums.Bands;
+using NoiseVault.Domain.Interfaces.Authenticate;
 
 namespace NoiseVault.Application.Bands
 {
@@ -31,6 +32,7 @@ namespace NoiseVault.Application.Bands
         private readonly INotificationAppService _notificationAppService;
         private readonly IEnqueuedJobDispatcher _jobDispatcher;
         private readonly IEmailService _emailService;
+        private readonly IAuthenticateService _authService;
         private readonly IApplicationLogger _logger;
 
         public BandInvitationAppService(
@@ -43,6 +45,7 @@ namespace NoiseVault.Application.Bands
             INotificationAppService notificationAppService,
             IEnqueuedJobDispatcher jobDispatcher,
             IEmailService emailService,
+            IAuthenticateService authService,
             IApplicationLoggerFactory loggerFactory)
         {
             _invitationRepository = invitationRepository;
@@ -54,6 +57,7 @@ namespace NoiseVault.Application.Bands
             _notificationAppService = notificationAppService;
             _jobDispatcher = jobDispatcher;
             _emailService = emailService;
+            _authService = authService;
             _logger = loggerFactory.Create(LogContext.Bands);
         }
 
@@ -259,7 +263,8 @@ namespace NoiseVault.Application.Bands
             if (invitation == null
                 || invitation.Status != EBandInvitationStatus.Pending
                 || invitation.ExpiresAt <= DateTime.UtcNow
-                || invitation.InvitedUser is not { IsActive: true, EmailOnBandInvite: true })
+                || invitation.InvitedUser is not { IsActive: true, EmailOnBandInvite: true }
+                || !await _authService.IsEmailConfirmed(invitation.InvitedUser.Email))
                 return;
 
             var sent = await _emailService.SendBandInviteAsync(new BandInviteEmailDto

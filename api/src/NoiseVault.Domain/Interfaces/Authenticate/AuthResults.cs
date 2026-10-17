@@ -20,5 +20,6 @@ namespace NoiseVault.Domain.Interfaces.Authenticate
         InvalidCurrentPassword = 1,
         WeakPassword = 2,
         NotFound = 3,
+        AlreadySet = 4,
     }
 }

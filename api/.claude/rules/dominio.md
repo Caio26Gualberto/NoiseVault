@@ -56,6 +56,6 @@ A ordem segue dependência: feed e eventos mostram autor e banda, logo perfil e 
 
 ## O que fica fora de propósito
 
-- **Login social**: cada provedor é um fluxo próprio no `AuthAppService`; entra quando houver demanda real, não como "já que estamos aqui".
+- ~~**Login social**: cada provedor é um fluxo próprio no `AuthAppService`; entra quando houver demanda real, não como "já que estamos aqui".~~ A demanda chegou com o site no ar (17/10/2026): Google e Facebook entram pelo `AuthAppService` (`login-social.md`).
 - **Podcasts** e **loja parceira**: páginas estáticas no front, sem entidade.
 - **SignalR para progresso de upload**: o legado usava para uma barra de progresso; o módulo 3 resolveu com upload multipart direto para o storage (URL pré-assinada) e o progresso fica no cliente. O estado da conversão o cliente consulta por polling (`GET /api/posts/{id}` a cada 5 s, só no post do próprio autor).

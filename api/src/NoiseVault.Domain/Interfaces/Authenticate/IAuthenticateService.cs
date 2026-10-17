@@ -1,4 +1,5 @@
 using NoiseVault.Domain.Entities;
+using NoiseVault.Domain.Enums.Auth;
 
 namespace NoiseVault.Domain.Interfaces.Authenticate
 {
@@ -21,5 +22,14 @@ namespace NoiseVault.Domain.Interfaces.Authenticate
         Task<string> GenerateJwtToken(User user);
         Task<string> IssueRefreshTokenAsync(string email);
         Task<string?> ConsumeRefreshTokenAsync(string refreshToken);
+
+        Task<int?> FindUserIdByLoginAsync(EExternalProvider provider, string providerKey);
+        Task<UserCreationResult> RegisterExternalUser(string email, bool emailConfirmed, string name, string nickname, EExternalProvider provider, string providerKey);
+        Task<bool> AddLoginAsync(int userId, EExternalProvider provider, string providerKey);
+        Task<bool> RemoveLoginAsync(int userId, EExternalProvider provider);
+        Task<SignInMethods> GetSignInMethodsAsync(int userId);
+        Task ClaimUnconfirmedAccountAsync(int userId);
+        Task MarkEmailConfirmedAsync(int userId);
+        Task<EPasswordChangeResult> CreatePasswordAsync(int userId, string newPassword);
     }
 }

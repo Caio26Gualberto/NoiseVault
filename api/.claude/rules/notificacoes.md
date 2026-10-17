@@ -95,7 +95,7 @@ Por que é assim:
 
 - **`User.EmailOnBandInvite`** (padrão `true`), alterado por `PUT /api/profile/notification-settings` (`NOTIFICATION_SETTINGS_UPDATED`) e devolvido no `ProfileDto`.
 - O convite enfileira `IEnqueuedJobDispatcher.EnqueueBandInviteEmail`. Na fila `notifications`, o `NotificationsEnqueuedJobsTrigger` chama `BandInvitationAppService.SendInviteEmail`.
-  - Na hora de rodar, o job **relê** o convite e só envia se ele ainda estiver pendente e dentro da validade, e se a preferência estiver ligada.
+  - Na hora de rodar, o job **relê** o convite e só envia se ele ainda estiver pendente e dentro da validade, e se a preferência estiver ligada e o e-mail da pessoa estiver confirmado (conta criada pelo Facebook com e-mail digitado só recebe depois de confirmar, `login-social.md`).
   - Transporte recusou → exceção → retry (2 tentativas, 1 e 10 min).
 - `IEmailService.SendBandInviteAsync`:
   - assunto **sem nome**: "Você recebeu um convite de banda";

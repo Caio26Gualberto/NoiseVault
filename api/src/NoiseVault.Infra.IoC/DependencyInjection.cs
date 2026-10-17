@@ -19,6 +19,7 @@ using NoiseVault.Infra.Data.Repositories.Archive;
 using NoiseVault.Infra.Data.Repositories.BandVerifications;
 using NoiseVault.Infra.Data.Repositories.BandFollowers;
 using NoiseVault.Infra.Data.Spotify;
+using NoiseVault.Infra.Data.ExternalLogin;
 using NoiseVault.Workers.Triggers.Recurring.Discography;
 using NoiseVault.Workers.Wrappers.Recurring.Discography;
 using NoiseVault.Application.Notifications;
@@ -268,6 +269,17 @@ namespace NoiseVault.Infra.IoC
 
             if (!spotifySettings.IsConfigured)
                 Console.WriteLine("[Noise Vault] Spotify:ClientId e Spotify:ClientSecret vazios — a importação de discografia responde SPOTIFY_NOT_CONFIGURED.");
+
+            var externalLoginSettings = ExternalLoginSettings.FromConfiguration(config);
+            services.AddSingleton(externalLoginSettings);
+            services.AddSingleton<GoogleSigningKeyCache>();
+            services.AddHttpClient<IExternalIdentityService, ExternalIdentityService>(client => client.Timeout = TimeSpan.FromSeconds(10));
+
+            if (!externalLoginSettings.IsGoogleConfigured)
+                Console.WriteLine("[Noise Vault] Auth:Google:ClientId vazio — entrar com Google responde EXTERNAL_PROVIDER_DISABLED.");
+
+            if (!externalLoginSettings.IsFacebookConfigured)
+                Console.WriteLine("[Noise Vault] Auth:Facebook:AppId ou Auth:Facebook:AppSecret vazios — entrar com Facebook responde EXTERNAL_PROVIDER_DISABLED.");
 
             // Jobs
             services.AddScoped<IRecurringJobReader, RecurringJobReader>();

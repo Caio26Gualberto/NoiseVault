@@ -37,6 +37,33 @@ namespace NoiseVault.Api.Controllers
         }
 
         [AllowAnonymous]
+        [EnableRateLimiting(ApiRateLimitPolicies.ExternalLogin)]
+        [HttpPost("external")]
+        public async Task<ActionResult> External([FromBody] ExternalLoginInputDto input)
+        {
+            var result = await _authAppService.ExternalLogin(input);
+            return ExternalResponse(result);
+        }
+
+        [AllowAnonymous]
+        [EnableRateLimiting(ApiRateLimitPolicies.Register)]
+        [HttpPost("external/register")]
+        public async Task<ActionResult> ExternalRegister([FromBody] ExternalRegisterInputDto input)
+        {
+            var result = await _authAppService.ExternalRegister(input);
+            return ExternalResponse(result);
+        }
+
+        [AllowAnonymous]
+        [EnableRateLimiting(ApiRateLimitPolicies.Login)]
+        [HttpPost("external/link")]
+        public async Task<ActionResult> ExternalLink([FromBody] ExternalLinkInputDto input)
+        {
+            var result = await _authAppService.ExternalLink(input);
+            return ExternalResponse(result);
+        }
+
+        [AllowAnonymous]
         [EnableRateLimiting(ApiRateLimitPolicies.Register)]
         [HttpPost("register")]
         public async Task<ActionResult> Register([FromBody] RegisterInputDto input)
@@ -105,6 +132,14 @@ namespace NoiseVault.Api.Controllers
 
             var result = await _authAppService.Logout();
             _refreshCookie.Clear(Response);
+            return ToResponse(result);
+        }
+
+        private ActionResult ExternalResponse(Result<ExternalLoginResponseDto> result)
+        {
+            if (result.IsSuccess && result.Data?.Tokens != null)
+                _refreshCookie.Write(Response, result.Data.Tokens.RefreshToken);
+
             return ToResponse(result);
         }
 
