@@ -9,7 +9,6 @@ export function loadScript(src: string): Promise<void> {
     script.src = src
     script.async = true
     script.defer = true
-    script.crossOrigin = 'anonymous'
     script.onload = () => resolve()
     script.onerror = () => {
       loaded.delete(src)
