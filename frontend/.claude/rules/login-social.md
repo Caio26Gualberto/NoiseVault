@@ -63,7 +63,7 @@ Mostra o e-mail e o provedor. Com senha (`hasPassword`): campo de senha, "Conect
 
 ## Páginas públicas exigidas pelos provedores
 
-`/privacidade` (Política de privacidade) e `/apagar-dados` (Como apagar seus dados), públicas, sem login e sem redirecionar quem tem sessão, numa moldura larga (`wide` no `publicRoutes`). O Facebook exige a segunda para o app ir ao ar; o Google pede a primeira na tela de consentimento. Os links ficam no rodapé da moldura pública (login, cadastro, as próprias páginas). O texto está em `institucional.json` e descreve o que o produto faz de verdade: os dados que guarda, os provedores (AWS em São Paulo, Google, Facebook), o cookie `nv_refresh`, a LGPD, e a exclusão **feita pela equipe a pedido** (não há autoatendimento).
+`/privacidade` (Política de privacidade) e `/apagar-dados` (Como apagar seus dados), públicas, sem login e sem redirecionar quem tem sessão, numa moldura larga (`wide` no `publicRoutes`). O Facebook exige a segunda para o app ir ao ar; o Google pede a primeira na tela de consentimento. Os links ficam no rodapé da moldura pública (login, cadastro, as próprias páginas). Quem tem sessão sai delas pelo "Voltar para o feed" do rodapé e pela marca no topo, que levam ao `/feed`; sem sessão, os dois levam ao `/entrar`. A primeira versão só tinha a marca apontando para `/entrar`, e quem chegava logado (pelo link de privacidade da tela de consentimento do Facebook, que abre outra aba) achava que estava preso (18/10/2026). O texto está em `institucional.json` e descreve o que o produto faz de verdade: os dados que guarda, os provedores (AWS em São Paulo, Google, Facebook), o cookie `nv_refresh`, a LGPD, e a exclusão **feita pela equipe a pedido** (não há autoatendimento).
 
 ## Roteiro de verificação
 

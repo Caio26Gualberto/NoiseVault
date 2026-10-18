@@ -175,6 +175,8 @@
   "legal": {
     "label": "Documentos do site",
     "privacy": "Privacidade",
-    "dataDeletion": "Apagar seus dados"
+    "dataDeletion": "Apagar seus dados",
+    "backHome": "Voltar para o feed",
+    "signIn": "Entrar"
   }
 }
