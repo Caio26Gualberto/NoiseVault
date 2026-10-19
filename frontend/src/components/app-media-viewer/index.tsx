@@ -99,19 +99,19 @@ export function AppMediaViewer({ items, index, onIndexChange, tagging }: AppMedi
             </figure>
           ) : null}
 
-          <ViewerButton label={t('viewer.close')} onClick={() => onIndexChange(null)} className="absolute top-4 right-4">
+          <ViewerButton label={t('viewer.close')} onClick={() => onIndexChange(null)} className="absolute top-[calc(1rem+env(safe-area-inset-top))] right-4">
             <XIcon />
           </ViewerButton>
 
           {many && index !== null ? (
             <>
-              <ViewerButton label={t('viewer.previous')} onClick={() => go(-1)} className="absolute top-4 left-4 sm:top-1/2 sm:-translate-y-1/2">
+              <ViewerButton label={t('viewer.previous')} onClick={() => go(-1)} className="absolute top-[calc(1rem+env(safe-area-inset-top))] left-4 sm:top-1/2 sm:-translate-y-1/2">
                 <ChevronLeftIcon />
               </ViewerButton>
-              <ViewerButton label={t('viewer.next')} onClick={() => go(1)} className="absolute top-4 left-16 sm:top-1/2 sm:right-4 sm:left-auto sm:-translate-y-1/2">
+              <ViewerButton label={t('viewer.next')} onClick={() => go(1)} className="absolute top-[calc(1rem+env(safe-area-inset-top))] left-16 sm:top-1/2 sm:right-4 sm:left-auto sm:-translate-y-1/2">
                 <ChevronRightIcon />
               </ViewerButton>
-              <span className="absolute top-6 left-1/2 -translate-x-1/2 rounded-full bg-scrim/70 px-3 py-1 text-sm text-on-scrim tabular-nums">
+              <span className="absolute top-[calc(1.5rem+env(safe-area-inset-top))] left-1/2 -translate-x-1/2 rounded-full bg-scrim/70 px-3 py-1 text-sm text-on-scrim tabular-nums">
                 {t('viewer.counter', { current: index + 1, total: items.length })}
               </span>
             </>

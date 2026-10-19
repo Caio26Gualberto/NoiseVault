@@ -5,7 +5,7 @@ import { Wordmark } from './wordmark'
 
 export function TopBar() {
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b bg-background/95 px-4 backdrop-blur md:px-6">
+    <header className="sticky top-0 z-30 flex h-[calc(3.5rem+env(safe-area-inset-top))] items-center pt-[env(safe-area-inset-top)] gap-3 border-b bg-background/95 px-4 backdrop-blur md:px-6">
       <div className="md:hidden">
         <Wordmark size="sm" />
       </div>

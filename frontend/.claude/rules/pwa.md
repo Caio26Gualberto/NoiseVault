@@ -76,3 +76,15 @@ Item 7 do `IDEIAS.md`, parte 1 (14/10/2026): o site vira app na tela inicial, co
 5. **Instalar**: no iPhone (emulado, em dev), o menu mostra "Instalar o app", que abre o passo a passo. No computador, sem o evento do navegador, o item não aparece.
 
 Resultado em 14/10/2026: as 20 checagens passaram. Falta o teste num aparelho de verdade, porque o pedido nativo de instalação não abre em navegador automatizado.
+
+## Tela cheia no iPhone: a área do relógio e do notch
+
+- O `index.html` usa `apple-mobile-web-app-status-bar-style: black-translucent` com `viewport-fit=cover`: aberto pelo ícone, o app desenha por baixo da barra de status, sem faixa preta em cima.
+- 🔴 O preço é que **todo elemento colado no topo precisa somar `env(safe-area-inset-top)`**. Sem isso, o relógio, a bateria e a ilha dinâmica ficavam por cima do wordmark e do avatar (relato de 19/10/2026, num iPhone em produção).
+- Quem soma hoje:
+  - a `TopBar` (altura `3.5rem + inset`, com o inset de `padding-top`) e o cabeçalho do Ensaio;
+  - o `PublicFrame` e a boas-vindas (no `padding` de cima e de baixo);
+  - os botões do visualizador de mídia (`top` com o inset);
+  - o `SheetContent` de lado e de cima (`padding-top`) e o seu botão de fechar.
+- No navegador comum e no Android o inset é 0, e nada muda. Embaixo, a `BottomNav` já somava o `safe-area-inset-bottom`.
+- Elemento novo `fixed`/`sticky` no topo segue o mesmo desenho.

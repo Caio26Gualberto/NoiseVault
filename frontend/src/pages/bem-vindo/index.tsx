@@ -19,7 +19,7 @@ export function BemVindoPage() {
   }
 
   return (
-    <div className="dark relative flex min-h-dvh items-center justify-center overflow-hidden px-4 py-6 text-foreground">
+    <div className="dark relative flex min-h-dvh items-center justify-center overflow-hidden px-4 pt-[calc(1.5rem+env(safe-area-inset-top))] pb-[calc(1.5rem+env(safe-area-inset-bottom))] text-foreground">
       <img
         src={celticFrost}
         alt={t('welcome.imageAlt')}

@@ -135,7 +135,7 @@ export function EnsaioShell() {
 
   return (
     <div className="dark ensaio flex min-h-dvh flex-col bg-background text-foreground">
-      <header className="sticky top-0 z-30 border-b bg-background/95 backdrop-blur">
+      <header className="sticky top-0 z-30 border-b bg-background/95 pt-[env(safe-area-inset-top)] backdrop-blur">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 md:h-[72px] md:px-12">
           <EnsaioLogo />
           <nav aria-label={t('nav.label')} className="hidden h-full items-stretch gap-8 md:flex">
