@@ -24,17 +24,18 @@ Ideia 1 do `IDEIAS.md`, feita em 14/10/2026 pelo caminho da **rota de compartilh
 
 | Link | Página | O que vai na prévia |
 |---|---|---|
-| `/s/mural/{id}` | `/mural/{id}` | título, data na precisão do registro ("setembro de 1991") · local · cidade, começo da história, capa (foto ou poster do vídeo) |
-| `/s/eventos/{id}` | `/eventos/{id}` | título (com "[Cancelado]" quando for), dia e hora na zona do app · local · cidade, começo da descrição, banner |
-| `/s/feed/{id}` | `/feed/{id}` | "Fulano no Noise Vault", começo do texto com os \@handles trocados pelo nome, primeira foto (ou o avatar). O post automático de evento e de mural usa a prévia do evento ou do registro |
-| `/s/bandas/{slug}` | `/bandas/{slug}` | nome, começo da descrição, capa ou avatar |
+| `/s/mural/{id}` | `/mural/{id}` | título; data na precisão do registro ("setembro de 1991") · local · cidade · bandas · "N fotos" · "N vídeos" · "N pessoas estavam lá", e o começo da história; capa (foto ou poster do vídeo) |
+| `/s/eventos/{id}` | `/eventos/{id}` | título (com "[Cancelado]" quando for); dia e hora na zona do app · local · cidade · "com" o line-up · "N pessoas vão" (some no cancelado), e o começo da descrição; banner |
+| `/s/feed/{id}` | `/feed/{id}` | "Fulano (\@apelido) no Noise Vault"; "N fotos · N vídeos · N curtidas · N comentários · 18 de outubro de 2026" e, depois de dois-pontos, o começo do texto entre aspas, com os \@handles trocados pelo nome (sem texto, um convite para ver no Noise Vault); primeira foto (ou o avatar). O post automático de evento e de mural usa a prévia do evento ou do registro |
+| `/s/bandas/{slug}` | `/bandas/{slug}` | nome; "Banda · cidade · desde 1991" e o começo da descrição; capa ou avatar |
 | `/s/perfil/{apelido}` | `/perfil/{apelido}` | "Nome (\@apelido)", começo da bio, avatar |
 
-- Descrição com até 200 caracteres, sem quebra de linha. Sem imagem, vai o ícone do app (`/icons/icon-512.png`).
+- **A descrição imita a do Instagram** (19/10/2026): a primeira prévia, só com o texto ou "Publicação no feed do Noise Vault", saía sem vida no WhatsApp. Agora abre com uma linha de dados (contagens, data, local, line-up), separados por " · "; contagem zero não aparece, e o singular é "1 curtida". O texto vem depois.
+- O texto do conteúdo vai com até 200 caracteres, sem quebra de linha. Sem imagem, vai o ícone do app (`/icons/icon-512.png`).
 - **Só conteúdo que está publicado**: registro `Published`, post com `PublishedAt`, evento e banda não apagados, pessoa ativa.
   - Envio pendente do mural, post em processamento, id inexistente ou seção desconhecida → **404** com a prévia genérica do Noise Vault, e o redirecionamento vai para `/feed`.
 - **O HTML**:
-  - `og:site_name`, `og:locale` (`pt_BR`), `og:type`, `og:title`, `og:description`, `og:image`, `og:url`, mais as `twitter:*` e a `description`;
+  - `og:site_name`, `og:locale` (`pt_BR`), `og:type`, `og:title`, `og:description`, `og:image`, `og:url`, `og:image:alt`, `theme-color`, mais as `twitter:*` e a `description`;
   - `<meta http-equiv="refresh">` e `location.replace` para a página. A pessoa nem vê a tela intermediária: cai na SPA, que pede login se precisar;
   - os textos passam por `HtmlEncoder` com todos os alfabetos liberados: acento sai como acento, e `<`, `>`, `&` e aspas são escapados.
 - 🔴 **`og:url` é o próprio link `/s/...`, não a página.** O Facebook segue o `og:url` e lê as tags de lá: apontando para a SPA, a prévia sumia.

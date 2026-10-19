@@ -18,6 +18,7 @@ namespace NoiseVault.Api.Share
             var html = new StringBuilder();
             html.Append("<!doctype html><html lang=\"pt-BR\"><head><meta charset=\"utf-8\">");
             html.Append("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">");
+            html.Append("<meta name=\"theme-color\" content=\"#1c1515\">");
             html.Append($"<title>{Encode(title)} · Noise Vault</title>");
             html.Append($"<meta name=\"description\" content=\"{Encode(description)}\">");
             Meta(html, "og:site_name", "Noise Vault");
@@ -26,6 +27,7 @@ namespace NoiseVault.Api.Share
             Meta(html, "og:title", title);
             Meta(html, "og:description", description);
             Meta(html, "og:image", image);
+            Meta(html, "og:image:alt", title);
             Meta(html, "og:url", shareUrl);
             html.Append("<meta name=\"twitter:card\" content=\"summary_large_image\">");
             html.Append($"<meta name=\"twitter:title\" content=\"{Encode(title)}\">");

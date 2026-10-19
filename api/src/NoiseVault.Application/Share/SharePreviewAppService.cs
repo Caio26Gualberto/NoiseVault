@@ -78,7 +78,14 @@ namespace NoiseVault.Application.Share
                 return null;
 
             var where = string.Join(" · ", new[] { entry.Venue, entry.City?.Name ?? entry.CityName }.Where(p => !string.IsNullOrWhiteSpace(p)));
-            var lead = string.Join(" · ", new[] { ArchiveDate(entry.Year, entry.Month, entry.Day), where }.Where(p => p.Length > 0));
+            var bands = await BandNamesAsync(entry.Bands.Select(b => (b.BandId, b.Name)));
+            var lead = Line(
+                ArchiveDate(entry.Year, entry.Month, entry.Day),
+                where,
+                bands.Count > 0 ? string.Join(", ", bands) : null,
+                Count(entry.PhotoCount, "foto", "fotos"),
+                Count(entry.VideoCount, "vídeo", "vídeos"),
+                Count(entry.AttendanceCount, "pessoa estava lá", "pessoas estavam lá"));
 
             return new SharePreviewDto
             {
@@ -99,12 +106,19 @@ namespace NoiseVault.Application.Share
 
             var when = AppTime.ToLocal(row.StartsAt).ToString("dddd, d 'de' MMMM 'às' HH'h'mm", PtBr);
             var where = string.Join(" · ", new[] { row.Venue, row.City?.Name ?? row.CityName }.Where(p => !string.IsNullOrWhiteSpace(p)));
-            var title = row.Status == EEventStatus.Cancelled ? $"[Cancelado] {row.Title}" : row.Title;
+            var cancelled = row.Status == EEventStatus.Cancelled;
+            var title = cancelled ? $"[Cancelado] {row.Title}" : row.Title;
+            var lineup = await BandNamesAsync(row.Lineup.OrderBy(l => l.Order).Select(l => (l.BandId, l.Name)));
+            var lead = Line(
+                Capitalize(when),
+                where,
+                lineup.Count > 0 ? $"com {string.Join(", ", lineup)}" : null,
+                cancelled ? null : Count(row.InterestedCount, "pessoa vai", "pessoas vão"));
 
             return new SharePreviewDto
             {
                 Title = title,
-                Description = Join($"{Capitalize(when)} · {where}", row.Description, "Agenda do Noise Vault"),
+                Description = Join(lead, row.Description, "Agenda do Noise Vault"),
                 ImageUrl = _fileStorage.PublicUrl(row.BannerKey),
                 Path = $"/eventos/{id}",
                 Type = "article",
@@ -132,12 +146,20 @@ namespace NoiseVault.Application.Share
                 AsNoTracking = true,
             });
 
-            var first = media.Select(pm => pm.MediaUpload!).FirstOrDefault(m => m.Status == EMediaStatus.Ready);
+            var ready = media.Select(pm => pm.MediaUpload!).Where(m => m.Status == EMediaStatus.Ready).ToList();
+            var first = ready.FirstOrDefault();
+            var lead = Line(
+                Count(ready.Count(m => m.Kind == EMediaKind.Photo), "foto", "fotos"),
+                Count(ready.Count(m => m.Kind == EMediaKind.Video), "vídeo", "vídeos"),
+                Count(post.LikeCount, "curtida", "curtidas"),
+                Count(post.CommentCount, "comentário", "comentários"),
+                AppTime.ToLocal(post.PublishedAt.Value).ToString("d 'de' MMMM 'de' yyyy", PtBr));
+            var text = Excerpt(await WithNamesAsync(post.Content));
 
             return new SharePreviewDto
             {
-                Title = $"{post.AuthorName} no Noise Vault",
-                Description = Join(null, await WithNamesAsync(post.Content), "Publicação no feed do Noise Vault"),
+                Title = $"{post.AuthorName} (@{post.AuthorNickname}) no Noise Vault",
+                Description = text != null ? $"{lead}: “{text}”" : $"{lead}. Veja a publicação no Noise Vault, a cena do ABC num lugar só.",
                 ImageUrl = first != null ? ImageOf(first) : _fileStorage.PublicUrl(post.AuthorAvatarKey),
                 Path = $"/feed/{id}",
                 Type = "article",
@@ -147,15 +169,22 @@ namespace NoiseVault.Application.Share
         private async Task<SharePreviewDto?> BandAsync(string slug)
         {
             var normalized = BandRules.NormalizeSlug(slug);
-            var band = await _bandRepository.FirstOrDefaultAsync(new QueryOptions<Band> { Predicate = b => b.Slug == normalized, AsNoTracking = true });
+            var band = await _bandRepository.FirstOrDefaultAsync(new QueryOptions<Band>
+            {
+                Predicate = b => b.Slug == normalized,
+                Includes = [b => b.City!],
+                AsNoTracking = true,
+            });
 
             if (band == null)
                 return null;
 
+            var lead = Line("Banda", band.City?.Name ?? band.CityName, band.FoundedYear != null ? $"desde {band.FoundedYear}" : null);
+
             return new SharePreviewDto
             {
                 Title = band.Name,
-                Description = Join(null, band.Description, "Banda no Noise Vault"),
+                Description = Join(lead, band.Description ?? "Conheça a banda no Noise Vault, a cena do ABC num lugar só.", lead),
                 ImageUrl = _fileStorage.PublicUrl(band.BannerKey) ?? _fileStorage.PublicUrl(band.AvatarKey),
                 Path = $"/bandas/{band.Slug}",
                 Type = "profile",
@@ -173,7 +202,7 @@ namespace NoiseVault.Application.Share
             return new SharePreviewDto
             {
                 Title = $"{user.Name} (@{user.Nickname})",
-                Description = Join(null, user.Bio, "Perfil no Noise Vault"),
+                Description = Join(null, user.Bio, $"Perfil de {user.Name} no Noise Vault, a cena do ABC num lugar só."),
                 ImageUrl = _fileStorage.PublicUrl(user.AvatarKey),
                 Path = $"/perfil/{user.Nickname}",
                 Type = "profile",
@@ -188,6 +217,21 @@ namespace NoiseVault.Application.Share
                 text = Regex.Replace(text, $"(?<![a-z0-9._@-])@{Regex.Escape(mention.Handle)}(?![a-z0-9._-])", mention.Name, RegexOptions.IgnoreCase);
 
             return text;
+        }
+
+        private async Task<List<string>> BandNamesAsync(IEnumerable<(int? BandId, string? Name)> rows)
+        {
+            var list = rows.ToList();
+            var ids = list.Where(r => r.BandId != null).Select(r => r.BandId!.Value).Distinct().ToList();
+            var names = ids.Count == 0
+                ? []
+                : (await _bandRepository.ListAsync(new QueryOptions<Band> { Predicate = b => ids.Contains(b.Id), AsNoTracking = true })).ToDictionary(b => b.Id, b => b.Name);
+
+            return list
+                .Select(r => r.BandId != null && names.TryGetValue(r.BandId.Value, out var name) ? name : r.Name)
+                .Where(n => !string.IsNullOrWhiteSpace(n))
+                .Select(n => n!)
+                .ToList();
         }
 
         private async Task<string?> MediaImageAsync(int? mediaId)
@@ -213,6 +257,15 @@ namespace NoiseVault.Application.Share
             var date = new DateTime(year, month.Value, day ?? 1);
             return day == null ? date.ToString("MMMM 'de' yyyy", PtBr) : date.ToString("d 'de' MMMM 'de' yyyy", PtBr);
         }
+
+        private static string Line(params string?[] parts) => string.Join(" · ", parts.Where(p => !string.IsNullOrWhiteSpace(p)));
+
+        private static string? Count(int count, string singular, string plural) => count switch
+        {
+            <= 0 => null,
+            1 => $"1 {singular}",
+            _ => $"{count} {plural}",
+        };
 
         private static string Join(string? lead, string? text, string fallback)
         {
