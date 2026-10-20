@@ -499,8 +499,8 @@ Os passos 14.1 a 14.5 não mexem no site no ar: o Amplify continua servindo até
 ### 14.6 A virada (de madrugada: o site fica fora do ar alguns minutos)
 
 1. **Amplify → app `noisevault` → Hosting → Custom domains → `noisevault.net` → Remove domain.** O domínio sai junto com o `www` e o `ensaio`. A partir daqui o site está fora do ar.
-2. **CloudFront → `noisevault-web` → General → Alternate domain names → Add domain**: `noisevault.net`, `www.noisevault.net` e `ensaio.noisevault.net`, com o certificado coringa do passo 3. Se recusar com "already associated", o Amplify ainda não liberou o nome: espere uns minutos e tente de novo.
-3. **Cloudflare → DNS → Records:** edite os três CNAMEs que apontavam para o Amplify (`noisevault.net`, `www` e `ensaio`). O Target de todos passa a ser o `dxxxx.cloudfront.net` do 14.3, sempre **DNS only**.
+2. **Cloudflare → DNS → Records:** edite os três CNAMEs que apontavam para o Amplify (`noisevault.net`, `www` e `ensaio`). O Target de todos passa a ser o `dxxxx.cloudfront.net` do 14.3, sempre **DNS only**. **O DNS vem antes do domínio na distribuição**: o CloudFront confere o DNS e recusa nome que ainda aponta para outra distribuição, com "an incorrectly configured DNS record that points to another CloudFront distribution" (visto em 20/10/2026, com os nomes ainda no `d2xopkeyfasc4p.cloudfront.net` do Amplify).
+3. Um ou dois minutos depois, **CloudFront → `noisevault-web` → General → Alternate domain names → Add domain**: `noisevault.net`, `www.noisevault.net` e `ensaio.noisevault.net`, com o certificado coringa do passo 3. Se recusar com "already associated", o Amplify ainda não liberou o nome: espere uns minutos e tente de novo.
 4. Espere a distribuição sair de "Deploying" e confira:
    - `https://noisevault.net` abre, o login funciona e a sessão vale em `https://ensaio.noisevault.net`;
    - `https://www.noisevault.net/eventos` redireciona para `https://noisevault.net/eventos`;
