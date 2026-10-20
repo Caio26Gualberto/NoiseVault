@@ -511,7 +511,7 @@ Os passos 14.1 a 14.5 não mexem no site no ar: o Amplify continua servindo até
 
 ### 14.7 Depois da virada
 
-**Feito em 20/10/2026**: virada concluída, `amplify.yml` e `customHttp.yml` removidos do repositório.
+**Feito em 20/10/2026**: virada concluída, app do Amplify apagado, `amplify.yml` e `customHttp.yml` removidos do repositório. Falta só o monitor mode, depois da primeira semana.
 
 - Apague o app no Amplify (**App settings → General → Delete app**), para ele não buildar mais a cada push.
 - Apague `amplify.yml` e `customHttp.yml` da raiz do repositório, num commit `Repo:`.
