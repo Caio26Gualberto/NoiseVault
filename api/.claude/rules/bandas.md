@@ -58,7 +58,8 @@ Pedido do usuário em 15/10/2026: "é importante para ninguém criar uma banda n
 
 | Ação | Quem |
 |---|---|
-| Ver banda, sugeridas, perfil com bandas | qualquer pessoa logada |
+| Ver banda, discografia, shows e registros da banda | **qualquer pessoa, sem login** (só leitura, desde 20/10/2026, `seo.md`) |
+| Sugeridas, perfil com bandas, busca de bandas | qualquer pessoa logada |
 | Criar banda | qualquer pessoa logada; quem cria vira Owner na mesma transação |
 | Editar dados, avatar, capa | Owner |
 | Convidar, listar convites pendentes da banda, revogar | Owner |
@@ -93,7 +94,7 @@ Pedido do usuário em 15/10/2026: "é importante para ninguém criar uma banda n
 
 ## Endpoints
 
-Todos autenticados, em `Controllers/` (escopo do próprio usuário, sem permissão do catálogo).
+Em `Controllers/` (escopo do próprio usuário, sem permissão do catálogo). Todos pedem login, menos os `GET` de leitura da banda listados em `seo.md`.
 
 | Método e rota | Code de sucesso |
 |---|---|

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using NoiseVault.Api.RateLimiting;
@@ -16,6 +17,7 @@ namespace NoiseVault.Api.Controllers
             _cityAppService = cityAppService;
         }
 
+        [AllowAnonymous]
         [HttpGet]
         [EnableRateLimiting(ApiRateLimitPolicies.CitySearch)]
         public async Task<ActionResult> Search([FromQuery] CitySearchQueryDto query)
@@ -24,6 +26,7 @@ namespace NoiseVault.Api.Controllers
             return ToResponse(result);
         }
 
+        [AllowAnonymous]
         [HttpGet("featured")]
         public async Task<ActionResult> Featured()
         {

@@ -78,7 +78,7 @@ namespace NoiseVault.Application.Events
         {
             var (rows, _) = await _eventRepository.PageAsync(
                 new EventFilter(DateTime.UtcNow),
-                _currentUser.UserId,
+                Viewer,
                 0,
                 Math.Clamp(take, 1, EventRules.MaxUpcomingTake));
 
@@ -348,7 +348,7 @@ namespace NoiseVault.Application.Events
         }
 
         public Task<EventReadModel?> FindVisible(int eventId) =>
-            _eventRepository.FindAsync(eventId, _currentUser.UserId);
+            _eventRepository.FindAsync(eventId, Viewer);
 
         public async Task<int> RemindTomorrow()
         {
@@ -419,7 +419,7 @@ namespace NoiseVault.Application.Events
                 Search: query.Search,
                 InterestedOnly: query.Interested));
 
-            var (rows, totalCount) = await _eventRepository.PageAsync(filter, _currentUser.UserId, query.Skip, query.PageSize);
+            var (rows, totalCount) = await _eventRepository.PageAsync(filter, Viewer, query.Skip, query.PageSize);
 
             return Result<PagedResultDto<EventDto>>.Ok(
                 PagedResultDto<EventDto>.Create(await MapAsync(rows), query.Page, query.PageSize, totalCount),
@@ -604,7 +604,7 @@ namespace NoiseVault.Application.Events
                 .ToList();
 
             var bands = await _bandAppService.SummariesByIds(bandIds);
-            var me = _currentUser.UserId;
+            var me = Viewer;
             var now = DateTime.UtcNow;
 
             return rows.Select(r => new EventDto
@@ -649,6 +649,8 @@ namespace NoiseVault.Application.Events
                 CreatedAt = r.CreatedAt,
             }).ToList();
         }
+
+        private int Viewer => _currentUser.UserIdOrNull ?? 0;
 
         private static Result<EventDto> Fail(Error error) => Result<EventDto>.Fail(error);
 

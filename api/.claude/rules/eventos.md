@@ -48,7 +48,8 @@ Módulo 4 da ordem em `dominio.md`. A agenda serve tanto para o show do porão q
 
 | Ação | Quem |
 |---|---|
-| Ver, filtrar, "Vou", comentar | qualquer pessoa logada |
+| Ver a agenda e o evento, filtrar | **qualquer pessoa, sem login** (só leitura, desde 20/10/2026, `seo.md`) |
+| "Vou", ver e escrever comentários | qualquer pessoa logada |
 | Criar | qualquer pessoa; como banda, só integrante (`NOT_BAND_MEMBER`) |
 | Editar, banner, cancelar, apagar | o organizador, ou um **Owner** da banda organizadora (`EVENT_FORBIDDEN`) |
 | Apagar comentário | quem comentou, ou quem pode gerenciar o evento |

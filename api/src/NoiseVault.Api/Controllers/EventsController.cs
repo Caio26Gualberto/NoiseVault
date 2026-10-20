@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using NoiseVault.Api.RateLimiting;
@@ -24,6 +25,7 @@ namespace NoiseVault.Api.Controllers
             _commentAppService = commentAppService;
         }
 
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult> List([FromQuery] EventListQueryDto query)
         {
@@ -31,6 +33,7 @@ namespace NoiseVault.Api.Controllers
             return ToResponse(result);
         }
 
+        [AllowAnonymous]
         [HttpGet("upcoming")]
         public async Task<ActionResult> Upcoming([FromQuery] int take = 3)
         {
@@ -38,6 +41,7 @@ namespace NoiseVault.Api.Controllers
             return ToResponse(result);
         }
 
+        [AllowAnonymous]
         [HttpGet("/api/bands/{slug}/events")]
         public async Task<ActionResult> ByBand(string slug, [FromQuery] EventListQueryDto query)
         {
@@ -60,6 +64,7 @@ namespace NoiseVault.Api.Controllers
             return ToResponse(result);
         }
 
+        [AllowAnonymous]
         [HttpGet("{id:int}")]
         public async Task<ActionResult> Get(int id)
         {

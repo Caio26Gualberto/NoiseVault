@@ -52,7 +52,8 @@ Quem tem as fotos e fitas são os membros do grupo do Facebook, não a curadoria
 
 | Ação | Quem |
 |---|---|
-| Ver mural, linha do tempo, registro, quem estava lá | qualquer pessoa logada |
+| Ver mural, linha do tempo e registro publicado | **qualquer pessoa, sem login** (só leitura, sem as marcações das fotos nem os nomes de quem estava lá, desde 20/10/2026, `seo.md`) |
+| Ver quem estava lá e as marcações | qualquer pessoa logada |
 | Curtir, "Eu estava lá", comentar | qualquer pessoa logada |
 | Subir mídia de arquivo e enviar um registro para a curadoria | qualquer pessoa logada |
 | Editar e retirar o próprio envio pendente; apagar o próprio envio recusado | quem enviou |

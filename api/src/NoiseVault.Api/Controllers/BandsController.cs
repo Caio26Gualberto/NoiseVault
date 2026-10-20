@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using NoiseVault.Api.RateLimiting;
@@ -72,6 +73,7 @@ namespace NoiseVault.Api.Controllers
             return ToResponse(result);
         }
 
+        [AllowAnonymous]
         [HttpGet("{slug}")]
         public async Task<ActionResult> GetBySlug(string slug)
         {
@@ -181,6 +183,7 @@ namespace NoiseVault.Api.Controllers
             return ToResponse(result);
         }
 
+        [AllowAnonymous]
         [HttpGet("{slug}/discography")]
         public async Task<ActionResult> Discography(string slug)
         {

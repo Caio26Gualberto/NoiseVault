@@ -475,23 +475,29 @@ namespace NoiseVault.Application.Archive
             _mediaAppService.StartVideo(input, EMediaProfile.Archive);
 
         public Task<ArchiveReadModel?> FindVisible(int entryId) =>
-            _archiveRepository.FindAsync(entryId, _currentUser.UserId);
+            _archiveRepository.FindAsync(entryId, Viewer);
 
         public async Task<ArchiveReadModel?> FindReadable(int entryId)
         {
             var row = await FindAnyAsync(entryId);
 
-            if (row == null || row.Status == EArchiveEntryStatus.Published || row.AuthorUserId == _currentUser.UserId)
+            if (row == null || row.Status == EArchiveEntryStatus.Published)
                 return row;
 
-            return await _permissionChecker.IsGrantedAsync(_currentUser.UserId, Permissions.Archive.Review) ? row : null;
+            if (_currentUser.UserIdOrNull is not { } me)
+                return null;
+
+            if (row.AuthorUserId == me)
+                return row;
+
+            return await _permissionChecker.IsGrantedAsync(me, Permissions.Archive.Review) ? row : null;
         }
 
         public async Task<Error> MissingEntryError(int entryId) =>
             await FindReadable(entryId) != null ? NotPublished() : NotFound();
 
         private Task<ArchiveReadModel?> FindAnyAsync(int entryId) =>
-            _archiveRepository.FindAsync(entryId, _currentUser.UserId, includeUnpublished: true);
+            _archiveRepository.FindAsync(entryId, Viewer, includeUnpublished: true);
 
         private Task<ArchiveEntry?> FindSubmissionAsync(int entryId) =>
             _archiveRepository.FirstOrDefaultAsync(new QueryOptions<ArchiveEntry>
@@ -552,7 +558,7 @@ namespace NoiseVault.Application.Archive
                 Kind: kind,
                 OldestFirst: string.Equals(query.Sort, "oldest", StringComparison.OrdinalIgnoreCase)));
 
-            var (rows, totalCount) = await _archiveRepository.PageAsync(filter, _currentUser.UserId, query.Skip, query.PageSize);
+            var (rows, totalCount) = await _archiveRepository.PageAsync(filter, Viewer, query.Skip, query.PageSize);
 
             return Result<PagedResultDto<ArchiveEntryDto>>.Ok(
                 PagedResultDto<ArchiveEntryDto>.Create(await MapListAsync(rows), query.Page, query.PageSize, totalCount),
@@ -689,9 +695,13 @@ namespace NoiseVault.Application.Archive
                 .Select((item, index) => new ArchiveMedia { ArchiveEntryId = entryId, MediaUploadId = item.MediaId, Caption = item.Caption, Order = index })
                 .ToList());
 
+        private int Viewer => _currentUser.UserIdOrNull ?? 0;
+
         private async Task<ViewerPermissions> PermissionsAsync()
         {
-            var me = _currentUser.UserId;
+            if (_currentUser.UserIdOrNull is not { } me)
+                return new ViewerPermissions(false, false, false);
+
             return new ViewerPermissions(
                 await _permissionChecker.IsGrantedAsync(me, Permissions.Archive.Edit),
                 await _permissionChecker.IsGrantedAsync(me, Permissions.Archive.Delete),
@@ -733,7 +743,8 @@ namespace NoiseVault.Application.Archive
             var coverMedia = media.FirstOrDefault(m => m.MediaUploadId == row.CoverMediaUploadId) ?? media.FirstOrDefault();
 
             var dto = Map(row, bands, permissions,coverMedia != null ? _mediaAppService.Describe(coverMedia.MediaUpload!) : null);
-            var tags = await _photoTagAppService.ForMedia(media.Select(m => m.MediaUploadId).ToList());
+            var signedIn = _currentUser.UserIdOrNull != null;
+            var tags = signedIn ? await _photoTagAppService.ForMedia(media.Select(m => m.MediaUploadId).ToList()) : new();
             dto.Media = media.Select(m =>
             {
                 var described = _mediaAppService.Describe(m.MediaUpload!);
@@ -741,8 +752,11 @@ namespace NoiseVault.Application.Archive
                 return new ArchiveMediaDto { Media = described, Caption = m.Caption };
             }).ToList();
 
-            var (attendees, _) = await _archiveRepository.PageAttendeesAsync(row.Id, 0, ArchiveRules.AttendeesPreview);
-            dto.Attendees = attendees.Select(Summary).ToList();
+            if (signedIn)
+            {
+                var (attendees, _) = await _archiveRepository.PageAttendeesAsync(row.Id, 0, ArchiveRules.AttendeesPreview);
+                dto.Attendees = attendees.Select(Summary).ToList();
+            }
 
             return dto;
         }
@@ -789,8 +803,8 @@ namespace NoiseVault.Application.Archive
             IsSubmission = r.IsSubmission,
             RejectionReason = r.RejectionReason,
             ReviewedAt = r.ReviewedAt,
-            IsMine = r.AuthorUserId == _currentUser.UserId,
-            CanEdit = permissions.Edit || (r.AuthorUserId == _currentUser.UserId && r.Status == EArchiveEntryStatus.Pending),
+            IsMine = r.AuthorUserId == Viewer,
+            CanEdit = permissions.Edit || (r.AuthorUserId == Viewer && r.Status == EArchiveEntryStatus.Pending),
             CanDelete = permissions.Delete,
             CanReview = permissions.Review && r.Status == EArchiveEntryStatus.Pending,
             CreatedAt = r.CreatedAt,

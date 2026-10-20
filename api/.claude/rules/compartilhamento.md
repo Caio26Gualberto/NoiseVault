@@ -40,6 +40,7 @@ Ideia 1 do `IDEIAS.md`, feita em 14/10/2026 pelo caminho da **rota de compartilh
   - os textos passam por `HtmlEncoder` com todos os alfabetos liberados: acento sai como acento, e `<`, `>`, `&` e aspas são escapados.
 - 🔴 **`og:url` é o próprio link `/s/...`, não a página.** O Facebook segue o `og:url` e lê as tags de lá: apontando para a SPA, a prévia sumia.
 - `Cache-Control: public, max-age=300`. O robô e a borda guardam por 5 minutos; título editado aparece depois disso (no Facebook, só depois de pedir nova leitura no Sharing Debugger).
+- **`<meta name="robots" content="noindex">`** (20/10/2026, `seo.md`): a página de verdade é a canônica, e o `/s/...` não deve competir com ela na busca. O robô de prévia ignora o `noindex`.
 
 ## Montagem: `SharePreviewAppService`
 

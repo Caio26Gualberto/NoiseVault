@@ -442,7 +442,10 @@ namespace NoiseVault.Application.Bands
             if (band == null)
                 return (null, null);
 
-            var member = await FindMemberAsync(band.Id, _currentUser.UserId);
+            if (_currentUser.UserIdOrNull is not { } me)
+                return (band.Id, null);
+
+            var member = await FindMemberAsync(band.Id, me);
 
             return (band.Id, member?.Role);
         }
