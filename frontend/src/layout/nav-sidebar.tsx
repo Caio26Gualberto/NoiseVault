@@ -5,10 +5,12 @@ import { cn } from '@/lib/utils'
 
 import { useAuth } from '../auth/use-auth'
 import { useCan } from '../auth/use-can'
+import { useIsVisitor } from '../auth/use-require-login'
 import { resolveActivePath } from './nav-active'
 import { navSections } from './nav-config'
 import type { NavLeaf } from './nav-config'
 import { UserMenu } from './user-menu'
+import { VisitorActions } from './visitor-actions'
 import { Wordmark } from './wordmark'
 
 function leafPath(item: NavLeaf, nickname: string): string {
@@ -19,6 +21,7 @@ export function NavSidebar() {
   const { t } = useTranslation()
   const { user } = useAuth()
   const can = useCan()
+  const visitor = useIsVisitor()
   const location = useLocation()
   const activePath = resolveActivePath(location.pathname)
   const nickname = user?.nickname ?? ''
@@ -27,6 +30,7 @@ export function NavSidebar() {
     .map((section) => ({
       ...section,
       items: section.items.filter((item) => {
+        if (visitor) return item.public === true
         const permission = item.permission ?? section.permission
         return permission ? can(permission) : true
       }),
@@ -69,7 +73,7 @@ export function NavSidebar() {
       </nav>
 
       <div className="border-t pt-3">
-        <UserMenu />
+        {visitor ? <VisitorActions stacked /> : <UserMenu />}
       </div>
     </aside>
   )

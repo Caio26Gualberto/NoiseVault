@@ -236,7 +236,8 @@
   "posts": {
     "title": "Publicações",
     "empty": "A banda ainda não publicou nada.",
-    "emptyMember": "Publique pelo feed escolhendo \"Publicar como\" a banda."
+    "emptyMember": "Publique pelo feed escolhendo \"Publicar como\" a banda.",
+    "signIn": "Entre para ver as publicações da banda."
   },
   "showsLabel_one": "show marcado",
   "showsLabel_other": "shows marcados",

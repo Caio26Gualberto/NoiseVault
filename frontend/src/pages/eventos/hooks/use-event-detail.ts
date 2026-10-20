@@ -19,7 +19,7 @@ import type { EventCommentDto, EventDto } from '../services/eventos-service'
 
 export type EventState = { status: 'loading' } | { status: 'found'; event: EventDto } | { status: 'notFound' } | { status: 'failed' }
 
-export function useEventDetail(eventId: number) {
+export function useEventDetail(eventId: number, withComments = true) {
   const [state, setState] = useState<EventState>({ status: 'loading' })
   const [comments, setComments] = useState<PagedResult<EventCommentDto>>(() => emptyPage(maxPageSize))
   const [commentPage, setCommentPage] = useState(1)
@@ -46,6 +46,7 @@ export function useEventDetail(eventId: number) {
   }, [eventId, version])
 
   useEffect(() => {
+    if (!withComments) return
     let cancelled = false
     getEventComments(eventId, { page: commentPage, pageSize: maxPageSize })
       .then((data) => {
@@ -56,7 +57,7 @@ export function useEventDetail(eventId: number) {
     return () => {
       cancelled = true
     }
-  }, [eventId, commentPage, version])
+  }, [eventId, commentPage, version, withComments])
 
   const reload = useCallback(() => {
     setCommentPage(1)

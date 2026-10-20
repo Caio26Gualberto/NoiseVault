@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom'
 
 import { Permissions } from '@/auth/permissions'
 import { useCan } from '@/auth/use-can'
+import { useIsVisitor } from '@/auth/use-require-login'
+import { useDocumentTitle } from '@/hooks/use-document-title'
 import { AppButton } from '@/components/app-button'
 import { AppEmptyState } from '@/components/app-empty-state'
 import { AppPageHeader } from '@/components/app-page-header'
@@ -26,6 +28,8 @@ export function MuralPage() {
   const { t } = useTranslation('mural')
   const can = useCan()
   const canCreate = can(Permissions.archiveCreate)
+  const visitor = useIsVisitor()
+  useDocumentTitle(t('title'))
   const page = useMuralPage()
   const filtered = page.selection.year !== null || page.selection.decade !== null || page.search || page.city !== null || page.kind !== null
 
@@ -36,12 +40,14 @@ export function MuralPage() {
         description={t('description')}
         actions={
           <>
-            <AppButton intent="ghost" asChild>
-              <Link to={mySubmissionsPath}>
-                <InboxIcon />
-                {t('mySubmissions')}
-              </Link>
-            </AppButton>
+            {visitor ? null : (
+              <AppButton intent="ghost" asChild>
+                <Link to={mySubmissionsPath}>
+                  <InboxIcon />
+                  {t('mySubmissions')}
+                </Link>
+              </AppButton>
+            )}
             <AppButton asChild>
               <Link to={canCreate ? '/mural/novo' : submitArchivePath}>
                 <PlusIcon />

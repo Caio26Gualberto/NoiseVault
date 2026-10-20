@@ -5,10 +5,13 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { homePath } from '@/auth/routes'
 import { useAuth } from '@/auth/use-auth'
+import { useRequireLogin } from '@/auth/use-require-login'
 import { AppAvatar } from '@/components/app-avatar'
 import { AppBadge } from '@/components/app-badge'
 import { AppButton } from '@/components/app-button'
 import { AppShareButton } from '@/components/app-share-button'
+import { AppSignInPrompt } from '@/components/app-sign-in-prompt'
+import { useDocumentTitle } from '@/hooks/use-document-title'
 import { useAppConfirm } from '@/components/app-confirm'
 import { AppEmptyState } from '@/components/app-empty-state'
 import { AppGenreBadges } from '@/components/app-genre-badges'
@@ -33,11 +36,13 @@ export function BandasPage() {
   const { t } = useTranslation('bandas')
   const { slug = '' } = useParams()
   const { user } = useAuth()
+  const { visitor, requireLogin } = useRequireLogin()
   const navigate = useNavigate()
   const confirm = useAppConfirm()
   const [verifying, setVerifying] = useState(false)
   const [following, setFollowing] = useState(false)
   const { state, reload, replace } = useBand(slug)
+  useDocumentTitle(state.status === 'found' ? state.band.name : null)
 
   if (state.status === 'loading') {
     return <AppSkeleton preset="profile" className="app-page-enter mx-auto max-w-4xl" />
@@ -110,7 +115,7 @@ export function BandasPage() {
             <AppSocialLinks links={band.socialLinks} />
             <AppShareButton path={`/bandas/${band.slug}`} title={band.name} label size="md" />
             {canFollow ? (
-              <AppButton intent={band.followedByMe ? 'neutral' : 'primary'} aria-pressed={band.followedByMe} loading={following} onClick={() => void toggleFollow()}>
+              <AppButton intent={band.followedByMe ? 'neutral' : 'primary'} aria-pressed={band.followedByMe} loading={following} onClick={visitor ? requireLogin : () => void toggleFollow()}>
                 {band.followedByMe ? <CheckIcon /> : <PlusIcon />}
                 {band.followedByMe ? t('follow.following') : t('follow.action')}
               </AppButton>
@@ -185,12 +190,9 @@ export function BandasPage() {
       <section className="flex flex-col gap-3">
         <h2 className="app-h3">{t('members')}</h2>
         <ul className="grid gap-3 sm:grid-cols-2">
-          {band.members.map((member) => (
-            <li key={member.user.id}>
-              <Link
-                to={`/perfil/${member.user.nickname}`}
-                className="flex items-center gap-3 rounded-xl border bg-card p-3 transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
-              >
+          {band.members.map((member) => {
+            const content = (
+              <>
                 <AppAvatar name={member.user.name} src={member.user.avatarUrl} size="lg" />
                 <div className="flex min-w-0 flex-1 flex-col">
                   <span className="truncate font-medium">{member.user.name}</span>
@@ -200,27 +202,48 @@ export function BandasPage() {
                   </span>
                 </div>
                 {member.role === BandMemberRole.owner ? <AppBadge tone="brand">{t('owner')}</AppBadge> : null}
-              </Link>
-            </li>
-          ))}
+              </>
+            )
+            return (
+              <li key={member.user.id}>
+                {visitor ? (
+                  <div className="flex items-center gap-3 rounded-xl border bg-card p-3">{content}</div>
+                ) : (
+                  <Link
+                    to={`/perfil/${member.user.nickname}`}
+                    className="flex items-center gap-3 rounded-xl border bg-card p-3 transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
+                  >
+                    {content}
+                  </Link>
+                )}
+              </li>
+            )
+          })}
         </ul>
       </section>
 
       <BandDiscography slug={band.slug} />
-      <BandOpenings slug={band.slug} isOwner={isOwner} />
+      {visitor ? null : <BandOpenings slug={band.slug} isOwner={isOwner} />}
 
       <BandEvents slug={band.slug} />
 
       <BandArchive slug={band.slug} />
 
       <div className="mx-auto w-full max-w-2xl">
-        <OwnerPosts
-          key={band.slug}
-          owner={{ bandSlug: band.slug }}
-          title={t('posts.title')}
-          emptyTitle={t('posts.empty')}
-          emptyDescription={isOwner || isMember ? t('posts.emptyMember') : undefined}
-        />
+        {visitor ? (
+          <section className="flex flex-col gap-3">
+            <h2 className="app-h3">{t('posts.title')}</h2>
+            <AppSignInPrompt message={t('posts.signIn')} />
+          </section>
+        ) : (
+          <OwnerPosts
+            key={band.slug}
+            owner={{ bandSlug: band.slug }}
+            title={t('posts.title')}
+            emptyTitle={t('posts.empty')}
+            emptyDescription={isOwner || isMember ? t('posts.emptyMember') : undefined}
+          />
+        )}
       </div>
     </div>
   )

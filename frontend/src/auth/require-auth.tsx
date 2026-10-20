@@ -14,14 +14,19 @@ type RequireAuthProps = {
   children: ReactNode
   permission?: Permission
   skipWelcome?: boolean
+  allowVisitor?: boolean
 }
 
-export function RequireAuth({ children, permission, skipWelcome = false }: RequireAuthProps) {
+export function RequireAuth({ children, permission, skipWelcome = false, allowVisitor = false }: RequireAuthProps) {
   const { status, access, user } = useAuth()
   const location = useLocation()
 
   if (status === 'unknown' || status === 'authenticating') {
     return <AppSkeleton preset="page" />
+  }
+
+  if (status !== 'authenticated' && allowVisitor) {
+    return <>{children}</>
   }
 
   if (status !== 'authenticated') {

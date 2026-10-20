@@ -2,7 +2,9 @@ import { CalendarDaysIcon, PlusIcon, SearchIcon, StarIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
+import { useRequireLogin } from '@/auth/use-require-login'
 import { AppButton } from '@/components/app-button'
+import { useDocumentTitle } from '@/hooks/use-document-title'
 import { AppEmptyState } from '@/components/app-empty-state'
 import { AppPageHeader } from '@/components/app-page-header'
 import { AppPagination } from '@/components/app-pagination'
@@ -25,6 +27,8 @@ export function EventosPage() {
   const { t } = useTranslation('eventos')
   const page = useEventosPage()
   const genreLabel = useMusicGenreLabel()
+  const { visitor, requireLogin } = useRequireLogin()
+  useDocumentTitle(t('title'))
 
   return (
     <div className="app-page-enter flex flex-col">
@@ -48,18 +52,20 @@ export function EventosPage() {
             <TabsTrigger value="past">{t('scope.past')}</TabsTrigger>
           </TabsList>
         </Tabs>
-        <button
-          type="button"
-          onClick={() => page.changeInterested(!page.interested)}
-          aria-pressed={page.interested}
-          className={cn(
-            'inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-sm transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none',
-            page.interested && 'border-primary bg-primary/15 text-primary hover:bg-primary/20',
-          )}
-        >
-          <StarIcon className={cn('size-4', page.interested && 'fill-current')} />
-          {t('filters.going')}
-        </button>
+        {visitor ? null : (
+          <button
+            type="button"
+            onClick={() => page.changeInterested(!page.interested)}
+            aria-pressed={page.interested}
+            className={cn(
+              'inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-sm transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none',
+              page.interested && 'border-primary bg-primary/15 text-primary hover:bg-primary/20',
+            )}
+          >
+            <StarIcon className={cn('size-4', page.interested && 'fill-current')} />
+            {t('filters.going')}
+          </button>
+        )}
       </div>
 
       <div className="mb-6 flex flex-col gap-3 md:flex-row">
@@ -112,7 +118,7 @@ export function EventosPage() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {page.items.map((event) => (
-            <EventCard key={event.id} event={event} onToggleInterest={(target) => void page.toggle(target)} />
+            <EventCard key={event.id} event={event} onToggleInterest={visitor ? requireLogin : (target) => void page.toggle(target)} />
           ))}
         </div>
       )}

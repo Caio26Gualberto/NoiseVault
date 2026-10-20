@@ -25,7 +25,7 @@ export type ArchiveState = { status: 'loading' } | { status: 'found'; entry: Arc
 
 const processingPollMs = 5000
 
-export function useArchiveDetail(entryId: number) {
+export function useArchiveDetail(entryId: number, withComments = true) {
   const [state, setState] = useState<ArchiveState>({ status: 'loading' })
   const [comments, setComments] = useState<PagedResult<ArchiveCommentDto>>(() => emptyPage(maxPageSize))
   const [commentPage, setCommentPage] = useState(1)
@@ -54,7 +54,7 @@ export function useArchiveDetail(entryId: number) {
   const published = state.status === 'found' && state.entry.status === ArchiveEntryStatus.published
 
   useEffect(() => {
-    if (!published) return
+    if (!published || !withComments) return
     let cancelled = false
     getArchiveComments(entryId, { page: commentPage, pageSize: maxPageSize })
       .then((data) => {
@@ -65,7 +65,7 @@ export function useArchiveDetail(entryId: number) {
     return () => {
       cancelled = true
     }
-  }, [entryId, commentPage, version, published])
+  }, [entryId, commentPage, version, published, withComments])
 
   const entry = state.status === 'found' ? state.entry : null
   const processing = entry?.media.some((item) => item.media.status === MediaStatus.processing || item.media.status === MediaStatus.uploading) ?? false

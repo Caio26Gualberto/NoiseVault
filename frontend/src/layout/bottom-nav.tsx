@@ -1,4 +1,4 @@
-import { MenuIcon } from 'lucide-react'
+import { LogInIcon, MenuIcon } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { NavLink, useLocation } from 'react-router-dom'
@@ -6,8 +6,10 @@ import { NavLink, useLocation } from 'react-router-dom'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
 
+import { loginPath } from '../auth/routes'
 import { useAuth } from '../auth/use-auth'
 import { useCan } from '../auth/use-can'
+import { useIsVisitor } from '../auth/use-require-login'
 import { resolveActivePath } from './nav-active'
 import { navSections } from './nav-config'
 import type { NavLeaf } from './nav-config'
@@ -19,6 +21,7 @@ export function BottomNav() {
   const { t } = useTranslation()
   const { user } = useAuth()
   const can = useCan()
+  const visitor = useIsVisitor()
   const location = useLocation()
   const [open, setOpen] = useState(false)
   const activePath = resolveActivePath(location.pathname)
@@ -28,6 +31,7 @@ export function BottomNav() {
     .map((section) => ({
       ...section,
       items: section.items.filter((item) => {
+        if (visitor) return item.public === true
         const permission = item.permission ?? section.permission
         return permission ? can(permission) : true
       }),
@@ -65,10 +69,17 @@ export function BottomNav() {
         )
       })}
 
-      <button type="button" onClick={() => setOpen(true)} className={cn(itemClass, restActive && 'text-primary')} aria-haspopup="dialog">
-        <MenuIcon className="size-5" />
-        <span className="truncate">{t('layout:nav.more')}</span>
-      </button>
+      {visitor ? (
+        <NavLink to={loginPath} state={{ from: `${location.pathname}${location.search}` }} className={itemClass}>
+          <LogInIcon className="size-5" />
+          <span className="truncate">{t('layout:visitor.signIn')}</span>
+        </NavLink>
+      ) : (
+        <button type="button" onClick={() => setOpen(true)} className={cn(itemClass, restActive && 'text-primary')} aria-haspopup="dialog">
+          <MenuIcon className="size-5" />
+          <span className="truncate">{t('layout:nav.more')}</span>
+        </button>
+      )}
 
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent side="bottom" className="rounded-t-xl pb-[env(safe-area-inset-bottom)]">

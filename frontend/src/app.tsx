@@ -1,8 +1,9 @@
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Route, Routes } from 'react-router-dom'
 
+import { HomeRedirect } from './auth/home-redirect'
 import { RedirectIfAuthenticated } from './auth/redirect-if-authenticated'
 import { RequireAuth } from './auth/require-auth'
-import { homePath, initialPasswordPath } from './auth/routes'
+import { initialPasswordPath } from './auth/routes'
 import { isEnsaioHost } from './ensaio/frame'
 import { AppShell } from './layout/app-shell'
 import { EnsaioRoutes } from './layout/ensaio/ensaio-routes'
@@ -17,6 +18,7 @@ const shellRoutes = [
       path: item.path,
       permission: item.permission ?? section.permission,
       element: item.element,
+      public: item.public,
     })),
   ),
   ...hiddenRoutes,
@@ -61,17 +63,21 @@ export function App() {
 
       <Route
         element={
-          <RequireAuth>
+          <RequireAuth allowVisitor>
             <AppShell />
           </RequireAuth>
         }
       >
-        <Route index element={<Navigate to={homePath} replace />} />
+        <Route index element={<HomeRedirect />} />
         {shellRoutes.map((route) => (
           <Route
             key={route.path}
             path={route.path}
-            element={<RequireAuth permission={route.permission}>{route.element}</RequireAuth>}
+            element={
+              <RequireAuth permission={route.permission} allowVisitor={route.public}>
+                {route.element}
+              </RequireAuth>
+            }
           />
         ))}
         <Route path="*" element={<NaoEncontradoPage />} />

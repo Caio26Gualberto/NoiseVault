@@ -84,6 +84,7 @@ export type NavLeaf = {
   subRoutes?: string[]
   mobile?: boolean
   mobilePath?: (nickname: string) => string
+  public?: boolean
 }
 
 export type NavSection = {
@@ -97,6 +98,7 @@ export type HiddenRoute = {
   path: string
   element: ReactNode
   permission?: Permission
+  public?: boolean
 }
 
 export const publicRoutes: PublicRoute[] = [
@@ -123,6 +125,7 @@ export const navSections: NavSection[] = [
         icon: CassetteTapeIcon,
         element: <MuralPage />,
         mobile: true,
+        public: true,
         subRoutes: ['/mural/novo', submitArchivePath, mySubmissionsPath, '/mural/:id/editar', '/mural/:id'],
       },
       {
@@ -131,6 +134,7 @@ export const navSections: NavSection[] = [
         icon: CalendarDaysIcon,
         element: <EventosPage />,
         mobile: true,
+        public: true,
         subRoutes: ['/eventos/novo', '/eventos/:id/editar', '/eventos/:id'],
       },
       {
@@ -195,13 +199,13 @@ export const hiddenRoutes: HiddenRoute[] = [
   { path: submitArchivePath, element: <MuralFormPage mode="submission" /> },
   { path: mySubmissionsPath, element: <MuralEnviosPage /> },
   { path: '/mural/:id/editar', element: <MuralFormPage /> },
-  { path: '/mural/:id', element: <MuralDetalhePage /> },
+  { path: '/mural/:id', element: <MuralDetalhePage />, public: true },
   { path: '/eventos/novo', element: <EventoFormPage /> },
   { path: '/eventos/:id/editar', element: <EventoFormPage /> },
-  { path: '/eventos/:id', element: <EventoDetalhePage /> },
+  { path: '/eventos/:id', element: <EventoDetalhePage />, public: true },
   { path: '/bandas/nova', element: <BandaNovaPage /> },
   { path: '/bandas/:slug/editar', element: <BandaEditarPage /> },
-  { path: '/bandas/:slug', element: <BandasPage /> },
+  { path: '/bandas/:slug', element: <BandasPage />, public: true },
   { path: '/suporte', element: <SuportePage /> },
   { path: '/suporte/:id', element: <SuporteDetalhePage /> },
   { path: '/admin/suporte/:id', element: <SuporteAdminDetalhePage />, permission: Permissions.supportView },

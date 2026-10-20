@@ -123,7 +123,8 @@
     "title_other": "{{count}} histórias",
     "empty": "Estava lá ou reconhece alguém? Conte aqui.",
     "delete": "Apagar comentário",
-    "deleteTitle": "Apagar este comentário?"
+    "deleteTitle": "Apagar este comentário?",
+    "signIn": "Entre para ler as histórias e contar a sua."
   },
   "band": {
     "title": "Das antigas"

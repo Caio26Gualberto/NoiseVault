@@ -13,12 +13,15 @@ import {
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
+import { useRequireLogin } from '@/auth/use-require-login'
 import { AppAvatar } from '@/components/app-avatar'
 import { AppRichText } from '@/components/app-rich-text'
 import { toRichMentions } from '@/pages/feed/mention'
 import { AppBadge } from '@/components/app-badge'
 import { AppButton, AppIconButton } from '@/components/app-button'
+import { useDocumentTitle } from '@/hooks/use-document-title'
 import { AppShareButton } from '@/components/app-share-button'
+import { AppSignInPrompt } from '@/components/app-sign-in-prompt'
 import { AppCard } from '@/components/app-card'
 import { useAppConfirm } from '@/components/app-confirm'
 import { AppEmptyState } from '@/components/app-empty-state'
@@ -40,8 +43,10 @@ export function EventoDetalhePage() {
   const { id = '' } = useParams()
   const navigate = useNavigate()
   const confirm = useAppConfirm()
-  const detail = useEventDetail(Number(id))
+  const { visitor, requireLogin } = useRequireLogin()
+  const detail = useEventDetail(Number(id), !visitor)
   const { state, comments } = detail
+  useDocumentTitle(state.status === 'found' ? state.event.title : null)
 
   if (state.status === 'loading') {
     return <AppSkeleton preset="profile" className="app-page-enter mx-auto max-w-4xl" />
@@ -136,6 +141,14 @@ export function EventoDetalhePage() {
                   <span className="app-meta">{t('publishedBy', { nickname: event.organizer.nickname })}</span>
                 </span>
               </Link>
+            ) : visitor ? (
+              <div className="flex items-center gap-3">
+                <AppAvatar name={event.organizer.name} src={event.organizer.avatarUrl} size="md" />
+                <span className="flex flex-col">
+                  <span className="app-meta">{t('organizedBy')}</span>
+                  <span className="text-sm font-medium">{event.organizer.name}</span>
+                </span>
+              </div>
             ) : (
               <Link to={`/perfil/${event.organizer.nickname}`} className="flex items-center gap-3">
                 <AppAvatar name={event.organizer.name} src={event.organizer.avatarUrl} size="md" />
@@ -158,7 +171,7 @@ export function EventoDetalhePage() {
                 intent={event.interested ? 'primary' : 'neutral'}
                 aria-pressed={event.interested}
                 disabled={closed && !event.interested}
-                onClick={() => void detail.toggleInterest(event)}
+                onClick={visitor ? requireLogin : () => void detail.toggleInterest(event)}
               >
                 <StarIcon className={cn(event.interested && 'fill-current')} />
                 {t('interested', { count: event.interestedCount })}
@@ -239,43 +252,49 @@ export function EventoDetalhePage() {
         </div>
       </section>
 
-      <AppCard title={t('comments.title', { count: comments.totalCount })}>
-        <div className="flex flex-col gap-4">
-          {!cancelled ? <CommentComposer onSubmit={detail.comment} /> : null}
-          {comments.items.length === 0 ? (
-            <p className="text-sm text-muted-foreground">{t('comments.empty')}</p>
-          ) : (
-            <ul className="flex flex-col gap-4">
-              {comments.items.map((comment) => (
-                <li key={comment.id} className="flex gap-3">
-                  <AppAvatar name={comment.author.name} src={comment.author.avatarUrl} size="md" />
-                  <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                    <span className="text-sm">
-                      <Link to={`/perfil/${comment.author.nickname}`} className="font-medium hover:underline">
-                        {comment.author.name}
-                      </Link>{' '}
-                      <span className="app-meta">{formatRelative(comment.createdAt)}</span>
-                    </span>
-                    <AppRichText text={comment.text} mentions={toRichMentions(comment.mentions)} className="text-sm" />
-                  </div>
-                  {comment.canDelete ? (
-                    <AppIconButton label={t('comments.delete')} size="sm" onClick={() => removeComment(comment.id)}>
-                      <Trash2Icon />
-                    </AppIconButton>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          )}
-          <AppPagination
-            page={comments.page}
-            totalPages={comments.totalPages}
-            totalCount={comments.totalCount}
-            onChange={detail.loadMoreComments}
-            mode="loadMore"
-          />
-        </div>
-      </AppCard>
+      {visitor ? (
+        <AppCard title={t('comments.title', { count: event.commentCount })}>
+          <AppSignInPrompt message={t('comments.signIn')} />
+        </AppCard>
+      ) : (
+        <AppCard title={t('comments.title', { count: comments.totalCount })}>
+          <div className="flex flex-col gap-4">
+            {!cancelled ? <CommentComposer onSubmit={detail.comment} /> : null}
+            {comments.items.length === 0 ? (
+              <p className="text-sm text-muted-foreground">{t('comments.empty')}</p>
+            ) : (
+              <ul className="flex flex-col gap-4">
+                {comments.items.map((comment) => (
+                  <li key={comment.id} className="flex gap-3">
+                    <AppAvatar name={comment.author.name} src={comment.author.avatarUrl} size="md" />
+                    <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                      <span className="text-sm">
+                        <Link to={`/perfil/${comment.author.nickname}`} className="font-medium hover:underline">
+                          {comment.author.name}
+                        </Link>{' '}
+                        <span className="app-meta">{formatRelative(comment.createdAt)}</span>
+                      </span>
+                      <AppRichText text={comment.text} mentions={toRichMentions(comment.mentions)} className="text-sm" />
+                    </div>
+                    {comment.canDelete ? (
+                      <AppIconButton label={t('comments.delete')} size="sm" onClick={() => removeComment(comment.id)}>
+                        <Trash2Icon />
+                      </AppIconButton>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            )}
+            <AppPagination
+              page={comments.page}
+              totalPages={comments.totalPages}
+              totalCount={comments.totalCount}
+              onChange={detail.loadMoreComments}
+              mode="loadMore"
+            />
+          </div>
+        </AppCard>
+      )}
     </div>
   )
 }

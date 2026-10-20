@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 
 import { emptyPage } from '@/api/types'
 import type { PagedResult } from '@/api/types'
+import { useRequireLogin } from '@/auth/use-require-login'
 import { AppEmptyState } from '@/components/app-empty-state'
 import { AppPagination } from '@/components/app-pagination'
 import { AppSkeleton } from '@/components/app-skeleton'
@@ -16,6 +17,7 @@ import { EventCard } from './event-card'
 const pageSize = 4
 
 export function BandEvents({ slug }: { slug: string }) {
+  const { visitor, requireLogin } = useRequireLogin()
   const { t } = useTranslation('eventos')
   const [scope, setScope] = useState<EventScope>('upcoming')
   const [page, setPage] = useState(1)
@@ -70,7 +72,7 @@ export function BandEvents({ slug }: { slug: string }) {
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           {result.items.map((event) => (
-            <EventCard key={event.id} event={event} onToggleInterest={(target) => void toggle(target)} />
+            <EventCard key={event.id} event={event} onToggleInterest={visitor ? requireLogin : (target) => void toggle(target)} />
           ))}
         </div>
       )}

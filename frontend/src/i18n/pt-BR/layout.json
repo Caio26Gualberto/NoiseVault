@@ -54,5 +54,11 @@
     "label": "Notificações",
     "unread_one": "{{count}} não lida",
     "unread_other": "{{count}} não lidas"
+  },
+  "visitor": {
+    "signIn": "Entrar",
+    "signUp": "Criar conta",
+    "bannerTitle": "Você está vendo o Noise Vault sem conta",
+    "bannerDescription": "Entre para curtir, comentar, marcar \"Vou\" e seguir as bandas."
   }
 }

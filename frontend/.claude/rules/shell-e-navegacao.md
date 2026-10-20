@@ -27,7 +27,7 @@ Item ativo: `resolveActivePath` (copiado do boilerplate) resolve **uma vez** par
 
 ## Público × autenticado
 
-Rotas públicas usam `PublicLayout` (fundo escuro, card centralizado, wordmark). Rotas do shell passam por `RequireAuth` (ver `auth.md`). Rota pública com sessão ativa redireciona para `/feed` (`redirect-if-authenticated.tsx`), exceto `/confirmar-email` e `/redefinir-senha`, que precisam funcionar com link aberto em sessão de outra conta.
+Rotas públicas usam `PublicLayout` (fundo escuro, card centralizado, wordmark). Rotas do shell passam por `RequireAuth` (ver `auth.md`). **Desde 20/10/2026, as rotas do shell marcadas com `public: true` (agenda, evento, mural, registro, banda) abrem sem sessão**, no mesmo shell em modo visitante (`visitante.md`). Rota pública com sessão ativa redireciona para `/feed` (`redirect-if-authenticated.tsx`), exceto `/confirmar-email` e `/redefinir-senha`, que precisam funcionar com link aberto em sessão de outra conta.
 
 ## O Ensaio é outra moldura
 
@@ -45,6 +45,6 @@ Rotas com `permission` em `hiddenRoutes` (`/mural/novo` com `Archive.Create`, `/
 
 1. A 1440px: sidebar + topbar + coluna + rail no `/feed`; rail some a 1279px; sidebar vira bottom-nav a 767px.
 2. Navegar `/eventos` → `/eventos/123`: o item "Eventos" continua ativo; `/eventos/novo` idem.
-3. Sem sessão, qualquer rota do shell cai em `/entrar` e, depois do login, volta para a rota pedida.
+3. Sem sessão, qualquer rota do shell que não seja `public` cai em `/entrar` e, depois do login, volta para a rota pedida; as `public` abrem em modo visitante (`visitante.md`).
 4. Com sessão, `/entrar` redireciona para `/feed`; `/redefinir-senha?token=x` abre normalmente.
 5. Usuário comum não vê "Novo registro" no mural; admin vê. Acessar `/mural/novo` sem permissão → `/feed`.

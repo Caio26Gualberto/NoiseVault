@@ -12,7 +12,7 @@ Rule irmã: `../api/.claude/rules/bandas.md`. A regra é do backend; a tela só 
 
 | Caminho | Tela | Quem vê |
 |---|---|---|
-| `/bandas/:slug` | página pública da banda: capa, avatar, descrição, cidade, "Desde {ano}", gêneros, links e integrantes; a seção "Vagas abertas" vem do Ensaio (`ensaio.md`) | qualquer pessoa logada |
+| `/bandas/:slug` | página pública da banda: capa, avatar, descrição, cidade, "Desde {ano}", gêneros, links e integrantes; a seção "Vagas abertas" vem do Ensaio (`ensaio.md`) | qualquer pessoa; sem conta, só leitura e sem vagas nem publicações (`visitante.md`) |
 | `/bandas/nova` | criar banda (`BandForm` com o campo "seu instrumento na banda" e "Cancelar" na coluna fixa) | qualquer pessoa logada; entra pelo botão "Criar banda" no próprio perfil |
 | `/bandas/:slug/editar` | o `BandForm` (com avatar e capa no primeiro painel), depois os cards de integrantes, convites e discografia | só Owner (`myRole === owner`); quem não é Owner é redirecionado para `/bandas/:slug` |
 | `/admin/bandas` | fila de pedidos de verificação (ver "Verificação") | `Bands.Verifications.View`; decidir exige `Bands.Verify` |

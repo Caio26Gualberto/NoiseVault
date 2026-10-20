@@ -43,7 +43,8 @@
     "title_other": "{{count}} comentários",
     "empty": "Seja a primeira pessoa a comentar.",
     "delete": "Apagar comentário",
-    "deleteTitle": "Apagar este comentário?"
+    "deleteTitle": "Apagar este comentário?",
+    "signIn": "Entre para ler e escrever os comentários."
   },
   "form": {
     "createTitle": "Novo evento",

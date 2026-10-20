@@ -31,6 +31,9 @@ import { AppSkeleton } from '@/components/app-skeleton'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
 import { formatDuration, formatRelative } from '@/lib/format'
+import { useRequireLogin } from '@/auth/use-require-login'
+import { AppSignInPrompt } from '@/components/app-sign-in-prompt'
+import { useDocumentTitle } from '@/hooks/use-document-title'
 import { CommentComposer } from '@/pages/eventos/components/comment-composer'
 import { formatCity } from '@/pages/perfil/city'
 import { MediaKind } from '@/pages/feed/media-kind'
@@ -49,10 +52,12 @@ export function MuralDetalhePage() {
   const { id = '' } = useParams()
   const navigate = useNavigate()
   const confirm = useAppConfirm()
-  const detail = useArchiveDetail(Number(id))
+  const { visitor, requireLogin } = useRequireLogin()
+  const detail = useArchiveDetail(Number(id), !visitor)
   const [viewerIndex, setViewerIndex] = useState<number | null>(null)
   const [attendeesOpen, setAttendeesOpen] = useState(false)
   const { state, comments } = detail
+  useDocumentTitle(state.status === 'found' ? state.entry.title : null)
 
   if (state.status === 'loading') {
     return <AppSkeleton preset="profile" className="app-page-enter mx-auto max-w-5xl" />
@@ -73,7 +78,7 @@ export function MuralDetalhePage() {
     posterUrl: item.media.posterUrl,
     caption: item.caption,
     tags: toAppTags(item.media),
-    taggable: published && item.media.kind === MediaKind.photo,
+    taggable: published && !visitor && item.media.kind === MediaKind.photo,
   }))
   const tagging = photoTagging(async () => detail.replace(await getArchiveEntry(entry.id)))
   const canWithdraw = entry.isMine && !published && !entry.canDelete
@@ -246,7 +251,7 @@ export function MuralDetalhePage() {
             <AppButton
               intent={entry.attendedByMe ? 'primary' : 'neutral'}
               aria-pressed={entry.attendedByMe}
-              onClick={() => void detail.toggleAttendance(entry)}
+              onClick={visitor ? requireLogin : () => void detail.toggleAttendance(entry)}
             >
               <UsersRoundIcon />
               {entry.attendedByMe ? t('attendance.attended') : t('attendance.action')}
@@ -254,13 +259,15 @@ export function MuralDetalhePage() {
             <AppButton
               intent="ghost"
               aria-pressed={entry.likedByMe}
-              onClick={() => void detail.toggleLike(entry)}
+              onClick={visitor ? requireLogin : () => void detail.toggleLike(entry)}
               className={cn('tabular-nums', entry.likedByMe && 'text-primary')}
             >
               <HeartIcon className={cn(entry.likedByMe && 'fill-current')} />
               {entry.likeCount}
             </AppButton>
-            {entry.attendanceCount > 0 ? (
+            {entry.attendanceCount > 0 && visitor ? (
+              <span className="text-sm text-muted-foreground">{t('attendance.count', { count: entry.attendanceCount })}</span>
+            ) : entry.attendanceCount > 0 ? (
               <button
                 type="button"
                 onClick={() => setAttendeesOpen(true)}
@@ -283,14 +290,22 @@ export function MuralDetalhePage() {
 
         <p className="app-meta">
           {t(entry.isSubmission ? 'archiveOf' : 'publishedBy')}{' '}
-          <Link to={`/perfil/${entry.author.nickname}`} className="hover:underline">
-            @{entry.author.nickname}
-          </Link>{' '}
+          {visitor ? (
+            <span>@{entry.author.nickname}</span>
+          ) : (
+            <Link to={`/perfil/${entry.author.nickname}`} className="hover:underline">
+              @{entry.author.nickname}
+            </Link>
+          )}{' '}
           · {formatRelative(entry.createdAt)}
         </p>
       </section>
 
-      {published ? (
+      {published && visitor ? (
+        <AppCard title={t('comments.title', { count: entry.commentCount })}>
+          <AppSignInPrompt message={t('comments.signIn')} />
+        </AppCard>
+      ) : published ? (
         <AppCard title={t('comments.title', { count: comments.totalCount })}>
           <div className="flex flex-col gap-4">
             <CommentComposer onSubmit={detail.comment} />
@@ -325,7 +340,7 @@ export function MuralDetalhePage() {
       ) : null}
 
       <AppMediaViewer items={viewerItems} index={viewerIndex} onIndexChange={setViewerIndex} tagging={tagging} />
-      <AttendeesDialog entryId={entry.id} open={attendeesOpen} onOpenChange={setAttendeesOpen} />
+      {visitor ? null : <AttendeesDialog entryId={entry.id} open={attendeesOpen} onOpenChange={setAttendeesOpen} />}
     </div>
   )
 }
