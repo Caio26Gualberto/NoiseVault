@@ -19,6 +19,7 @@ namespace NoiseVault.Api.Share
             html.Append("<!doctype html><html lang=\"pt-BR\"><head><meta charset=\"utf-8\">");
             html.Append("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">");
             html.Append("<meta name=\"theme-color\" content=\"#1c1515\">");
+            html.Append("<meta name=\"robots\" content=\"noindex\">");
             html.Append($"<title>{Encode(title)} · Noise Vault</title>");
             html.Append($"<meta name=\"description\" content=\"{Encode(description)}\">");
             Meta(html, "og:site_name", "Noise Vault");

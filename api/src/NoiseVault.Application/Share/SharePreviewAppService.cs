@@ -15,6 +15,7 @@ using NoiseVault.Application.Share.Interfaces;
 using NoiseVault.Domain.Entities;
 using NoiseVault.Domain.Enums.Events;
 using NoiseVault.Domain.Enums.Media;
+using static NoiseVault.Application.Share.PreviewText;
 
 namespace NoiseVault.Application.Share
 {
@@ -22,8 +23,6 @@ namespace NoiseVault.Application.Share
     {
         private const int AnonymousViewer = 0;
         private const int DescriptionMaxLength = 200;
-
-        private static readonly CultureInfo PtBr = CultureInfo.GetCultureInfo("pt-BR");
 
         private readonly IArchiveRepository _archiveRepository;
         private readonly IEventRepository _eventRepository;
@@ -104,13 +103,13 @@ namespace NoiseVault.Application.Share
             if (row == null)
                 return null;
 
-            var when = AppTime.ToLocal(row.StartsAt).ToString("dddd, d 'de' MMMM 'às' HH'h'mm", PtBr);
+            var when = EventWhen(row.StartsAt);
             var where = string.Join(" · ", new[] { row.Venue, row.City?.Name ?? row.CityName }.Where(p => !string.IsNullOrWhiteSpace(p)));
             var cancelled = row.Status == EEventStatus.Cancelled;
             var title = cancelled ? $"[Cancelado] {row.Title}" : row.Title;
             var lineup = await BandNamesAsync(row.Lineup.OrderBy(l => l.Order).Select(l => (l.BandId, l.Name)));
             var lead = Line(
-                Capitalize(when),
+                when,
                 where,
                 lineup.Count > 0 ? $"com {string.Join(", ", lineup)}" : null,
                 cancelled ? null : Count(row.InterestedCount, "pessoa vai", "pessoas vão"));
@@ -249,24 +248,6 @@ namespace NoiseVault.Application.Share
             return media.Kind == EMediaKind.Video ? described.PosterUrl : described.Url;
         }
 
-        private static string ArchiveDate(int year, int? month, int? day)
-        {
-            if (month == null)
-                return year.ToString(CultureInfo.InvariantCulture);
-
-            var date = new DateTime(year, month.Value, day ?? 1);
-            return day == null ? date.ToString("MMMM 'de' yyyy", PtBr) : date.ToString("d 'de' MMMM 'de' yyyy", PtBr);
-        }
-
-        private static string Line(params string?[] parts) => string.Join(" · ", parts.Where(p => !string.IsNullOrWhiteSpace(p)));
-
-        private static string? Count(int count, string singular, string plural) => count switch
-        {
-            <= 0 => null,
-            1 => $"1 {singular}",
-            _ => $"{count} {plural}",
-        };
-
         private static string Join(string? lead, string? text, string fallback)
         {
             var body = Excerpt(text);
@@ -274,15 +255,6 @@ namespace NoiseVault.Application.Share
             return parts.Count == 0 ? fallback : string.Join(" — ", parts);
         }
 
-        private static string? Excerpt(string? text)
-        {
-            if (string.IsNullOrWhiteSpace(text))
-                return null;
-
-            var flat = string.Join(' ', text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
-            return flat.Length <= DescriptionMaxLength ? flat : flat[..(DescriptionMaxLength - 1)].TrimEnd() + "…";
-        }
-
-        private static string Capitalize(string text) => text.Length == 0 ? text : char.ToUpper(text[0], PtBr) + text[1..];
+        private static string? Excerpt(string? text) => PreviewText.Excerpt(text, DescriptionMaxLength);
     }
 }
