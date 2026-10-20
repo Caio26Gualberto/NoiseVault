@@ -37,4 +37,4 @@ Comece por `CLAUDE.md` na raiz, depois `api/CLAUDE.md` e `frontend/CLAUDE.md`. A
 
 ## Produção
 
-No ar em `https://noisevault.net` desde 17/10/2026. O deploy na AWS, pelo console e passo a passo, está em [`DEPLOY.md`](DEPLOY.md). Os arquivos do servidor ficam em `infra/lightsail/`; a API sobe pelo workflow "Deploy API" a cada push na `main`, e o front pelo Amplify.
+No ar em `https://noisevault.net` desde 17/10/2026. O deploy na AWS, pelo console e passo a passo, está em [`DEPLOY.md`](DEPLOY.md). Os arquivos do servidor ficam em `infra/lightsail/`; a API sobe pelo workflow "Deploy API" a cada push na `main`, e o front pelo workflow "Deploy Front" (S3 + CloudFront; o Amplify fica até a virada do `DEPLOY.md`, passo 14).

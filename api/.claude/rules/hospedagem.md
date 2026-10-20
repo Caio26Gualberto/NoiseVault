@@ -9,7 +9,7 @@ paths:
 
 # Decisões — Hospedagem em produção
 
-Decidido em 14/10/2026. Decisão do usuário: "vai ser tudo na AWS". **No ar desde 17/10/2026**: `https://noisevault.net` (Amplify), `https://api.noisevault.net` (Lightsail) e `https://media.noisevault.net` (CloudFront), com o primeiro admin criado pelo cadastro do site e o SQL do `DEPLOY.md`. O que saiu diferente do plano naquele dia está tachado nesta rule: DNS no Cloudflare em vez do Route 53, SES pela SDK em vez de SMTP, MediaConvert implementado antes do deploy, licença do ImageSharp como secret de build, deploy por pipeline em vez de SSH. **O roteiro do deploy pelo console, passo a passo, é o `DEPLOY.md` da raiz** (escrito em 17/10/2026, quando o usuário disse "chegou o dia"); os arquivos do servidor estão em `infra/lightsail/` (compose de produção, `Caddyfile`, `.env.example`, `backup.sh`), e os do front em `amplify.yml` (raiz, monorepo) e `customHttp.yml`. Esta rule guarda o porquê; o `DEPLOY.md` guarda o como.
+Decidido em 14/10/2026. Decisão do usuário: "vai ser tudo na AWS". **No ar desde 17/10/2026**: `https://noisevault.net` (Amplify), `https://api.noisevault.net` (Lightsail) e `https://media.noisevault.net` (CloudFront), com o primeiro admin criado pelo cadastro do site e o SQL do `DEPLOY.md`. O que saiu diferente do plano naquele dia está tachado nesta rule: DNS no Cloudflare em vez do Route 53, SES pela SDK em vez de SMTP, MediaConvert implementado antes do deploy, licença do ImageSharp como secret de build, deploy por pipeline em vez de SSH. **O roteiro do deploy pelo console, passo a passo, é o `DEPLOY.md` da raiz** (escrito em 17/10/2026, quando o usuário disse "chegou o dia"); os arquivos do servidor estão em `infra/lightsail/` (compose de produção, `Caddyfile`, `.env.example`, `backup.sh`), e os do front em `.github/workflows/deploy-front.yml` e `infra/cloudfront/` (desde 20/10/2026; antes, `amplify.yml` e `customHttp.yml`). Esta rule guarda o porquê; o `DEPLOY.md` guarda o como.
 
 ## A arquitetura: um servidor e serviços gerenciados por uso
 
@@ -19,7 +19,7 @@ Decidido em 14/10/2026. Decisão do usuário: "vai ser tudo na AWS". **No ar des
 | Fotos e vídeos | **S3** em São Paulo, bucket privado + **CloudFront** com OAC | como já previsto em `armazenamento.md`. Plano flat-rate Free do CloudFront no começo, Pro (15 USD) quando chegar perto do limite |
 | Conversão de vídeo | **MediaConvert** em São Paulo, por uso (`Video__Engine=MediaConvert`) | implementado em 17/10/2026 (`midia-e-video.md`): a API cria o job e um recorrente consulta o fim. O `Dockerfile` ainda leva o ffmpeg como saída de emergência (`Video__Engine=Ffmpeg`) |
 | E-mail | **SES** pela SDK (`Email__Provider=Ses`) | `SesEmailSender`, com a mesma chave IAM da API (`email.md`) |
-| Front | **Amplify** | ver "Front e a prévia de links" abaixo |
+| Front | ~~**Amplify**~~ **S3 + CloudFront próprio** (20/10/2026) | ver "Front e a prévia de links" abaixo |
 
 ### Por que não Fargate + Load Balancer + RDS
 
@@ -44,12 +44,12 @@ Comprado pelo usuário em 14/10/2026. O `.com` já tinha dono, o `.com.br` o usu
 
 | Endereço | Aponta para | Observação |
 |---|---|---|
-| `noisevault.net` | o front (Amplify) | o site; `Frontend:BaseUrl`, o CORS da API e o CORS do bucket usam este |
+| `noisevault.net` | o front (CloudFront `noisevault-web`; antes, o Amplify) | o site; `Frontend:BaseUrl`, o CORS da API e o CORS do bucket usam este |
 | `www.noisevault.net` | redireciona para `noisevault.net` | um endereço só, para cache, cookies e prévia não se dividirem |
-| `api.noisevault.net` | o Lightsail (Caddy com HTTPS) | API, SignalR (`/hubs`) e a rota de prévia `/s/...` (que o Amplify repassa) |
+| `api.noisevault.net` | o Lightsail (Caddy com HTTPS) | API, SignalR (`/hubs`) e a rota de prévia `/s/...` (que o CloudFront do front repassa) |
 | `media.noisevault.net` | o CloudFront do bucket | `Storage:PublicBaseUrl` |
 | e-mail `nao-responda@noisevault.net` | SES | o domínio verificado no SES, com SPF, DKIM e DMARC no DNS, para confirmação e redefinição de senha não caírem no spam |
-| `ensaio.noisevault.net` | o mesmo app do Amplify, que mostra a moldura do módulo Ensaio pelo endereço | o módulo existe (`ensaio.md`, `frontend/.claude/rules/ensaio.md`); no deploy, o domínio entra no Amplify como domínio do mesmo app, `https://ensaio.noisevault.net` entra em `Cors:AllowedOrigins` e o build do front leva `VITE_ENSAIO_URL` e `VITE_MAIN_URL` |
+| `ensaio.noisevault.net` | a mesma distribuição do front, que mostra a moldura do módulo Ensaio pelo endereço | o módulo existe (`ensaio.md`, `frontend/.claude/rules/ensaio.md`); no deploy, o domínio entra como nome alternativo da mesma distribuição, `https://ensaio.noisevault.net` entra em `Cors:AllowedOrigins` e o build do front leva `VITE_ENSAIO_URL` e `VITE_MAIN_URL` |
 | `mercado.noisevault.net` | idem, para venda e troca | planejado (`IDEIAS.md`, 8b) |
 
 - ~~Quem guarda o DNS ainda não foi decidido.~~ **O DNS fica no Cloudflare**, onde o domínio foi registrado (visto em 17/10/2026, no dia do deploy): domínio do Cloudflare Registrar não pode apontar para outros servidores de nome, então o Route 53 saiu. Todo registro entra à mão no painel do Cloudflare, sempre com **proxy desligado** ("DNS only"): o proxy laranja na frente da API quebraria o certificado do Caddy e o WebSocket do SignalR, e na frente do Amplify e do CloudFront só duplicaria CDN. O `DEPLOY.md` tem cada registro.
@@ -70,8 +70,8 @@ Comprado pelo usuário em 14/10/2026. O `.com` já tinha dono, o `.com.br` o usu
 - **Primeiro admin em produção**: o seed não cria conta de admin fora de Development. A pessoa se cadastra pelo site e recebe o papel por SQL no servidor (`DEPLOY.md`, passo 9).
 - **Backup**: `infra/lightsail/backup.sh` faz `pg_dump -Fc` e manda para `s3://noisevault-media/backups/postgres/`, por cron às 4h30; a regra de lifecycle do bucket apaga com 30 dias. Mais o snapshot automático do Lightsail.
 - **Hangfire**: o dashboard já não é mapeado em `Production` (`jobs-hangfire.md`).
-- **Prévia de link**: rewrite `/s/<*>` → `https://api.noisevault.net/s/<*>` (200, proxy) no Amplify, **antes** do rewrite da SPA (`compartilhamento.md`). Sem ele, o link do botão "Compartilhar" cai na SPA e a prévia some.
-- **PWA**: o `sw.js` vai com `Cache-Control: no-cache` no Amplify ou no CloudFront, e o `manifest.webmanifest` com `application/manifest+json` (`frontend/.claude/rules/pwa.md`). Com cache longo no `sw.js`, a versão nova do site demora a chegar em quem instalou.
+- **Prévia de link**: ~~rewrite `/s/<*>` no Amplify, antes do rewrite da SPA~~ a função do CloudFront do front manda `/s/...` para a origem da API ("Front e a prévia de links" abaixo, `compartilhamento.md`).
+- **PWA**: o `sw.js` vai com `Cache-Control: no-cache` (gravado no objeto do S3 pelo `deploy-front.yml`), e o `manifest.webmanifest` com `application/manifest+json` (`frontend/.claude/rules/pwa.md`). Com cache longo no `sw.js`, a versão nova do site demora a chegar em quem instalou.
 - **Licença do ImageSharp**: o build em `Release` **falha** sem chave da Six Labors ("No Six Labors license found"; o `Debug` só avisa). Visto em 14/10/2026. A licença Split é gratuita abaixo de US$ 1 milhão de receita (`armazenamento.md`). ~~O `Dockerfile` recebe a chave pelo build arg `SIXLABORS_LICENSE_KEY` e passa como `/p:SixLaborsLicenseKey`~~: passar por `/p:` falhou no primeiro build do pipeline (17/10/2026, `LicenseSerializer.Deserialize` quebrou com a chave escapada pelo MSBuild). A chave entra como **secret de build do BuildKit** montado em `src/NoiseVault.Infra.Data/sixlabors.lic` só durante o `publish` (o target do pacote procura `**/sixlabors.lic`), sem virar camada da imagem nem `ARG`. No GitHub Actions, `secrets: sixlabors=…` do `build-push-action` no deploy, e no CI um passo grava o mesmo secret em `src/NoiseVault.Infra.Data/sixlabors.lic` antes do `dotnet build` (o arquivo está no `.gitignore`); no compose do servidor, `secrets.sixlabors` lido da variável `SIXLABORS_LICENSE_KEY` do `.env`. Nunca no Git.
 - **SignalR**: uma instância, sem backplane. O Caddy repassa WebSocket; o keep-alive de 15 s sobra para qualquer idle timeout (`notificacoes.md`).
 - **CORS**: `Cors:AllowedOrigins` e o CORS do bucket com `https://noisevault.net` (`midia-e-video.md`). O CORS da API aceita credenciais (o cookie do refresh), então a lista é exata e ganha cada subdomínio do front quando ele nascer (`https://ensaio.noisevault.net`, `https://mercado.noisevault.net`); a mesma lista é a do `OriginGuard`.
@@ -80,14 +80,52 @@ Comprado pelo usuário em 14/10/2026. O `.com` já tinha dono, o `.com.br` o usu
 
 ## Front e a prévia de links
 
-O usuário escolheu o **Amplify** para o front (estava na estimativa, 1,77 USD/mês). Ele hospeda a SPA sem esforço, mas fecha um caminho da prévia Open Graph (`IDEIAS.md`, ideia 1):
+~~O usuário escolheu o **Amplify** para o front (estava na estimativa, 1,77 USD/mês).~~ O Amplify hospedou a SPA do deploy (17/10/2026) até 20/10/2026, mas fechava um caminho da prévia Open Graph:
 
 - o CloudFront do Amplify é gerenciado por ele, e não aceita uma função nossa;
 - os rewrites do Amplify filtram por caminho e país, não por `User-Agent`.
 
-Com o Amplify, a prévia sai por **rota de compartilhamento**: um rewrite `/s/<*>` do Amplify repassa para a API, que devolve o HTML com as tags `og:*` e redireciona a pessoa para a página. Funciona no link do botão "Compartilhar", não no link copiado da barra do navegador. **Feita em 14/10/2026** (`compartilhamento.md`); a prévia no link copiado da barra virou o item 1.b do `IDEIAS.md`.
+Com ele, a prévia saía só pela **rota de compartilhamento** (`/s/<*>` repassado à API, `compartilhamento.md`). Funcionava no link do botão "Compartilhar", mas não no link copiado da barra do navegador, que é o que quase todo mundo cola no grupo.
 
-A alternativa que cobre os dois links é o front em **S3 + o mesmo CloudFront da mídia** (sem custo extra no plano flat-rate), com uma CloudFront Function de viewer request que manda os robôs (`facebookexternalhit`, `WhatsApp`, `Twitterbot`, `TelegramBot`, `Discordbot`) para a API com `cf.updateRequestOrigin`. O deploy vira `aws s3 sync` + invalidação no CI. **A escolha fica para quando a ideia 1 virar módulo.**
+**Decisão do usuário em 20/10/2026: o front vai para S3 + CloudFront**, para a prévia valer também no link da barra (era o item 1.b do `IDEIAS.md`). A peça é a função `infra/cloudfront/web-viewer-request.js` (CloudFront Functions, JavaScript runtime 2.0, *viewer request*):
+
+| Pedido | O que a função faz |
+|---|---|
+| `www.noisevault.net/...` | 301 para `https://noisevault.net/...`, com a query (o Amplify fazia esse redirect) |
+| `/s/...` | escolhe a origem `noisevault-api` (`cf.selectRequestOriginById`): a rota de compartilhamento de sempre |
+| robô de prévia em `/{feed,mural,eventos,bandas,perfil}/{chave}`, fora do Ensaio | troca o caminho para `/s/...` e escolhe a origem da API: o robô recebe as tags Open Graph da mesma página |
+| caminho com extensão de arquivo estático | segue para o bucket como está |
+| qualquer outro caminho (rota da SPA) | troca para `/index.html` |
+
+- **Robôs de prévia**, reconhecidos pelo `User-Agent`: `facebookexternalhit`, `Facebot`, `WhatsApp`, `Twitterbot`, `TelegramBot`, `Discordbot`, `Slackbot`, `LinkedInBot` e `SkypeUriPreview`. **O Googlebot fica de fora de propósito**: entregar ao buscador um HTML diferente do da pessoa é assunto do SEO (`IDEIAS.md`, 16), que pede HTML com o conteúdo, não só as tags.
+- **Fora do `ensaio.noisevault.net`**: o Ensaio tem outras rotas, e `ensaio.noisevault.net/bandas/...` não existe. A checagem é "qualquer host menos o Ensaio", e não "só o `noisevault.net`", para o desvio poder ser testado pelo endereço `dxxxx.cloudfront.net` antes da virada.
+- Robô que pede `/mural/novo` ou `/bandas/nova` recebe o 404 com a prévia genérica da API. É inofensivo, e a regex fica simples.
+- **A SPA sai sem custom error response**: com OAC, o S3 responde 403 para chave que não existe, e transformar 403/404 em `index.html` na distribuição também engoliria o 404 da prévia genérica da API. A função decide antes, pelo caminho. A lista de extensões estáticas vem do rewrite antigo do Amplify, para `/perfil/joao.silva` (apelido com ponto) continuar caindo na SPA.
+- **Cache**: a função roda antes da busca no cache, então a chave do cache é o caminho já trocado. O `index.html` é um objeto só para todas as rotas, e o `/s/mural/12` do robô é outro, com os 5 minutos do `Cache-Control` da API. O `User-Agent` não entra na chave nem vai à origem.
+
+### Por que uma distribuição própria, e não a da mídia
+
+A versão anterior desta rule dizia "o mesmo CloudFront da mídia". Ficou uma distribuição nova, `noisevault-web`, também no plano flat-rate **Free**:
+
+- a cota do Free é **por distribuição** (1 milhão de requisições e 100 GB por mês). Juntos, o site e os vídeos dividiriam uma cota só; separados, cada um tem a sua. A conta aceita até 3 planos Free;
+- os cabeçalhos são outros: a mídia usa a política SimpleCORS, e o site não precisa de CORS;
+- a distribuição da mídia continua com um host só (`media.noisevault.net`), sem nenhuma função no caminho do vídeo.
+
+### O bucket e o deploy
+
+- Bucket **`noisevault-web`** em São Paulo, privado, lido só pela distribuição por OAC. A mídia continua no `noisevault-media`, sem mistura.
+- **Deploy por pipeline**, `.github/workflows/deploy-front.yml`, a cada push na `main` que toque `frontend/` ou `infra/cloudfront/`:
+  - builda com as `VITE_*` das **variables** do repositório (são valores públicos, não secrets);
+  - entra na AWS por **OIDC** (`aws-actions/configure-aws-credentials`, role `noisevault-web-deploy`), sem chave de acesso guardada no GitHub. A role só pode gravar no `noisevault-web`, atualizar e publicar a função e invalidar a distribuição;
+  - sobe `assets/` com `public, max-age=31536000, immutable` e **sem `--delete`**, porque quem está com o site aberto ainda pede os chunks da versão anterior;
+  - o resto sobe com `--delete` e um dia de cache. `index.html`, `sw.js`, `offline.html` e os manifestos vão com `no-cache` (o manifesto com `application/manifest+json`). O `index.html` sobe por último, quando os arquivos novos já existem;
+  - publica o código da função a partir do repositório, que é a fonte (editar a função no console é sobrescrito no próximo deploy), e invalida `/*`.
+- O job só roda com a variable `WEB_BUCKET` preenchida: antes da virada, o push não falha.
+- O custo continua perto de zero: o plano Free cobre a distribuição, e o bucket tem poucos MB.
+
+### A virada
+
+Um domínio só pode estar numa distribuição por vez, e a do Amplify é de uma conta da AWS, não da nossa. Por isso não dá para mover o domínio sem tirá-lo do Amplify antes. O site fica fora do ar por alguns minutos, entre remover o domínio do Amplify e o CloudFront aceitar o mesmo nome. O roteiro está no `DEPLOY.md`, passo 14. Depois da virada, saem o app do Amplify, o `amplify.yml` e o `customHttp.yml`.
 
 ## Quando o banco sair do Lightsail para o RDS
 

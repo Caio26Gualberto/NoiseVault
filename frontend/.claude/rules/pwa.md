@@ -59,7 +59,7 @@ Item 7 do `IDEIAS.md`, parte 1 (14/10/2026): o site vira app na tela inicial, co
 
 ## Produção
 
-- O `sw.js` **não pode ir para cache longo** no Amplify ou no CloudFront (`Cache-Control: no-cache`), senão a versão nova demora a chegar. O manifesto vai com `application/manifest+json`. Pendência registrada em `../api/.claude/rules/hospedagem.md`.
+- O `sw.js` **não pode ir para cache longo** (`Cache-Control: no-cache`), senão a versão nova demora a chegar. O manifesto vai com `application/manifest+json`. Os dois cabeçalhos são gravados no objeto do S3 pelo `.github/workflows/deploy-front.yml` (`../api/.claude/rules/hospedagem.md`, "O bucket e o deploy").
 - Service worker exige HTTPS; em dev, o `localhost` vale.
 
 ## Roteiro de verificação

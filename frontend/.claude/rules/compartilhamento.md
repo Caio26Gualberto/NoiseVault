@@ -28,7 +28,7 @@ Rule irmã: `../api/.claude/rules/compartilhamento.md`. A prévia (foto e títul
 
 ## Dev: proxy do `/s/`
 
-O `vite.config.ts` repassa `^/s/` para a API (`VITE_API_BASE_URL`), como o rewrite do Amplify vai fazer em produção. A chave é uma regex com `^/s/` justamente para não pegar `/suporte`. O service worker do PWA não guarda a navegação (`pwa.md`), então o link sempre chega à rota.
+O `vite.config.ts` repassa `^/s/` para a API (`VITE_API_BASE_URL`), como a função do CloudFront do front faz em produção (`../api/.claude/rules/compartilhamento.md`, "Produção"). Lá, a mesma função também manda o robô de prévia que pede a página (`/mural/12`) para `/s/mural/12`, então o link copiado da barra também mostra a prévia desde 20/10/2026. O botão continua gerando `/s/...`, que funciona em qualquer caso. A chave é uma regex com `^/s/` justamente para não pegar `/suporte`. O service worker do PWA não guarda a navegação (`pwa.md`), então o link sempre chega à rota.
 
 ## Roteiro de verificação
 

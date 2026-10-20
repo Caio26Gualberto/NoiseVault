@@ -7,7 +7,7 @@ paths:
 
 # Decisões — Prévia do link ao compartilhar
 
-Ideia 1 do `IDEIAS.md`, feita em 14/10/2026 pelo caminho da **rota de compartilhamento**: o botão "Compartilhar" gera `/s/<página>`, e essa rota devolve um HTML com as tags Open Graph e manda a pessoa para a página de verdade. A prévia no link copiado da barra do navegador (a opção "pelo `User-Agent`") ficou como **1.b**, decisão do usuário: depende de como o front for hospedado (`hospedagem.md`).
+Ideia 1 do `IDEIAS.md`, feita em 14/10/2026 pelo caminho da **rota de compartilhamento**: o botão "Compartilhar" gera `/s/<página>`, e essa rota devolve um HTML com as tags Open Graph e manda a pessoa para a página de verdade. A prévia no link copiado da barra do navegador (a opção "pelo `User-Agent`") ficou como **1.b**, porque dependia de como o front fosse hospedado. Em 20/10/2026 o usuário decidiu levar o front para S3 + CloudFront, e a função da borda manda o robô que pede `/mural/12` para esta mesma rota, como `/s/mural/12` ("Produção" abaixo, `hospedagem.md`).
 
 ## Por que uma rota e não a SPA
 
@@ -60,7 +60,13 @@ Se virar problema, o link de compartilhamento passa a levar uma assinatura (HMAC
 
 ## Produção
 
-O front no Amplify precisa de um rewrite `/s/<*>` → `https://<api>/s/<*>` (200, proxy), **antes** do rewrite da SPA (`hospedagem.md`). Em dev, o `vite.config.ts` faz o mesmo com o proxy `^/s/`.
+~~O front no Amplify precisa de um rewrite `/s/<*>` → `https://<api>/s/<*>` (200, proxy), antes do rewrite da SPA.~~ Desde 20/10/2026 quem decide é a função `infra/cloudfront/web-viewer-request.js`, na distribuição do front (`hospedagem.md`, "Front e a prévia de links"):
+
+- `/s/...` vai para a origem da API, como antes;
+- robô de prévia (`facebookexternalhit`, `WhatsApp`, `TelegramBot` e afins) em `/{feed,mural,eventos,bandas,perfil}/{chave}` (fora do `ensaio.`) vai para a mesma origem como `/s/{seção}/{chave}`. A API não muda nada: recebe o mesmo caminho do botão "Compartilhar";
+- a pessoa recebe a SPA, como sempre.
+
+O `og:url` continua sendo o link `/s/...`, e o Facebook, que segue o `og:url`, cai na mesma rota. Em dev, o `vite.config.ts` repassa só `^/s/` (sem desvio de robô).
 
 ## Roteiro de verificação
 

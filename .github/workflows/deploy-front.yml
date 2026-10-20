@@ -1,0 +1,75 @@
+name: Deploy Front
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'frontend/**'
+      - 'infra/cloudfront/**'
+      - '.github/workflows/deploy-front.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-front
+  cancel-in-progress: false
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    name: Build, upload to S3 and publish on CloudFront
+    if: vars.WEB_BUCKET != ''
+    runs-on: ubuntu-latest
+    env:
+      VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+      VITE_MAIN_URL: ${{ vars.VITE_MAIN_URL }}
+      VITE_ENSAIO_URL: ${{ vars.VITE_ENSAIO_URL }}
+      VITE_GOOGLE_CLIENT_ID: ${{ vars.VITE_GOOGLE_CLIENT_ID }}
+      VITE_FACEBOOK_APP_ID: ${{ vars.VITE_FACEBOOK_APP_ID }}
+      BUCKET: ${{ vars.WEB_BUCKET }}
+      DISTRIBUTION_ID: ${{ vars.WEB_DISTRIBUTION_ID }}
+      FUNCTION_NAME: noisevault-web-viewer-request
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Build
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.WEB_DEPLOY_ROLE_ARN }}
+          aws-region: sa-east-1
+
+      - name: Upload
+        working-directory: frontend/dist
+        run: |
+          aws s3 sync assets "s3://$BUCKET/assets" --cache-control "public, max-age=31536000, immutable"
+          aws s3 sync . "s3://$BUCKET" --delete --exclude "assets/*" --exclude "*.webmanifest" --exclude "index.html" --exclude "sw.js" --exclude "offline.html" --cache-control "public, max-age=86400"
+          for manifest in *.webmanifest; do
+            aws s3 cp "$manifest" "s3://$BUCKET/$manifest" --content-type "application/manifest+json" --cache-control "no-cache"
+          done
+          aws s3 cp sw.js "s3://$BUCKET/sw.js" --content-type "text/javascript" --cache-control "no-cache"
+          aws s3 cp offline.html "s3://$BUCKET/offline.html" --content-type "text/html; charset=utf-8" --cache-control "no-cache"
+          aws s3 cp index.html "s3://$BUCKET/index.html" --content-type "text/html; charset=utf-8" --cache-control "no-cache"
+
+      - name: Publish the viewer request function
+        run: |
+          etag=$(aws cloudfront describe-function --name "$FUNCTION_NAME" --stage DEVELOPMENT --query ETag --output text)
+          etag=$(aws cloudfront update-function --name "$FUNCTION_NAME" --if-match "$etag" \
+            --function-config '{"Comment":"SPA, www e previa de link","Runtime":"cloudfront-js-2.0"}' \
+            --function-code fileb://infra/cloudfront/web-viewer-request.js --query ETag --output text)
+          aws cloudfront publish-function --name "$FUNCTION_NAME" --if-match "$etag" > /dev/null
+
+      - name: Invalidate
+        run: aws cloudfront create-invalidation --distribution-id "$DISTRIBUTION_ID" --paths "/*" > /dev/null

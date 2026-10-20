@@ -2,7 +2,7 @@
 
 Backlog de produto levantado em 14/10/2026, para trazer a comunidade do grupo do Facebook (pouco mais de 4 mil membros, muita gente das antigas compartilhando vídeos e fotos antigas, e gente nova) e para movimentar as bandas locais. **Nada daqui é decisão ainda.** Cada ideia é lapidada antes de virar módulo e, quando virar, ganha a sua rule em `api/.claude/rules/` e `frontend/.claude/rules/`, e uma linha na ordem de `api/.claude/rules/dominio.md`. Aí a ideia sai deste arquivo.
 
-O que já virou módulo saiu daqui em 20/10/2026: prévia ao compartilhar (1), envio da comunidade para o mural (2), marcações (3), login social (6), PWA parte 1 (7), Ensaio (8a), sessão por cookie, discografia (9) e seguir banda (10). As rules desses módulos citam os números antigos, por isso a numeração de quem ficou não mudou.
+O que já virou módulo saiu daqui em 20/10/2026: prévia ao compartilhar (1) e no link copiado da barra (1.b, o front em S3 + CloudFront, `api/.claude/rules/hospedagem.md`), envio da comunidade para o mural (2), marcações (3), login social (6), PWA parte 1 (7), Ensaio (8a), sessão por cookie, discografia (9) e seguir banda (10). As rules desses módulos citam os números antigos, por isso a numeração de quem ficou não mudou.
 
 ## A tese
 
@@ -11,14 +11,6 @@ As pessoas não vão sair do grupo do Facebook por uma lista de recursos. Elas v
 O Facebook é ótimo para **postar** e péssimo para **guardar**: em uma semana a foto de 1988 some no feed, ninguém acha de novo, e quem aparece nela nunca fica sabendo. O Noise Vault é o arquivo organizado (por ano, show, banda, casa) e o lugar onde a cena se encontra de novo.
 
 ## A ponte com o grupo do Facebook
-
-### 1.b Prévia também no link copiado da barra do navegador
-
-- **Problema**: quase todo mundo copia o endereço da barra (`/mural/12`), e não usa o botão. Esse link continua sem foto e sem título.
-- **Ideia**: quem serve o front olha o `User-Agent` e manda os robôs (`facebookexternalhit`, `WhatsApp`, `Twitterbot`, `TelegramBot`, `Discordbot`) para a mesma rota `/s/...` da API; a pessoa recebe a SPA de sempre.
-- **Depende da hospedagem**: o Amplify não deixa pôr função no CloudFront dele. Com o front em S3 + o mesmo CloudFront da mídia, uma CloudFront Function (`cf.updateRequestOrigin`) resolve, sem custo extra no plano. Ver "Front e a prévia de links" em `api/.claude/rules/hospedagem.md`.
-- **Apoio**: a montagem das tags já existe (`SharePreviewAppService`); falta só desviar o robô.
-- **Liga com o 16 (SEO)**: o mesmo desvio de robô serve ao Google e às IAs, com o HTML do conteúdo inteiro e não só das tags de prévia.
 
 ### 3.b Pedir remoção da foto inteira
 
@@ -111,7 +103,7 @@ Levantado em 20/10/2026. **SEO** é aparecer no Google quando alguém pesquisa "
   - Candidatas: página de banda (nome, cidade, desde quando, integrantes, próximos shows), evento (data, local, line-up, o que mais se pesquisa), registro do mural (história da cena, conteúdo único), a agenda e a lista de bandas.
   - Continuam pedindo login: curtir, comentar, postar, "Vou", "Eu estava lá", o feed.
   - Perfil de pessoa fechado por padrão, por privacidade ("Dado pessoal", `CLAUDE.md`).
-- **HTML montado no servidor para as páginas públicas.** O `SharePage.cs` já monta HTML para robô; a ideia é devolver o conteúdo de verdade (texto, line-up, integrantes), não só as tags. Depende do desvio de robô do 1.b.
+- **HTML montado no servidor para as páginas públicas.** O `SharePage.cs` já monta HTML para robô; a ideia é devolver o conteúdo de verdade (texto, line-up, integrantes), não só as tags. O desvio de robô já existe na função do CloudFront do front (`infra/cloudfront/web-viewer-request.js`); falta acrescentar o Googlebot e os robôs das IAs, e a API devolver o conteúdo.
 - **O básico técnico:**
   - `robots.txt` em `frontend/public/`: libera as páginas públicas, bloqueia `/admin`, `/api` e `/hangfire`, aponta para o sitemap;
   - `sitemap.xml` gerado pela API, com bandas, eventos e registros publicados e a data de atualização de cada um;
@@ -143,7 +135,7 @@ Levantado em 20/10/2026. **SEO** é aparecer no Google quando alguém pesquisa "
 
 1. "Neste dia" (4) e resumo semanal (5).
 2. O básico de SEO (16: `robots.txt`, Search Console, título por página) e a decisão do que fica público.
-3. Prévia no link da barra (1.b) junto com o HTML no servidor do SEO (16): o mesmo desvio de robô resolve os dois.
+3. HTML no servidor para o SEO (16), em cima do desvio de robô que a prévia já usa.
 4. Pedir remoção da foto (3.b), antes de divulgar forte no grupo.
 5. Bandas: lançamentos (10), press kit (9), o que ficou do Ensaio (8a.2), mercado (8b).
 6. Casas de show (11), áudio (13), histórias (14), banda da semana (12), Web Push (7b), GEO (17) e podcast (15), conforme o uso pedir.

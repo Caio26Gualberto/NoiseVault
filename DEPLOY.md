@@ -12,7 +12,7 @@ O que vai existir no fim:
 | Fotos e vídeos | S3 privado + CloudFront | `media.noisevault.net` |
 | Conversão de vídeo | MediaConvert (por uso) | sem endereço; a API cria o job |
 | E-mail de confirmação e redefinição | SES pela SDK, com a chave da API | `nao-responda@noisevault.net` |
-| Site e o Ensaio | Amplify (um app, dois domínios) | `noisevault.net`, `ensaio.noisevault.net` |
+| Site e o Ensaio | ~~Amplify (um app, dois domínios)~~ S3 + CloudFront próprio desde 20/10/2026 (passo 14) | `noisevault.net`, `ensaio.noisevault.net` |
 | DNS | Cloudflare (onde o domínio está registrado) | zona `noisevault.net` |
 
 Arquivos do repositório usados aqui: `infra/lightsail/` (compose, Caddyfile, `.env.example`, `backup.sh`), `api/Dockerfile`, `amplify.yml` e `customHttp.yml`, os dois na raiz (o Amplify só lê os dois da raiz, mesmo em monorepo). Em monorepo o `customHttp.yml` também precisa do formato `applications: - appRoot: frontend` com os `customHeaders` dentro; sem isso o build passa e a etapa de deploy falha com `Monorepo spec provided without "applications" key` (os deploys 2 a 8 de 17/10/2026 falharam assim).
@@ -241,6 +241,8 @@ docker compose exec -T postgres pg_restore -U noisevault -d noisevault --clean -
 
 ## 8. Amplify: o site
 
+**Substituído pelo passo 14** (front em S3 + CloudFront, decidido em 20/10/2026 para a prévia valer no link copiado da barra). Fica aqui como registro do primeiro deploy e como volta atrás durante a virada.
+
 1. **AWS Amplify → Create new app → GitHub.** Autorize o GitHub e escolha o repositório `NoiseVault`, branch `main`.
 2. Marque **My app is a monorepo** e informe a pasta `frontend`. O Amplify lê o `amplify.yml` da raiz (já aponta `appRoot: frontend`).
 3. Em **Environment variables**, adicione:
@@ -330,7 +332,7 @@ docker compose up -d api
 
 Migration já aplicada não é desfeita sozinha: se a versão nova criou tabela, restaure o backup antes. O próximo push na `main` volta a publicar o `latest` novo.
 
-**Nova versão do front:** `git push` na `main`. O Amplify builda e publica sozinho; o CI do GitHub continua validando antes.
+**Nova versão do front:** `git push` na `main`. O workflow "Deploy Front" builda, sobe para o bucket `noisevault-web`, publica a função da borda e invalida o cache (passo 14); o CI do GitHub continua validando em paralelo. Até a virada, quem publica é o Amplify.
 
 **Logs:** `docker compose logs --tail 200 api`. Cada evento é uma linha `LEVEL data (contexto) EVENTO: mensagem | ...`. Um 500 aparece como `UNHANDLED_EXCEPTION` com `X-Trace-Id`.
 
@@ -375,3 +377,132 @@ As decisões estão em `api/.claude/rules/login-social.md`. Aqui ficam só os cl
 - **Lightsail** (`~/noisevault/infra/lightsail/.env`): `Auth__Google__ClientId`, `Auth__Facebook__AppId` e `Auth__Facebook__AppSecret`; depois `docker compose up -d api`. O boot deixa de avisar `EXTERNAL_PROVIDER_DISABLED`.
 - **Amplify → Environment variables**: `VITE_GOOGLE_CLIENT_ID` e `VITE_FACEBOOK_APP_ID` (os mesmos valores públicos), e **Redeploy**. Sem elas os botões não aparecem.
 - **Dev**: `frontend/.env` com as duas `VITE_*`, e na API o bloco `Auth` do `appsettings.Development.json` (`Google:ClientId`, `Facebook:AppId`, `Facebook:AppSecret`). O arquivo fica fora do Git.
+
+## 14. Front em S3 + CloudFront (saída do Amplify)
+
+Decidido em 20/10/2026, para a prévia do WhatsApp e do Facebook aparecer também no link copiado da barra do navegador, e não só no link do botão "Compartilhar". O porquê está em `api/.claude/rules/hospedagem.md`, "Front e a prévia de links". As peças do repositório são `infra/cloudfront/web-viewer-request.js` (a função da borda) e `.github/workflows/deploy-front.yml` (o deploy).
+
+Os passos 14.1 a 14.5 não mexem no site no ar: o Amplify continua servindo até a virada (14.6). Tudo é feito na região **São Paulo**, menos o certificado, que já existe (o coringa do passo 3).
+
+### 14.1 O bucket do site
+
+1. **S3 → Create bucket.** Nome `noisevault-web`, região São Paulo, **Block all public access ligado**. Crie.
+2. Não precisa de CORS nem de lifecycle. A política do bucket o assistente do CloudFront grava no 14.3.
+
+### 14.2 A função da borda
+
+1. **CloudFront → Functions → Create function.** Nome `noisevault-web-viewer-request` (exatamente esse, porque o workflow procura por ele), runtime **cloudfront-js-2.0**. Crie.
+2. Na aba **Build**, apague o exemplo e cole o conteúdo de `infra/cloudfront/web-viewer-request.js`. **Save changes.**
+3. Aba **Publish → Publish function.** Daqui em diante, o workflow republica o código do repositório a cada deploy; edição feita no console é sobrescrita.
+
+### 14.3 A distribuição
+
+1. **CloudFront → Create distribution.**
+   - **Choose a plan:** Flat-rate plans → **Free**. É um segundo plano Free na conta (o limite é 3), com cota própria: o site não divide com a mídia o 1 milhão de requisições e os 100 GB.
+   - **Get started:** nome `noisevault-web`.
+   - **Specify origin:** Amazon S3, origem `noisevault-web.s3.sa-east-1.amazonaws.com`, sem origin path, **Allow private S3 bucket access to CloudFront** marcado (OAC). Settings recomendados para S3.
+   - **Enable security:** as proteções incluídas ficam, com **Use monitor mode** marcado na primeira semana (desmarque depois, como na mídia).
+   - **Review and create.**
+2. **Origins → Create origin**, a origem da API:
+   - Origin domain: `api.noisevault.net`;
+   - Protocol: **HTTPS only**, porta 443, TLSv1.2;
+   - **Name: `noisevault-api`**, exatamente esse, porque a função escolhe a origem por esse nome.
+   - Crie.
+3. **Behaviors → o behavior padrão → Edit:**
+   - Viewer protocol policy: **Redirect HTTP to HTTPS**;
+   - Allowed HTTP methods: **GET, HEAD**;
+   - Cache policy: **CachingOptimized**. Ela respeita o `Cache-Control` de cada objeto e os 5 minutos da prévia da API;
+   - Origin request policy e Response headers policy: **nenhuma**;
+   - **Function associations → Viewer request:** Function type **CloudFront Functions**, função `noisevault-web-viewer-request`. Viewer response, origin request e origin response ficam vazios;
+   - Save changes.
+4. Na aba **General**, copie o **Distribution domain name** (`dxxxx.cloudfront.net`) e o **ID** (`E...`).
+5. **Ainda não** adicione os domínios: eles estão no Amplify, e a AWS recusa o mesmo nome em duas distribuições. Isso fica para o 14.6.
+
+### 14.4 O acesso do GitHub Actions (OIDC, sem chave guardada)
+
+1. **IAM → Identity providers → Add provider:**
+   - Provider type: **OpenID Connect**;
+   - Provider URL: `https://token.actions.githubusercontent.com`;
+   - Audience: `sts.amazonaws.com`;
+   - Add provider.
+2. **IAM → Policies → Create policy → JSON**. Cole a política abaixo, trocando `<conta>` e o ID da distribuição. Nome `noisevault-web-deploy`.
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "Site",
+      "Effect": "Allow",
+      "Action": ["s3:PutObject", "s3:GetObject", "s3:DeleteObject"],
+      "Resource": "arn:aws:s3:::noisevault-web/*"
+    },
+    {
+      "Sid": "SiteList",
+      "Effect": "Allow",
+      "Action": "s3:ListBucket",
+      "Resource": "arn:aws:s3:::noisevault-web"
+    },
+    {
+      "Sid": "Function",
+      "Effect": "Allow",
+      "Action": ["cloudfront:DescribeFunction", "cloudfront:UpdateFunction", "cloudfront:PublishFunction"],
+      "Resource": "arn:aws:cloudfront::<conta>:function/noisevault-web-viewer-request"
+    },
+    {
+      "Sid": "Invalidate",
+      "Effect": "Allow",
+      "Action": "cloudfront:CreateInvalidation",
+      "Resource": "arn:aws:cloudfront::<conta>:distribution/<ID da distribuição>"
+    }
+  ]
+}
+```
+
+3. **IAM → Roles → Create role:**
+   - Trusted entity: **Web identity**, provider `token.actions.githubusercontent.com`, audience `sts.amazonaws.com`;
+   - GitHub organization `Caio26Gualberto`, repository `NoiseVault`, branch `main`;
+   - Permissions: `noisevault-web-deploy`;
+   - Nome `noisevault-web-deploy`. Crie e copie o **ARN** da role.
+
+### 14.5 As variables do repositório e o primeiro deploy
+
+1. **GitHub → repositório → Settings → Secrets and variables → Actions → aba Variables → New repository variable.** São valores públicos, por isso variable e não secret:
+
+| Variable | Valor |
+|---|---|
+| `WEB_BUCKET` | `noisevault-web` |
+| `WEB_DISTRIBUTION_ID` | o ID `E...` do 14.3 |
+| `WEB_DEPLOY_ROLE_ARN` | o ARN da role do 14.4 |
+| `VITE_API_BASE_URL` | `https://api.noisevault.net` |
+| `VITE_MAIN_URL` | `https://noisevault.net` |
+| `VITE_ENSAIO_URL` | `https://ensaio.noisevault.net` |
+| `VITE_GOOGLE_CLIENT_ID` | o mesmo do Amplify |
+| `VITE_FACEBOOK_APP_ID` | o mesmo do Amplify |
+
+   Sem `WEB_BUCKET`, o job "Deploy Front" é pulado. É por isso que os pushes anteriores a este passo não falharam.
+2. **Actions → Deploy Front → Run workflow.** Leva uns 2 minutos.
+3. Teste pelo endereço da distribuição, antes de mexer no domínio:
+   - `https://dxxxx.cloudfront.net/` abre o site. O login não funciona aqui, porque esse endereço não está no CORS da API. É esperado;
+   - `https://dxxxx.cloudfront.net/eventos` (rota da SPA) abre o site, e não um erro XML do S3;
+   - `curl -s -A "WhatsApp/2.23" https://dxxxx.cloudfront.net/mural/1 | grep og:title` mostra o título do registro;
+   - `curl -sI https://dxxxx.cloudfront.net/sw.js` mostra `cache-control: no-cache`.
+
+### 14.6 A virada (de madrugada: o site fica fora do ar alguns minutos)
+
+1. **Amplify → app `noisevault` → Hosting → Custom domains → `noisevault.net` → Remove domain.** O domínio sai junto com o `www` e o `ensaio`. A partir daqui o site está fora do ar.
+2. **CloudFront → `noisevault-web` → General → Alternate domain names → Add domain**: `noisevault.net`, `www.noisevault.net` e `ensaio.noisevault.net`, com o certificado coringa do passo 3. Se recusar com "already associated", o Amplify ainda não liberou o nome: espere uns minutos e tente de novo.
+3. **Cloudflare → DNS → Records:** edite os três CNAMEs que apontavam para o Amplify (`noisevault.net`, `www` e `ensaio`). O Target de todos passa a ser o `dxxxx.cloudfront.net` do 14.3, sempre **DNS only**.
+4. Espere a distribuição sair de "Deploying" e confira:
+   - `https://noisevault.net` abre, o login funciona e a sessão vale em `https://ensaio.noisevault.net`;
+   - `https://www.noisevault.net/eventos` redireciona para `https://noisevault.net/eventos`;
+   - copie da barra o endereço de um registro do mural e cole numa conversa do WhatsApp: a prévia mostra foto e título. No Facebook, confira no Sharing Debugger (https://developers.facebook.com/tools/debug/), com **Scrape Again**;
+   - o link do botão "Compartilhar" (`/s/...`) continua com prévia;
+   - no celular com o app instalado, a versão nova chega (aviso de atualização) e a página sem conexão continua aparecendo.
+5. **Se algo der errado:** remova os três domínios da distribuição, adicione de novo no Amplify (passo 8.7) e volte os CNAMEs para o domínio do Amplify. A verificação do Amplify leva de 10 a 30 minutos.
+
+### 14.7 Depois da virada
+
+- Apague o app no Amplify (**App settings → General → Delete app**), para ele não buildar mais a cada push.
+- Apague `amplify.yml` e `customHttp.yml` da raiz do repositório, num commit `Repo:`.
+- Desmarque o monitor mode da segurança da `noisevault-web` depois da primeira semana.
