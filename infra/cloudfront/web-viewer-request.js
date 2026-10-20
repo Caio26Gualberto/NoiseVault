@@ -4,7 +4,9 @@ const MAIN_HOST = 'noisevault.net';
 const ENSAIO_HOST = `ensaio.${MAIN_HOST}`;
 const API_ORIGIN_ID = 'noisevault-api';
 const PREVIEW_BOTS = /facebookexternalhit|facebot|whatsapp|twitterbot|telegrambot|discordbot|slackbot|linkedinbot|skypeuripreview/i;
+const SEARCH_BOTS = /googlebot|bingbot|duckduckbot|yandexbot|applebot|gptbot|oai-searchbot|chatgpt-user|claudebot|claude-searchbot|claude-user|perplexitybot|perplexity-user|ccbot/i;
 const SHAREABLE_PAGE = /^\/(feed|mural|eventos|bandas|perfil)\/[^\/]+$/;
+const INDEXABLE_PAGE = /^\/(eventos(\/\d+)?|mural(\/\d+)?|bandas\/(?!nova$)[^\/]+)?$/;
 const STATIC_FILE = /\.(css|js|mjs|map|png|jpg|jpeg|gif|svg|ico|webp|avif|woff|woff2|ttf|json|webmanifest|txt|xml|html)$/i;
 
 function header(request, name) {
@@ -42,9 +44,25 @@ function handler(event) {
         return request;
     }
 
+    if (uri === '/sitemap.xml') {
+        request.uri = '/seo/sitemap.xml';
+        request.querystring = {};
+        cf.selectRequestOriginById(API_ORIGIN_ID);
+        return request;
+    }
+
     const page = uri.length > 1 && uri.endsWith('/') ? uri.slice(0, -1) : uri;
-    if (host !== ENSAIO_HOST && SHAREABLE_PAGE.test(page) && PREVIEW_BOTS.test(header(request, 'user-agent'))) {
+    const userAgent = header(request, 'user-agent');
+
+    if (host !== ENSAIO_HOST && SHAREABLE_PAGE.test(page) && PREVIEW_BOTS.test(userAgent)) {
         request.uri = `/s${page}`;
+        request.querystring = {};
+        cf.selectRequestOriginById(API_ORIGIN_ID);
+        return request;
+    }
+
+    if (host !== ENSAIO_HOST && INDEXABLE_PAGE.test(page) && SEARCH_BOTS.test(userAgent)) {
+        request.uri = page === '/' ? '/seo' : `/seo${page}`;
         request.querystring = {};
         cf.selectRequestOriginById(API_ORIGIN_ID);
         return request;

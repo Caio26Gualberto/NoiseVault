@@ -62,7 +62,9 @@ O robô de busca e o de IA não executam JavaScript com confiança (a maioria do
 - **Prévia** (vão para `/s/...`): `facebookexternalhit`, `Facebot`, `WhatsApp`, `Twitterbot`, `TelegramBot`, `Discordbot`, `Slackbot`, `LinkedInBot`, `SkypeUriPreview`. Testados primeiro.
 - **Busca e IA** (vão para `/seo/...`): `Googlebot`, `bingbot`, `DuckDuckBot`, `YandexBot`, `Applebot`, `GPTBot`, `OAI-SearchBot`, `ChatGPT-User`, `ClaudeBot`, `Claude-SearchBot`, `Claude-User`, `PerplexityBot`, `Perplexity-User`, `CCBot`.
 - **`User-Agent` pode ser falsificado**: quem se passa por Googlebot recebe o HTML do conteúdo público, que já é público. Não há o que proteger.
-- **`robots.txt`** (`frontend/public/robots.txt`): libera tudo, bloqueia as telas de conta, de suporte, de administração e de auth, e aponta o sitemap. O `Google-Extended` fica liberado.
+- **`robots.txt`** (`frontend/public/robots.txt`): libera tudo e aponta o sitemap. O grupo `*` bloqueia o que só abre com login (feed, perfis, conta, suporte, administração, auth, formulários e `/*/editar`), para o buscador não indexar a tela de login no lugar da página. O `Google-Extended` e os robôs de IA ficam liberados.
+  - **Os robôs de prévia têm um grupo próprio com `Allow: /`.** Alguns (o `Twitterbot`, por exemplo) obedecem ao `robots.txt`, e o bloqueio de `/feed` e `/perfil` do grupo `*` sumiria com a prévia do link copiado de um post ou de um perfil. Quem casa com um grupo nomeado ignora o `*`.
+  - **O `/s/` não é bloqueado**, pelo mesmo motivo: a página dele já leva `noindex`, que é o que tira do índice. Bloquear no `robots.txt` impediria o buscador de ler o `noindex`.
 - **`llms.txt`** (`frontend/public/llms.txt`): o resumo do site para IAs, com links para a agenda, o mural e o sitemap. É uma proposta recente, sem garantia de leitura; custa pouco.
 
 ## Roteiro de verificação

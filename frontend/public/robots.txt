@@ -1,0 +1,34 @@
+User-agent: facebookexternalhit
+User-agent: Facebot
+User-agent: WhatsApp
+User-agent: Twitterbot
+User-agent: TelegramBot
+User-agent: Discordbot
+User-agent: Slackbot
+User-agent: LinkedInBot
+Allow: /
+
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /feed
+Disallow: /perfil
+Disallow: /minha-conta
+Disallow: /meu-perfil
+Disallow: /suporte
+Disallow: /reportar-problema
+Disallow: /bem-vindo
+Disallow: /entrar
+Disallow: /criar-conta
+Disallow: /confirmar-email
+Disallow: /esqueci-senha
+Disallow: /redefinir-senha
+Disallow: /definir-senha
+Disallow: /mural/envios
+Disallow: /mural/enviar
+Disallow: /mural/novo
+Disallow: /eventos/novo
+Disallow: /bandas/nova
+Disallow: /*/editar
+
+Sitemap: https://noisevault.net/sitemap.xml

@@ -2,7 +2,7 @@
 
 Backlog de produto levantado em 14/10/2026, para trazer a comunidade do grupo do Facebook (pouco mais de 4 mil membros, muita gente das antigas compartilhando vídeos e fotos antigas, e gente nova) e para movimentar as bandas locais. **Nada daqui é decisão ainda.** Cada ideia é lapidada antes de virar módulo e, quando virar, ganha a sua rule em `api/.claude/rules/` e `frontend/.claude/rules/`, e uma linha na ordem de `api/.claude/rules/dominio.md`. Aí a ideia sai deste arquivo.
 
-O que já virou módulo saiu daqui em 20/10/2026: prévia ao compartilhar (1) e no link copiado da barra (1.b, o front em S3 + CloudFront, `api/.claude/rules/hospedagem.md`), envio da comunidade para o mural (2), marcações (3), login social (6), PWA parte 1 (7), Ensaio (8a), sessão por cookie, discografia (9) e seguir banda (10). As rules desses módulos citam os números antigos, por isso a numeração de quem ficou não mudou.
+O que já virou módulo saiu daqui em 20/10/2026: prévia ao compartilhar (1) e no link copiado da barra (1.b, o front em S3 + CloudFront, `api/.claude/rules/hospedagem.md`), envio da comunidade para o mural (2), marcações (3), login social (6), PWA parte 1 (7), Ensaio (8a), sessão por cookie, discografia (9), seguir banda (10) e SEO (16). As rules desses módulos citam os números antigos, por isso a numeração de quem ficou não mudou.
 
 ## A tese
 
@@ -93,35 +93,16 @@ O Facebook é ótimo para **postar** e péssimo para **guardar**: em uma semana 
 
 ## Ser encontrado
 
-Levantado em 20/10/2026. **SEO** é aparecer no Google quando alguém pesquisa "show de metal em Santo André" ou o nome de uma banda do ABC. **GEO** (Generative Engine Optimization) é ser lido e citado pelas IAs (ChatGPT, Gemini, a "Visão geral" do Google, Perplexity) quando alguém pergunta "quais bandas de punk existem no ABC?". A base é a mesma; o GEO pesa mais em texto claro, dados estruturados e ser fonte citável. O SEO local (aparecer para quem pesquisa na região) entra junto.
+**SEO** é aparecer no Google quando alguém pesquisa "show de metal em Santo André" ou o nome de uma banda do ABC. **GEO** (Generative Engine Optimization) é ser lido e citado pelas IAs (ChatGPT, Gemini, a "Visão geral" do Google, Perplexity). O item 16 (SEO) virou módulo em 20/10/2026: banda, agenda, evento e mural abertos sem login, HTML com JSON-LD para buscadores e IAs, sitemap, `robots.txt` e `llms.txt` (`api/.claude/rules/seo.md`, `frontend/.claude/rules/visitante.md`). O que sobrou:
 
-**Hoje o Google não vê quase nada**: no `src/app.tsx`, feed, bandas, eventos, mural e perfis estão atrás de `RequireAuth`, e o robô não faz login. Só login, cadastro e privacidade são indexáveis. E a SPA devolve o mesmo `index.html` vazio para toda rota: o Google executa JavaScript com atraso, e a maioria dos robôs de IA não executa.
+### 16.b Lista de bandas
 
-### 16. SEO
-
-- **Decisão de produto, a que mais pesa: o que fica público para leitura, sem login.**
-  - Candidatas: página de banda (nome, cidade, desde quando, integrantes, próximos shows), evento (data, local, line-up, o que mais se pesquisa), registro do mural (história da cena, conteúdo único), a agenda e a lista de bandas.
-  - Continuam pedindo login: curtir, comentar, postar, "Vou", "Eu estava lá", o feed.
-  - Perfil de pessoa fechado por padrão, por privacidade ("Dado pessoal", `CLAUDE.md`).
-- **HTML montado no servidor para as páginas públicas.** O `SharePage.cs` já monta HTML para robô; a ideia é devolver o conteúdo de verdade (texto, line-up, integrantes), não só as tags. O desvio de robô já existe na função do CloudFront do front (`infra/cloudfront/web-viewer-request.js`); falta acrescentar o Googlebot e os robôs das IAs, e a API devolver o conteúdo.
-- **O básico técnico:**
-  - `robots.txt` em `frontend/public/`: libera as páginas públicas, bloqueia `/admin`, `/api` e `/hangfire`, aponta para o sitemap;
-  - `sitemap.xml` gerado pela API, com bandas, eventos e registros publicados e a data de atualização de cada um;
-  - título e descrição próprios por página (hoje toda página é `<title>Noise Vault</title>`);
-  - URL canônica, para `ensaio.noisevault.net` e o site principal não competirem pelo mesmo conteúdo;
-  - domínio no **Google Search Console**: enviar o sitemap e acompanhar o que foi indexado.
-- **Dados estruturados (JSON-LD)**, que também servem ao GEO:
-  - evento → `MusicEvent` (data, local, bandas): o show pode aparecer como card de evento direto na busca;
-  - banda → `MusicGroup` (integrantes, cidade, gênero);
-  - o site → `Organization` / `WebSite`.
-- **Dá para fazer já, sem decisão**: `robots.txt`, Search Console e título por página.
+- Não existe `/bandas`: a banda só é achada pelo line-up, pelo mural ou pelo perfil. Uma lista paginada, aberta e com filtro de cidade e estilo, é uma página a mais para o buscador e o começo das páginas por cidade (17).
 
 ### 17. GEO
 
-- **Texto que responde pergunta**: "Banda de crust punk de Santo André, formada em 1991" na página da banda é a frase que uma IA cita. Os campos que já existem (cidade, ano, gênero) podem montar essa frase sozinhos.
-- **Páginas por cidade e por estilo**: "Shows em São Bernardo", "Bandas de hardcore do ABC". Ajudam o SEO local e o GEO ao mesmo tempo.
-- **Robôs das IAs no `robots.txt`** (GPTBot, ClaudeBot, PerplexityBot, Google-Extended): liberar ou bloquear é decisão do usuário (ser citado × ter o conteúdo usado para treino).
-- **`llms.txt`** na raiz: um resumo do site para IAs. Proposta recente, sem garantia de que os robôs leiam, mas custa pouco.
+- **Texto que responde pergunta**: "Banda de crust punk de Santo André, formada em 1991". A descrição do HTML da banda já monta "Banda · cidade · desde · estilos"; falta virar uma frase corrida, que é o que a IA cita.
+- **Páginas por cidade e por estilo**: "Shows em São Bernardo", "Bandas de hardcore do ABC". Ajudam o SEO local e o GEO ao mesmo tempo. Dependem do 16.b para as bandas.
 - **Ser citado fora**: casas de show, bandas e páginas da cena linkando para o Noise Vault. Pesa para o Google e para as IAs.
 
 ## Fora do código, mas pesa tanto quanto
@@ -134,8 +115,8 @@ Levantado em 20/10/2026. **SEO** é aparecer no Google quando alguém pesquisa "
 ## Ordem sugerida
 
 1. "Neste dia" (4) e resumo semanal (5).
-2. O básico de SEO (16: `robots.txt`, Search Console, título por página) e a decisão do que fica público.
-3. HTML no servidor para o SEO (16), em cima do desvio de robô que a prévia já usa.
+2. Search Console e Bing (`DEPLOY.md`, passo 15), e depois a lista de bandas (16.b).
+3. GEO (17), quando o Search Console mostrar o que as pessoas pesquisam.
 4. Pedir remoção da foto (3.b), antes de divulgar forte no grupo.
 5. Bandas: lançamentos (10), press kit (9), o que ficou do Ensaio (8a.2), mercado (8b).
-6. Casas de show (11), áudio (13), histórias (14), banda da semana (12), Web Push (7b), GEO (17) e podcast (15), conforme o uso pedir.
+6. Casas de show (11), áudio (13), histórias (14), banda da semana (12), Web Push (7b) e podcast (15), conforme o uso pedir.

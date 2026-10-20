@@ -516,3 +516,32 @@ Os passos 14.1 a 14.5 não mexem no site no ar: o Amplify continua servindo até
 - Apague o app no Amplify (**App settings → General → Delete app**), para ele não buildar mais a cada push.
 - Apague `amplify.yml` e `customHttp.yml` da raiz do repositório, num commit `Repo:`.
 - Desmarque o monitor mode da segurança da `noisevault-web` depois da primeira semana.
+
+## 15. Buscadores: Google Search Console e Bing
+
+Começado em 20/10/2026, com o SEO (`api/.claude/rules/seo.md`). Nada a configurar na AWS: a função da borda já manda os buscadores para `/seo/...` e o `/sitemap.xml` para a API, e o `robots.txt` e o `llms.txt` sobem com o front.
+
+### 15.1 Conferir antes de cadastrar
+
+Depois do deploy da API e do front, no seu terminal:
+
+```bash
+curl -s https://noisevault.net/robots.txt | head -3
+curl -s https://noisevault.net/sitemap.xml | head -c 400
+curl -s -A "Googlebot/2.1" https://noisevault.net/eventos | grep -o "<h1>[^<]*"
+curl -s -A "Googlebot/2.1" https://noisevault.net/eventos/<id> | grep -o 'application/ld+json'
+```
+
+O sitemap lista `https://noisevault.net/...`, a agenda responde com o `<h1>` e o evento traz o JSON-LD. Cole a URL de um evento no **Teste de pesquisa aprimorada** (https://search.google.com/test/rich-results): ele deve achar um "Evento" sem erro.
+
+### 15.2 Google Search Console
+
+1. https://search.google.com/search-console → **Adicionar propriedade → Domínio** → `noisevault.net`.
+2. O Google mostra um registro **TXT** (`google-site-verification=...`). No Cloudflare, **Add record** tipo **TXT**, Name `@`, Content o valor inteiro. Volte e clique **Verificar** (pode levar alguns minutos).
+3. **Sitemaps** → `https://noisevault.net/sitemap.xml` → Enviar. Em um ou dois dias o status vira "Sucesso" com o número de páginas.
+4. **Inspeção de URL** → cole a URL de um evento → **Testar URL ativo**: a captura de tela e o HTML mostram o conteúdo do evento (não a tela de login). **Solicitar indexação** acelera a primeira vez.
+
+### 15.3 Bing (e o ChatGPT, que busca pelo Bing)
+
+1. https://www.bing.com/webmasters → **Importar do Google Search Console** (traz a propriedade e o sitemap de uma vez).
+2. Confira em **Sitemaps** que o `sitemap.xml` entrou.

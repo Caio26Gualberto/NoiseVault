@@ -94,10 +94,12 @@ Com ele, a prévia saía só pela **rota de compartilhamento** (`/s/<*>` repassa
 | `www.noisevault.net/...` | 301 para `https://noisevault.net/...`, com a query (o Amplify fazia esse redirect) |
 | `/s/...` | escolhe a origem `noisevault-api` (`cf.selectRequestOriginById`): a rota de compartilhamento de sempre |
 | robô de prévia em `/{feed,mural,eventos,bandas,perfil}/{chave}`, fora do Ensaio | troca o caminho para `/s/...` e escolhe a origem da API: o robô recebe as tags Open Graph da mesma página |
+| `/sitemap.xml` | troca para `/seo/sitemap.xml` na origem da API, para qualquer um (desde 20/10/2026, `seo.md`) |
+| buscador ou robô de IA em `/`, `/eventos`, `/eventos/{n}`, `/mural`, `/mural/{n}` ou `/bandas/{slug}`, fora do Ensaio | troca para `/seo/...` na origem da API: o HTML com o conteúdo e o JSON-LD (`seo.md`). Formulários (`/eventos/novo`, `/bandas/nova`) e rotas com login seguem para a SPA |
 | caminho com extensão de arquivo estático | segue para o bucket como está |
 | qualquer outro caminho (rota da SPA) | troca para `/index.html` |
 
-- **Robôs de prévia**, reconhecidos pelo `User-Agent`: `facebookexternalhit`, `Facebot`, `WhatsApp`, `Twitterbot`, `TelegramBot`, `Discordbot`, `Slackbot`, `LinkedInBot` e `SkypeUriPreview`. **O Googlebot fica de fora de propósito**: entregar ao buscador um HTML diferente do da pessoa é assunto do SEO (`IDEIAS.md`, 16), que pede HTML com o conteúdo, não só as tags.
+- **Robôs de prévia**, reconhecidos pelo `User-Agent`: `facebookexternalhit`, `Facebot`, `WhatsApp`, `Twitterbot`, `TelegramBot`, `Discordbot`, `Slackbot`, `LinkedInBot` e `SkypeUriPreview`. ~~O Googlebot fica de fora de propósito~~: desde 20/10/2026 os buscadores e os robôs de IA têm a rota própria `/seo/...`, com o conteúdo inteiro, testada depois da prévia (`seo.md`, que tem a lista dos robôs).
 - **Fora do `ensaio.noisevault.net`**: o Ensaio tem outras rotas, e `ensaio.noisevault.net/bandas/...` não existe. A checagem é "qualquer host menos o Ensaio", e não "só o `noisevault.net`", para o desvio poder ser testado pelo endereço `dxxxx.cloudfront.net` antes da virada.
 - Robô que pede `/mural/novo` ou `/bandas/nova` recebe o 404 com a prévia genérica da API. É inofensivo, e a regex fica simples.
 - **A SPA sai sem custom error response**: com OAC, o S3 responde 403 para chave que não existe, e transformar 403/404 em `index.html` na distribuição também engoliria o 404 da prévia genérica da API. A função decide antes, pelo caminho. A lista de extensões estáticas vem do rewrite antigo do Amplify, para `/perfil/joao.silva` (apelido com ponto) continuar caindo na SPA.

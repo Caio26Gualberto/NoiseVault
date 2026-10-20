@@ -1,0 +1,21 @@
+# Noise Vault
+
+> A cena do ABC Paulista (Santo André, São Bernardo, São Caetano, Diadema, Mauá, Ribeirão Pires e Rio Grande da Serra) num lugar só: agenda de shows, o mural das antigas com fotos e fitas dos anos 80 e 90, e as páginas das bandas de metal, punk, hardcore e afins.
+
+O conteúdo aberto pode ser lido sem conta. Curtir, comentar, marcar "Vou" e seguir bandas pedem login.
+
+## Agenda
+
+- [Agenda de shows](https://noisevault.net/eventos): próximos shows, com data, local, cidade e line-up.
+
+## Mural das antigas
+
+- [Mural das antigas](https://noisevault.net/mural): o arquivo da cena, com a data na precisão que quem viveu lembra, o local, as bandas e a história contada.
+
+## Bandas
+
+- Cada banda tem a sua página em `https://noisevault.net/bandas/{slug}`, com cidade, ano de formação, estilos, integrantes, discografia, shows e registros do mural.
+
+## Índice
+
+- [Sitemap](https://noisevault.net/sitemap.xml): todas as páginas abertas.
