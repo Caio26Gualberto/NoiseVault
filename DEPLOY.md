@@ -464,6 +464,12 @@ Os passos 14.1 a 14.5 não mexem no site no ar: o Amplify continua servindo até
    - GitHub organization `Caio26Gualberto`, repository `NoiseVault`, branch `main`;
    - Permissions: `noisevault-web-deploy`;
    - Nome `noisevault-web-deploy`. Crie e copie o **ARN** da role.
+4. **Corrija a relação de confiança.** O repositório usa o *subject* imutável do OIDC do GitHub, com os IDs numéricos do dono e do repositório. Ele se confere com `gh api repos/Caio26Gualberto/NoiseVault/actions/oidc/customization/sub`. O `sub` que o assistente grava (`repo:Caio26Gualberto/NoiseVault:...`) nunca casa, e o deploy falha com `Not authorized to perform sts:AssumeRoleWithWebIdentity` (visto em 20/10/2026). Em **Trust relationships → Edit trust policy**, a condição fica:
+
+```json
+"StringEquals": { "token.actions.githubusercontent.com:aud": "sts.amazonaws.com" },
+"StringLike": { "token.actions.githubusercontent.com:sub": "repo:Caio26Gualberto@84203198/NoiseVault@1417948642:*" }
+```
 
 ### 14.5 As variables do repositório e o primeiro deploy
 
