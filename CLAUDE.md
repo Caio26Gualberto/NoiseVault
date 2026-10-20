@@ -15,7 +15,6 @@ NoiseVault/
 ├── CLAUDE.md            ← este arquivo: o que atravessa api e frontend
 ├── README.md            ← pré-requisitos e os comandos para subir tudo
 ├── DEPLOY.md            ← o deploy em produção na AWS (São Paulo), passo a passo pelo console
-├── amplify.yml          ← build do front no Amplify; sai depois da virada para o S3 (DEPLOY.md, passo 14)
 ├── infra/cloudfront/    ← função da borda do front: SPA, www → raiz e o robô de prévia mandado para /s/ da API
 ├── IDEIAS.md            ← backlog de produto para os próximos módulos (nada ali é decisão até virar rule)
 ├── docker-compose.yml   ← Postgres 17 na porta 5436, Mailpit (SMTP 1025, caixa em http://localhost:8025) e LocalStack S3 (http://localhost:4566)

@@ -332,7 +332,7 @@ docker compose up -d api
 
 Migration já aplicada não é desfeita sozinha: se a versão nova criou tabela, restaure o backup antes. O próximo push na `main` volta a publicar o `latest` novo.
 
-**Nova versão do front:** `git push` na `main`. O workflow "Deploy Front" builda, sobe para o bucket `noisevault-web`, publica a função da borda e invalida o cache (passo 14); o CI do GitHub continua validando em paralelo. Até a virada, quem publica é o Amplify.
+**Nova versão do front:** `git push` na `main`. O workflow "Deploy Front" builda, sobe para o bucket `noisevault-web`, publica a função da borda e invalida o cache (passo 14); o CI do GitHub continua validando em paralelo. **Voltar atrás**: `git revert` do commit e push. O "Run workflow" manual não serve para isso, porque sempre builda a ponta da `main`.
 
 **Logs:** `docker compose logs --tail 200 api`. Cada evento é uma linha `LEVEL data (contexto) EVENTO: mensagem | ...`. Um 500 aparece como `UNHANDLED_EXCEPTION` com `X-Trace-Id`.
 
@@ -510,6 +510,8 @@ Os passos 14.1 a 14.5 não mexem no site no ar: o Amplify continua servindo até
 5. **Se algo der errado:** remova os três domínios da distribuição, adicione de novo no Amplify (passo 8.7) e volte os CNAMEs para o domínio do Amplify. A verificação do Amplify leva de 10 a 30 minutos.
 
 ### 14.7 Depois da virada
+
+**Feito em 20/10/2026**: virada concluída, `amplify.yml` e `customHttp.yml` removidos do repositório.
 
 - Apague o app no Amplify (**App settings → General → Delete app**), para ele não buildar mais a cada push.
 - Apague `amplify.yml` e `customHttp.yml` da raiz do repositório, num commit `Repo:`.

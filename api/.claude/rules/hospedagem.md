@@ -125,7 +125,7 @@ A versão anterior desta rule dizia "o mesmo CloudFront da mídia". Ficou uma di
 
 ### A virada
 
-Um domínio só pode estar numa distribuição por vez, e a do Amplify é de uma conta da AWS, não da nossa. Por isso não dá para mover o domínio sem tirá-lo do Amplify antes. O site fica fora do ar por alguns minutos, entre remover o domínio do Amplify e o CloudFront aceitar o mesmo nome. O roteiro está no `DEPLOY.md`, passo 14. Depois da virada, saem o app do Amplify, o `amplify.yml` e o `customHttp.yml`.
+Um domínio só pode estar numa distribuição por vez, e a do Amplify é de uma conta da AWS, não da nossa. Por isso não dá para mover o domínio sem tirá-lo do Amplify antes. O site fica fora do ar por alguns minutos, entre remover o domínio do Amplify e o CloudFront aceitar o mesmo nome. O roteiro está no `DEPLOY.md`, passo 14. **Virada feita em 20/10/2026**, com o login, o Ensaio, o redirect do `www` e a prévia do link da barra no WhatsApp conferidos. O app do Amplify, o `amplify.yml` e o `customHttp.yml` saíram no mesmo dia.
 
 ## Quando o banco sair do Lightsail para o RDS
 
