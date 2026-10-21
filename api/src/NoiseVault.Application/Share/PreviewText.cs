@@ -78,6 +78,30 @@ namespace NoiseVault.Application.Share
             _ => "Single",
         };
 
+        public static string BandSentence(string name, IEnumerable<EMusicGenre> genres, string? cityName, string? uf, int? foundedYear)
+        {
+            var styles = genres.Where(g => g != EMusicGenre.Other).Select(g => Genre(g).ToLower(PtBr)).ToList();
+            var sentence = $"{name} é uma banda";
+
+            if (styles.Count > 0)
+                sentence += $" de {NaturalList(styles)}";
+
+            if (!string.IsNullOrWhiteSpace(cityName))
+                sentence += uf != null ? $" de {cityName} ({uf})" : $" de {cityName}";
+
+            if (foundedYear != null)
+                sentence += $", formada em {foundedYear}";
+
+            return sentence + ".";
+        }
+
+        public static string NaturalList(IReadOnlyList<string> items) => items.Count switch
+        {
+            0 => string.Empty,
+            1 => items[0],
+            _ => $"{string.Join(", ", items.Take(items.Count - 1))} e {items[^1]}",
+        };
+
         public static string Line(params string?[] parts) => string.Join(" · ", parts.Where(p => !string.IsNullOrWhiteSpace(p)));
 
         public static string? Count(int count, string singular, string plural) => count switch

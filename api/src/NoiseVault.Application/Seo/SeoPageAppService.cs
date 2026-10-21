@@ -283,7 +283,7 @@ namespace NoiseVault.Application.Seo
             var discography = (await _discographyAppService.Get(b.Slug)).Data?.Releases.Where(r => !r.IsHidden).ToList() ?? [];
             var events = (await _eventAppService.ByBand(b.Slug, new EventListQueryDto { PageSize = BandListSize })).Data?.Items ?? [];
             var archive = (await _archiveAppService.ByBand(b.Slug, new ArchiveListQueryDto { PageSize = BandListSize })).Data?.Items ?? [];
-            var lead = Line("Banda", city, b.FoundedYear != null ? $"desde {b.FoundedYear}" : null, genres.Count > 0 ? string.Join(", ", genres) : null);
+            var lead = BandSentence(b.Name, b.Genres, b.City?.Name ?? b.CityName, b.City?.Uf, b.FoundedYear);
             var facts = new List<SeoFactDto>();
 
             if (city != null)
@@ -303,7 +303,7 @@ namespace NoiseVault.Application.Seo
             return new SeoPageDto
             {
                 Title = city != null ? $"{b.Name} — banda de {city}" : b.Name,
-                Description = Excerpt(Line(lead, b.Description), DescriptionMaxLength) ?? lead,
+                Description = Excerpt($"{lead} {b.Description}", DescriptionMaxLength) ?? lead,
                 Path = $"/bandas/{b.Slug}",
                 ImageUrl = image,
                 Type = "profile",
@@ -336,7 +336,7 @@ namespace NoiseVault.Application.Seo
                     ["@context"] = "https://schema.org",
                     ["@type"] = "MusicGroup",
                     ["name"] = b.Name,
-                    ["description"] = Excerpt(b.Description, 500),
+                    ["description"] = Excerpt($"{lead} {b.Description}", 500),
                     ["image"] = image,
                     ["foundingDate"] = b.FoundedYear?.ToString(PtBr),
                     ["foundingLocation"] = city != null ? Place(null, b.City?.Name ?? b.CityName, b.City?.Uf) : null,

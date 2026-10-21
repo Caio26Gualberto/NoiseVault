@@ -101,7 +101,7 @@ O Facebook é ótimo para **postar** e péssimo para **guardar**: em uma semana 
 
 ### 17. GEO
 
-- **Texto que responde pergunta**: "Banda de crust punk de Santo André, formada em 1991". A descrição do HTML da banda já monta "Banda · cidade · desde · estilos"; falta virar uma frase corrida, que é o que a IA cita.
+- ~~**Texto que responde pergunta**~~: feito em 20/10/2026 na banda ("Ferrugem é uma banda de thrash de Santo André (SP), formada em 1998.", `api/.claude/rules/seo.md`). O mesmo vale para evento e registro do mural, se o Search Console mostrar que vale.
 - **Páginas por cidade e por estilo**: "Shows em São Bernardo", "Bandas de hardcore do ABC". Ajudam o SEO local e o GEO ao mesmo tempo. Dependem do 16.b para as bandas.
 - **Ser citado fora**: casas de show, bandas e páginas da cena linkando para o Noise Vault. Pesa para o Google e para as IAs.
 
