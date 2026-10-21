@@ -93,7 +93,7 @@ O Facebook é ótimo para **postar** e péssimo para **guardar**: em uma semana 
 
 ## Ser encontrado
 
-**SEO** é aparecer no Google quando alguém pesquisa "show de metal em Santo André" ou o nome de uma banda do ABC. **GEO** (Generative Engine Optimization) é ser lido e citado pelas IAs (ChatGPT, Gemini, a "Visão geral" do Google, Perplexity). O item 16 (SEO) virou módulo em 20/10/2026: banda, agenda, evento e mural abertos sem login, HTML com JSON-LD para buscadores e IAs, sitemap, `robots.txt` e `llms.txt` (`api/.claude/rules/seo.md`, `frontend/.claude/rules/visitante.md`). O que sobrou:
+**SEO** é aparecer no Google quando alguém pesquisa "show de metal em Santo André" ou o nome de uma banda do ABC. **GEO** (Generative Engine Optimization) é ser lido e citado pelas IAs (ChatGPT, Gemini, a "Visão geral" do Google, Perplexity). O item 16 (SEO) virou módulo em 20/10/2026: banda, agenda, evento e mural abertos sem login, HTML com JSON-LD para buscadores e IAs, sitemap, `robots.txt` e `llms.txt` (`api/.claude/rules/seo.md`, `frontend/.claude/rules/visitante.md`). A base do GEO veio junto (robôs de IA liberados, dados estruturados, `llms.txt`, Bing), e a página da banda abre com uma frase corrida. O que sobrou:
 
 ### 16.b Lista de bandas
 
@@ -101,7 +101,7 @@ O Facebook é ótimo para **postar** e péssimo para **guardar**: em uma semana 
 
 ### 17. GEO
 
-- ~~**Texto que responde pergunta**~~: feito em 20/10/2026 na banda ("Ferrugem é uma banda de thrash de Santo André (SP), formada em 1998.", `api/.claude/rules/seo.md`). O mesmo vale para evento e registro do mural, se o Search Console mostrar que vale.
+- **Frase corrida no evento e no registro do mural**: a banda já abre com uma frase que a IA cita (`api/.claude/rules/seo.md`); o evento e o registro ainda abrem com a linha de dados separada por " · ". Fazer se o Search Console mostrar busca por shows e memórias.
 - **Páginas por cidade e por estilo**: "Shows em São Bernardo", "Bandas de hardcore do ABC". Ajudam o SEO local e o GEO ao mesmo tempo. Dependem do 16.b para as bandas.
 - **Ser citado fora**: casas de show, bandas e páginas da cena linkando para o Noise Vault. Pesa para o Google e para as IAs.
 
