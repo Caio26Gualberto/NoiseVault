@@ -53,6 +53,7 @@ Item 3 do `IDEIAS.md` ("quem é esse?"), ampliado pelo usuário em 14/10/2026 pa
   - `TaggedByUserId`.
 - **A chave é `MediaUploadId`, não `ArchiveMedia.Id`**: o `UpdateAsync` do mural apaga e recria as linhas de `ArchiveMedia` a cada edição, e as marcações se perderiam. O `MediaUploadId` sobrevive à edição.
 - **FK `Cascade` em `MediaUploadId`**, a exceção registrada ao padrão `Restrict`. A marcação não tem sentido sem a foto. Quando a mídia sai do registro, o `Discard` apaga a linha do `MediaUpload` de verdade, e o banco leva as marcações junto. Com `Restrict`, esse `DELETE` quebraria.
+- **Girar a foto do mural gira as marcações** (`RotateForMedia`, `mural.md`): 90° horário leva `(x, y)` a `(1 − y, x)`, 180° a `(1 − x, 1 − y)` e 270° a `(y, 1 − x)`, com 4 casas. Sem isso, o ponto ficaria no lugar errado da foto.
 - Índices: `(MediaUploadId)` e o único filtrado `(MediaUploadId, TaggedUserId)` (não nulo e não apagado): a mesma pessoa não aparece duas vezes na foto (`PHOTO_TAG_DUPLICATE`, checado antes; o índice segura a corrida).
 - Até **30** marcações por foto (`TOO_MANY_PHOTO_TAGS`).
 - **O que pode ser marcado**: foto (`Kind = Photo`, `Ready`) anexada a **post publicado** ou a **registro publicado** do mural. Foto de suporte, solta, de post em processamento ou de envio pendente → `PHOTO_NOT_TAGGABLE` (409). O alvo é lido pela navegação `MediaUpload.Attachment.Post` / `ArchiveAttachment.ArchiveEntry`.

@@ -9,5 +9,6 @@ namespace NoiseVault.Application.PhotoTags.Interfaces
         Task<Result> Remove(int tagId);
 
         Task<Dictionary<int, List<PhotoTagDto>>> ForMedia(IReadOnlyCollection<int> mediaIds);
+        Task RotateForMedia(int mediaId, int degrees);
     }
 }

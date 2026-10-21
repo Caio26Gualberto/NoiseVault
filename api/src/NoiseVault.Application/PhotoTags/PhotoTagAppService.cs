@@ -131,6 +131,24 @@ namespace NoiseVault.Application.PhotoTags
             return Result.Ok("PHOTO_TAG_DELETED", "Tag removed");
         }
 
+        public async Task RotateForMedia(int mediaId, int degrees)
+        {
+            var tags = await _tagRepository.ListAsync(new QueryOptions<PhotoTag> { Predicate = t => t.MediaUploadId == mediaId });
+
+            foreach (var tag in tags)
+            {
+                var (x, y) = degrees switch
+                {
+                    90 => (1 - tag.Y, tag.X),
+                    180 => (1 - tag.X, 1 - tag.Y),
+                    _ => (tag.Y, 1 - tag.X),
+                };
+                tag.X = Math.Round(x, 4);
+                tag.Y = Math.Round(y, 4);
+                await _tagRepository.UpdateAsync(tag);
+            }
+        }
+
         public async Task<Dictionary<int, List<PhotoTagDto>>> ForMedia(IReadOnlyCollection<int> mediaIds)
         {
             if (mediaIds.Count == 0)

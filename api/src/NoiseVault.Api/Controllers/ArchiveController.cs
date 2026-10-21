@@ -148,6 +148,14 @@ namespace NoiseVault.Api.Controllers
             return ToResponse(result);
         }
 
+        [HttpPost("media/{mediaId:int}/rotate")]
+        [EnableRateLimiting(ApiRateLimitPolicies.ArchivePhoto)]
+        public async Task<ActionResult> RotatePhoto(int mediaId, [FromBody] ArchiveRotateInputDto input)
+        {
+            var result = await _archiveAppService.RotatePhoto(mediaId, input);
+            return ToResponse(result);
+        }
+
         [HttpPost("media/videos")]
         [EnableRateLimiting(ApiRateLimitPolicies.MediaVideo)]
         public async Task<ActionResult> StartVideo([FromBody] StartVideoUploadInputDto input)

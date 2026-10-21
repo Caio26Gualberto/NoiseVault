@@ -80,6 +80,27 @@ namespace NoiseVault.Application.Media
             return Result<MediaDto>.Ok(Describe(media), "PHOTO_UPLOADED", "Photo uploaded");
         }
 
+        public async Task<Error?> RotatePhoto(MediaUpload media, int degrees)
+        {
+            _logger.SetOperation("RotatePhoto");
+
+            var oldKey = media.StorageKey!;
+            var rotated = await _images.RotateAsync(oldKey, degrees, CancellationToken.None);
+
+            if (!rotated.Succeeded)
+                return rotated.Error;
+
+            media.StorageKey = rotated.Key;
+            media.Width = rotated.Width;
+            media.Height = rotated.Height;
+
+            await _images.SaveAsync(rotated.Key!, oldKey, () => _mediaRepository.UpdateAsync(media));
+
+            _logger.Info("PHOTO_ROTATED", "Photo rotated", userId: _currentUser.UserIdOrNull, extra: new { MediaId = media.Id, Degrees = degrees, rotated.Key });
+
+            return null;
+        }
+
         public async Task<Result<VideoUploadDto>> StartVideo(StartVideoUploadInputDto input, EMediaProfile profile)
         {
             _logger.SetOperation("StartVideoUpload");

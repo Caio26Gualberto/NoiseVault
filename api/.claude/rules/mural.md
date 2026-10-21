@@ -84,6 +84,11 @@ O upload é feito por `POST /api/admin/archive/media/photos|videos` (`Archive.Cr
 
 **Arquivo de mídia** (`media:cleanup`): o vínculo `MediaUpload.ArchiveAttachment` impede a limpeza de tratar a mídia do mural como solta. Sem ele, o job apagaria as fotos do mural depois de 24 h. Apagar o registro apaga os arquivos na hora, e a limpeza zera as chaves depois.
 
+**Girar a foto** (pedido do usuário em 20/10/2026: foto escaneada ou repostada já chega de lado, e o `AutoOrient` do EXIF não tem o que corrigir): `POST /api/archive/media/{mediaId}/rotate { degrees }` (90, 180 ou 270, no sentido horário; `INVALID_ROTATION`; sucesso `PHOTO_ROTATED`, com o `MediaDto` novo).
+- **O arquivo é girado, não a tela**: a imagem é baixada, girada pelo ImageSharp e gravada com GUID novo na mesma pasta; a linha do `MediaUpload` troca `StorageKey`, `Width` e `Height`, e a chave antiga sai do storage depois do commit (`ImageReplacement.SaveAsync`). Guardar um "ângulo" para a tela aplicar obrigaria o card, a grade, o feed, o visualizador, a prévia do link e o HTML dos buscadores a lembrar de girar. Com a URL nova, nenhum cache serve a foto antiga.
+- A mídia continua a mesma (id, legenda, capa), e as **marcações giram junto** (`IPhotoTagAppService.RotateForMedia`, `marcacoes.md`).
+- **Quem gira**: a foto solta só quem subiu; a foto de um registro, `Archive.Edit`, ou quem enviou com o envio pendente (a mesma regra do `canEdit`). Fora disso, `MEDIA_NOT_FOUND`, para não dizer que a foto existe. Só foto pronta do perfil `Archive`. Limite `archive-photo`. Gira na hora, fora do "Salvar" do formulário.
+
 **Edição de mídias**: o `PUT` manda a lista final, na ordem, com as legendas e a capa:
 - mídias novas precisam estar soltas, ser do perfil `Archive` e ser de quem edita;
 - as que saíram da lista têm a linha e os arquivos apagados (`IMediaUploadAppService.Discard`), **depois** do commit.

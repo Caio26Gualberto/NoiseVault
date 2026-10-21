@@ -471,6 +471,55 @@ namespace NoiseVault.Application.Archive
         public Task<Result<MediaDto>> UploadPhoto(ImageUploadInput? file, CancellationToken cancellationToken = default) =>
             _mediaAppService.UploadPhoto(file, EMediaProfile.Archive, cancellationToken);
 
+        public async Task<Result<MediaDto>> RotatePhoto(int mediaId, ArchiveRotateInputDto input)
+        {
+            _logger.SetOperation("RotateArchivePhoto");
+
+            if (input.Degrees is not (90 or 180 or 270))
+                return Result<MediaDto>.Fail(new Error("INVALID_ROTATION", "Rotation must be 90, 180 or 270 degrees", ErrorType.Validation));
+
+            var me = _currentUser.UserId;
+            var media = await _mediaRepository.FirstOrDefaultAsync(new QueryOptions<MediaUpload>
+            {
+                Predicate = m => m.Id == mediaId && m.Kind == EMediaKind.Photo && m.Status == EMediaStatus.Ready && m.Profile == EMediaProfile.Archive,
+            });
+
+            if (media == null || !await CanRotateAsync(media, me))
+                return Result<MediaDto>.Fail(new Error("MEDIA_NOT_FOUND", "Media not found", ErrorType.NotFound));
+
+            var error = await _mediaAppService.RotatePhoto(media, input.Degrees);
+
+            if (error != null)
+                return Result<MediaDto>.Fail(error);
+
+            await _photoTagAppService.RotateForMedia(media.Id, input.Degrees);
+
+            var described = _mediaAppService.Describe(media);
+            described.Tags = (await _photoTagAppService.ForMedia([media.Id])).GetValueOrDefault(media.Id) ?? [];
+
+            return Result<MediaDto>.Ok(described, "PHOTO_ROTATED", "Photo rotated");
+        }
+
+        private async Task<bool> CanRotateAsync(MediaUpload media, int me)
+        {
+            var attachment = await _archiveMediaRepository.FirstOrDefaultAsync(new QueryOptions<ArchiveMedia>
+            {
+                Predicate = m => m.MediaUploadId == media.Id,
+                Includes = [m => m.ArchiveEntry!],
+                AsNoTracking = true,
+            });
+
+            if (attachment == null)
+                return media.OwnerUserId == me;
+
+            var entry = attachment.ArchiveEntry!;
+
+            if (entry.AuthorUserId == me && entry.IsSubmission && entry.Status == EArchiveEntryStatus.Pending)
+                return true;
+
+            return await _permissionChecker.IsGrantedAsync(me, Permissions.Archive.Edit);
+        }
+
         public Task<Result<VideoUploadDto>> StartVideo(StartVideoUploadInputDto input) =>
             _mediaAppService.StartVideo(input, EMediaProfile.Archive);
 

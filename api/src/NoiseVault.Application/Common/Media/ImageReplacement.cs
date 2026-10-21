@@ -45,6 +45,37 @@ namespace NoiseVault.Application.Common.Media
             return new ImageUpload(key, null, image.Width, image.Height);
         }
 
+        public async Task<ImageUpload> RotateAsync(string key, int degrees, CancellationToken cancellationToken)
+        {
+            var path = Path.Combine(Path.GetTempPath(), $"noisevault-rotate-{Guid.NewGuid():N}");
+
+            try
+            {
+                if (!await _fileStorage.DownloadToFileAsync(key, path, cancellationToken))
+                    return new ImageUpload(null, new Error("STORAGE_UNAVAILABLE", "File storage is unavailable, try again later", ErrorType.Unexpected));
+
+                ImageProcessingResult processed;
+                await using (var input = File.OpenRead(path))
+                    processed = await _imageProcessor.RotateAsync(input, degrees, cancellationToken);
+
+                if (!processed.Succeeded)
+                    return Reject("IMAGE_UNSUPPORTED", "Send a JPEG, PNG or WebP image");
+
+                var image = processed.Image!;
+                var folder = key[..key.LastIndexOf('/')];
+                var newKey = $"{folder}/{Guid.NewGuid():N}.{image.Extension}";
+
+                if (!await _fileStorage.PutAsync(newKey, image.Content, image.ContentType, cancellationToken))
+                    return new ImageUpload(null, new Error("STORAGE_UNAVAILABLE", "File storage is unavailable, try again later", ErrorType.Unexpected));
+
+                return new ImageUpload(newKey, null, image.Width, image.Height);
+            }
+            finally
+            {
+                File.Delete(path);
+            }
+        }
+
         public async Task SaveAsync(string newKey, string? oldKey, Func<Task> persist)
         {
             try

@@ -69,6 +69,36 @@ namespace NoiseVault.Infra.Data.Media
             }
         }
 
+        public async Task<ImageProcessingResult> RotateAsync(Stream input, int degrees, CancellationToken cancellationToken = default)
+        {
+            Image image;
+
+            try
+            {
+                image = await Image.LoadAsync(new DecoderOptions { Configuration = DecodeConfiguration }, input, cancellationToken);
+            }
+            catch (Exception ex) when (ex is UnknownImageFormatException or InvalidImageContentException or NotSupportedException)
+            {
+                return ImageProcessingResult.Reject(EImageRejection.Unsupported);
+            }
+
+            using (image)
+            {
+                image.Mutate(x => x.Rotate(degrees switch
+                {
+                    90 => RotateMode.Rotate90,
+                    180 => RotateMode.Rotate180,
+                    270 => RotateMode.Rotate270,
+                    _ => throw new ArgumentOutOfRangeException(nameof(degrees), degrees, "Rotação precisa ser 90, 180 ou 270."),
+                }));
+
+                using var output = new MemoryStream();
+                await image.SaveAsWebpAsync(output, new WebpEncoder { Quality = Quality, FileFormat = WebpFileFormatType.Lossy, SkipMetadata = true }, cancellationToken);
+
+                return ImageProcessingResult.Ok(new ProcessedImage(output.ToArray(), image.Width, image.Height, "image/webp", "webp"));
+            }
+        }
+
         private ImageProcessingResult Reject(EImagePreset preset, EImageRejection rejection)
         {
             _logger.Info("IMAGE_REJECTED", "Image rejected", extra: new { Preset = preset.ToString(), Reason = rejection.ToString() });

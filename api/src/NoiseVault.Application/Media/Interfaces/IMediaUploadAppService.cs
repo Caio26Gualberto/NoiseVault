@@ -16,6 +16,7 @@ namespace NoiseVault.Application.Media.Interfaces
 
         Task<List<MediaUpload>> ListAttachable(IReadOnlyCollection<int> ids, int ownerUserId, EMediaProfile profile);
         MediaDto Describe(MediaUpload media);
+        Task<Error?> RotatePhoto(MediaUpload media, int degrees);
         Task DeleteStoredFiles(IReadOnlyCollection<MediaUpload> media);
         Task Discard(IReadOnlyCollection<int> mediaIds);
         Task<EMediaStatus?> ProcessVideo(int mediaId, bool finalAttempt);
