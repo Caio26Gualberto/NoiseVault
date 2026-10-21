@@ -25,9 +25,10 @@ import { MediaKind } from '../media-kind'
 import { MediaStatus } from '../media-status'
 import { PostStatus } from '../post-status'
 import { photoTagging, toAppTags } from '../photo-tags'
-import { deletePost, getPost } from '../services/feed-service'
+import { deletePost, getPost, getPostLikes } from '../services/feed-service'
 import { ArchiveEmbed } from './archive-embed'
 import { EventEmbed } from './event-embed'
+import { LikesSummary } from './likes-summary'
 import { OpeningEmbed } from './opening-embed'
 import type { PostDto } from '../services/feed-service'
 import type { MediaDto } from '../services/media-service'
@@ -180,27 +181,30 @@ export function PostCard({ post, onLike, onUpdated, onDeleted, detail = false }:
       {post.opening ? <OpeningEmbed opening={post.opening} /> : null}
 
       {published ? (
-        <footer className="flex items-center gap-1 border-t pt-2">
-          <AppButton
-            intent="ghost"
-            size="sm"
-            onClick={() => onLike(post)}
-            aria-pressed={post.likedByMe}
-            aria-label={post.likedByMe ? t('post.unlike') : t('post.like')}
-            className={cn('tabular-nums', post.likedByMe && 'text-primary')}
-          >
-            <HeartIcon className={cn(post.likedByMe && 'fill-current')} />
-            {formatCompact(post.likeCount)}
-          </AppButton>
-          <AppButton intent="ghost" size="sm" className="tabular-nums" asChild>
-            <Link to={`/feed/${post.id}`} aria-label={t('post.comments')}>
-              <MessageCircleIcon />
-              {formatCompact(post.commentCount)}
-            </Link>
-          </AppButton>
-          <div className="ml-auto">
-            <AppShareButton path={`/feed/${post.id}`} title={t('shareTitle', { name: post.band?.name ?? post.author.name })} />
+        <footer className="flex flex-col gap-1 border-t pt-2">
+          <div className="flex items-center gap-1">
+            <AppButton
+              intent="ghost"
+              size="sm"
+              onClick={() => onLike(post)}
+              aria-pressed={post.likedByMe}
+              aria-label={post.likedByMe ? t('post.unlike') : t('post.like')}
+              className={cn('tabular-nums', post.likedByMe && 'text-primary')}
+            >
+              <HeartIcon className={cn(post.likedByMe && 'fill-current')} />
+              {formatCompact(post.likeCount)}
+            </AppButton>
+            <AppButton intent="ghost" size="sm" className="tabular-nums" asChild>
+              <Link to={`/feed/${post.id}`} aria-label={t('post.comments')}>
+                <MessageCircleIcon />
+                {formatCompact(post.commentCount)}
+              </Link>
+            </AppButton>
+            <div className="ml-auto">
+              <AppShareButton path={`/feed/${post.id}`} title={t('shareTitle', { name: post.band?.name ?? post.author.name })} />
+            </div>
           </div>
+          <LikesSummary count={post.likeCount} people={post.likePreview} load={(query) => getPostLikes(post.id, query)} className="px-2" />
         </footer>
       ) : (
         <p className="app-meta border-t pt-2">

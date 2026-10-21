@@ -32,6 +32,7 @@ Rules irmãs: `../api/.claude/rules/feed.md` (post, curtida, comentário, quem p
 - **Curtir e editar** trocam só aquele item pelo `PostDto` que a API devolve (`replace`). **Apagar** tira o item depois do `DELETE` com sucesso (`remove`).
   - É a mesma ideia do `replace(dto)` de bandas: o dado é do servidor, não simulado.
   - Refazer a busca de todas as páginas acumuladas a cada curtida seria caro e faria a rolagem pular.
+- **Quem curtiu, como no Instagram** (pedido do usuário em 21/10/2026: "é uma comunidade, mas não conseguimos ver pessoa por pessoa"): embaixo das ações do card fica o `LikesSummary` (`components/likes-summary.tsx`), com até 3 avatares do `likePreview` e "Curtido por **Fulano** e **outras N pessoas**" (`common:likes.summary`, com plural `_zero`/`_one`/`_other`). Clicar abre o `AppPeopleDialog` "Curtidas" (`getPostLikes`), e cada pessoa leva ao perfil. O coração continua só curtindo; a prévia vem atualizada no DTO do `replace`. Sem curtida, ou com a prévia vazia, a linha não aparece. O mural usa o mesmo componente, importado deste caminho.
 - **Polling do processamento**: a cada 5 s, o hook busca de novo (`GET /api/posts/{id}`) os posts do **próprio autor** que estão em `processing` e troca quando o status muda. O polling para quando não há nenhum, e também com a aba escondida (`usePolling`).
 
 ## Composer

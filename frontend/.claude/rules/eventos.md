@@ -41,6 +41,7 @@ Rule irmã: `../api/.claude/rules/eventos.md`. A regra é do backend; a tela só
 
 - `hooks/use-eventos-page.ts` refaz a busca a cada filtro e volta para a página 1 em toda troca (`changeScope`, `changeInterested`…).
 - `hooks/use-event-detail.ts` troca o evento pelo DTO que "Vou" e "Cancelar" devolvem (`replace`), como no feed.
+- **Quem vai** (21/10/2026, como "quem curtiu" no feed): no detalhe, logo abaixo dos botões, o `GoingSummary` (`components/going-summary.tsx`) mostra até 3 avatares do `interestedPreview` e "**Fulano** e **outras N pessoas** vão". Clicar abre "Quem vai" (`getEventInterested`) no `AppPeopleDialog`. O card da agenda continua só com o número. Sem login a prévia vem vazia e a linha não aparece.
 - `components/band-events.tsx` é a seção "Shows" da banda, com 4 por página e as mesmas abas.
 
 ## Menções e marcações

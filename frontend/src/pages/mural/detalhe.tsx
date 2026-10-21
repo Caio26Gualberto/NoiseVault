@@ -27,6 +27,9 @@ import { AppEmptyState } from '@/components/app-empty-state'
 import { AppMediaViewer } from '@/components/app-media-viewer'
 import type { ViewerItem } from '@/components/app-media-viewer'
 import { AppPagination } from '@/components/app-pagination'
+import { AppPeopleDialog } from '@/components/app-people-dialog'
+import { AppReactionSummary } from '@/components/app-reaction-summary'
+import { LikesSummary } from '@/pages/feed/components/likes-summary'
 import { AppSkeleton } from '@/components/app-skeleton'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
@@ -42,10 +45,9 @@ import { MediaStatus } from '@/pages/feed/media-status'
 
 import { formatArchiveDate } from './archive-date'
 import { ArchiveEntryStatus, adminArchivePath, mySubmissionsPath } from './archive-status'
-import { AttendeesDialog } from './components/attendees-dialog'
 import { ReviewPanel } from './components/review-panel'
 import { useArchiveDetail } from './hooks/use-archive-detail'
-import { deleteArchiveEntry, deleteArchiveSubmission, getArchiveEntry } from './services/mural-service'
+import { deleteArchiveEntry, deleteArchiveSubmission, getArchiveAttendees, getArchiveEntry, getArchiveLikes } from './services/mural-service'
 import { photoTagging, toAppTags } from '@/pages/feed/photo-tags'
 
 export function MuralDetalhePage() {
@@ -268,22 +270,20 @@ export function MuralDetalhePage() {
             </AppButton>
             {entry.attendanceCount > 0 && visitor ? (
               <span className="text-sm text-muted-foreground">{t('attendance.count', { count: entry.attendanceCount })}</span>
-            ) : entry.attendanceCount > 0 ? (
-              <button
-                type="button"
-                onClick={() => setAttendeesOpen(true)}
-                className="flex items-center gap-2 rounded-full py-1 pr-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-              >
-                <span className="flex -space-x-2">
-                  {entry.attendees.map((person) => (
-                    <AppAvatar key={person.id} name={person.name} src={person.avatarUrl} size="sm" className="ring-2 ring-card" />
-                  ))}
-                </span>
+            ) : null}
+          </div>
+        ) : null}
+
+        {published && !visitor && (entry.attendanceCount > 0 || entry.likeCount > 0) ? (
+          <div className="flex flex-col gap-1">
+            {entry.attendanceCount > 0 ? (
+              <AppReactionSummary people={entry.attendees} onOpen={() => setAttendeesOpen(true)}>
                 {others > 0
                   ? t('attendance.summaryMore', { names: entry.attendees.slice(0, 2).map((person) => person.name.split(' ')[0]).join(', '), count: others })
                   : t('attendance.summary', { names: entry.attendees.map((person) => person.name.split(' ')[0]).join(', '), count: entry.attendanceCount })}
-              </button>
+              </AppReactionSummary>
             ) : null}
+            <LikesSummary count={entry.likeCount} people={entry.likePreview} load={(query) => getArchiveLikes(entry.id, query)} />
           </div>
         ) : null}
 
@@ -316,7 +316,9 @@ export function MuralDetalhePage() {
               <ul className="flex flex-col gap-4">
                 {comments.items.map((comment) => (
                   <li key={comment.id} className="flex gap-3">
-                    <AppAvatar name={comment.author.name} src={comment.author.avatarUrl} size="md" />
+                    <Link to={`/perfil/${comment.author.nickname}`} aria-label={comment.author.name} className="shrink-0 self-start rounded-full">
+                      <AppAvatar name={comment.author.name} src={comment.author.avatarUrl} size="md" />
+                    </Link>
                     <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                       <span className="text-sm">
                         <Link to={`/perfil/${comment.author.nickname}`} className="font-medium hover:underline">
@@ -341,7 +343,14 @@ export function MuralDetalhePage() {
       ) : null}
 
       <AppMediaViewer items={viewerItems} index={viewerIndex} onIndexChange={setViewerIndex} tagging={tagging} />
-      {visitor ? null : <AttendeesDialog entryId={entry.id} open={attendeesOpen} onOpenChange={setAttendeesOpen} />}
+      {visitor ? null : (
+        <AppPeopleDialog
+          open={attendeesOpen}
+          onOpenChange={setAttendeesOpen}
+          title={t('attendance.listTitle', { count: entry.attendanceCount })}
+          load={(query) => getArchiveAttendees(entry.id, query)}
+        />
+      )}
     </div>
   )
 }

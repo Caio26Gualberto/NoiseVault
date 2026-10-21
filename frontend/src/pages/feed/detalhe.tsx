@@ -72,7 +72,9 @@ export function PostDetalhePage() {
                   <ul className="flex flex-col gap-4">
                     {comments.items.map((comment) => (
                       <li key={comment.id} className="flex gap-3">
-                        <AppAvatar name={comment.author.name} src={comment.author.avatarUrl} size="md" />
+                        <Link to={`/perfil/${comment.author.nickname}`} aria-label={comment.author.name} className="shrink-0 self-start rounded-full">
+                          <AppAvatar name={comment.author.name} src={comment.author.avatarUrl} size="md" />
+                        </Link>
                         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                           <span className="text-sm">
                             <Link to={`/perfil/${comment.author.nickname}`} className="font-medium hover:underline">

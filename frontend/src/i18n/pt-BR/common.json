@@ -180,5 +180,11 @@
     "dataDeletion": "Apagar seus dados",
     "backHome": "Voltar para o feed",
     "signIn": "Entrar"
+  },
+  "likes": {
+    "summary_zero": "Curtido por <b>{{name}}</b>",
+    "summary_one": "Curtido por <b>{{name}}</b> e <b>outra pessoa</b>",
+    "summary_other": "Curtido por <b>{{name}}</b> e <b>outras {{count}} pessoas</b>",
+    "listTitle": "Curtidas"
   }
 }

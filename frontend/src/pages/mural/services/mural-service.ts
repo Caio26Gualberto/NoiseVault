@@ -39,6 +39,7 @@ export type ArchiveEntryDto = ArchiveDate & {
   videoCount: number
   likeCount: number
   likedByMe: boolean
+  likePreview: ProfileSummaryDto[]
   attendanceCount: number
   attendedByMe: boolean
   attendees: ProfileSummaryDto[]
@@ -130,6 +131,10 @@ export function getArchiveEntry(id: number): Promise<ArchiveEntryDto> {
 
 export function getArchiveAttendees(id: number, query: PagedRequest): Promise<PagedResult<ProfileSummaryDto>> {
   return apiGet<PagedResult<ProfileSummaryDto>>(`/api/archive/${id}/attendees`, query)
+}
+
+export function getArchiveLikes(id: number, query: PagedRequest): Promise<PagedResult<ProfileSummaryDto>> {
+  return apiGet<PagedResult<ProfileSummaryDto>>(`/api/archive/${id}/likes`, query)
 }
 
 export function createArchiveEntry(input: ArchiveEntryInput): Promise<ArchiveEntryDto> {

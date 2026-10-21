@@ -22,6 +22,7 @@ Item ativo: `resolveActivePath` (copiado do boilerplate) resolve **uma vez** par
 - **`<main>`**: coluna de até 680px centrada em páginas de leitura (feed, detalhe); largura total em galerias e listas. A página escolhe com `AppPageHeader`/`contentWidth`.
 - **Rail direito** (≥ `xl`, 320px): a página registra o conteúdo via `useShellRail(node)` (`shell-rail.tsx`); vazio = não renderiza. Feed registra "Próximos eventos" e "Bandas sugeridas".
 - **Bottom-nav** (< `md`): os 4 itens com `mobile: true` em `navSections` (Feed, Mural, Eventos, Perfil) mais "Mais", que abre um `Sheet` com todas as outras folhas agrupadas por seção. O item "Mais" acende quando a rota ativa está dentro dele.
+  - **Só ícones** (pedido do usuário em 21/10/2026): o nome da página saiu da barra, e os ícones passaram de 20 para 24 px. O nome continua num `sr-only`, que é o nome acessível do link para o leitor de tela. O "Mais" e o "Entrar" do visitante seguem a mesma regra. Dentro do `Sheet` do "Mais", os itens continuam com ícone e nome.
 
 🔴 **`user-menu.tsx` é o único dono de tema e "Sair".** Não recriar em outro lugar. A exceção é o cabeçalho do Ensaio, que tem o próprio menu da conta porque os links do `user-menu` não funcionam no subdomínio (`ensaio.md`). O `user-menu` também tem o "Instalar o app", que só aparece quando dá para instalar (`pwa.md`).
 

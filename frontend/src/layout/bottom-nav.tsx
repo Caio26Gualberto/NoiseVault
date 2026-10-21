@@ -15,7 +15,7 @@ import { navSections } from './nav-config'
 import type { NavLeaf } from './nav-config'
 
 const itemClass =
-  'flex min-w-0 flex-1 flex-col items-center gap-1 px-1 py-2 text-[11px] font-medium text-muted-foreground transition-colors focus-visible:outline-none'
+  'flex min-w-0 flex-1 items-center justify-center px-1 py-3 text-muted-foreground transition-colors focus-visible:outline-none focus-visible:text-foreground'
 
 export function BottomNav() {
   const { t } = useTranslation()
@@ -63,21 +63,21 @@ export function BottomNav() {
             aria-current={active ? 'page' : undefined}
             className={cn(itemClass, active && 'text-primary')}
           >
-            <Icon className="size-5" />
-            <span className="truncate">{t(item.labelKey)}</span>
+            <Icon className="size-6" />
+            <span className="sr-only">{t(item.labelKey)}</span>
           </NavLink>
         )
       })}
 
       {visitor ? (
         <NavLink to={loginPath} state={{ from: `${location.pathname}${location.search}` }} className={itemClass}>
-          <LogInIcon className="size-5" />
-          <span className="truncate">{t('layout:visitor.signIn')}</span>
+          <LogInIcon className="size-6" />
+          <span className="sr-only">{t('layout:visitor.signIn')}</span>
         </NavLink>
       ) : (
         <button type="button" onClick={() => setOpen(true)} className={cn(itemClass, restActive && 'text-primary')} aria-haspopup="dialog">
-          <MenuIcon className="size-5" />
-          <span className="truncate">{t('layout:nav.more')}</span>
+          <MenuIcon className="size-6" />
+          <span className="sr-only">{t('layout:nav.more')}</span>
         </button>
       )}
 

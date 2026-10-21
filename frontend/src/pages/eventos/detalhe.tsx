@@ -38,6 +38,7 @@ import { cn } from '@/lib/utils'
 import { formatDateTime, formatPrice, formatRelative, formatTime, formatWeekday } from '@/lib/format'
 
 import { CommentComposer } from './components/comment-composer'
+import { GoingSummary } from './components/going-summary'
 import { EventStatus } from './event-status'
 import { formatCity } from '@/pages/perfil/city'
 import { useEventDetail } from './hooks/use-event-detail'
@@ -224,6 +225,8 @@ export function EventoDetalhePage() {
             </div>
           </div>
 
+          <GoingSummary event={event} />
+
           <dl className="grid gap-3 sm:grid-cols-2">
             {facts.map((fact) => {
               const Icon = fact.icon
@@ -288,7 +291,9 @@ export function EventoDetalhePage() {
               <ul className="flex flex-col gap-4">
                 {comments.items.map((comment) => (
                   <li key={comment.id} className="flex gap-3">
-                    <AppAvatar name={comment.author.name} src={comment.author.avatarUrl} size="md" />
+                    <Link to={`/perfil/${comment.author.nickname}`} aria-label={comment.author.name} className="shrink-0 self-start rounded-full">
+                      <AppAvatar name={comment.author.name} src={comment.author.avatarUrl} size="md" />
+                    </Link>
                     <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                       <span className="text-sm">
                         <Link to={`/perfil/${comment.author.nickname}`} className="font-medium hover:underline">

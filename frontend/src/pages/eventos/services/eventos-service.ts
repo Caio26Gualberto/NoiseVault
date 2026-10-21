@@ -36,6 +36,7 @@ export type EventDto = {
   lineup: EventLineupItemDto[]
   interestedCount: number
   interested: boolean
+  interestedPreview: ProfileSummaryDto[]
   commentCount: number
   canManage: boolean
   createdAt: string
@@ -147,6 +148,10 @@ export function addInterest(id: number): Promise<EventDto> {
 
 export function removeInterest(id: number): Promise<EventDto> {
   return apiDelete<EventDto>(`/api/events/${id}/interest`)
+}
+
+export function getEventInterested(id: number, query: PagedRequest): Promise<PagedResult<ProfileSummaryDto>> {
+  return apiGet<PagedResult<ProfileSummaryDto>>(`/api/events/${id}/interested`, query)
 }
 
 export function uploadEventBanner(id: number, file: File, position: number): Promise<EventDto> {

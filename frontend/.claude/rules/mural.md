@@ -53,7 +53,8 @@ Rule irmã: `../api/.claude/rules/mural.md`. A regra é do backend; a tela só r
 - **Mídia processando**: aparece com spinner. A página consulta de novo a cada 5 s enquanto houver alguma.
 - **"Eu estava lá"**:
   - um botão de destaque, mais a fileira de até 5 avatares com "Fulano, Ciclano e mais 12 estavam lá";
-  - clicar abre a lista paginada (`AttendeesDialog`).
+  - clicar abre a lista paginada no `AppPeopleDialog` global (o `AttendeesDialog` da página morreu em 21/10/2026, quando a lista virou componente).
+- **Quem curtiu** (21/10/2026): embaixo da linha do "Eu estava lá", o `LikesSummary` do feed com o `likePreview` e a lista "Curtidas" (`getArchiveLikes`). As duas linhas usam o `AppReactionSummary` e só aparecem com login, porque sem login a API não manda os nomes (`../api/.claude/rules/seo.md`).
 - **Comentários** se chamam "Histórias". O vazio convida: "Estava lá ou reconhece alguém? Conte aqui."
 
 ## Formulário

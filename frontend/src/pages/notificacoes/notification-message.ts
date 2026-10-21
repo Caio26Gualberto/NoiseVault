@@ -126,5 +126,5 @@ export function notificationMessage(n: NotificationDto) {
 
 export function notificationPlainText(n: NotificationDto, t: TFunction<'notificacoes'>) {
   const { key, values } = notificationMessage(n)
-  return String(t(key as never, values)).replace(/<\/?b>/g, '')
+  return String(t(key as never, values)).replace(/<\/?(b|actor)>/g, '')
 }

@@ -23,6 +23,7 @@ export type PostDto = {
   likeCount: number
   commentCount: number
   likedByMe: boolean
+  likePreview: ProfileSummaryDto[]
   status: PostStatus
   createdAt: string
   editedAt: string | null
@@ -95,4 +96,8 @@ export function addComment(id: number, text: string): Promise<CommentDto> {
 
 export function deleteComment(id: number): Promise<void> {
   return apiDelete<void>(`/api/comments/${id}`, { toastSuccess: true })
+}
+
+export function getPostLikes(id: number, query: PagedRequest): Promise<PagedResult<ProfileSummaryDto>> {
+  return apiGet<PagedResult<ProfileSummaryDto>>(`/api/posts/${id}/likes`, query)
 }

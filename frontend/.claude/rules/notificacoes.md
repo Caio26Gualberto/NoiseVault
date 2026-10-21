@@ -59,6 +59,7 @@ Decisões do usuário em 14/10/2026: "clicar no sino e abrir as notificações",
   - avatar do ator (ou da banda), com o ícone do tipo no canto; sem ator, como no lembrete de amanhã, o ícone ocupa o lugar do avatar;
   - a frase, o trecho do post entre aspas e o tempo relativo de `lastActivityAt`;
   - não lida tem ponto e fundo `primary/[0.04]`.
+- **Perfil de quem agiu** (pedido do usuário em 21/10/2026): o avatar e o nome levam a `/perfil/:nickname`, ou a `/bandas/:slug` quando o avatar é o da banda, como no Instagram. O resto do item continua levando ao alvo. Para não ter link dentro de link, o alvo virou um link esticado (`absolute inset-0`, com a frase sem tags como `aria-label`), e o avatar, o nome e os botões ficam por cima (`relative z-10`). Nas frases, o nome de quem agiu é a tag `<actor>` (o `<b>` ficou para o título do alvo), e o `notificationPlainText` tira as duas. Clicar no perfil também marca como lida e fecha o balão.
 - **Ações no item**:
   - clicar no corpo marca como lida, navega para o alvo e fecha o painel;
   - à direita, "marcar como lida" e excluir (com confirmação).
