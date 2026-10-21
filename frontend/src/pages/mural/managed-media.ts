@@ -13,6 +13,7 @@ export type ManagedMedia = {
   saved: boolean
   controller: AbortController | null
   file: File | null
+  playUrl: string | null
 }
 
 export const archiveMaxMedia = 100
@@ -31,5 +32,6 @@ export function fromSaved(media: MediaDto, caption: string | null): ManagedMedia
     saved: true,
     controller: null,
     file: null,
+    playUrl: video ? media.url : null,
   }
 }

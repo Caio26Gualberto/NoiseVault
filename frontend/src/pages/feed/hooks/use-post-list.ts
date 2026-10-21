@@ -22,7 +22,7 @@ export function usePostList(load: PostListLoader) {
   const [loadedWith, setLoadedWith] = useState(() => load)
 
   if (loadedWith !== load) {
-    setLoadedWith(load)
+    setLoadedWith(() => load)
     setPage(1)
     setItems([])
     setLoading(true)

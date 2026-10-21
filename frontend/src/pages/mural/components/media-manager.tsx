@@ -19,6 +19,8 @@ import type { ChangeEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { AppButton, AppIconButton } from '@/components/app-button'
+import { AppMediaViewer } from '@/components/app-media-viewer'
+import type { ViewerItem } from '@/components/app-media-viewer'
 import { acceptedImageTypes, checkImageFile } from '@/lib/image-file'
 import { createLimiter } from '@/lib/limit'
 import { cn } from '@/lib/utils'
@@ -46,6 +48,7 @@ export function MediaManager({ value, onChange, coverKey, onCoverChange, target 
   const photoInput = useRef<HTMLInputElement>(null)
   const videoInput = useRef<HTMLInputElement>(null)
   const [notice, setNotice] = useState<string | null>(null)
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null)
   const valueRef = useRef(value)
   const unmounted = useRef(false)
   const [limit] = useState(() => createLimiter(parallelUploads))
@@ -115,7 +118,7 @@ export function MediaManager({ value, onChange, coverKey, onCoverChange, target 
         continue
       }
       const key = crypto.randomUUID()
-      const item: ManagedMedia = { key, kind: 'photo', previewUrl: URL.createObjectURL(file), localUrl: true, mediaId: null, caption: '', state: 'uploading', progress: null, saved: false, controller: null, file }
+      const item: ManagedMedia = { key, kind: 'photo', previewUrl: URL.createObjectURL(file), localUrl: true, mediaId: null, caption: '', state: 'uploading', progress: null, saved: false, controller: null, file, playUrl: null }
       valueRef.current = [...valueRef.current, item]
       onChange((previous) => [...previous, item])
       startPhoto(key, file)
@@ -134,7 +137,7 @@ export function MediaManager({ value, onChange, coverKey, onCoverChange, target 
         continue
       }
       const key = crypto.randomUUID()
-      const item: ManagedMedia = { key, kind: 'video', previewUrl: null, localUrl: false, mediaId: null, caption: '', state: 'uploading', progress: 0, saved: false, controller: null, file }
+      const item: ManagedMedia = { key, kind: 'video', previewUrl: null, localUrl: false, mediaId: null, caption: '', state: 'uploading', progress: 0, saved: false, controller: null, file, playUrl: null }
       valueRef.current = [...valueRef.current, item]
       onChange((previous) => [...previous, item])
       startVideo(key, file)
@@ -168,6 +171,19 @@ export function MediaManager({ value, onChange, coverKey, onCoverChange, target 
     })
   }
 
+  const viewable = value.filter((item) => item.previewUrl && (item.kind === 'photo' || item.playUrl))
+  const viewerItems: ViewerItem[] = viewable.map((item) => ({
+    id: item.key,
+    kind: item.kind,
+    url: item.kind === 'photo' ? item.previewUrl! : item.playUrl!,
+    posterUrl: item.kind === 'video' ? item.previewUrl : null,
+    caption: item.caption || null,
+  }))
+  const openViewer = (key: string) => {
+    const index = viewable.findIndex((item) => item.key === key)
+    if (index >= 0) setViewerIndex(index)
+  }
+
   const effectiveCover = coverKey ?? value.find((item) => item.state === 'ready')?.key ?? null
   const failedCount = value.filter((item) => item.state === 'error' && item.file).length
 
@@ -193,6 +209,7 @@ export function MediaManager({ value, onChange, coverKey, onCoverChange, target 
                   onMove={move}
                   onRemove={remove}
                   onRetry={retry}
+                  onOpen={viewable.some((other) => other.key === item.key) ? openViewer : undefined}
                 />
               ))}
             </ol>
@@ -208,6 +225,8 @@ export function MediaManager({ value, onChange, coverKey, onCoverChange, target 
           {t('form.media.retryAll', { count: failedCount })}
         </AppButton>
       ) : null}
+
+      <AppMediaViewer items={viewerItems} index={viewerIndex} onIndexChange={setViewerIndex} />
 
       <div className="flex flex-wrap gap-2">
         <input ref={photoInput} type="file" accept={acceptedImageTypes.join(',')} multiple className="hidden" onChange={addPhotos} />
@@ -235,9 +254,10 @@ type SortableMediaProps = {
   onMove: (index: number, step: number) => void
   onRemove: (item: ManagedMedia) => void
   onRetry: (item: ManagedMedia) => void
+  onOpen?: (key: string) => void
 }
 
-function SortableMedia({ item, index, total, isCover, onPatch, onCover, onMove, onRemove, onRetry }: SortableMediaProps) {
+function SortableMedia({ item, index, total, isCover, onPatch, onCover, onMove, onRemove, onRetry, onOpen }: SortableMediaProps) {
   const { t } = useTranslation('mural')
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id: item.key })
 
@@ -258,7 +278,18 @@ function SortableMedia({ item, index, total, isCover, onPatch, onCover, onMove, 
         <GripVerticalIcon className="size-4" />
       </button>
       <div className="relative size-20 shrink-0 overflow-hidden rounded-md bg-muted sm:size-24">
-        {item.previewUrl ? <img src={item.previewUrl} alt="" className="size-full object-cover" draggable={false} /> : null}
+        {item.previewUrl && onOpen ? (
+          <button
+            type="button"
+            onClick={() => onOpen(item.key)}
+            aria-label={t('form.media.open', { position: index + 1 })}
+            className="size-full cursor-zoom-in focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
+          >
+            <img src={item.previewUrl} alt="" className="size-full object-cover" draggable={false} />
+          </button>
+        ) : item.previewUrl ? (
+          <img src={item.previewUrl} alt="" className="size-full object-cover" draggable={false} />
+        ) : null}
         {item.kind === 'video' && item.state === 'ready' ? (
           <span className="absolute bottom-1 left-1 rounded bg-scrim/70 p-1 text-on-scrim">
             <VideoIcon className="size-3.5" />
