@@ -8,7 +8,7 @@ import { AppReactionSummary } from '@/components/app-reaction-summary'
 
 type LikesSummaryProps = {
   count: number
-  people: AppPerson[]
+  people: AppPerson[] | undefined
   load: (query: PagedRequest) => Promise<PagedResult<AppPerson>>
   className?: string
 }
@@ -16,13 +16,13 @@ type LikesSummaryProps = {
 export function LikesSummary({ count, people, load, className }: LikesSummaryProps) {
   const { t } = useTranslation('common')
   const [open, setOpen] = useState(false)
-  const first = people[0]
+  const first = people?.[0]
 
   if (count === 0 || !first) return null
 
   return (
     <>
-      <AppReactionSummary people={people} onOpen={() => setOpen(true)} className={className}>
+      <AppReactionSummary people={people ?? []} onOpen={() => setOpen(true)} className={className}>
         <Trans t={t} i18nKey="likes.summary" values={{ name: first.name, count: count - 1 }} count={count - 1} components={{ b: <b /> }} />
       </AppReactionSummary>
       <AppPeopleDialog open={open} onOpenChange={setOpen} title={t('likes.listTitle')} load={load} />
