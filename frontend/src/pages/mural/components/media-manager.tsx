@@ -10,6 +10,7 @@ import {
   ImagePlusIcon,
   LoaderCircleIcon,
   RotateCcwIcon,
+  RotateCwIcon,
   StarIcon,
   VideoIcon,
   XIcon,
@@ -29,7 +30,7 @@ import { deleteMedia, uploadVideo } from '@/pages/feed/services/media-service'
 
 import { archiveMaxMedia } from '../managed-media'
 import type { ManagedMedia } from '../managed-media'
-import { archiveUploadPaths, uploadArchivePhoto } from '../services/mural-service'
+import { archiveUploadPaths, rotateArchivePhoto, uploadArchivePhoto } from '../services/mural-service'
 import type { ArchiveUploadTarget } from '../services/mural-service'
 
 const captionMaxLength = 500
@@ -151,6 +152,18 @@ export function MediaManager({ value, onChange, coverKey, onCoverChange, target 
     else startVideo(item.key, item.file)
   }
 
+  const rotate = async (item: ManagedMedia) => {
+    if (item.mediaId === null) return
+    patch(item.key, { state: 'uploading' })
+    try {
+      const media = await rotateArchivePhoto(item.mediaId, 90)
+      if (item.localUrl && item.previewUrl) URL.revokeObjectURL(item.previewUrl)
+      patch(item.key, { state: 'ready', previewUrl: media.url, localUrl: false })
+    } catch {
+      patch(item.key, { state: 'ready' })
+    }
+  }
+
   const retryAll = () => value.filter((item) => item.state === 'error' && item.file).forEach(retry)
 
   const remove = (item: ManagedMedia) => {
@@ -209,6 +222,7 @@ export function MediaManager({ value, onChange, coverKey, onCoverChange, target 
                   onMove={move}
                   onRemove={remove}
                   onRetry={retry}
+                  onRotate={(target) => void rotate(target)}
                   onOpen={viewable.some((other) => other.key === item.key) ? openViewer : undefined}
                 />
               ))}
@@ -255,9 +269,10 @@ type SortableMediaProps = {
   onRemove: (item: ManagedMedia) => void
   onRetry: (item: ManagedMedia) => void
   onOpen?: (key: string) => void
+  onRotate: (item: ManagedMedia) => void
 }
 
-function SortableMedia({ item, index, total, isCover, onPatch, onCover, onMove, onRemove, onRetry, onOpen }: SortableMediaProps) {
+function SortableMedia({ item, index, total, isCover, onPatch, onCover, onMove, onRemove, onRetry, onOpen, onRotate }: SortableMediaProps) {
   const { t } = useTranslation('mural')
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id: item.key })
 
@@ -331,6 +346,12 @@ function SortableMedia({ item, index, total, isCover, onPatch, onCover, onMove, 
               {isCover ? t('form.media.isCover') : t('form.media.makeCover')}
             </AppButton>
           )}
+          {item.kind === 'photo' && item.state === 'ready' && item.mediaId !== null ? (
+            <AppButton type="button" intent="ghost" size="sm" onClick={() => onRotate(item)} aria-label={t('form.media.rotateLabel', { position: index + 1 })}>
+              <RotateCwIcon />
+              {t('form.media.rotate')}
+            </AppButton>
+          ) : null}
           <span className="ml-auto flex items-center">
             <span className="app-meta mr-1 tabular-nums">{index + 1}</span>
             <AppIconButton type="button" label={t('form.media.up')} size="sm" disabled={index === 0} onClick={() => onMove(index, -1)}>

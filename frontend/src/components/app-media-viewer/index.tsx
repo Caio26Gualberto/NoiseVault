@@ -1,5 +1,6 @@
-import { ChevronLeftIcon, ChevronRightIcon, XIcon } from 'lucide-react'
+import { ChevronLeftIcon, ChevronRightIcon, RotateCwIcon, XIcon } from 'lucide-react'
 import { Dialog as DialogPrimitive } from 'radix-ui'
+import { useState } from 'react'
 import type { KeyboardEvent, ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -51,6 +52,19 @@ export function AppMediaViewer({ items, index, onIndexChange, tagging }: AppMedi
   const open = index !== null && items[index] !== undefined
   const item = open ? items[index] : null
   const many = items.length > 1
+  const [turn, setTurn] = useState<{ id: string | number; degrees: number } | null>(null)
+  const degrees = item && turn?.id === item.id ? turn.degrees : 0
+  const sideways = degrees % 180 !== 0
+
+  const close = () => {
+    setTurn(null)
+    onIndexChange(null)
+  }
+
+  const rotate = () => {
+    if (!item || item.kind === 'video') return
+    setTurn({ id: item.id, degrees: (degrees + 90) % 360 })
+  }
 
   const go = (step: number) => {
     if (index === null) return
@@ -58,14 +72,15 @@ export function AppMediaViewer({ items, index, onIndexChange, tagging }: AppMedi
   }
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (!many) return
     if (event.target instanceof HTMLInputElement) return
+    if (event.key === 'r' || event.key === 'R') rotate()
+    if (!many) return
     if (event.key === 'ArrowRight' && item?.kind !== 'video') go(1)
     if (event.key === 'ArrowLeft' && item?.kind !== 'video') go(-1)
   }
 
   return (
-    <DialogPrimitive.Root open={open} onOpenChange={(next) => !next && onIndexChange(null)}>
+    <DialogPrimitive.Root open={open} onOpenChange={(next) => !next && close()}>
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-scrim/95 duration-150 data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0" />
         <DialogPrimitive.Content
@@ -73,7 +88,7 @@ export function AppMediaViewer({ items, index, onIndexChange, tagging }: AppMedi
           onEscapeKeyDown={(event) => {
             if (document.querySelector('[data-dismiss-guard]')) event.preventDefault()
           }}
-          onClick={(event) => event.target === event.currentTarget && onIndexChange(null)}
+          onClick={(event) => event.target === event.currentTarget && close()}
           aria-describedby={undefined}
           className="fixed inset-0 z-50 flex items-center justify-center p-4 outline-none sm:p-16 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95"
         >
@@ -83,6 +98,17 @@ export function AppMediaViewer({ items, index, onIndexChange, tagging }: AppMedi
             <figure className="flex max-h-full w-full max-w-5xl flex-col items-center justify-center gap-3">
               {item.kind === 'video' ? (
                 <AppVideoPlayer key={item.id} src={item.url} poster={item.posterUrl} autoPlay className="w-full" />
+              ) : degrees !== 0 ? (
+                <img
+                  key={`${item.id}-${degrees}`}
+                  src={item.url}
+                  alt={item.alt ?? item.caption ?? ''}
+                  style={{ transform: `rotate(${degrees}deg)` }}
+                  className={cn(
+                    'rounded-lg object-contain',
+                    sideways ? 'max-h-[calc(100vw-2rem)] max-w-[calc(100vh-10rem)] sm:max-h-[calc(100vw-8rem)]' : 'max-h-[calc(100vh-8rem)] max-w-full',
+                  )}
+                />
               ) : (
                 <PhotoTags
                   key={item.id}
@@ -99,9 +125,15 @@ export function AppMediaViewer({ items, index, onIndexChange, tagging }: AppMedi
             </figure>
           ) : null}
 
-          <ViewerButton label={t('viewer.close')} onClick={() => onIndexChange(null)} className="absolute top-[calc(1rem+env(safe-area-inset-top))] right-4">
+          <ViewerButton label={t('viewer.close')} onClick={close} className="absolute top-[calc(1rem+env(safe-area-inset-top))] right-4">
             <XIcon />
           </ViewerButton>
+
+          {item && item.kind === 'photo' ? (
+            <ViewerButton label={t('viewer.rotate')} onClick={rotate} className="absolute top-[calc(1rem+env(safe-area-inset-top))] right-16">
+              <RotateCwIcon />
+            </ViewerButton>
+          ) : null}
 
           {many && index !== null ? (
             <>

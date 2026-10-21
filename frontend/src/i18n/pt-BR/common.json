@@ -165,7 +165,8 @@
       "remove": "Remover marcação",
       "removeTitle": "Remover esta marcação?",
       "removeMessage": "{{name}} deixa de aparecer marcado nesta foto."
-    }
+    },
+    "rotate": "Girar (só para você ver)"
   },
   "dateTime": {
     "placeholder": "dd/mm/aaaa hh:mm",

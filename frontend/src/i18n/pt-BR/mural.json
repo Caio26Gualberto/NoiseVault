@@ -187,7 +187,9 @@
       "retry": "Tentar de novo",
       "retryAll_one": "Tentar de novo a que falhou",
       "retryAll_other": "Tentar de novo as {{count}} que falharam",
-      "open": "Ver a mídia {{position}} em tela cheia"
+      "open": "Ver a mídia {{position}} em tela cheia",
+      "rotate": "Girar",
+      "rotateLabel": "Girar a foto {{position}} 90° para a direita"
     },
     "preview": "Assim o registro aparece no feed",
     "previewTitle": "Título do registro",

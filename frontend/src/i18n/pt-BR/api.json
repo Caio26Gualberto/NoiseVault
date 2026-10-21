@@ -318,5 +318,7 @@
   "LAST_SIGN_IN_METHOD": "Crie uma senha ou conecte outra conta antes de desconectar esta. Senão você fica sem como entrar.",
   "SIGN_IN_METHODS_FOUND": "Formas de entrar carregadas.",
   "PASSWORD_CREATED": "Senha criada. Agora você também entra com e-mail e senha.",
-  "PASSWORD_ALREADY_SET": "Sua conta já tem senha. Use \"Alterar senha\"."
+  "PASSWORD_ALREADY_SET": "Sua conta já tem senha. Use \"Alterar senha\".",
+  "INVALID_ROTATION": "A foto só gira de 90 em 90 graus.",
+  "PHOTO_ROTATED": "Foto girada."
 }

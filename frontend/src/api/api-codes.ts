@@ -157,6 +157,8 @@ export const ApiCodes = {
   mediaNotFound: 'MEDIA_NOT_FOUND',
   mediaNotAttachable: 'MEDIA_NOT_ATTACHABLE',
   mediaInUse: 'MEDIA_IN_USE',
+  invalidRotation: 'INVALID_ROTATION',
+  photoRotated: 'PHOTO_ROTATED',
   videoTooLarge: 'VIDEO_TOO_LARGE',
   videoUnsupported: 'VIDEO_UNSUPPORTED',
   videoUploadLimitReached: 'VIDEO_UPLOAD_LIMIT_REACHED',

@@ -173,6 +173,10 @@ export function uploadArchivePhoto(file: File, target: ArchiveUploadTarget): Pro
   return apiPostForm<MediaDto>(archiveUploadPaths[target].photos, form)
 }
 
+export function rotateArchivePhoto(mediaId: number, degrees: 90 | 180 | 270): Promise<MediaDto> {
+  return apiPost<MediaDto>(`/api/archive/media/${mediaId}/rotate`, { degrees })
+}
+
 export function submitArchiveEntry(input: ArchiveEntryInput): Promise<ArchiveEntryDto> {
   return apiPost<ArchiveEntryDto>('/api/archive/submissions', input, { toastSuccess: true })
 }
