@@ -523,16 +523,16 @@ Começado em 20/10/2026, com o SEO (`api/.claude/rules/seo.md`). Nada a configur
 
 ### 15.1 Conferir antes de cadastrar
 
-Depois do deploy da API e do front, no seu terminal:
+Depois do deploy da API e do front, no Prompt de Comando do Windows (o `cmd` não tem `head` nem `grep`; o `findstr` faz o papel do `grep`):
 
-```bash
-curl -s https://noisevault.net/robots.txt | head -3
-curl -s https://noisevault.net/sitemap.xml | head -c 400
-curl -s -A "Googlebot/2.1" https://noisevault.net/eventos | grep -o "<h1>[^<]*"
-curl -s -A "Googlebot/2.1" https://noisevault.net/eventos/<id> | grep -o 'application/ld+json'
+```bat
+curl -s https://noisevault.net/robots.txt
+curl -s https://noisevault.net/sitemap.xml
+curl -s -A "Googlebot/2.1" https://noisevault.net/eventos | findstr /c:"<h1>"
+curl -s -A "Googlebot/2.1" https://noisevault.net/eventos/<id> | findstr /c:"application/ld+json"
 ```
 
-O sitemap lista `https://noisevault.net/...`, a agenda responde com o `<h1>` e o evento traz o JSON-LD. Cole a URL de um evento no **Teste de pesquisa aprimorada** (https://search.google.com/test/rich-results): ele deve achar um "Evento" sem erro.
+O `robots.txt` abre com o grupo dos robôs de prévia, o sitemap lista `https://noisevault.net/...`, e as duas últimas linhas imprimem o HTML (que vem numa linha só) quando acham o `<h1>` e o JSON-LD; sem resultado, não imprimem nada. Conferido em 20/10/2026 com a agenda e o mural; produção ainda não tinha evento, banda nem registro, então o sitemap trazia só `/eventos` e `/mural`. Cole a URL de um evento no **Teste de pesquisa aprimorada** (https://search.google.com/test/rich-results): ele deve achar um "Evento" sem erro.
 
 ### 15.2 Google Search Console
 
