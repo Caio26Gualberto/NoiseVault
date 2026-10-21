@@ -92,7 +92,8 @@
       "where": "Onde",
       "lineup": "Quem toca",
       "tickets": "Ingresso e lotação"
-    }
+    },
+    "posterNotice": "Cartaz em pé: na agenda, no feed e na página do evento ele aparece inteiro, com o próprio cartaz desfocado nas laterais. O enquadramento acima não vale para ele."
   },
   "priceFrom": "A partir de {{price}}",
   "publishedBy": "publicado por @{{nickname}}",
@@ -119,5 +120,6 @@
     "title": "Shows",
     "empty": "Nenhum show marcado.",
     "emptyPast": "Nenhum show registrado ainda."
-  }
+  },
+  "posterOpen": "Ver o cartaz inteiro"
 }

@@ -20,6 +20,9 @@ Rule irmã: `../api/.claude/rules/eventos.md`. A regra é do backend; a tela só
 
 - **Cidade**: `formatCity` (`pages/perfil/city.ts`) mostra "Curitiba, PR" ou o texto de fora do Brasil. O filtro da agenda é um `AppCitySelect` com "Todas as cidades".
 - **Preço**: vazio é "Entrada franca"; com valor é "A partir de R$ X" (o show grande tem setores).
+- **Cartaz em pé** (pedido do usuário em 20/10/2026: o flyer de show é quase sempre vertical, e o banner deitado cortava a data e o local): a imagem é guardada inteira (`armazenamento.md`, o preset `Banner` não corta), então a decisão é só da tela. Com largura menor que 1,2 vez a altura (`useIsPoster`, `hooks/use-is-poster.ts`, lido do tamanho real da imagem), o `AppCoverImage` mostra o cartaz **inteiro**, sobre ele mesmo ampliado, desfocado e escurecido nas laterais, no card da agenda, no card do feed e no topo do evento. Imagem deitada continua cortando com a `bannerPosition`.
+  - No detalhe, o topo com cartaz fica mais alto (4:3 no celular, 16:9 a partir de `md`), o título e os gêneros saem de cima da imagem e vão para baixo dela, e clicar abre o cartaz em tela cheia (`AppMediaViewer`).
+  - No formulário, o `AppBannerEditor` continua igual, e um aviso embaixo dele explica que o enquadramento não vale para cartaz em pé.
 - **Cancelado e já rolou**: imagem dessaturada, título riscado quando cancelado, selo no card. O botão "Vou" fica desabilitado, mas quem já tinha marcado ainda consegue desmarcar. "Ingressos" some nos dois casos, e o comentário some no cancelado.
 - **Gerenciar**: o menu "…" (Editar, Cancelar evento, Apagar) aparece só com `canManage` da API. Cancelar e apagar passam por `useAppConfirm`. A edição de um evento cancelado redireciona para o detalhe.
 

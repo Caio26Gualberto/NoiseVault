@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
 import { AppBadge } from '@/components/app-badge'
+import { AppCoverImage } from '@/components/app-cover-image'
 import { cn } from '@/lib/utils'
 import { dayParts, formatTime, formatWeekday } from '@/lib/format'
 import { EventStatus } from '@/pages/eventos/event-status'
@@ -20,13 +21,7 @@ export function EventEmbed({ event, linked = true }: { event: EventSummaryDto; l
     <>
       <div className="relative aspect-[21/9] overflow-hidden bg-muted">
         {event.bannerUrl ? (
-          <img
-            src={event.bannerUrl}
-            alt=""
-            loading="lazy"
-            className={cn('size-full object-cover', closed && 'grayscale-[60%]')}
-            style={{ objectPosition: `center ${event.bannerPosition}%` }}
-          />
+          <AppCoverImage src={event.bannerUrl} position={event.bannerPosition} loading="lazy" className={cn(closed && 'grayscale-[60%]')} />
         ) : (
           <span className="flex size-full items-center justify-center text-muted-foreground">
             <CalendarDaysIcon className="size-10" />

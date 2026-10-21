@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom'
 import { AppBadge } from '@/components/app-badge'
 import { AppButton } from '@/components/app-button'
 import { AppGenreBadges } from '@/components/app-genre-badges'
+import { AppCoverImage } from '@/components/app-cover-image'
 import { cn } from '@/lib/utils'
 import { dayParts, formatPrice, formatTime } from '@/lib/format'
 
@@ -28,7 +29,7 @@ export function EventCard({ event, onToggleInterest }: EventCardProps) {
     <article className={cn('flex flex-col overflow-hidden rounded-xl border bg-card', closed && 'opacity-80')}>
       <Link to={`/eventos/${event.id}`} className="relative block aspect-video overflow-hidden bg-muted focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none">
         {event.bannerUrl ? (
-          <img src={event.bannerUrl} alt="" loading="lazy" className={cn('size-full object-cover', closed && 'grayscale-[60%]')} style={{ objectPosition: `center ${event.bannerPosition}%` }} />
+          <AppCoverImage src={event.bannerUrl} position={event.bannerPosition} loading="lazy" className={cn(closed && 'grayscale-[60%]')} />
         ) : null}
         <span className="absolute top-3 left-3 flex flex-col items-center rounded-lg bg-background/95 px-2.5 py-1.5 text-center leading-none">
           <span className="font-heading text-2xl font-bold tabular-nums">{day}</span>

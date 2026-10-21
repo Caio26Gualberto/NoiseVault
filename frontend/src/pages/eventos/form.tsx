@@ -9,6 +9,7 @@ import { useAuth } from '@/auth/use-auth'
 import { AppBannerEditor } from '@/components/app-banner-editor'
 import { AppButton } from '@/components/app-button'
 import { AppCityField, AppDateTimeField, AppField, AppForm, AppTextareaField } from '@/components/app-field'
+import { useIsPoster } from '@/hooks/use-is-poster'
 import { AppFormAsideBox, AppFormLayout, AppFormPanel } from '@/components/app-form-layout'
 import { AppPageHeader } from '@/components/app-page-header'
 import { AppSkeleton } from '@/components/app-skeleton'
@@ -221,6 +222,8 @@ export function EventoFormPage() {
           },
         }
 
+  const poster = useIsPoster(eventId === null ? (pending?.previewUrl ?? null) : banner.url)
+
   if (loading) {
     return <AppSkeleton preset="lines" count={8} className="app-page-enter mx-auto max-w-2xl" />
   }
@@ -292,6 +295,7 @@ export function EventoFormPage() {
         >
           <AppFormPanel title={t('form.bannerTitle')} description={t('form.bannerHint')} wide>
             <AppBannerEditor bannerUrl={bannerUrl} bannerPosition={bannerPosition} {...bannerHandlers} />
+            {poster ? <p className="app-meta">{t('form.posterNotice')}</p> : null}
           </AppFormPanel>
 
           <AppFormPanel title={t('form.sections.about')} wide>

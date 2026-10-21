@@ -10,6 +10,7 @@ import {
   Trash2Icon,
   UsersIcon,
 } from 'lucide-react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
@@ -20,9 +21,12 @@ import { toRichMentions } from '@/pages/feed/mention'
 import { AppBadge } from '@/components/app-badge'
 import { AppButton, AppIconButton } from '@/components/app-button'
 import { useDocumentTitle } from '@/hooks/use-document-title'
+import { useIsPoster } from '@/hooks/use-is-poster'
 import { AppShareButton } from '@/components/app-share-button'
 import { AppSignInPrompt } from '@/components/app-sign-in-prompt'
+import { AppCoverImage } from '@/components/app-cover-image'
 import { AppMarkdown } from '@/components/app-markdown'
+import { AppMediaViewer } from '@/components/app-media-viewer'
 import { AppCard } from '@/components/app-card'
 import { useAppConfirm } from '@/components/app-confirm'
 import { AppEmptyState } from '@/components/app-empty-state'
@@ -48,6 +52,8 @@ export function EventoDetalhePage() {
   const detail = useEventDetail(Number(id), !visitor)
   const { state, comments } = detail
   useDocumentTitle(state.status === 'found' ? state.event.title : null)
+  const poster = useIsPoster(state.status === 'found' ? state.event.bannerUrl : null)
+  const [posterOpen, setPosterOpen] = useState(false)
 
   if (state.status === 'loading') {
     return <AppSkeleton preset="profile" className="app-page-enter mx-auto max-w-4xl" />
@@ -61,6 +67,15 @@ export function EventoDetalhePage() {
   const price = formatPrice(event.price)
   const cancelled = event.status === EventStatus.cancelled
   const closed = cancelled || event.hasEnded
+  const heading = (
+    <>
+      <div className="flex flex-wrap items-center gap-2">
+        <AppGenreBadges genres={event.genres} max={4} tone="brand" />
+        {event.hasEnded && !cancelled ? <AppBadge tone="neutral">{t('status.ended')}</AppBadge> : null}
+      </div>
+      <h1 className={cn('app-h1 text-balance', cancelled && 'line-through decoration-4')}>{event.title}</h1>
+    </>
+  )
 
   const facts = [
     { icon: CalendarIcon, label: t('facts.when'), value: formatWeekday(event.startsAt) },
@@ -112,24 +127,22 @@ export function EventoDetalhePage() {
       ) : null}
 
       <section className="overflow-hidden rounded-xl border bg-card">
-        <div className="relative aspect-video w-full bg-muted md:aspect-[21/9]">
-          {event.bannerUrl ? (
-            <img
-              src={event.bannerUrl}
-              alt=""
-              className={cn('size-full object-cover', closed && 'grayscale-[60%]')}
-              style={{ objectPosition: `center ${event.bannerPosition}%` }}
-            />
+        <div className={cn('relative w-full overflow-hidden bg-muted', poster ? 'aspect-[4/3] md:aspect-video' : 'aspect-video md:aspect-[21/9]')}>
+          {event.bannerUrl && poster ? (
+            <button type="button" onClick={() => setPosterOpen(true)} aria-label={t('posterOpen')} className="block size-full cursor-zoom-in focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none">
+              <AppCoverImage src={event.bannerUrl} poster className={cn(closed && 'grayscale-[60%]')} />
+            </button>
+          ) : event.bannerUrl ? (
+            <AppCoverImage src={event.bannerUrl} position={event.bannerPosition} poster={false} className={cn(closed && 'grayscale-[60%]')} />
           ) : null}
-          <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-card via-card/70 to-transparent" />
-          <div className="absolute inset-x-0 bottom-0 flex flex-col gap-3 p-4 md:p-6">
-            <div className="flex flex-wrap items-center gap-2">
-              <AppGenreBadges genres={event.genres} max={4} tone="brand" />
-              {event.hasEnded && !cancelled ? <AppBadge tone="neutral">{t('status.ended')}</AppBadge> : null}
-            </div>
-            <h1 className={cn('app-h1 text-balance', cancelled && 'line-through decoration-4')}>{event.title}</h1>
-          </div>
+          {poster ? null : (
+            <>
+              <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-card via-card/70 to-transparent" />
+              <div className="absolute inset-x-0 bottom-0 flex flex-col gap-3 p-4 md:p-6">{heading}</div>
+            </>
+          )}
         </div>
+        {poster ? <div className="flex flex-col gap-3 px-4 pt-4 md:px-6 md:pt-6">{heading}</div> : null}
 
         <div className="flex flex-col gap-5 p-4 md:p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -252,6 +265,14 @@ export function EventoDetalhePage() {
           ) : null}
         </div>
       </section>
+
+      {event.bannerUrl && poster ? (
+        <AppMediaViewer
+          items={[{ id: event.id, kind: 'photo', url: event.bannerUrl, caption: event.title }]}
+          index={posterOpen ? 0 : null}
+          onIndexChange={(index) => setPosterOpen(index !== null)}
+        />
+      ) : null}
 
       {visitor ? (
         <AppCard title={t('comments.title', { count: event.commentCount })}>
