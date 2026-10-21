@@ -70,6 +70,9 @@ Rule irmã: `../api/.claude/rules/mural.md`. A regra é do backend; a tela só r
   - foto vai para `POST /api/admin/archive/media/photos`; vídeo, para `uploadVideo(..., archiveVideoStartPath)`;
   - os limites locais (`archivePhotoMaxBytes`, `archiveVideoLimits` em `lib/video-file.ts`) recusam cedo.
   - Cada item tem miniatura, progresso, legenda, "Usar como capa", ↑/↓ e remover.
+  - **Arrastar para ordenar** (pedido do usuário em 20/10/2026: com um álbum inteiro, as setas não davam conta). `@dnd-kit/sortable` com alça (⋮⋮) à esquerda de cada item: mouse depois de 5 px, toque depois de 150 ms segurando (para a rolagem da página continuar funcionando) e teclado (espaço pega, setas movem, espaço solta). As setas ficam, e o número da posição aparece ao lado delas.
+  - **No máximo 3 envios ao mesmo tempo** (`createLimiter`, `lib/limit.ts`): antes, escolher 40 fotos disparava 40 uploads de até 40 MB juntos. As outras esperam com o spinner.
+  - **Falhou → "Tentar de novo"**: o item guarda o arquivo até subir, e o botão reenvia sem escolher de novo. Com mais de uma falha, "Tentar de novo as N que falharam" aparece embaixo da lista. O 429 do limite por hora (`archive-photo`, `archive-submit-photo`, `../api/.claude/rules/abuso-e-limites.md`) cai aqui.
   - Remover uma mídia nova apaga no servidor; remover uma salva só tira da lista, e a API apaga ao salvar.
   - "Publicar" espera os envios e exige pelo menos uma mídia pronta.
 

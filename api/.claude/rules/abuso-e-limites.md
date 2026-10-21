@@ -32,7 +32,9 @@ Só rate limit não basta porque IP roda barato. Só regra de negócio não bast
 | `user-search` | 60/min por conta | a topbar busca enquanto a pessoa digita (debounce de 350 ms); 60 por minuto é folga de sobra |
 | `band-create` | 5/h por conta | criar banda é raro; cinco por hora já é spam ou teste |
 | `band-invite` | 30/h por conta | montar a formação de uma banda cabe com folga; disparar convite em massa não |
-| `media-photo` | 60/h por conta | um post tem até 10 fotos; 60 por hora cobre um show inteiro postado em vários posts. Vale também para o upload do mural (`mural.md`) |
+| `media-photo` | 60/h por conta | um post tem até 10 fotos; 60 por hora cobre um show inteiro postado em vários posts. ~~Vale também para o upload do mural~~: desde 20/10/2026 o mural tem as duas linhas abaixo |
+| `archive-photo` | 300/h por conta | foto do mural pela curadoria (`/api/admin/archive/media/photos`, `Archive.Create`). Um registro aceita 100 mídias, e um álbum inteiro estourava os 60/h do feed, com 429 no meio do envio (visto em 20/10/2026). 300 cobre três registros cheios na mesma hora |
+| `archive-submit-photo` | 100/h por conta | foto do envio da comunidade (`/api/archive/media/photos`): um registro cheio por hora, que é o que um envio precisa; somado aos 5 envios pendentes, segura quem quiser encher o storage |
 | `media-video` | 10/h por conta | abrir um multipart reserva storage e um job de conversão; soma-se ao limite de volume de 3 vídeos em andamento por pessoa (`midia-e-video.md`) |
 | `post-create` | 30/h por conta | publicar é frequente, mas 30 por hora já é spam |
 | `comment-create` | 60/h por conta | conversa rápida cabe; robô de comentário não. Compartilhado entre post, evento e mural |

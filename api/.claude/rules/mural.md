@@ -137,7 +137,7 @@ A fila da curadoria (`status=1`) vem dos mais antigos para os mais novos, para n
 - Reaproveitados: `INVALID_LINEUP`, `LINEUP_BAND_NOT_FOUND`, `MEDIA_NOT_ATTACHABLE`, `INVALID_CITY`, `INVALID_COMMENT_TEXT`, `IMAGE_TOO_LARGE`, `VIDEO_TOO_LARGE`.
 
 **Limites**:
-- O upload reaproveita `media-photo` e `media-video`, e o comentário, `comment-create`.
+- ~~O upload reaproveita `media-photo`~~: a foto tem limite próprio desde 20/10/2026, `archive-photo` (300/h) na curadoria e `archive-submit-photo` (100/h) no envio da comunidade, porque um álbum de 100 fotos estourava os 60/h do feed (`abuso-e-limites.md`). O vídeo continua no `media-video`, e o comentário, no `comment-create`.
 - O envio tem `archive-submit` (10/h por conta) e o limite de volume de **5 pendentes** por pessoa (`ARCHIVE_SUBMISSION_LIMIT_REACHED`, contado no `CountPendingAsync`). Registro publicado não conta: quem já foi aprovado pode mandar mais.
 - Não há limite para a curadoria publicar direto.
 

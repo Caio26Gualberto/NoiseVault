@@ -80,7 +80,7 @@ namespace NoiseVault.Api.Controllers.Admin
 
         [HttpPost("media/photos")]
         [Authorize(Policy = Permissions.Archive.Create)]
-        [EnableRateLimiting(ApiRateLimitPolicies.MediaPhoto)]
+        [EnableRateLimiting(ApiRateLimitPolicies.ArchivePhoto)]
         [RequestSizeLimit(PhotoRequestLimit)]
         [RequestFormLimits(MultipartBodyLengthLimit = PhotoRequestLimit)]
         public async Task<ActionResult> UploadPhoto(IFormFile? file, CancellationToken cancellationToken)

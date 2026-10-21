@@ -22,6 +22,8 @@ namespace NoiseVault.Api.RateLimiting
         public const string BandInvite = "band-invite";
         public const string MediaPhoto = "media-photo";
         public const string MediaVideo = "media-video";
+        public const string ArchivePhoto = "archive-photo";
+        public const string ArchiveSubmitPhoto = "archive-submit-photo";
         public const string PostCreate = "post-create";
         public const string CommentCreate = "comment-create";
         public const string EventCreate = "event-create";
@@ -73,6 +75,8 @@ namespace NoiseVault.Api.RateLimiting
                 AddFixedWindow(options, ApiRateLimitPolicies.BandInvite, permitLimit: 30, windowMinutes: 60);
                 AddFixedWindow(options, ApiRateLimitPolicies.MediaPhoto, permitLimit: 60, windowMinutes: 60);
                 AddFixedWindow(options, ApiRateLimitPolicies.MediaVideo, permitLimit: 10, windowMinutes: 60);
+                AddFixedWindow(options, ApiRateLimitPolicies.ArchivePhoto, permitLimit: 300, windowMinutes: 60);
+                AddFixedWindow(options, ApiRateLimitPolicies.ArchiveSubmitPhoto, permitLimit: 100, windowMinutes: 60);
                 AddFixedWindow(options, ApiRateLimitPolicies.PostCreate, permitLimit: 30, windowMinutes: 60);
                 AddFixedWindow(options, ApiRateLimitPolicies.CommentCreate, permitLimit: 60, windowMinutes: 60);
                 AddFixedWindow(options, ApiRateLimitPolicies.EventCreate, permitLimit: 10, windowMinutes: 60);

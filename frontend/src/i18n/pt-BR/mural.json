@@ -181,7 +181,12 @@
         "unsupported": "Escolha um arquivo de vídeo.",
         "tooLarge": "O vídeo pode ter até {{size}} GB.",
         "tooLong": "O vídeo pode ter até {{hours}} h."
-      }
+      },
+      "dragHint": "Arraste pela alça ⋮⋮ para mudar a ordem, ou use as setas.",
+      "drag": "Arrastar a mídia {{position}}",
+      "retry": "Tentar de novo",
+      "retryAll_one": "Tentar de novo a que falhou",
+      "retryAll_other": "Tentar de novo as {{count}} que falharam"
     },
     "preview": "Assim o registro aparece no feed",
     "previewTitle": "Título do registro",
