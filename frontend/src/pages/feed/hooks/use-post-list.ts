@@ -20,11 +20,12 @@ export function usePostList(load: PostListLoader) {
   const [loading, setLoading] = useState(true)
   const [version, setVersion] = useState(0)
   const [loadedWith, setLoadedWith] = useState(() => load)
+  const [stale, setStale] = useState(false)
 
   if (loadedWith !== load) {
     setLoadedWith(() => load)
     setPage(1)
-    setItems([])
+    setStale(true)
     setLoading(true)
   }
 
@@ -41,9 +42,12 @@ export function usePostList(load: PostListLoader) {
         })
         setTotalPages(data.totalPages)
         setTotalCount(data.totalCount)
+        setStale(false)
       })
       .catch(() => {
-        if (!cancelled && page === 1) setItems([])
+        if (cancelled || page !== 1) return
+        setItems([])
+        setStale(false)
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
@@ -84,7 +88,7 @@ export function usePostList(load: PostListLoader) {
     }
   }, processing.length > 0 ? processingPollMs : 0)
 
-  return { items, page, totalPages, totalCount, loading, setPage, reload, replace, remove, like }
+  return { items, page, totalPages, totalCount, loading, stale, setPage, reload, replace, remove, like }
 }
 
 export type PostList = ReturnType<typeof usePostList>
