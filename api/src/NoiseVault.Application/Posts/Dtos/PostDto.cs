@@ -23,6 +23,7 @@ namespace NoiseVault.Application.Posts.Dtos
         public int LikeCount { get; set; }
         public int CommentCount { get; set; }
         public bool LikedByMe { get; set; }
+        public List<ProfileSummaryDto> LikePreview { get; set; } = [];
         public EPostStatus Status { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? EditedAt { get; set; }

@@ -75,6 +75,49 @@ namespace NoiseVault.Infra.Data.Repositories.Posts
                 .Where(l => l.PostId == postId && l.UserId == userId)
                 .ExecuteDeleteAsync();
 
+        public async Task<(List<User> Users, int TotalCount)> PageLikersAsync(int postId, int skip, int take)
+        {
+            var query = _context.Set<PostLike>()
+                .AsNoTracking()
+                .Where(l => l.PostId == postId && l.User!.IsActive);
+
+            var totalCount = await query.CountAsync();
+
+            var users = await query
+                .OrderByDescending(l => l.CreatedAt)
+                .ThenBy(l => l.UserId)
+                .Skip(skip)
+                .Take(take)
+                .Select(l => l.User!)
+                .ToListAsync();
+
+            return (users, totalCount);
+        }
+
+        public async Task<Dictionary<int, List<User>>> LikerPreviewsAsync(List<int> postIds, int take)
+        {
+            if (postIds.Count == 0)
+                return [];
+
+            var rows = await _dbSet
+                .AsNoTracking()
+                .Where(p => postIds.Contains(p.Id))
+                .Select(p => new
+                {
+                    p.Id,
+                    Users = p.Likes
+                        .Where(l => l.User!.IsActive)
+                        .OrderByDescending(l => l.CreatedAt)
+                        .ThenBy(l => l.UserId)
+                        .Take(take)
+                        .Select(l => l.User!)
+                        .ToList(),
+                })
+                .ToListAsync();
+
+            return rows.ToDictionary(r => r.Id, r => r.Users);
+        }
+
         public async Task<bool> TryPublishAsync(int postId, DateTime now)
         {
             var affected = await _dbSet

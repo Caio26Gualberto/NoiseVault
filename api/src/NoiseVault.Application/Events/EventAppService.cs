@@ -347,6 +347,21 @@ namespace NoiseVault.Application.Events
             return Result<EventDto>.Ok(await MapOneAsync((await FindVisible(id))!), "BANNER_REMOVED", "Banner removed");
         }
 
+        public async Task<Result<PagedResultDto<ProfileSummaryDto>>> Interested(int id, PagedRequestDto query)
+        {
+            query.Normalize();
+
+            if (await FindVisible(id) == null)
+                return Result<PagedResultDto<ProfileSummaryDto>>.Fail(EventNotFound());
+
+            var (users, totalCount) = await _eventRepository.PageInterestedAsync(id, query.Skip, query.PageSize);
+
+            return Result<PagedResultDto<ProfileSummaryDto>>.Ok(
+                PagedResultDto<ProfileSummaryDto>.Create(users.Select(Summary).ToList(), query.Page, query.PageSize, totalCount),
+                "EVENT_INTERESTED_FOUND",
+                "Interested people found");
+        }
+
         public Task<EventReadModel?> FindVisible(int eventId) =>
             _eventRepository.FindAsync(eventId, Viewer);
 
@@ -590,7 +605,18 @@ namespace NoiseVault.Application.Events
                 entity.Genres.Add(new EventGenre { EventId = entity.Id, Genre = genre });
         }
 
-        private async Task<EventDto> MapOneAsync(EventReadModel row) => (await MapAsync([row]))[0];
+        private async Task<EventDto> MapOneAsync(EventReadModel row)
+        {
+            var dto = (await MapAsync([row]))[0];
+
+            if (_currentUser.UserIdOrNull != null && row.InterestedCount > 0)
+            {
+                var (interested, _) = await _eventRepository.PageInterestedAsync(row.Id, 0, EventRules.ReactionPreview);
+                dto.InterestedPreview = interested.Select(Summary).ToList();
+            }
+
+            return dto;
+        }
 
         private async Task<List<EventDto>> MapAsync(List<EventReadModel> rows)
         {
@@ -649,6 +675,14 @@ namespace NoiseVault.Application.Events
                 CreatedAt = r.CreatedAt,
             }).ToList();
         }
+
+        private ProfileSummaryDto Summary(User user) => new()
+        {
+            Id = user.Id,
+            Name = user.Name,
+            Nickname = user.Nickname,
+            AvatarUrl = _fileStorage.PublicUrl(user.AvatarKey),
+        };
 
         private int Viewer => _currentUser.UserIdOrNull ?? 0;
 

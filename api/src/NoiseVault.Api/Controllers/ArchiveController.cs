@@ -64,6 +64,13 @@ namespace NoiseVault.Api.Controllers
             return ToResponse(result);
         }
 
+        [HttpGet("{id:int}/likes")]
+        public async Task<ActionResult> Likes(int id, [FromQuery] PagedRequestDto query)
+        {
+            var result = await _archiveAppService.Likers(id, query);
+            return ToResponse(result);
+        }
+
         [HttpPut("{id:int}/like")]
         public async Task<ActionResult> Like(int id)
         {

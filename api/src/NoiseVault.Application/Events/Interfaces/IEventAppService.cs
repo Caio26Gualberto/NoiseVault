@@ -3,6 +3,7 @@ using NoiseVault.Application.Events.Dtos;
 using NoiseVault.Application.Events.Models;
 using NoiseVault.Application.Pagination;
 using NoiseVault.Application.Profiles.Dtos;
+using NoiseVault.Application.PublicProfiles.Dtos;
 using NoiseVault.Application.Response;
 
 namespace NoiseVault.Application.Events.Interfaces
@@ -20,6 +21,7 @@ namespace NoiseVault.Application.Events.Interfaces
         Task<Result> Delete(int id);
         Task<Result<EventDto>> AddInterest(int id);
         Task<Result<EventDto>> RemoveInterest(int id);
+        Task<Result<PagedResultDto<ProfileSummaryDto>>> Interested(int id, PagedRequestDto query);
         Task<Result<EventDto>> SetBanner(int id, ImageUploadInput? file, int? position, CancellationToken cancellationToken = default);
         Task<Result<EventDto>> SetBannerPosition(int id, BannerPositionInputDto input);
         Task<Result<EventDto>> RemoveBanner(int id);

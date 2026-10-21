@@ -2717,11 +2717,13 @@ namespace NoiseVault.Infra.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("NoiseVault.Domain.Entities.User", null)
+                    b.HasOne("NoiseVault.Domain.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("NoiseVault.Domain.Entities.ArchiveMedia", b =>
@@ -3000,11 +3002,13 @@ namespace NoiseVault.Infra.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("NoiseVault.Domain.Entities.User", null)
+                    b.HasOne("NoiseVault.Domain.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("NoiseVault.Domain.Entities.EventLineupEntry", b =>
@@ -3221,11 +3225,13 @@ namespace NoiseVault.Infra.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("NoiseVault.Domain.Entities.User", null)
+                    b.HasOne("NoiseVault.Domain.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("NoiseVault.Domain.Entities.PostMedia", b =>

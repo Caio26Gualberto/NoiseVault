@@ -110,6 +110,25 @@ namespace NoiseVault.Infra.Data.Repositories.Events
             return affected == 1;
         }
 
+        public async Task<(List<User> Users, int TotalCount)> PageInterestedAsync(int eventId, int skip, int take)
+        {
+            var query = _context.Set<EventInterest>()
+                .AsNoTracking()
+                .Where(i => i.EventId == eventId && i.User!.IsActive);
+
+            var totalCount = await query.CountAsync();
+
+            var users = await query
+                .OrderByDescending(i => i.CreatedAt)
+                .ThenBy(i => i.UserId)
+                .Skip(skip)
+                .Take(take)
+                .Select(i => i.User!)
+                .ToListAsync();
+
+            return (users, totalCount);
+        }
+
         public Task<List<int>> InterestedUserIdsAsync(int eventId) =>
             _context.Set<EventInterest>()
                 .Where(i => i.EventId == eventId)

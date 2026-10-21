@@ -7,6 +7,7 @@ namespace NoiseVault.Application.Posts
         public const int MaxPhotosPerPost = 10;
         public const int MaxVideosPerPost = 1;
         public const int MaxMediaPerPost = MaxPhotosPerPost + MaxVideosPerPost;
+        public const int ReactionPreview = 3;
 
         public static string NormalizeText(string? text) => (text ?? string.Empty).Trim();
     }

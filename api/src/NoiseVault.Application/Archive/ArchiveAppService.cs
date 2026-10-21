@@ -468,6 +468,21 @@ namespace NoiseVault.Application.Archive
                 "Attendees found");
         }
 
+        public async Task<Result<PagedResultDto<ProfileSummaryDto>>> Likers(int id, PagedRequestDto query)
+        {
+            query.Normalize();
+
+            if (await FindVisible(id) == null)
+                return Result<PagedResultDto<ProfileSummaryDto>>.Fail(NotFound());
+
+            var (users, totalCount) = await _archiveRepository.PageLikersAsync(id, query.Skip, query.PageSize);
+
+            return Result<PagedResultDto<ProfileSummaryDto>>.Ok(
+                PagedResultDto<ProfileSummaryDto>.Create(users.Select(Summary).ToList(), query.Page, query.PageSize, totalCount),
+                "ARCHIVE_LIKES_FOUND",
+                "Likes found");
+        }
+
         public Task<Result<MediaDto>> UploadPhoto(ImageUploadInput? file, CancellationToken cancellationToken = default) =>
             _mediaAppService.UploadPhoto(file, EMediaProfile.Archive, cancellationToken);
 
@@ -805,6 +820,12 @@ namespace NoiseVault.Application.Archive
             {
                 var (attendees, _) = await _archiveRepository.PageAttendeesAsync(row.Id, 0, ArchiveRules.AttendeesPreview);
                 dto.Attendees = attendees.Select(Summary).ToList();
+
+                if (row.LikeCount > 0)
+                {
+                    var (likers, _) = await _archiveRepository.PageLikersAsync(row.Id, 0, ArchiveRules.ReactionPreview);
+                    dto.LikePreview = likers.Select(Summary).ToList();
+                }
             }
 
             return dto;

@@ -424,7 +424,7 @@ namespace NoiseVault.Infra.Data.Context
                     .HasForeignKey(x => x.PostId)
                     .OnDelete(DeleteBehavior.Restrict);
 
-                b.HasOne<User>()
+                b.HasOne(x => x.User)
                     .WithMany()
                     .HasForeignKey(x => x.UserId)
                     .OnDelete(DeleteBehavior.Restrict);
@@ -528,7 +528,7 @@ namespace NoiseVault.Infra.Data.Context
                     .HasForeignKey(x => x.EventId)
                     .OnDelete(DeleteBehavior.Restrict);
 
-                b.HasOne<User>()
+                b.HasOne(x => x.User)
                     .WithMany()
                     .HasForeignKey(x => x.UserId)
                     .OnDelete(DeleteBehavior.Restrict);
@@ -779,7 +779,7 @@ namespace NoiseVault.Infra.Data.Context
                     .HasForeignKey(x => x.ArchiveEntryId)
                     .OnDelete(DeleteBehavior.Restrict);
 
-                b.HasOne<User>()
+                b.HasOne(x => x.User)
                     .WithMany()
                     .HasForeignKey(x => x.UserId)
                     .OnDelete(DeleteBehavior.Restrict);

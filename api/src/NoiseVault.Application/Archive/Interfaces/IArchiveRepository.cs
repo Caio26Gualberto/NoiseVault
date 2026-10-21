@@ -21,5 +21,6 @@ namespace NoiseVault.Application.Archive.Interfaces
         Task RemoveAttendanceAsync(int entryId, int userId);
         Task<List<int>> AttendeeUserIdsAsync(int entryId);
         Task<(List<User> Users, int TotalCount)> PageAttendeesAsync(int entryId, int skip, int take);
+        Task<(List<User> Users, int TotalCount)> PageLikersAsync(int entryId, int skip, int take);
     }
 }

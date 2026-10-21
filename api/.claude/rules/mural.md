@@ -53,7 +53,7 @@ Quem tem as fotos e fitas são os membros do grupo do Facebook, não a curadoria
 | Ação | Quem |
 |---|---|
 | Ver mural, linha do tempo e registro publicado | **qualquer pessoa, sem login** (só leitura, sem as marcações das fotos nem os nomes de quem estava lá, desde 20/10/2026, `seo.md`) |
-| Ver quem estava lá e as marcações | qualquer pessoa logada |
+| Ver quem estava lá, quem curtiu e as marcações | qualquer pessoa logada |
 | Curtir, "Eu estava lá", comentar | qualquer pessoa logada |
 | Subir mídia de arquivo e enviar um registro para a curadoria | qualquer pessoa logada |
 | Editar e retirar o próprio envio pendente; apagar o próprio envio recusado | quem enviou |
@@ -101,7 +101,7 @@ O upload é feito por `POST /api/admin/archive/media/photos|videos` (`Archive.Cr
   - `cityId` e `kind` (`photo`/`video`: tem pelo menos uma mídia do tipo);
   - `sort` (`newest` padrão, `oldest`), pela `SortDate` com desempate por `Id`.
 - `GET /api/archive/years` → `[{ year, count }]` em ordem crescente, que alimenta a linha do tempo.
-- `GET /api/archive/{id}`: o detalhe traz as mídias com legenda e as 5 primeiras pessoas de "quem estava lá". `GET …/attendees` pagina o resto.
+- `GET /api/archive/{id}`: o detalhe traz as mídias com legenda, as 5 primeiras pessoas de "quem estava lá" e as 3 mais recentes de quem curtiu (`likePreview`, `ArchiveRules.ReactionPreview`, desde 21/10/2026, como no feed). `GET …/attendees` e `GET …/likes` paginam o resto.
 - `GET /api/bands/{slug}/archive`: os registros em que a banda aparece.
 - **Feed**: o `PostDto.archive` (`ArchiveSummaryDto`: título, data, capa e contagens) é lido em lote do `IArchiveRepository`, com a mesma exceção de DI registrada para o evento.
 
@@ -113,6 +113,7 @@ O upload é feito por `POST /api/admin/archive/media/photos|videos` (`Archive.Cr
 | `GET /api/archive/years` | `ARCHIVE_YEARS_FOUND` |
 | `GET /api/archive/{id}` | `ARCHIVE_ENTRY_FOUND` |
 | `GET /api/archive/{id}/attendees` | `ARCHIVE_ATTENDEES_FOUND` |
+| `GET /api/archive/{id}/likes` | `ARCHIVE_LIKES_FOUND` |
 | `PUT`/`DELETE /api/archive/{id}/like` | `ARCHIVE_LIKED` / `ARCHIVE_UNLIKED` |
 | `PUT`/`DELETE /api/archive/{id}/attendance` | `ARCHIVE_ATTENDED` / `ARCHIVE_UNATTENDED` |
 | `GET`/`POST /api/archive/{id}/comments` · `DELETE /api/archive-comments/{id}` | `ARCHIVE_COMMENTS_FOUND` / `ARCHIVE_COMMENT_CREATED` / `ARCHIVE_COMMENT_DELETED` |

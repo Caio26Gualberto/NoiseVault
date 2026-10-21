@@ -93,6 +93,13 @@ namespace NoiseVault.Api.Controllers
             return ToResponse(result);
         }
 
+        [HttpGet("{id:int}/interested")]
+        public async Task<ActionResult> Interested(int id, [FromQuery] PagedRequestDto query)
+        {
+            var result = await _eventAppService.Interested(id, query);
+            return ToResponse(result);
+        }
+
         [HttpPut("{id:int}/interest")]
         public async Task<ActionResult> AddInterest(int id)
         {

@@ -14,6 +14,7 @@ namespace NoiseVault.Application.Events
         public const int LineupNameMaxLength = 100;
         public const int MaxActiveEventsPerUser = 20;
         public const int MaxUpcomingTake = 10;
+        public const int ReactionPreview = 3;
 
         public static readonly TimeSpan CreationTolerance = TimeSpan.FromHours(1);
         public static readonly TimeSpan MaxDuration = TimeSpan.FromDays(7);

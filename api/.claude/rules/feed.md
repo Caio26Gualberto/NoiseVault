@@ -56,6 +56,12 @@ Módulo 3 da ordem em `dominio.md`. A mídia (fotos e vídeo) é de `midia-e-vid
 
 `PostLike (PostId, UserId)` com chave composta; não herda `EntityBase` (não tem soft delete nem auditoria, é volume alto). `PUT /api/posts/{id}/like` é idempotente: já curtido devolve o mesmo resultado, e a corrida de dois cliques cai na chave primária e é tratada como "já curtido". `DELETE` é `ExecuteDeleteAsync`. Os dois devolvem o `PostDto` atualizado.
 
+**Quem curtiu** (pedido do usuário em 21/10/2026, "é uma comunidade, mas não conseguimos ver pessoa por pessoa", no molde do Instagram):
+- `PostDto.likePreview` traz as 3 pessoas mais recentes (`PostRules.ReactionPreview`), lidas em lote por página (`IPostRepository.LikerPreviewsAsync`, uma consulta com `Take` por post, só dos posts com curtida). É o que a tela usa para "Curtido por Fulano e outras N pessoas".
+- `GET /api/posts/{id}/likes` pagina a lista inteira (`ProfileSummaryDto`), mais recente primeiro, com desempate por `UserId`.
+- Os dois só trazem conta ativa. O `likeCount` continua contando todas as curtidas, então com uma conta desativada o número pode passar da lista em 1; é o mesmo desenho do "Eu estava lá" (`mural.md`).
+- O `PostLike` ganhou a navegação `User` para essas leituras; a migration `ReactionUserNavigations` não muda o schema.
+
 ## Leitura: projeção num repositório específico
 
 `IPostRepository` (`Infra.Data/Repositories/Posts/`) projeta `PostReadModel` numa ida ao banco: autor, `LikeCount`, `CommentCount`, `LikedByMe`, `HasFailedMedia` e `ViewerOwnsBand`. O genérico não projeta; é o caso de "projeção agregada" do `CLAUDE.md`. Banda (`IBandAppService.SummariesByIds`) e mídia (`PostMedia` + `IMediaUploadAppService.Describe`) são mapeadas em lote por página.
@@ -91,6 +97,7 @@ Todos autenticados, em `Controllers/`.
 | `PUT /api/posts/{id} { content }` | `POST_UPDATED` |
 | `DELETE /api/posts/{id}` | `POST_DELETED` |
 | `PUT` / `DELETE /api/posts/{id}/like` | `POST_LIKED` / `POST_UNLIKED` |
+| `GET /api/posts/{id}/likes` (paginado, quem curtiu) | `POST_LIKES_FOUND` |
 | `GET /api/posts/{id}/comments` (paginado, mais antigos primeiro) | `COMMENTS_FOUND` |
 | `POST /api/posts/{id}/comments { text }` | `COMMENT_CREATED` |
 | `DELETE /api/comments/{id}` | `COMMENT_DELETED` |
@@ -140,7 +147,7 @@ Com o Docker, o ffmpeg e a API no ar; conta A (admin, Owner de uma banda), conta
 2. **Visibilidade.** O feed de C não traz o post; o de A traz com `status: 1`. C abre o post → 404. A curte → 409 `POST_NOT_PUBLISHED`.
 3. **Publicação.** Quando o vídeo fica `Ready`, `POST_PUBLISHED` sai no log e C abre o post com `status: 0` e as duas mídias.
 4. **Limites.** Dois vídeos → `TOO_MANY_VIDEOS`; 11 fotos → `TOO_MANY_PHOTOS`; mídia já usada, de outra pessoa ou que falhou → `MEDIA_NOT_ATTACHABLE`.
-5. **Curtidas.** C curte duas vezes → `likeCount: 1`; descurte duas vezes → 0.
+5. **Curtidas.** C curte duas vezes → `likeCount: 1` e `likePreview` com C; `GET …/likes` lista C; descurte duas vezes → 0 e `likePreview` vazio.
 6. **Comentários.** C comenta; A lista e vê `canDelete: true` no comentário de C; C apaga o de A → 403; A apaga o de C → `COMMENT_DELETED`; de novo → 404.
 7. **Edição.** C edita o post de A → 403; A edita → `editedAt` preenchido.
 8. **Listas.** `/api/bands/{slug}/posts` traz só os posts da banda; `postCount` da banda e do perfil batem com as listas; nickname inexistente → `PROFILE_NOT_FOUND`.

@@ -166,6 +166,25 @@ namespace NoiseVault.Infra.Data.Repositories.Archive
             return (users, totalCount);
         }
 
+        public async Task<(List<User> Users, int TotalCount)> PageLikersAsync(int entryId, int skip, int take)
+        {
+            var query = _context.Set<ArchiveLike>()
+                .AsNoTracking()
+                .Where(l => l.ArchiveEntryId == entryId && l.User!.IsActive);
+
+            var totalCount = await query.CountAsync();
+
+            var users = await query
+                .OrderByDescending(l => l.CreatedAt)
+                .ThenBy(l => l.UserId)
+                .Skip(skip)
+                .Take(take)
+                .Select(l => l.User!)
+                .ToListAsync();
+
+            return (users, totalCount);
+        }
+
         private async Task<bool> AddLinkAsync<TLink>(TLink link, System.Linq.Expressions.Expression<Func<TLink, bool>> exists) where TLink : class
         {
             var set = _context.Set<TLink>();

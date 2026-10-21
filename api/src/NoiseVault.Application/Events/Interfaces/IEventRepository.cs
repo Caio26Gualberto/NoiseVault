@@ -12,6 +12,7 @@ namespace NoiseVault.Application.Events.Interfaces
         Task<bool> AddInterestAsync(int eventId, int userId);
         Task RemoveInterestAsync(int eventId, int userId);
         Task<bool> TryCancelAsync(int eventId, DateTime now);
+        Task<(List<User> Users, int TotalCount)> PageInterestedAsync(int eventId, int skip, int take);
         Task<List<int>> InterestedUserIdsAsync(int eventId);
         Task<List<(int EventId, List<int> UserIds)>> InterestedStartingBetweenAsync(DateTime fromUtc, DateTime toUtc);
         Task<int> CountUpcomingByBandAsync(int bandId, DateTime now);

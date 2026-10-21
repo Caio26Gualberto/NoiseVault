@@ -30,6 +30,7 @@ namespace NoiseVault.Application.Archive.Interfaces
         Task<Result<ArchiveEntryDto>> Attend(int id);
         Task<Result<ArchiveEntryDto>> Unattend(int id);
         Task<Result<PagedResultDto<ProfileSummaryDto>>> Attendees(int id, PagedRequestDto query);
+        Task<Result<PagedResultDto<ProfileSummaryDto>>> Likers(int id, PagedRequestDto query);
         Task<Result<MediaDto>> UploadPhoto(ImageUploadInput? file, CancellationToken cancellationToken = default);
         Task<Result<VideoUploadDto>> StartVideo(StartVideoUploadInputDto input);
         Task<Result<MediaDto>> RotatePhoto(int mediaId, ArchiveRotateInputDto input);

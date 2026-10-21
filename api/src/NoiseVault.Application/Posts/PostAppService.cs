@@ -286,6 +286,21 @@ namespace NoiseVault.Application.Posts
 
         public Task<Result<PostDto>> Unlike(int id) => ReactAsync(id, like: false);
 
+        public async Task<Result<PagedResultDto<ProfileSummaryDto>>> Likers(int id, PagedRequestDto query)
+        {
+            query.Normalize();
+
+            if (await FindVisible(id) == null)
+                return Result<PagedResultDto<ProfileSummaryDto>>.Fail(PostNotFound());
+
+            var (users, totalCount) = await _postRepository.PageLikersAsync(id, query.Skip, query.PageSize);
+
+            return Result<PagedResultDto<ProfileSummaryDto>>.Ok(
+                PagedResultDto<ProfileSummaryDto>.Create(users.Select(Summary).ToList(), query.Page, query.PageSize, totalCount),
+                "POST_LIKES_FOUND",
+                "Likes found");
+        }
+
         public Task<PostReadModel?> FindVisible(int postId) =>
             _postRepository.FindVisibleAsync(postId, _currentUser.UserId);
 
@@ -477,6 +492,7 @@ namespace NoiseVault.Application.Posts
             var me = _currentUser.UserId;
             var mentions = await _mentionAppService.Resolve(rows.Select(r => r.Content));
             var tags = await _photoTagAppService.ForMedia(media.SelectMany(g => g).Select(pm => pm.MediaUploadId).ToList());
+            var likers = await _postRepository.LikerPreviewsAsync(rows.Where(r => r.LikeCount > 0).Select(r => r.Id).ToList(), PostRules.ReactionPreview);
 
             return rows.Select(r => new PostDto
             {
@@ -498,6 +514,7 @@ namespace NoiseVault.Application.Posts
                 LikeCount = r.LikeCount,
                 CommentCount = r.CommentCount,
                 LikedByMe = r.LikedByMe,
+                LikePreview = likers.TryGetValue(r.Id, out var people) ? people.Select(Summary).ToList() : [],
                 Status = r.PublishedAt != null
                     ? EPostStatus.Published
                     : r.HasFailedMedia ? EPostStatus.Failed : EPostStatus.Processing,
@@ -553,6 +570,14 @@ namespace NoiseVault.Application.Posts
                 VideoCount = e.VideoCount,
             });
         }
+
+        private ProfileSummaryDto Summary(User user) => new()
+        {
+            Id = user.Id,
+            Name = user.Name,
+            Nickname = user.Nickname,
+            AvatarUrl = _fileStorage.PublicUrl(user.AvatarKey),
+        };
 
         private static Result<PostDto> Fail(Error error) => Result<PostDto>.Fail(error);
 

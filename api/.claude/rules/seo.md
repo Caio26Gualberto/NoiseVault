@@ -30,8 +30,8 @@ Decisões do usuário em 20/10/2026:
 
 - **Como**: os AppServices leem quem é o leitor por `UserIdOrNull ?? 0`. Os repositórios já recebiam `viewerUserId` e só o usam para `LikedByMe`, `AttendedByMe`, `Interested`, "só os que vou" e `ViewerOwnsBand`; o id 0 nunca casa com ninguém, o mesmo truque do `SharePreviewAppService` (`compartilhamento.md`). O `BandAppService.FindAccess` devolve papel nulo sem login, e o `ArchiveAppService.PermissionsAsync` devolve tudo falso sem consultar o `IPermissionChecker`.
 - **O pendente do mural continua invisível**: sem login, `FindReadable` só devolve o registro `Published`.
-- **O que some sem login, por privacidade** (decisão registrada no plano aprovado em 20/10/2026): no registro do mural, as **marcações de pessoas nas fotos** (`media[].tags` vazio) e a **prévia de "quem estava lá"** (`attendees` vazio). Ficam só as contagens. A regra é da API, não da tela: o front não tem como esconder o que a API entregou.
-- **Continuam com login**: comentários de evento e do mural, `attendees`, vagas da banda (`ensaio.md`), posts da banda e do feed, perfis de pessoa, bandas sugeridas e a busca de bandas.
+- **O que some sem login, por privacidade** (decisão registrada no plano aprovado em 20/10/2026): no registro do mural, as **marcações de pessoas nas fotos** (`media[].tags` vazio) e as **prévias de quem estava lá e de quem curtiu** (`attendees` e `likePreview` vazios); no evento, a **prévia de quem vai** (`interestedPreview` vazio, desde 21/10/2026). Ficam só as contagens. A regra é da API, não da tela: o front não tem como esconder o que a API entregou.
+- **Continuam com login**: comentários de evento e do mural, `attendees`, as listas de quem curtiu e de quem vai (`…/likes`, `…/interested`), vagas da banda (`ensaio.md`), posts da banda e do feed, perfis de pessoa, bandas sugeridas e a busca de bandas.
 - **Limite**: sem login, o limiter global já particiona por IP (`ApiRateLimiting.PartitionKey`), 240/min. Nada novo para a SPA.
 
 ## HTML para robô
@@ -72,7 +72,7 @@ O robô de busca e o de IA não executam JavaScript com confiança (a maioria do
 ## Roteiro de verificação
 
 Com a API no ar, sem token:
-1. `GET /api/events`, `/api/events/{id}`, `/api/archive`, `/api/archive/{id}`, `/api/bands/{slug}`, `/api/bands/{slug}/discography`, `/api/cities` → 200. No registro, `media[].tags` e `attendees` vazios; `canEdit` falso.
+1. `GET /api/events`, `/api/events/{id}`, `/api/archive`, `/api/archive/{id}`, `/api/bands/{slug}`, `/api/bands/{slug}/discography`, `/api/cities` → 200. No registro, `media[].tags`, `attendees` e `likePreview` vazios, e `interestedPreview` vazio no evento; `canEdit` falso.
 2. `GET /api/archive/{id}/comments`, `/api/events/{id}/comments`, `/api/users/{apelido}`, `/api/posts` → 401. `PUT /api/events/{id}/interest` → 401.
 3. Um envio pendente em `/api/archive/{id}` → 404.
 4. Com token, as mesmas rotas devolvem `interested`, `likedByMe`, `canManage` como antes.

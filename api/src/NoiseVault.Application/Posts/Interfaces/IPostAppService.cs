@@ -1,6 +1,7 @@
 using NoiseVault.Application.Pagination;
 using NoiseVault.Application.Posts.Dtos;
 using NoiseVault.Application.Posts.Models;
+using NoiseVault.Application.PublicProfiles.Dtos;
 using NoiseVault.Application.Response;
 
 namespace NoiseVault.Application.Posts.Interfaces
@@ -16,6 +17,7 @@ namespace NoiseVault.Application.Posts.Interfaces
         Task<Result> Delete(int id);
         Task<Result<PostDto>> Like(int id);
         Task<Result<PostDto>> Unlike(int id);
+        Task<Result<PagedResultDto<ProfileSummaryDto>>> Likers(int id, PagedRequestDto query);
 
         Task<PostReadModel?> FindVisible(int postId);
         Task ProcessVideo(int mediaUploadId, bool finalAttempt);

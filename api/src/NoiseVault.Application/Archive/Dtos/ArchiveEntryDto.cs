@@ -28,6 +28,7 @@ namespace NoiseVault.Application.Archive.Dtos
         public int AttendanceCount { get; set; }
         public bool AttendedByMe { get; set; }
         public List<ProfileSummaryDto> Attendees { get; set; } = [];
+        public List<ProfileSummaryDto> LikePreview { get; set; } = [];
         public int CommentCount { get; set; }
         public EArchiveEntryStatus Status { get; set; }
         public bool IsSubmission { get; set; }

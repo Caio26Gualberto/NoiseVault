@@ -49,7 +49,7 @@ Módulo 4 da ordem em `dominio.md`. A agenda serve tanto para o show do porão q
 | Ação | Quem |
 |---|---|
 | Ver a agenda e o evento, filtrar | **qualquer pessoa, sem login** (só leitura, desde 20/10/2026, `seo.md`) |
-| "Vou", ver e escrever comentários | qualquer pessoa logada |
+| "Vou", ver quem vai, ver e escrever comentários | qualquer pessoa logada |
 | Criar | qualquer pessoa; como banda, só integrante (`NOT_BAND_MEMBER`) |
 | Editar, banner, cancelar, apagar | o organizador, ou um **Owner** da banda organizadora (`EVENT_FORBIDDEN`) |
 | Apagar comentário | quem comentou, ou quem pode gerenciar o evento |
@@ -90,12 +90,14 @@ A data chega em ISO UTC do front (`datetime-local` convertido no navegador) e é
 | `POST /api/events/{id}/cancel` | `EVENT_CANCELLED_OK` |
 | `DELETE /api/events/{id}` | `EVENT_DELETED` |
 | `PUT` / `DELETE /api/events/{id}/interest` (idempotentes) | `EVENT_INTEREST_ADDED` / `EVENT_INTEREST_REMOVED` |
+| `GET /api/events/{id}/interested` (paginado, quem vai; com login) | `EVENT_INTERESTED_FOUND` |
 | `POST`/`DELETE /api/events/{id}/banner`, `PATCH …/banner-position` | os codes de capa (`BANNER_UPDATED`…) |
 | `GET`/`POST /api/events/{id}/comments` | `EVENT_COMMENTS_FOUND` / `EVENT_COMMENT_CREATED` |
 | `DELETE /api/event-comments/{id}` | `EVENT_COMMENT_DELETED` |
 
 - **Busca** (`search`): título, local, nome da cidade livre, nome livre do line-up ou nome de banda cadastrada no line-up, em minúsculas com `Contains`.
 - **Interesse** não vale em evento cancelado (`EVENT_CANCELLED`) nem em evento que já rolou (`EVENT_ENDED`); tirar o interesse vale sempre.
+- **Quem vai** (21/10/2026, como "quem curtiu" no feed): o `EventDto` de um evento só (detalhe e a resposta do "Vou") traz `interestedPreview`, as 3 pessoas mais recentes (`EventRules.ReactionPreview`), e `GET …/interested` pagina a lista. Nas listas da agenda a prévia vem vazia, porque o card não a mostra. Sem login, vazia também (`seo.md`).
 - **Banner**: preset `Banner` do `ImageReplacement`, chave `events/{id}/banner/{guid}.webp` (`armazenamento.md`). O front cria o evento e sobe o banner logo depois, na mesma ação.
 - **Banda no hero**: `BandProfileDto.upcomingEventCount` conta só eventos publicados que ainda não rolaram.
 - **Busca de bandas para o line-up**: `GET /api/bands/search` (`bandas.md`).
@@ -131,7 +133,7 @@ Com a API no ar; conta A (admin, Owner da Serra Negra), conta B (integrante Memb
    - A busca por "maiden", "serra negra" e "curitiba" acha os eventos certos; `city=7` só traz SP.
    - `/upcoming?take=3` traz no máximo 3.
    - `/api/bands/serra-negra/events` traz o evento do line-up, e `upcomingEventCount` passa a 1.
-4. **Interesse.** C marca duas vezes → 1; o filtro `interested=true` traz só esse; desmarca duas vezes → 0.
+4. **Interesse.** C marca duas vezes → 1, com C no `interestedPreview` e em `…/interested`; o filtro `interested=true` traz só esse; desmarca duas vezes → 0.
 5. **Já rolou.** Um evento com `StartsAt`/`EndsAtOrDefault` forçados no passado (psql) aparece só em `scope=past`, com `hasEnded`; "Vou" nele → `EVENT_ENDED`.
 6. **Banner.** B sobe → WebP no LocalStack; reposiciona; C sobe → `EVENT_FORBIDDEN`.
 7. **Editar.** C → `EVENT_FORBIDDEN`; A (Owner da banda) → `EVENT_UPDATED`, com o line-up substituído na ordem nova.

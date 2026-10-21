@@ -30,6 +30,7 @@ namespace NoiseVault.Application.Events.Dtos
         public List<EventLineupItemDto> Lineup { get; set; } = [];
         public int InterestedCount { get; set; }
         public bool Interested { get; set; }
+        public List<ProfileSummaryDto> InterestedPreview { get; set; } = [];
         public int CommentCount { get; set; }
         public bool CanManage { get; set; }
         public DateTime CreatedAt { get; set; }
