@@ -33,6 +33,7 @@ import { cn } from '@/lib/utils'
 import { formatDuration, formatRelative } from '@/lib/format'
 import { useRequireLogin } from '@/auth/use-require-login'
 import { AppSignInPrompt } from '@/components/app-sign-in-prompt'
+import { AppMarkdown } from '@/components/app-markdown'
 import { useDocumentTitle } from '@/hooks/use-document-title'
 import { CommentComposer } from '@/pages/eventos/components/comment-composer'
 import { formatCity } from '@/pages/perfil/city'
@@ -286,7 +287,7 @@ export function MuralDetalhePage() {
           </div>
         ) : null}
 
-        {entry.description ? <p className="whitespace-pre-line text-[15px] leading-relaxed">{entry.description}</p> : null}
+        {entry.description ? <AppMarkdown text={entry.description} className="text-[15px] leading-relaxed" /> : null}
 
         <p className="app-meta">
           {t(entry.isSubmission ? 'archiveOf' : 'publishedBy')}{' '}

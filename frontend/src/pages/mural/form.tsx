@@ -250,7 +250,7 @@ export function MuralFormPage({ mode = 'curation' }: { mode?: 'curation' | 'subm
           </AppFormPanel>
 
           <AppFormPanel title={t('form.sections.story')} wide>
-            <AppTextareaField name="description" label={t('form.fields.description')} rows={8} placeholder={t('form.descriptionPlaceholder')} />
+            <AppTextareaField name="description" label={t('form.fields.description')} rows={8} placeholder={t('form.descriptionPlaceholder')} hint={t('common:field.markdown')} />
           </AppFormPanel>
 
           <AppFormPanel title={t('form.sections.bands')} wide>

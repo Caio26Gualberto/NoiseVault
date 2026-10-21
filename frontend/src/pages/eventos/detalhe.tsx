@@ -22,6 +22,7 @@ import { AppButton, AppIconButton } from '@/components/app-button'
 import { useDocumentTitle } from '@/hooks/use-document-title'
 import { AppShareButton } from '@/components/app-share-button'
 import { AppSignInPrompt } from '@/components/app-sign-in-prompt'
+import { AppMarkdown } from '@/components/app-markdown'
 import { AppCard } from '@/components/app-card'
 import { useAppConfirm } from '@/components/app-confirm'
 import { AppEmptyState } from '@/components/app-empty-state'
@@ -225,7 +226,7 @@ export function EventoDetalhePage() {
             })}
           </dl>
 
-          {event.description ? <p className="whitespace-pre-line text-[15px] leading-relaxed">{event.description}</p> : null}
+          {event.description ? <AppMarkdown text={event.description} className="text-[15px] leading-relaxed" /> : null}
 
           {event.lineup.length > 0 ? (
             <div className="flex flex-col gap-2">

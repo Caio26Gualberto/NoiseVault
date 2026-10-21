@@ -296,7 +296,7 @@ export function EventoFormPage() {
 
           <AppFormPanel title={t('form.sections.about')} wide>
             <AppField name="title" label={t('form.fields.title')} />
-            <AppTextareaField name="description" label={t('form.fields.description')} rows={5} />
+            <AppTextareaField name="description" label={t('form.fields.description')} rows={5} hint={t('common:field.markdown')} />
           </AppFormPanel>
 
           <AppFormPanel title={t('form.sections.when')}>

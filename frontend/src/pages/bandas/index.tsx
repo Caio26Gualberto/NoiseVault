@@ -11,6 +11,7 @@ import { AppBadge } from '@/components/app-badge'
 import { AppButton } from '@/components/app-button'
 import { AppShareButton } from '@/components/app-share-button'
 import { AppSignInPrompt } from '@/components/app-sign-in-prompt'
+import { AppMarkdown } from '@/components/app-markdown'
 import { useDocumentTitle } from '@/hooks/use-document-title'
 import { useAppConfirm } from '@/components/app-confirm'
 import { AppEmptyState } from '@/components/app-empty-state'
@@ -103,7 +104,7 @@ export function BandasPage() {
         bannerUrl={band.bannerUrl}
         bannerPosition={band.bannerPosition}
         verified={band.isVerified}
-        subtitle={band.description ? <p className="whitespace-pre-line">{band.description}</p> : null}
+        subtitle={band.description ? <AppMarkdown text={band.description} /> : null}
         stats={[
           { label: t('membersLabel', { count: band.members.length }), value: band.members.length },
           { label: t('followersLabel', { count: band.followerCount }), value: band.followerCount },

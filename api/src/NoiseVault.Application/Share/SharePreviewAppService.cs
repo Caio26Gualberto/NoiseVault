@@ -89,7 +89,7 @@ namespace NoiseVault.Application.Share
             return new SharePreviewDto
             {
                 Title = entry.Title,
-                Description = Join(lead, entry.Description, "Mural das antigas do Noise Vault"),
+                Description = Join(lead, PlainMarkdown(entry.Description), "Mural das antigas do Noise Vault"),
                 ImageUrl = await MediaImageAsync(entry.CoverMediaUploadId),
                 Path = $"/mural/{id}",
                 Type = "article",
@@ -117,7 +117,7 @@ namespace NoiseVault.Application.Share
             return new SharePreviewDto
             {
                 Title = title,
-                Description = Join(lead, row.Description, "Agenda do Noise Vault"),
+                Description = Join(lead, PlainMarkdown(row.Description), "Agenda do Noise Vault"),
                 ImageUrl = _fileStorage.PublicUrl(row.BannerKey),
                 Path = $"/eventos/{id}",
                 Type = "article",
@@ -183,7 +183,7 @@ namespace NoiseVault.Application.Share
             return new SharePreviewDto
             {
                 Title = band.Name,
-                Description = Join(lead, band.Description ?? "Conheça a banda no Noise Vault, a cena do ABC num lugar só.", lead),
+                Description = Join(lead, PlainMarkdown(band.Description) ?? "Conheça a banda no Noise Vault, a cena do ABC num lugar só.", lead),
                 ImageUrl = _fileStorage.PublicUrl(band.BannerKey) ?? _fileStorage.PublicUrl(band.AvatarKey),
                 Path = $"/bandas/{band.Slug}",
                 Type = "profile",

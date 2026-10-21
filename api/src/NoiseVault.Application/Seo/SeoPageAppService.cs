@@ -166,14 +166,14 @@ namespace NoiseVault.Application.Seo
             return new SeoPageDto
             {
                 Title = $"{title} · {EventDay(e.StartsAt)}",
-                Description = Excerpt(Line(lead, e.Description), DescriptionMaxLength) ?? lead,
+                Description = Excerpt(Line(lead, PlainMarkdown(e.Description)), DescriptionMaxLength) ?? lead,
                 Path = $"/eventos/{e.Id}",
                 ImageUrl = e.BannerUrl,
                 Type = "article",
                 Heading = title,
                 Lead = lead,
                 Facts = facts,
-                Paragraphs = Paragraphs(e.Description),
+                Paragraphs = Paragraphs(PlainMarkdown(e.Description)),
                 Images = e.BannerUrl != null ? [new SeoImageDto { Url = e.BannerUrl, Caption = e.Title }] : [],
                 Sections =
                 [
@@ -238,14 +238,14 @@ namespace NoiseVault.Application.Seo
             return new SeoPageDto
             {
                 Title = $"{a.Title} ({date})",
-                Description = Excerpt(Line(lead, a.Description), DescriptionMaxLength) ?? lead,
+                Description = Excerpt(Line(lead, PlainMarkdown(a.Description)), DescriptionMaxLength) ?? lead,
                 Path = $"/mural/{a.Id}",
                 ImageUrl = cover,
                 Type = "article",
                 Heading = a.Title,
                 Lead = lead,
                 Facts = facts,
-                Paragraphs = Paragraphs(a.Description),
+                Paragraphs = Paragraphs(PlainMarkdown(a.Description)),
                 Images = images,
                 Sections =
                 [
@@ -261,7 +261,7 @@ namespace NoiseVault.Application.Seo
                     ["@context"] = "https://schema.org",
                     ["@type"] = "CreativeWork",
                     ["name"] = a.Title,
-                    ["description"] = Excerpt(a.Description, 500),
+                    ["description"] = Excerpt(PlainMarkdown(a.Description), 500),
                     ["dateCreated"] = ArchiveIsoDate(a.Year, a.Month, a.Day),
                     ["image"] = images.Count > 0 ? images.Select(i => i.Url).ToList() : null,
                     ["contentLocation"] = Place(a.Venue, a.City?.Name ?? a.CityName, a.City?.Uf),
@@ -303,14 +303,14 @@ namespace NoiseVault.Application.Seo
             return new SeoPageDto
             {
                 Title = city != null ? $"{b.Name} — banda de {city}" : b.Name,
-                Description = Excerpt($"{lead} {b.Description}", DescriptionMaxLength) ?? lead,
+                Description = Excerpt($"{lead} {PlainMarkdown(b.Description)}", DescriptionMaxLength) ?? lead,
                 Path = $"/bandas/{b.Slug}",
                 ImageUrl = image,
                 Type = "profile",
                 Heading = b.Name,
                 Lead = lead,
                 Facts = facts,
-                Paragraphs = Paragraphs(b.Description),
+                Paragraphs = Paragraphs(PlainMarkdown(b.Description)),
                 Images = b.AvatarUrl != null ? [new SeoImageDto { Url = b.AvatarUrl, Caption = b.Name }] : [],
                 Sections =
                 [
@@ -336,7 +336,7 @@ namespace NoiseVault.Application.Seo
                     ["@context"] = "https://schema.org",
                     ["@type"] = "MusicGroup",
                     ["name"] = b.Name,
-                    ["description"] = Excerpt($"{lead} {b.Description}", 500),
+                    ["description"] = Excerpt($"{lead} {PlainMarkdown(b.Description)}", 500),
                     ["image"] = image,
                     ["foundingDate"] = b.FoundedYear?.ToString(PtBr),
                     ["foundingLocation"] = city != null ? Place(null, b.City?.Name ?? b.CityName, b.City?.Uf) : null,
@@ -368,7 +368,7 @@ namespace NoiseVault.Application.Seo
             ["@context"] = "https://schema.org",
             ["@type"] = "MusicEvent",
             ["name"] = e.Title,
-            ["description"] = Excerpt(e.Description, 500),
+            ["description"] = Excerpt(PlainMarkdown(e.Description), 500),
             ["startDate"] = IsoLocal(e.StartsAt),
             ["endDate"] = e.EndsAt is { } ends ? IsoLocal(ends) : null,
             ["eventStatus"] = e.Status == EEventStatus.Cancelled ? "https://schema.org/EventCancelled" : "https://schema.org/EventScheduled",

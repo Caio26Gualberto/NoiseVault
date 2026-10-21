@@ -52,7 +52,8 @@
     "moreHint": "Não é daqui? Digite o nome de qualquer cidade do Brasil."
   },
   "field": {
-    "hint": "Saiba mais sobre {{label}}"
+    "hint": "Saiba mais sobre {{label}}",
+    "markdown": "Dá para formatar: **negrito**, *itálico*, lista com - no começo da linha, título com # e link como [texto](https://endereço)."
   },
   "password": {
     "show": "Mostrar senha",

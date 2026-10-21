@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next'
 import { AppAvatar } from '@/components/app-avatar'
 import { AppButton } from '@/components/app-button'
 import { AppChipsField, AppCityField, AppField, AppForm, AppTextareaField } from '@/components/app-field'
+import { plainMarkdown } from '@/lib/markdown'
 import { AppFormLayout, AppFormPanel } from '@/components/app-form-layout'
 import { AppGenreBadges } from '@/components/app-genre-badges'
 import { maxGenres } from '@/pages/meu-perfil/profile-validators'
@@ -109,7 +110,7 @@ export function BandForm({
                       ) : null}
                     </div>
                   ) : null}
-                  {description ? <p className="line-clamp-3 text-sm whitespace-pre-line">{description}</p> : null}
+                  {description ? <p className="line-clamp-3 text-sm whitespace-pre-line">{plainMarkdown(description)}</p> : null}
                   {genres?.length ? <AppGenreBadges genres={genres as MusicGenre[]} max={4} tone="brand" /> : null}
                 </div>
               </div>
@@ -139,6 +140,7 @@ export function BandForm({
             maxLength={bandDescriptionMaxLength}
             placeholder={t('form.descriptionPlaceholder')}
             description={t('form.descriptionHint', { max: bandDescriptionMaxLength })}
+            hint={t('common:field.markdown')}
           />
         </AppFormPanel>
 
