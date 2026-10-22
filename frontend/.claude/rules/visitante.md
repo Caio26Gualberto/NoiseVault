@@ -13,7 +13,7 @@ Rule irmã: `../api/.claude/rules/seo.md` (quais leituras a API abre e o que ela
 
 ## Rotas abertas
 
-- `public: true` no `nav-config` marca o que o visitante abre: os itens `/eventos` e `/mural` e as `hiddenRoutes` `/eventos/:id`, `/mural/:id` e `/bandas/:slug`. O `nav-config` continua sendo a fonte única.
+- `public: true` no `nav-config` marca o que o visitante abre: os itens `/eventos`, `/mural` e `/noticias` e as `hiddenRoutes` `/eventos/:id`, `/mural/:id` e `/bandas/:slug`. O `nav-config` continua sendo a fonte única.
 - O `app.tsx` monta o `AppShell` com `<RequireAuth allowVisitor>`, e cada rota do shell leva `allowVisitor={route.public}`. Com `allowVisitor` e sem sessão, o `RequireAuth` renderiza a página; com sessão, valem os mesmos gates de sempre (senha inicial, boas-vindas, permissão, `auth.md`). Rota sem `public` continua mandando para `/entrar` com `state.from`.
 - **`/` do visitante vai para `/eventos`** (`HomeRedirect`, `visitorHomePath` em `auth/routes.ts`). Com sessão, continua indo para o `/feed`.
 - O 404 do shell aparece para o visitante dentro da moldura dele.
@@ -33,6 +33,7 @@ Rule irmã: `../api/.claude/rules/seo.md` (quais leituras a API abre e o que ela
 |---|---|
 | `/eventos` | sem o filtro "Vou"; o "Vou" do card leva ao login; "Criar evento" continua e cai no login |
 | `/eventos/:id` | "Vou" leva ao login; o organizador pessoa aparece sem link (perfil é fechado); os comentários viram o aviso "Entre para ler e escrever os comentários", e o hook nem busca a lista |
+| `/noticias` | igual para todo mundo: a página não tem nada que dependa de conta (`noticias.md`) |
 | `/mural` | sem "Meus envios"; "Enviar para o mural" cai no login |
 | `/mural/:id` | "Eu estava lá" e curtir levam ao login; no lugar dos avatares de quem estava lá, só "N pessoas estavam lá"; o autor sem link; sem marcar pessoas nas fotos; as histórias viram o aviso, e o hook não busca os comentários |
 | `/bandas/:slug` | "Seguir" leva ao login; integrantes sem link para o perfil; sem "Vagas abertas" (o Ensaio pede login); as publicações viram o aviso "Entre para ver as publicações da banda" |
@@ -48,7 +49,7 @@ Rule irmã: `../api/.claude/rules/seo.md` (quais leituras a API abre e o que ela
 ## Roteiro de verificação
 
 Com a API e o Vite no ar, numa janela anônima:
-1. `http://localhost:5173/` cai em `/eventos`, com a faixa do visitante, "Entrar" e "Criar conta" na topbar e só Mural e Eventos na navegação (a 390px, a bottom-nav mostra Mural, Eventos e Entrar).
+1. `http://localhost:5173/` cai em `/eventos`, com a faixa do visitante, "Entrar" e "Criar conta" na topbar e só Mural, Eventos e Notícias na navegação (a 390px, a bottom-nav mostra Mural, Eventos, Notícias e Entrar).
 2. Abrir um evento: "Vou" leva a `/entrar`; entrar volta para o evento, já com sessão e com os comentários.
 3. Abrir um registro do mural: sem marcações nas fotos, "N pessoas estavam lá" sem nomes, as histórias pedem login.
 4. Abrir uma banda: integrantes sem link, sem vagas, publicações pedindo login; "Seguir" leva ao login.

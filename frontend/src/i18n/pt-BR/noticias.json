@@ -1,0 +1,14 @@
+{
+  "title": "Notícias",
+  "description": "O que rolou hoje no rock e no metal, direto do Whiplash.Net. Toque na notícia para ler a matéria completa no site deles.",
+  "today": "Hoje",
+  "previous": "Notícias anteriores",
+  "next": "Próximas notícias",
+  "byline": "{{author}} · {{time}}",
+  "openArticle": "{{title}} (abre a matéria no Whiplash.Net em outra aba)",
+  "source": "Fonte: <link>{{name}}</link>. As matérias são do site deles; aqui só aparecem o título, a foto, o autor e o link.",
+  "empty": {
+    "title": "Nenhuma notícia por enquanto",
+    "description": "As manchetes chegam de hora em hora. Volte daqui a pouco."
+  }
+}

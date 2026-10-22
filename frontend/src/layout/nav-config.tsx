@@ -8,6 +8,7 @@ import {
   HeadphonesIcon,
   LifeBuoyIcon,
   NewspaperIcon,
+  RssIcon,
   StoreIcon,
   UserRoundIcon,
 } from 'lucide-react'
@@ -50,6 +51,7 @@ import { ApagarDadosPage } from '../pages/institucional/apagar-dados'
 import { LojaParceiraPage } from '../pages/institucional/loja'
 import { PrivacidadePage } from '../pages/institucional/privacidade'
 import { SobrePage } from '../pages/institucional/sobre'
+import { NoticiasPage } from '../pages/noticias'
 import { MinhaContaPage } from '../pages/minha-conta'
 import { MeuPerfilPage } from '../pages/meu-perfil'
 import { PerfilPage } from '../pages/perfil'
@@ -145,6 +147,7 @@ export const navSections: NavSection[] = [
         mobile: true,
         mobilePath: (nickname) => `/perfil/${nickname}`,
       },
+      { path: '/noticias', labelKey: 'layout:nav.news', icon: RssIcon, element: <NoticiasPage />, mobile: true, public: true },
     ],
   },
   {

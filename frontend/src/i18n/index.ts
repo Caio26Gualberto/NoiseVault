@@ -12,6 +12,7 @@ import feed from './pt-BR/feed.json'
 import institucional from './pt-BR/institucional.json'
 import layout from './pt-BR/layout.json'
 import mural from './pt-BR/mural.json'
+import noticias from './pt-BR/noticias.json'
 import notificacoes from './pt-BR/notificacoes.json'
 import perfil from './pt-BR/perfil.json'
 import suporte from './pt-BR/suporte.json'
@@ -31,6 +32,7 @@ const namespaces = {
   bandas,
   notificacoes,
   mural,
+  noticias,
   suporte,
   institucional,
 }

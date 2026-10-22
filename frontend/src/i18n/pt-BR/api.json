@@ -323,5 +323,7 @@
   "PASSWORD_CREATED": "Senha criada. Agora você também entra com e-mail e senha.",
   "PASSWORD_ALREADY_SET": "Sua conta já tem senha. Use \"Alterar senha\".",
   "INVALID_ROTATION": "A foto só gira de 90 em 90 graus.",
-  "PHOTO_ROTATED": "Foto girada."
+  "PHOTO_ROTATED": "Foto girada.",
+  "NEWS_FOUND": "Notícias carregadas.",
+  "INVALID_NEWS_SCOPE": "Filtro de notícias inválido."
 }

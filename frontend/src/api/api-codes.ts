@@ -335,6 +335,9 @@ export const ApiCodes = {
   passwordCreated: 'PASSWORD_CREATED',
   passwordAlreadySet: 'PASSWORD_ALREADY_SET',
 
+  newsFound: 'NEWS_FOUND',
+  invalidNewsScope: 'INVALID_NEWS_SCOPE',
+
   networkError: 'NETWORK_ERROR',
   unknownError: 'UNKNOWN_ERROR',
 } as const
