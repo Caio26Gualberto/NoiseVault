@@ -1,5 +1,6 @@
 import type { LucideIcon } from 'lucide-react'
 import {
+  ActivityIcon,
   HeadsetIcon,
   CalendarDaysIcon,
   ArchiveIcon,
@@ -67,6 +68,7 @@ import { MuralFormPage } from '../pages/mural/form'
 import { MuralEnviosPage } from '../pages/mural/envios'
 import { BandasAdminPage } from '../pages/admin/bandas'
 import { adminBandsPath } from '../pages/bandas/band-verification-status'
+import { JobsAdminPage } from '../pages/admin/jobs'
 import { MuralAdminPage } from '../pages/admin/mural'
 import { adminArchivePath, mySubmissionsPath, submitArchivePath } from '../pages/mural/archive-status'
 
@@ -190,6 +192,13 @@ export const navSections: NavSection[] = [
         element: <SuporteAdminPage />,
         permission: Permissions.supportView,
         subRoutes: ['/admin/suporte/:id'],
+      },
+      {
+        path: '/admin/jobs',
+        labelKey: 'layout:nav.jobs',
+        icon: ActivityIcon,
+        element: <JobsAdminPage />,
+        permission: Permissions.systemJobsView,
       },
     ],
   },

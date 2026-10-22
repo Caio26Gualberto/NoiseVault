@@ -325,5 +325,11 @@
   "INVALID_ROTATION": "A foto só gira de 90 em 90 graus.",
   "PHOTO_ROTATED": "Foto girada.",
   "NEWS_FOUND": "Notícias carregadas.",
-  "INVALID_NEWS_SCOPE": "Filtro de notícias inválido."
+  "INVALID_NEWS_SCOPE": "Filtro de notícias inválido.",
+  "RECURRING_JOBS_LOADED": "Jobs carregados.",
+  "RECURRING_JOB_TRIGGERED": "Job disparado. Acompanhe o resultado na lista.",
+  "RECURRING_JOB_NOT_FOUND": "Esse job não existe mais.",
+  "JOB_TRIGGER_NOT_ALLOWED": "Esse job não pode ser disparado na mão.",
+  "JOB_ALREADY_RUNNING": "Esse job já está na fila ou rodando. Espere terminar.",
+  "FAILED_JOBS_FOUND": "Falhas carregadas."
 }

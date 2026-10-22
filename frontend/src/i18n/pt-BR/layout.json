@@ -17,7 +17,8 @@
     "admin": "Administração",
     "supportInbox": "Suporte",
     "archiveInbox": "Envios do mural",
-    "bandVerifications": "Verificação de bandas"
+    "bandVerifications": "Verificação de bandas",
+    "jobs": "Jobs"
   },
   "search": {
     "placeholder": "Buscar pessoas",

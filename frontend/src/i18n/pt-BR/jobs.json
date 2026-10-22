@@ -1,0 +1,39 @@
+{
+  "title": "Jobs",
+  "description": "Os jobs agendados do servidor: quando rodaram, o que fizeram, o erro quando falham. O \"Rodar agora\" dispara fora de hora.",
+  "refresh": "Atualizar",
+  "tabs": {
+    "recurring": "Agendados",
+    "failures": "Falhas"
+  },
+  "queue": "fila {{queue}}",
+  "lastRun": "Última execução",
+  "nextRun": "Próxima",
+  "never": "Ainda não rodou",
+  "none": "—",
+  "result": "Resultado",
+  "stack": "Ver o stack",
+  "trigger": "Rodar agora",
+  "running": "Rodando...",
+  "unnamed": "Job sem nome",
+  "duration": {
+    "label": "Duração",
+    "ms": "{{value}} ms",
+    "seconds": "{{value}} s",
+    "minutes": "{{minutes}} min {{seconds}} s"
+  },
+  "state": {
+    "succeeded": "Concluído",
+    "failed": "Falhou",
+    "processing": "Rodando",
+    "enqueued": "Na fila",
+    "scheduled": "Reagendado",
+    "deleted": "Apagado",
+    "awaiting": "Aguardando"
+  },
+  "empty": {
+    "recurring": "Nenhum job agendado",
+    "failures": "Nenhuma falha",
+    "failuresDescription": "Quando um job lançar erro, ele aparece aqui com a mensagem e o stack."
+  }
+}

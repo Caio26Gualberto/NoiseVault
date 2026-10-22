@@ -10,6 +10,7 @@ import ensaio from './pt-BR/ensaio.json'
 import eventos from './pt-BR/eventos.json'
 import feed from './pt-BR/feed.json'
 import institucional from './pt-BR/institucional.json'
+import jobs from './pt-BR/jobs.json'
 import layout from './pt-BR/layout.json'
 import mural from './pt-BR/mural.json'
 import noticias from './pt-BR/noticias.json'
@@ -35,6 +36,7 @@ const namespaces = {
   noticias,
   suporte,
   institucional,
+  jobs,
 }
 
 i18n.use(initReactI18next).init({

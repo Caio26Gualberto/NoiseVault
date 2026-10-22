@@ -336,6 +336,13 @@ export const ApiCodes = {
   passwordAlreadySet: 'PASSWORD_ALREADY_SET',
 
   newsFound: 'NEWS_FOUND',
+
+  recurringJobsLoaded: 'RECURRING_JOBS_LOADED',
+  recurringJobTriggered: 'RECURRING_JOB_TRIGGERED',
+  recurringJobNotFound: 'RECURRING_JOB_NOT_FOUND',
+  jobTriggerNotAllowed: 'JOB_TRIGGER_NOT_ALLOWED',
+  jobAlreadyRunning: 'JOB_ALREADY_RUNNING',
+  failedJobsFound: 'FAILED_JOBS_FOUND',
   invalidNewsScope: 'INVALID_NEWS_SCOPE',
 
   networkError: 'NETWORK_ERROR',

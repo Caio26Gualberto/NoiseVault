@@ -30,8 +30,8 @@ namespace NoiseVault.Workers.Monitoring
                         Name = DisplayName(job.Job),
                         Cron = job.Cron,
                         Queue = job.Job?.Queue ?? job.Queue,
-                        LastExecution = job.LastExecution,
-                        NextExecution = job.NextExecution,
+                        LastExecution = Utc(job.LastExecution),
+                        NextExecution = Utc(job.NextExecution),
                         LastJobId = job.LastJobId,
                         LastJobState = job.LastJobState,
                         Error = job.Error,
@@ -60,7 +60,7 @@ namespace NoiseVault.Workers.Monitoring
                     Name = DisplayName(entry.Value?.Job),
                     RecurringJobId = connection.GetJobParameter(entry.Key, RecurringJobIdParameter)?.Trim('"'),
                     Queue = entry.Value?.Job?.Queue,
-                    FailedAt = entry.Value?.FailedAt,
+                    FailedAt = Utc(entry.Value?.FailedAt),
                     ExceptionType = entry.Value?.ExceptionType,
                     ExceptionMessage = entry.Value?.ExceptionMessage,
                     ExceptionDetails = entry.Value?.ExceptionDetails,
@@ -99,6 +99,9 @@ namespace NoiseVault.Workers.Monitoring
 
         private static string? Value(IDictionary<string, string>? data, string key) =>
             data != null && data.TryGetValue(key, out var value) && !string.IsNullOrEmpty(value) ? value : null;
+
+        private static DateTime? Utc(DateTime? value) =>
+            value.HasValue ? DateTime.SpecifyKind(value.Value, DateTimeKind.Utc) : null;
 
         private static string? DisplayName(Job? job) =>
             job?.Method.GetCustomAttribute<JobDisplayNameAttribute>()?.DisplayName;
