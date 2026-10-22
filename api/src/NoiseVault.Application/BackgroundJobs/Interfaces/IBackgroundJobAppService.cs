@@ -12,6 +12,8 @@ namespace NoiseVault.Application.BackgroundJobs.Interfaces
         Task<Result<PagedResultDto<BackgroundJobListItemDto>>> GetRuns(BackgroundJobQueryDto query);
         Task<Result<BackgroundJobDetailDto>> GetRun(int id);
         Task<Result<List<RecurringJobDto>>> GetRecurring();
+        Task<Result<TriggeredRecurringJobDto>> TriggerRecurring(string id);
+        Task<Result<PagedResultDto<FailedJobDto>>> GetFailures(PagedRequestDto query);
         Task ExecuteAsync(int runId, CancellationToken ct = default);
     }
 }

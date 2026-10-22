@@ -16,9 +16,7 @@ namespace NoiseVault.Workers.Triggers.Recurring.Discography
         [JobDisplayName("Discografia: atualizar do Spotify")]
         [AutomaticRetry(Attempts = 2, DelaysInSeconds = new[] { 60, 600 })]
         [DisableConcurrentExecution(timeoutInSeconds: 60)]
-        public async Task RefreshAsync()
-        {
-            await _discographyAppService.RefreshStale();
-        }
+        public Task<int> RefreshAsync() =>
+            _discographyAppService.RefreshStale();
     }
 }

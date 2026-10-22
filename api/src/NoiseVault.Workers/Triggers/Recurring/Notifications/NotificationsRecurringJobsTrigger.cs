@@ -19,14 +19,14 @@ namespace NoiseVault.Workers.Triggers.Recurring.Notifications
         [JobDisplayName("Notificações: lembrar shows de amanhã")]
         [AutomaticRetry(Attempts = 0)]
         [DisableConcurrentExecution(timeoutInSeconds: 30)]
-        public Task RemindEventsTomorrowAsync() =>
+        public Task<int> RemindEventsTomorrowAsync() =>
             _eventAppService.RemindTomorrow();
 
         [Queue("notifications")]
         [JobDisplayName("Notificações: apagar antigas")]
         [AutomaticRetry(Attempts = 2, DelaysInSeconds = new[] { 60, 600 })]
         [DisableConcurrentExecution(timeoutInSeconds: 30)]
-        public Task PurgeAsync() =>
+        public Task<int> PurgeAsync() =>
             _notificationAppService.Purge();
     }
 }

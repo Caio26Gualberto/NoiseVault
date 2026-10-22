@@ -334,6 +334,8 @@ Migration já aplicada não é desfeita sozinha: se a versão nova criou tabela,
 
 **Nova versão do front:** `git push` na `main`. O workflow "Deploy Front" builda, sobe para o bucket `noisevault-web`, publica a função da borda e invalida o cache (passo 14); o CI do GitHub continua validando em paralelo. **Voltar atrás**: `git revert` do commit e push. O "Run workflow" manual não serve para isso, porque sempre builda a ponta da `main`.
 
+**Jobs:** a tela `/admin/jobs` (só admin) mostra cada job agendado, a última execução com o resultado ou o erro, e as falhas com o stack. O dashboard do Hangfire não existe em produção. No **primeiro deploy das notícias**, abra a tela e clique em "Rodar agora" no `news:collect`. Sem isso, a página `/noticias` fica vazia até a próxima hora cheia. Se o resultado vier com `"Blocked":true`, o Cloudflare do Whiplash está recusando o IP do Lightsail (`api/.claude/rules/noticias.md`).
+
 **Logs:** `docker compose logs --tail 200 api`. Cada evento é uma linha `LEVEL data (contexto) EVENTO: mensagem | ...`. Um 500 aparece como `UNHANDLED_EXCEPTION` com `X-Trace-Id`.
 
 **Espaço em disco:** `docker system prune -f` de vez em quando apaga imagens antigas do build.

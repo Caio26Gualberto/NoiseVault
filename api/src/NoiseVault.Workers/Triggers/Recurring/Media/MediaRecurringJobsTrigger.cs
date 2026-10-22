@@ -29,9 +29,7 @@ namespace NoiseVault.Workers.Triggers.Recurring.Media
         [JobDisplayName("Mídia: limpar uploads expirados")]
         [AutomaticRetry(Attempts = 2, DelaysInSeconds = new[] { 60, 600 })]
         [DisableConcurrentExecution(timeoutInSeconds: 30)]
-        public async Task CleanupAsync()
-        {
-            await _mediaAppService.Cleanup();
-        }
+        public Task<int> CleanupAsync() =>
+            _mediaAppService.Cleanup();
     }
 }

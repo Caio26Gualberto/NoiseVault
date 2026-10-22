@@ -75,6 +75,37 @@ Registro de um novo recorrente (dois passos, ambos em `Infra.IoC/`):
 1. `DependencyInjection.cs` (`AddInfra`, seção `// Jobs`): `AddScoped` do Trigger e do Wrapper.
 2. `DependencyInjectionJobs.cs` (`RegisterJobs`): resolver o Wrapper e chamar `.Register()`.
 
+## 1.1 Tela de jobs (`/admin/jobs`)
+
+Pedido do usuário em 21/10/2026: ver como estão os jobs, ler o erro quando algum falha e disparar um job na mão. Os dois motivos dele foram uma notícia importante que acabou de sair, quando o `news:collect` só rodaria horas depois, e a primeira coleta depois do deploy, para a página de notícias não ficar vazia até a próxima hora cheia. O dashboard do Hangfire fica fora de produção (acima), então a tela é nossa, dentro do painel e atrás de permissão.
+
+- **Leitura**: `IRecurringJobReader` (`Application/BackgroundJobs/Interfaces/`), implementado em `Workers/Monitoring/RecurringJobReader.cs`, é o único lugar que fala com o storage do Hangfire.
+  - **Para cada recorrente**: o nome do `[JobDisplayName]` (lido por reflexão no método), a fila, a última e a próxima execução, o `lastJobId` e o estado dele. Vem também o erro do próprio recorrente, quando o Hangfire não consegue montar o job.
+  - **Da última execução**, pelo `JobDetails` do monitoring API: a duração (`PerformanceDuration`) e o `Result` do estado `Succeeded`. Se ela não terminou bem (`Failed` ou reagendada depois de uma falha), vêm a mensagem e o stack do último `Failed` do histórico.
+  - **As falhas** são o `FailedJobs` paginado do próprio Hangfire, da mais recente para a mais antiga. Entram também os jobs enfileirados, como a conversão de vídeo, com o `RecurringJobId` quando a falha nasceu de um recorrente. O Hangfire guarda job com falha até alguém apagar, então a lista é o histórico inteiro de falhas.
+- **Disparo**: `IRecurringJobTrigger` (`Workers/Monitoring/RecurringJobTrigger.cs`, `RecurringJob.TriggerJob`). Fica separado do reader porque o reader só lê. O job disparado é o mesmo da agenda, na mesma fila, com o mesmo retry e o mesmo lock, e não mexe no horário da próxima execução.
+  - Todo recorrente pode ser disparado, **menos o `events:remind-tomorrow`** (`JobRules.NotTriggerable`): rodar de novo no mesmo dia mandaria o lembrete duas vezes para quem já recebeu → `JOB_TRIGGER_NOT_ALLOWED` (409). Os outros são idempotentes.
+  - Com o último estado `Enqueued` ou `Processing` → `JOB_ALREADY_RUNNING` (409). Sem essa checagem, o segundo disparo esperaria os 30 s do `DisableConcurrentExecution` e cairia nas falhas com `DistributedLockTimeoutException`.
+  - Id que não existe → `RECURRING_JOB_NOT_FOUND` (404). O sucesso responde `RECURRING_JOB_TRIGGERED { recurringJobId, jobId }` e registra o log `RECURRING_JOB_TRIGGERED` (contexto `BackgroundJobs`, com o `userId` de quem disparou).
+- 🔴 **O Trigger recorrente devolve o resultado do AppService** (`Task<int>`, `Task<NewsCollectResultDto>`). O Hangfire grava esse valor no estado `Succeeded`, e a tela mostra como "Resultado". Sem isso, um job que só registra o problema no log sem lançar exceção (o `news:collect` bloqueado pelo Cloudflare) apareceria como "deu certo". O Trigger continua sem lógica: só devolve o que o AppService devolveu. A troca de `Task` para `Task<T>` não quebra os recorrentes já gravados, porque o Hangfire acha o método pelo nome e pelos parâmetros, não pelo retorno. Recorrente novo devolve o seu resumo do mesmo jeito. A exceção é o `media:transcode-poll`, que publica posts num laço do próprio Trigger e continua sem resultado.
+
+| Método e rota | Permissão | Code de sucesso |
+|---|---|---|
+| `GET /api/admin/jobs/recurring` (sem paginação: são poucos e fixos no código) | `System.Jobs.View` | `RECURRING_JOBS_LOADED` |
+| `POST /api/admin/jobs/recurring/{id}/trigger` (o id com `:` vai escapado, `news%3Acollect`; limite `job-trigger`, 30/h por conta) | `System.Jobs.Manage` | `RECURRING_JOB_TRIGGERED` |
+| `GET /api/admin/jobs/failures?page=&pageSize=` | `System.Jobs.View` | `FAILED_JOBS_FOUND` |
+
+Os dois `System.Jobs.*` não entram em `RoleDefaultPermissions`: hoje só o `Admin` os tem, que é o caso de uso, a área de dev do dono do site.
+
+### Roteiro de verificação da tela
+
+Com a API no ar, logado como admin:
+
+1. `GET /api/admin/jobs/recurring` → os recorrentes com `name`; `news:collect` com `canTrigger: true` e `events:remind-tomorrow` com `false`.
+2. `POST /api/admin/jobs/recurring/news%3Acollect/trigger` → `RECURRING_JOB_TRIGGERED`. A lista passa por `Processing` e termina em `Succeeded`, com `lastResult` mostrando `Added` e `Blocked` (no Windows, `"Blocked":true`; `noticias.md`).
+3. Disparar de novo enquanto roda → `JOB_ALREADY_RUNNING`. `events:remind-tomorrow` → `JOB_TRIGGER_NOT_ALLOWED`. `foo:bar` → `RECURRING_JOB_NOT_FOUND`. Conta sem a permissão → 403.
+4. Uma falha de verdade: com o LocalStack parado, disparar `media:cleanup` → `lastError` com a mensagem do S3, e o job aparece em `GET failures` com o stack.
+
 ## 2. Jobs disparados por uma ação (Enqueued)
 
 ```

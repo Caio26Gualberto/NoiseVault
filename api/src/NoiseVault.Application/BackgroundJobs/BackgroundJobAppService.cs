@@ -17,6 +17,7 @@ namespace NoiseVault.Application.BackgroundJobs
         private readonly IBackgroundJobRunRepository _repository;
         private readonly IEnqueuedJobDispatcher _dispatcher;
         private readonly IRecurringJobReader _recurringJobReader;
+        private readonly IRecurringJobTrigger _recurringJobTrigger;
         private readonly IEnumerable<IBackgroundJobHandler> _handlers;
         private readonly ICurrentUser _currentUser;
         private readonly IApplicationLogger _logger;
@@ -25,6 +26,7 @@ namespace NoiseVault.Application.BackgroundJobs
             IBackgroundJobRunRepository repository,
             IEnqueuedJobDispatcher dispatcher,
             IRecurringJobReader recurringJobReader,
+            IRecurringJobTrigger recurringJobTrigger,
             IEnumerable<IBackgroundJobHandler> handlers,
             ICurrentUser currentUser,
             IApplicationLoggerFactory loggerFactory)
@@ -32,6 +34,7 @@ namespace NoiseVault.Application.BackgroundJobs
             _repository = repository;
             _dispatcher = dispatcher;
             _recurringJobReader = recurringJobReader;
+            _recurringJobTrigger = recurringJobTrigger;
             _handlers = handlers;
             _currentUser = currentUser;
             _logger = loggerFactory.Create(LogContext.BackgroundJobs);
@@ -113,7 +116,52 @@ namespace NoiseVault.Application.BackgroundJobs
         public Task<Result<List<RecurringJobDto>>> GetRecurring()
         {
             var jobs = _recurringJobReader.GetRecurringJobs().ToList();
+
+            foreach (var job in jobs)
+                job.CanTrigger = !JobRules.NotTriggerable.Contains(job.Id);
+
             return Task.FromResult(Result<List<RecurringJobDto>>.Ok(jobs, "RECURRING_JOBS_LOADED", "Recurring jobs loaded successfully."));
+        }
+
+        public Task<Result<TriggeredRecurringJobDto>> TriggerRecurring(string id)
+        {
+            _logger.SetOperation("TriggerRecurringJob");
+            _logger.Set("RecurringJobId", id);
+
+            var job = _recurringJobReader.GetRecurringJobs().FirstOrDefault(j => j.Id == id);
+
+            if (job == null)
+                return Task.FromResult(Result<TriggeredRecurringJobDto>.Fail(new Error("RECURRING_JOB_NOT_FOUND", "Recurring job not found", ErrorType.NotFound)));
+
+            if (JobRules.NotTriggerable.Contains(job.Id))
+                return Task.FromResult(Result<TriggeredRecurringJobDto>.Fail(new Error("JOB_TRIGGER_NOT_ALLOWED", "This recurring job cannot be triggered manually", ErrorType.Conflict)));
+
+            if (job.LastJobState != null && JobRules.RunningStates.Contains(job.LastJobState))
+                return Task.FromResult(Result<TriggeredRecurringJobDto>.Fail(new Error("JOB_ALREADY_RUNNING", "This job is already queued or running", ErrorType.Conflict)));
+
+            var jobId = _recurringJobTrigger.Trigger(job.Id);
+
+            if (string.IsNullOrEmpty(jobId))
+                return Task.FromResult(Result<TriggeredRecurringJobDto>.Fail(new Error("RECURRING_JOB_NOT_FOUND", "Recurring job not found", ErrorType.NotFound)));
+
+            _logger.Info("RECURRING_JOB_TRIGGERED", "Recurring job triggered manually", userId: _currentUser.UserIdOrNull, extra: new { RecurringJobId = job.Id, JobId = jobId });
+
+            return Task.FromResult(Result<TriggeredRecurringJobDto>.Ok(
+                new TriggeredRecurringJobDto { RecurringJobId = job.Id, JobId = jobId },
+                "RECURRING_JOB_TRIGGERED",
+                "Recurring job triggered"));
+        }
+
+        public Task<Result<PagedResultDto<FailedJobDto>>> GetFailures(PagedRequestDto query)
+        {
+            query.Normalize();
+
+            var (items, total) = _recurringJobReader.GetFailedJobs(query.Skip, query.PageSize);
+
+            return Task.FromResult(Result<PagedResultDto<FailedJobDto>>.Ok(
+                PagedResultDto<FailedJobDto>.Create(items.ToList(), query.Page, query.PageSize, total),
+                "FAILED_JOBS_FOUND",
+                "Failed jobs found"));
         }
 
         public async Task ExecuteAsync(int runId, CancellationToken ct = default)

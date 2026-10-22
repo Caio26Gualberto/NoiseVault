@@ -49,6 +49,7 @@ Só rate limit não basta porque IP roda barato. Só regra de negócio não bast
 | `opening-interest` | 20/h por conta | "Tenho interesse" numa vaga (`ensaio.md`): cada um notifica os Owners da banda |
 | `location-update` | 10/dia por conta | trocar a localização aproximada (`ensaio.md`): mudar de lugar muitas vezes é o caminho da trilateração |
 | `band-verification` | 3/dia por conta | pedir a verificação da banda (`bandas.md`): cada pedido vira notificação e e-mail para a equipe |
+| `job-trigger` | 30/h por conta | "Rodar agora" da tela de jobs (`jobs-hangfire.md`): só o admin dispara, e o limite é a rede contra um clique repetido que encheria a fila de buscas no Whiplash |
 | `discography-import` | 5/h por conta | importar a discografia do Spotify (`discografia.md`): cada import faz dezenas de chamadas ao Spotify com a cota de desenvolvimento |
 | `external-login` | 20/5min por IP | entrar com Google ou Facebook (`login-social.md`): cada chamada vai ao provedor; o segundo passo usa `register` (criar conta) ou `login` (vincular com senha) |
 | `sign-in-method` | 10/h por conta | conectar, desconectar e criar senha em Minha conta: conectar chama o provedor e manda o aviso de vínculo |

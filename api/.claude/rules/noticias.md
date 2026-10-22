@@ -62,6 +62,8 @@ O Whiplash fica atrás do Cloudflare. Testado em 21/10/2026:
 4. Uma matéria que falha (`Unavailable`) é registrada com `NEWS_ARTICLE_FAILED` e a coleta segue para a próxima. Um bloqueio (`Blocked`) encerra a execução.
 5. Pula o que tiver mais de 30 dias. Fecha com `NEWS_COLLECTED { Added, Candidates }`.
 
+O `Collect()` devolve `NewsCollectResultDto { added, candidates, failed, blocked, unavailable, disabled }`, e o Trigger o repassa ao Hangfire. É isso que a tela de jobs (`/admin/jobs`, `jobs-hangfire.md`) mostra como resultado: o job termina "Succeeded" mesmo bloqueado, e só o resultado diz que nada entrou. Na mesma tela, o "Rodar agora" do `news:collect` é o jeito de buscar uma notícia urgente fora de hora e de fazer a primeira coleta depois do deploy (`DEPLOY.md`).
+
 `Purge()` apaga de verdade (`ExecuteDeleteAsync`) as notícias com `PublishedAt` de mais de 30 dias (`NewsRules.RetentionDays`). Pedido do usuário: a página é de notícia do dia, não um arquivo.
 
 Os dois jobs rodam na fila `default`. A política de retry está em `jobs-hangfire.md`.

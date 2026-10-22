@@ -57,12 +57,17 @@ namespace NoiseVault.Application.News
                 "News found");
         }
 
-        public async Task<int> Collect()
+        public async Task<NewsCollectResultDto> Collect()
         {
             _logger.SetOperation("CollectNews");
 
+            var result = new NewsCollectResultDto();
+
             if (!_sourceClient.IsEnabled)
-                return 0;
+            {
+                result.Disabled = true;
+                return result;
+            }
 
             IReadOnlyList<NewsLink> links;
             try
@@ -72,7 +77,9 @@ namespace NoiseVault.Application.News
             catch (NewsSourceException ex)
             {
                 LogSourceFailure(ex, 0);
-                return 0;
+                result.Blocked = ex.Failure == ENewsSourceFailure.Blocked;
+                result.Unavailable = ex.Failure != ENewsSourceFailure.Blocked;
+                return result;
             }
 
             var existing = await _newsRepository.ExistingExternalIdsAsync(ENewsSource.Whiplash, links.Select(l => l.ExternalId).ToList());
@@ -102,11 +109,13 @@ namespace NoiseVault.Application.News
                 catch (NewsSourceException ex) when (ex.Failure == ENewsSourceFailure.Blocked)
                 {
                     LogSourceFailure(ex, added);
+                    result.Blocked = true;
                     break;
                 }
                 catch (NewsSourceException ex)
                 {
                     _logger.Warning("NEWS_ARTICLE_FAILED", "News article could not be read", extra: new { link.ExternalId, ex.Failure, ex.Message });
+                    result.Failed++;
                     continue;
                 }
 
@@ -129,7 +138,9 @@ namespace NoiseVault.Application.News
 
             _logger.Info("NEWS_COLLECTED", "News collected from Whiplash.Net", extra: new { Added = added, Candidates = candidates.Count });
 
-            return added;
+            result.Added = added;
+            result.Candidates = candidates.Count;
+            return result;
         }
 
         public async Task<int> Purge()

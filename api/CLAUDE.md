@@ -36,7 +36,7 @@ As **decisões** — o porquê de cada regra — vivem em `.claude/rules/`, um a
 | `.claude/rules/hospedagem.md` | produção na AWS (no ar desde 17/10/2026): Lightsail em São Paulo com API e Postgres atrás do Caddy, deploy por pipeline (imagem no GHCR), S3 + CloudFront, MediaConvert por uso, SES pela SDK, front em S3 + CloudFront próprio (função da borda para a SPA e a prévia), DNS no Cloudflare; custos, o que foi diferente do plano e o caminho para RDS e Fargate |
 | `.claude/rules/email.md` | as duas camadas de e-mail, Mailpit em dev, SMTP via MailKit, links, o que nunca vai para o log |
 | `.claude/rules/auditoria.md` | as duas trilhas, o interceptor global, política de dados sensíveis |
-| `.claude/rules/jobs-hangfire.md` | filas, Wrapper + Trigger, jobs enfileirados com linha de status |
+| `.claude/rules/jobs-hangfire.md` | filas, Wrapper + Trigger, jobs enfileirados com linha de status, tela de jobs do admin (`/admin/jobs`: última execução com resultado ou erro, falhas com stack, "Rodar agora" menos o lembrete de evento, Trigger que devolve o resultado) |
 | `.claude/rules/observabilidade.md` | as quatro categorias de falha, `UNHANDLED_EXCEPTION`/`REQUEST_FAILED`/`RATE_LIMIT_REJECTED`, cadeia de exceções |
 | `.claude/rules/abuso-e-limites.md` | rate limit por IP/conta e limites de volume por regra de negócio |
 | `.claude/rules/seed-de-desenvolvimento.md` | `DevSeed` (só Development, `Seed:DevData`): contas, bandas, feed, eventos, mural, Ensaio, suporte e notificações de exemplo; mídia real de thrash do Wikimedia Commons em `%LOCALAPPDATA%\NoiseVault\seed-media` (script `scripts/baixar-midia-seed.ps1`) com chave `seed-`, reenviada ao LocalStack a cada boot |

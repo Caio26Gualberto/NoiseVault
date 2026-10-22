@@ -299,6 +299,7 @@ namespace NoiseVault.Infra.IoC
 
             // Jobs
             services.AddScoped<IRecurringJobReader, RecurringJobReader>();
+            services.AddScoped<IRecurringJobTrigger, RecurringJobTrigger>();
             services.AddScoped<IEnqueuedJobDispatcher, EnqueuedJobDispatcher>();
             services.AddScoped<IBackgroundJobAppService, BackgroundJobAppService>();
             services.AddScoped<BackgroundJobsEnqueuedTrigger>();
