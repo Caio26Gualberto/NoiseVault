@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using NoiseVault.Workers.Wrappers.Recurring.Discography;
 using NoiseVault.Workers.Wrappers.Recurring.Media;
+using NoiseVault.Workers.Wrappers.Recurring.News;
 using NoiseVault.Workers.Wrappers.Recurring.Notifications;
 
 namespace NoiseVault.Infra.IoC
@@ -15,6 +16,7 @@ namespace NoiseVault.Infra.IoC
             scope.ServiceProvider.GetRequiredService<MediaRecurringJobsWrapper>().Register();
             scope.ServiceProvider.GetRequiredService<NotificationsRecurringJobsWrapper>().Register();
             scope.ServiceProvider.GetRequiredService<DiscographyRecurringJobsWrapper>().Register();
+            scope.ServiceProvider.GetRequiredService<NewsRecurringJobsWrapper>().Register();
 
             return app;
         }

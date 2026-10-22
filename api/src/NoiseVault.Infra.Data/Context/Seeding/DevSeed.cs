@@ -67,8 +67,9 @@ namespace NoiseVault.Infra.Data.Context.Seeding
                 }
 
                 var restored = await EnsureStoredMediaAsync(people.Values.Select(u => u.Id).ToList(), cancellationToken);
+                var news = await EnsureNewsAsync(cancellationToken);
 
-                _logger.Info("DEV_SEED_APPLIED", "Dev seed applied", extra: new { ContentCreated = created, MediaRestored = restored });
+                _logger.Info("DEV_SEED_APPLIED", "Dev seed applied", extra: new { ContentCreated = created, MediaRestored = restored, NewsCreated = news });
             }
             catch (Exception ex)
             {

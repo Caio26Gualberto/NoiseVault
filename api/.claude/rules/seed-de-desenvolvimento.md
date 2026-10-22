@@ -38,6 +38,8 @@ Bandas: **Ferrugem** (thrash, 1998, verificada), **Pogo Mortal** (punk/hardcore,
 
 Seguidores: a Ferrugem tem cinco (`paty`, `jorge`, `rafa`, `bia`, `tiago`), e o admin segue Pogo Mortal, Vulto e Cinzas, para a aba "Seguindo" do feed vir cheia já no primeiro acesso; a `paty` tem a notificação 33 do post de vídeo da Ferrugem. Feed: nove posts de pessoa e de banda (um com três fotos do show no Santo Rock Bar, um da Ferrugem com vídeo, um com a banda no palco e pessoas marcadas na foto, um procurando a fita do MX, @menções de pessoas e de bandas), curtidas e comentários, mais os posts automáticos de evento, mural e vaga. Eventos: Necromancia com Ferrugem e Vulto no Santo Rock Bar, MX com Cinzas no Santo Rock Bar, Pogo na Praça, um que já rolou no Teatro Clara Nunes, o Metal na Serra cancelado (com MX no line-up) e uma tarde de graça em Mauá, com "Vou" e comentários. Mural: quatro registros publicados (Necromancia e Ferrugem no Teatro Municipal em 1999, com fotos e fita VHS; Ozzy em Cardiff em 1980, com cidade de fora do Brasil; Korzus e Ferrugem no Teatro Lauro Gomes em 2003; a primeira edição do Pogo na Praça), um envio pendente da `paty.lins` e um recusado do `jorge.okamoto` com motivo. Ensaio: cinco fichas de músico (quatro "procurando banda", com alcance e fotos de flyer), quatro vagas (uma preenchida) e interesses. Suporte: três tickets (aberto com print, em andamento com conversa, resolvido com nota interna). Notificações lidas e não lidas para o admin e para as outras pessoas.
 
+**Notícias** (`DevSeed.News.cs`): seis manchetes reais do Whiplash.Net coletadas em 21/10/2026, com o link e a foto deles, três de hoje e três de ontem em horas relativas ao boot. Entram só quando `NewsArticles` está vazia, então a coleta real e a purga seguem o curso normal. Existem porque em dev no Windows o Cloudflare bloqueia o coletor (`noticias.md`), e sem elas a página nasceria vazia.
+
 Os nomes são inventados e nenhuma tribo manda: thrash, punk, hardcore, doom, death e gótico aparecem na mesma pista, como o `CLAUDE.md` da raiz pede.
 
 ## Idempotente por marcador, não por contagem
@@ -64,7 +66,7 @@ Os nomes são inventados e nenhuma tribo manda: thrash, punk, hardcore, doom, de
 
 | Evento | Nível | Quando |
 |---|---|---|
-| `DEV_SEED_APPLIED` | Info | fim do seed, com `ContentCreated` (conteúdo criado neste boot) e `MediaRestored` (arquivos reenviados ao bucket) |
+| `DEV_SEED_APPLIED` | Info | fim do seed, com `ContentCreated` (conteúdo criado neste boot), `MediaRestored` (arquivos reenviados ao bucket) e `NewsCreated` (manchetes de exemplo, só com a tabela vazia) |
 | `DEV_SEED_SKIPPED` | Warning | o admin de dev não existe (o `SeedData` não rodou) |
 | `DEV_SEED_MEDIA_POOL_MISSING` | Warning | a pasta `avatars`, `photos` ou `videos` está vazia; a mídia sai procedural (contexto `Storage`). Rode `api/scripts/baixar-midia-seed.ps1` |
 | `DEV_SEED_MEDIA_FAILED` | Error | uma mídia não pôde ser regenerada (chave e erro no evento); as outras seguem e o boot continua |

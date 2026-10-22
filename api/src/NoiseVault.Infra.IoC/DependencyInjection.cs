@@ -21,6 +21,12 @@ using NoiseVault.Infra.Data.Repositories.Archive;
 using NoiseVault.Infra.Data.Repositories.BandVerifications;
 using NoiseVault.Infra.Data.Repositories.BandFollowers;
 using NoiseVault.Infra.Data.Spotify;
+using NoiseVault.Infra.Data.News;
+using NoiseVault.Infra.Data.Repositories.News;
+using NoiseVault.Application.News;
+using NoiseVault.Application.News.Interfaces;
+using NoiseVault.Workers.Triggers.Recurring.News;
+using NoiseVault.Workers.Wrappers.Recurring.News;
 using NoiseVault.Infra.Data.ExternalLogin;
 using NoiseVault.Workers.Triggers.Recurring.Discography;
 using NoiseVault.Workers.Wrappers.Recurring.Discography;
@@ -229,6 +235,7 @@ namespace NoiseVault.Infra.IoC
 
             // Eventos
             services.AddScoped<IEventAppService, EventAppService>();
+            services.AddScoped<INewsAppService, NewsAppService>();
             services.AddScoped<IEventCommentAppService, EventCommentAppService>();
 
             // Mural das antigas
@@ -273,6 +280,13 @@ namespace NoiseVault.Infra.IoC
             if (!spotifySettings.IsConfigured)
                 Console.WriteLine("[Noise Vault] Spotify:ClientId e Spotify:ClientSecret vazios — a importação de discografia responde SPOTIFY_NOT_CONFIGURED.");
 
+            var newsSettings = WhiplashNewsSettings.FromConfiguration(config);
+            services.AddSingleton(newsSettings);
+            services.AddHttpClient<INewsSourceClient, WhiplashNewsClient>(client => client.Timeout = TimeSpan.FromSeconds(15));
+
+            if (!newsSettings.Enabled)
+                Console.WriteLine("[Noise Vault] News:Enabled = false — o job news:collect não busca notícias.");
+
             var externalLoginSettings = ExternalLoginSettings.FromConfiguration(config);
             services.AddSingleton(externalLoginSettings);
             services.AddHttpClient<IExternalIdentityService, ExternalIdentityService>(client => client.Timeout = TimeSpan.FromSeconds(10));
@@ -296,6 +310,8 @@ namespace NoiseVault.Infra.IoC
             services.AddScoped<NotificationsRecurringJobsWrapper>();
             services.AddScoped<DiscographyRecurringJobsTrigger>();
             services.AddScoped<DiscographyRecurringJobsWrapper>();
+            services.AddScoped<NewsRecurringJobsTrigger>();
+            services.AddScoped<NewsRecurringJobsWrapper>();
 
             // Repositories
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
@@ -305,6 +321,7 @@ namespace NoiseVault.Infra.IoC
             services.AddScoped<IBandInvitationRepository, BandInvitationRepository>();
             services.AddScoped<IPostRepository, PostRepository>();
             services.AddScoped<IEventRepository, EventRepository>();
+            services.AddScoped<INewsArticleRepository, NewsArticleRepository>();
             services.AddScoped<IArchiveRepository, ArchiveRepository>();
             services.AddScoped<IBandVerificationRepository, BandVerificationRepository>();
             services.AddScoped<IBandFollowerRepository, BandFollowerRepository>();

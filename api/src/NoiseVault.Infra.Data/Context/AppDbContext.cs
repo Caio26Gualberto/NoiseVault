@@ -32,6 +32,7 @@ namespace NoiseVault.Infra.Data.Context
         public DbSet<BandVerificationRequest> BandVerificationRequests => Set<BandVerificationRequest>();
         public DbSet<BandRelease> BandReleases => Set<BandRelease>();
         public DbSet<BandTrack> BandTracks => Set<BandTrack>();
+        public DbSet<NewsArticle> NewsArticles => Set<NewsArticle>();
         public DbSet<MediaUpload> MediaUploads => Set<MediaUpload>();
         public DbSet<Post> Posts => Set<Post>();
         public DbSet<PostMedia> PostMedia => Set<PostMedia>();
@@ -280,6 +281,20 @@ namespace NoiseVault.Infra.Data.Context
                 b.HasIndex(x => new { x.BandId, x.SpotifyAlbumId })
                     .IsUnique()
                     .HasFilter(DatabaseProvider.NotNullIndexFilter(this, nameof(BandRelease.SpotifyAlbumId)));
+            });
+
+            builder.Entity<NewsArticle>(b =>
+            {
+                b.ToTable("NewsArticles");
+                b.HasKey(x => x.Id);
+
+                b.Property(x => x.Title).IsRequired().HasMaxLength(300);
+                b.Property(x => x.Url).IsRequired().HasMaxLength(500);
+                b.Property(x => x.ImageUrl).HasMaxLength(500);
+                b.Property(x => x.Author).HasMaxLength(120);
+
+                b.HasIndex(x => new { x.Source, x.ExternalId }).IsUnique();
+                b.HasIndex(x => x.PublishedAt);
             });
 
             builder.Entity<BandTrack>(b =>
