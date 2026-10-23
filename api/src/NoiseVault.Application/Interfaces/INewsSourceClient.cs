@@ -25,5 +25,8 @@ namespace NoiseVault.Application.Interfaces
         bool IsEnabled { get; }
         Task<IReadOnlyList<NewsLink>> ListRecentAsync(CancellationToken cancellationToken = default);
         Task<NewsArticleData?> GetArticleAsync(string url, CancellationToken cancellationToken = default);
+        IReadOnlyList<NewsLink> ParseSitemap(string body);
+        NewsLink? ParseLink(string url);
+        NewsArticleData? ParseArticle(string html);
     }
 }

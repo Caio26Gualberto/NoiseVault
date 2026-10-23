@@ -8,6 +8,8 @@ namespace NoiseVault.Application.News.Interfaces
     {
         Task<Result<PagedResultDto<NewsArticleDto>>> List(NewsListQueryDto query);
         Task<NewsCollectResultDto> Collect();
+        Task<Result<NewsImportPendingResponseDto>> ImportPending(NewsImportPendingInputDto input);
+        Task<Result<NewsImportResponseDto>> Import(NewsImportInputDto input);
         Task<int> Purge();
     }
 }

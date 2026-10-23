@@ -43,6 +43,11 @@ namespace NoiseVault.Domain.Constants
             public const string Reply = "Support.Reply";
         }
 
+        public static class News
+        {
+            public const string Import = "News.Import";
+        }
+
         public static class System
         {
             public const string JobsView = "System.Jobs.View";

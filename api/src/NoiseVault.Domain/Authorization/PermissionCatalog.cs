@@ -12,6 +12,7 @@ namespace NoiseVault.Domain.Authorization
             public const string Archive = "Archive";
             public const string Support = "Support";
             public const string Bands = "Bands";
+            public const string News = "News";
         }
 
         public static readonly IReadOnlyList<PermissionGroupDefinition> GroupDefinitions = new List<PermissionGroupDefinition>
@@ -22,6 +23,7 @@ namespace NoiseVault.Domain.Authorization
             new(Groups.Archive, "Mural das antigas"),
             new(Groups.Support, "Suporte"),
             new(Groups.Bands, "Bandas"),
+            new(Groups.News, "Notícias"),
         };
 
         public static readonly IReadOnlyList<PermissionDefinition> All = new List<PermissionDefinition>
@@ -52,6 +54,8 @@ namespace NoiseVault.Domain.Authorization
 
             new(Permissions.Bands.VerificationsView, "Ver pedidos de verificação de banda", "Permite ver a fila de pedidos de verificação, com a mensagem e o contato de quem pediu.", Groups.Bands),
             new(Permissions.Bands.Verify, "Decidir a verificação de banda", "Permite aprovar ou recusar um pedido e tirar o selo de uma banda verificada.", Groups.Bands, Permissions.Bands.VerificationsView),
+
+            new(Permissions.News.Import, "Importar notícias", "Permite enviar à API as notícias do Whiplash.Net baixadas pelo script de coleta local.", Groups.News),
 
             new(Permissions.System.JobsView, "Ver jobs", "Permite visualizar os jobs em execução.", Groups.System),
             new(Permissions.System.JobsManage, "Gerenciar jobs", "Permite disparar jobs manualmente.", Groups.System, Permissions.System.JobsView),

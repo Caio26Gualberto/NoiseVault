@@ -28,35 +28,46 @@ namespace NoiseVault.Infra.Data.News
         {
             var body = await GetStringAsync(SitemapUrl, cancellationToken);
 
-            XDocument document;
             try
             {
-                document = XDocument.Parse(body);
+                return ReadSitemap(body);
             }
             catch (Exception ex)
             {
                 throw new NewsSourceException(ENewsSourceFailure.Unavailable, "Sitemap do Whiplash.Net ilegível.", ex);
             }
-
-            var links = new List<NewsLink>();
-            var seen = new HashSet<long>();
-
-            foreach (var loc in document.Descendants().Where(e => e.Name.LocalName == "loc"))
-            {
-                var url = loc.Value.Trim();
-                var match = ArticleUrlRegex().Match(url);
-
-                if (match.Success && long.TryParse(match.Groups[1].Value, out var externalId) && seen.Add(externalId))
-                    links.Add(new NewsLink(externalId, url));
-            }
-
-            return links;
         }
 
         public async Task<NewsArticleData?> GetArticleAsync(string url, CancellationToken cancellationToken = default)
         {
             var html = await GetStringAsync(url, cancellationToken);
+            return ParseArticle(html);
+        }
 
+        public IReadOnlyList<NewsLink> ParseSitemap(string body)
+        {
+            try
+            {
+                return ReadSitemap(body);
+            }
+            catch (System.Xml.XmlException)
+            {
+                return [];
+            }
+        }
+
+        public NewsLink? ParseLink(string url)
+        {
+            var trimmed = url.Trim();
+            var match = ArticleUrlRegex().Match(trimmed);
+
+            return match.Success && long.TryParse(match.Groups[1].Value, out var externalId)
+                ? new NewsLink(externalId, trimmed)
+                : null;
+        }
+
+        public NewsArticleData? ParseArticle(string html)
+        {
             var fromJsonLd = ReadJsonLd(html);
             var title = Clean(fromJsonLd.Title) ?? Clean(Meta(html, "og:title"));
 
@@ -68,6 +79,23 @@ namespace NoiseVault.Infra.Data.News
             var publishedAt = ParseLocalDate(fromJsonLd.PublishedAt) ?? DateTime.UtcNow;
 
             return new NewsArticleData(title, IsHttpUrl(image) ? image : null, author, publishedAt);
+        }
+
+        private List<NewsLink> ReadSitemap(string body)
+        {
+            var document = XDocument.Parse(body);
+            var links = new List<NewsLink>();
+            var seen = new HashSet<long>();
+
+            foreach (var loc in document.Descendants().Where(e => e.Name.LocalName == "loc"))
+            {
+                var link = ParseLink(loc.Value);
+
+                if (link != null && seen.Add(link.ExternalId))
+                    links.Add(link);
+            }
+
+            return links;
         }
 
         private async Task<string> GetStringAsync(string url, CancellationToken cancellationToken)
@@ -174,7 +202,7 @@ namespace NoiseVault.Infra.Data.News
         private static bool IsHttpUrl(string? value) =>
             Uri.TryCreate(value, UriKind.Absolute, out var uri) && (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp);
 
-        [GeneratedRegex(@"^https://whiplash\.net/materias/news_\d+/(\d+)-[A-Za-z0-9_-]+\.html$")]
+        [GeneratedRegex(@"^https://whiplash\.net/materias/news_\d+/(\d+)(?:-[A-Za-z0-9_-]+)?\.html$")]
         private static partial Regex ArticleUrlRegex();
 
         [GeneratedRegex(@"<script type=""application/ld\+json"">([\s\S]*?)</script>", RegexOptions.IgnoreCase)]

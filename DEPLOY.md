@@ -334,7 +334,14 @@ Migration já aplicada não é desfeita sozinha: se a versão nova criou tabela,
 
 **Nova versão do front:** `git push` na `main`. O workflow "Deploy Front" builda, sobe para o bucket `noisevault-web`, publica a função da borda e invalida o cache (passo 14); o CI do GitHub continua validando em paralelo. **Voltar atrás**: `git revert` do commit e push. O "Run workflow" manual não serve para isso, porque sempre builda a ponta da `main`.
 
-**Jobs:** a tela `/admin/jobs` (só admin) mostra cada job agendado, a última execução com o resultado ou o erro, e as falhas com o stack. O dashboard do Hangfire não existe em produção. No **primeiro deploy das notícias**, abra a tela e clique em "Rodar agora" no `news:collect`. Sem isso, a página `/noticias` fica vazia até a próxima hora cheia. Se o resultado vier com `"Blocked":true`, o Cloudflare do Whiplash está recusando o IP do Lightsail (`api/.claude/rules/noticias.md`).
+**Jobs:** a tela `/admin/jobs` (só admin) mostra cada job agendado, a última execução com o resultado ou o erro, e as falhas com o stack. O dashboard do Hangfire não existe em produção. O `news:collect` fica desligado (`News__Enabled=false` no `.env`) e aparece com `"Disabled":true`: desde 22/10/2026 o Cloudflare do Whiplash recusa o IP do Lightsail (`api/.claude/rules/noticias.md`).
+
+**Notícias:** a coleta roda no Windows do dono do projeto, pelo `api/scripts/coletar-noticias.ps1`, que baixa do Whiplash e entrega à API. Uma vez só, num PowerShell, na pasta `api`:
+
+1. `.\scripts\coletar-noticias.ps1 -Configurar` pede o e-mail e a senha de uma conta com `News.Import` (o admin tem) e já faz a primeira coleta, de uns 20 minutos. A credencial fica cifrada em `%LOCALAPPDATA%\NoiseVault\noticias-credencial.xml`.
+2. `.\scripts\coletar-noticias.ps1 -Agendar` cria a tarefa "Noise Vault - coletar notícias" no Agendador de Tarefas, de hora em hora. Com o PC desligado ela não roda. Quando o PC liga, ela roda logo e recupera o que saiu nesse tempo.
+
+O que aconteceu fica em `%LOCALAPPDATA%\NoiseVault\noticias.log`, uma linha `Fim: ... adicionadas=N` por execução, e no log da API (`NEWS_IMPORT_PENDING`, `NEWS_IMPORTED`). Se trocar a senha da conta, rode o `-Configurar` de novo. Se o log mostrar `BLOQUEADO`, o Cloudflare passou a recusar também a sua internet.
 
 **Logs:** `docker compose logs --tail 200 api`. Cada evento é uma linha `LEVEL data (contexto) EVENTO: mensagem | ...`. Um 500 aparece como `UNHANDLED_EXCEPTION` com `X-Trace-Id`.
 

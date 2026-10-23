@@ -1,3 +1,4 @@
+using NoiseVault.Application.Abstractions.Authentication;
 using NoiseVault.Application.Abstractions.Logging;
 using NoiseVault.Application.Abstractions.Repository;
 using NoiseVault.Application.Common.Time;
@@ -17,12 +18,14 @@ namespace NoiseVault.Application.News
 
         private readonly INewsArticleRepository _newsRepository;
         private readonly INewsSourceClient _sourceClient;
+        private readonly ICurrentUser _currentUser;
         private readonly IApplicationLogger _logger;
 
-        public NewsAppService(INewsArticleRepository newsRepository, INewsSourceClient sourceClient, IApplicationLoggerFactory loggerFactory)
+        public NewsAppService(INewsArticleRepository newsRepository, INewsSourceClient sourceClient, ICurrentUser currentUser, IApplicationLoggerFactory loggerFactory)
         {
             _newsRepository = newsRepository;
             _sourceClient = sourceClient;
+            _currentUser = currentUser;
             _logger = loggerFactory.Create(LogContext.News);
         }
 
@@ -122,17 +125,7 @@ namespace NoiseVault.Application.News
                 if (data == null || data.PublishedAt < oldestAccepted || link.Url.Length > NewsRules.UrlMaxLength)
                     continue;
 
-                await _newsRepository.AddAsync(new NewsArticle
-                {
-                    Source = ENewsSource.Whiplash,
-                    ExternalId = link.ExternalId,
-                    Title = Truncate(data.Title, NewsRules.TitleMaxLength)!,
-                    Url = link.Url,
-                    ImageUrl = data.ImageUrl is { Length: <= NewsRules.UrlMaxLength } ? data.ImageUrl : null,
-                    Author = Truncate(data.Author, NewsRules.AuthorMaxLength),
-                    PublishedAt = data.PublishedAt,
-                });
-
+                await AddArticleAsync(link, data);
                 added++;
             }
 
@@ -141,6 +134,64 @@ namespace NoiseVault.Application.News
             result.Added = added;
             result.Candidates = candidates.Count;
             return result;
+        }
+
+        public async Task<Result<NewsImportPendingResponseDto>> ImportPending(NewsImportPendingInputDto input)
+        {
+            _logger.SetOperation("ImportNewsPending");
+
+            var links = _sourceClient.ParseSitemap(input.Sitemap ?? string.Empty);
+
+            if (links.Count == 0)
+                return Result<NewsImportPendingResponseDto>.Fail(new Error("INVALID_NEWS_SITEMAP", "The sitemap has no news article links", ErrorType.Validation));
+
+            var existing = await _newsRepository.ExistingExternalIdsAsync(ENewsSource.Whiplash, links.Select(l => l.ExternalId).ToList());
+            var pending = links
+                .Where(l => !existing.Contains(l.ExternalId) && l.Url.Length <= NewsRules.UrlMaxLength)
+                .OrderByDescending(l => l.ExternalId)
+                .Select(l => new NewsImportLinkDto { ExternalId = l.ExternalId, Url = l.Url })
+                .ToList();
+
+            _logger.Info("NEWS_IMPORT_PENDING", "Local news collector asked for pending articles", userId: _currentUser.UserIdOrNull, extra: new { Links = links.Count, Pending = pending.Count });
+
+            return Result<NewsImportPendingResponseDto>.Ok(
+                new NewsImportPendingResponseDto { Links = links.Count, Pending = pending },
+                "NEWS_IMPORT_PENDING",
+                "Pending news articles found");
+        }
+
+        public async Task<Result<NewsImportResponseDto>> Import(NewsImportInputDto input)
+        {
+            _logger.SetOperation("ImportNews");
+
+            var link = _sourceClient.ParseLink(input.Url ?? string.Empty);
+
+            if (link == null || link.Url.Length > NewsRules.UrlMaxLength)
+                return Result<NewsImportResponseDto>.Fail(new Error("INVALID_NEWS_URL", "The url is not a Whiplash.Net news article", ErrorType.Validation));
+
+            _logger.Set("ExternalId", link.ExternalId);
+
+            var data = _sourceClient.ParseArticle(input.Html ?? string.Empty);
+
+            if (data == null)
+                return Result<NewsImportResponseDto>.Fail(new Error("NEWS_ARTICLE_UNREADABLE", "The article page has no title", ErrorType.Validation));
+
+            var response = new NewsImportResponseDto();
+            var existing = await _newsRepository.ExistingExternalIdsAsync(ENewsSource.Whiplash, [link.ExternalId]);
+
+            if (existing.Count > 0)
+                response.AlreadyExists = true;
+            else if (data.PublishedAt < DateTime.UtcNow.AddDays(-NewsRules.RetentionDays))
+                response.TooOld = true;
+            else
+            {
+                await AddArticleAsync(link, data);
+                response.Added = true;
+
+                _logger.Info("NEWS_IMPORTED", "News article imported by the local collector", userId: _currentUser.UserIdOrNull, extra: new { link.ExternalId });
+            }
+
+            return Result<NewsImportResponseDto>.Ok(response, "NEWS_IMPORTED", "News article processed");
         }
 
         public async Task<int> Purge()
@@ -159,6 +210,18 @@ namespace NoiseVault.Application.News
             else
                 _logger.Warning("NEWS_SOURCE_UNAVAILABLE", "Whiplash.Net sitemap could not be read", extra: new { ex.Failure, ex.Message });
         }
+
+        private Task AddArticleAsync(NewsLink link, NewsArticleData data) =>
+            _newsRepository.AddAsync(new NewsArticle
+            {
+                Source = ENewsSource.Whiplash,
+                ExternalId = link.ExternalId,
+                Title = Truncate(data.Title, NewsRules.TitleMaxLength)!,
+                Url = link.Url,
+                ImageUrl = data.ImageUrl is { Length: <= NewsRules.UrlMaxLength } ? data.ImageUrl : null,
+                Author = Truncate(data.Author, NewsRules.AuthorMaxLength),
+                PublishedAt = data.PublishedAt,
+            });
 
         private static string? Truncate(string? value, int maxLength) =>
             value == null || value.Length <= maxLength ? value : value[..maxLength];
