@@ -6,7 +6,9 @@
 )
 
 $ErrorActionPreference = "Stop"
+$ProgressPreference = "SilentlyContinue"
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+$tempoLimiteApi = 60
 
 $Api = $Api.TrimEnd("/")
 $pasta = Join-Path $env:LOCALAPPDATA "NoiseVault"
@@ -47,7 +49,7 @@ function Baixar-Whiplash([string]$url) {
 
 function Entrar {
     $corpo = @{ email = $credencial.UserName; password = $credencial.GetNetworkCredential().Password } | ConvertTo-Json -Compress
-    $resposta = Invoke-RestMethod -Method Post -Uri "$Api/api/auth/login" -ContentType "application/json; charset=utf-8" -Body $utf8.GetBytes($corpo)
+    $resposta = Invoke-RestMethod -Method Post -Uri "$Api/api/auth/login" -ContentType "application/json; charset=utf-8" -Body $utf8.GetBytes($corpo) -TimeoutSec $tempoLimiteApi
     $script:token = $resposta.data.tokens.token
 }
 
@@ -55,10 +57,14 @@ function Chamar-Api([string]$caminho, [hashtable]$corpo) {
     $bytes = $utf8.GetBytes(($corpo | ConvertTo-Json -Compress))
     for ($tentativa = 1; ; $tentativa++) {
         try {
-            return Invoke-RestMethod -Method Post -Uri "$Api$caminho" -Headers @{ Authorization = "Bearer $script:token" } -ContentType "application/json; charset=utf-8" -Body $bytes
+            return Invoke-RestMethod -Method Post -Uri "$Api$caminho" -Headers @{ Authorization = "Bearer $script:token" } -ContentType "application/json; charset=utf-8" -Body $bytes -TimeoutSec $tempoLimiteApi
         }
         catch {
-            $status = if ($_.Exception.Response) { [int]$_.Exception.Response.StatusCode } else { 0 }
+            $status = 0
+            if ($_.Exception.Response) {
+                $status = [int]$_.Exception.Response.StatusCode
+                $_.Exception.Response.Dispose()
+            }
             if ($status -eq 401 -and $tentativa -eq 1) {
                 Entrar
                 continue
@@ -113,6 +119,7 @@ try {
     }
 
     $pendentes = @($resposta.data.pending)
+    Escrever-Log "Início: links=$($resposta.data.links) pendentes=$($pendentes.Count)"
     $adicionadas = 0
     $falhas = 0
     $bloqueado = $false
@@ -141,6 +148,9 @@ try {
         elseif ($importada.data.added) {
             $adicionadas++
         }
+
+        $situacao = if (-not $importada.isSuccess) { "recusada" } elseif ($importada.data.added) { "adicionada" } elseif ($importada.data.alreadyExists) { "já existia" } else { "antiga demais" }
+        Write-Host ("[{0}/{1}] {2} {3}" -f ($i + 1), $pendentes.Count, $link.externalId, $situacao)
     }
 
     Escrever-Log "Fim: links=$($resposta.data.links) pendentes=$($pendentes.Count) adicionadas=$adicionadas falhas=$falhas bloqueado=$bloqueado"
