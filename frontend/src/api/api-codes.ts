@@ -336,6 +336,8 @@ export const ApiCodes = {
   passwordAlreadySet: 'PASSWORD_ALREADY_SET',
 
   newsFound: 'NEWS_FOUND',
+  newsImportPending: 'NEWS_IMPORT_PENDING',
+  newsImported: 'NEWS_IMPORTED',
 
   recurringJobsLoaded: 'RECURRING_JOBS_LOADED',
   recurringJobTriggered: 'RECURRING_JOB_TRIGGERED',
@@ -344,6 +346,9 @@ export const ApiCodes = {
   jobAlreadyRunning: 'JOB_ALREADY_RUNNING',
   failedJobsFound: 'FAILED_JOBS_FOUND',
   invalidNewsScope: 'INVALID_NEWS_SCOPE',
+  invalidNewsSitemap: 'INVALID_NEWS_SITEMAP',
+  invalidNewsUrl: 'INVALID_NEWS_URL',
+  newsArticleUnreadable: 'NEWS_ARTICLE_UNREADABLE',
 
   networkError: 'NETWORK_ERROR',
   unknownError: 'UNKNOWN_ERROR',

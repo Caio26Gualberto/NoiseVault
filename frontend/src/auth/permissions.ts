@@ -21,6 +21,8 @@ export const Permissions = {
   bandsVerificationsView: 'Bands.Verifications.View',
   bandsVerify: 'Bands.Verify',
 
+  newsImport: 'News.Import',
+
   supportView: 'Support.View',
   supportEdit: 'Support.Edit',
   supportReply: 'Support.Reply',
