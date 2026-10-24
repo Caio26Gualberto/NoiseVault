@@ -118,10 +118,11 @@ namespace NoiseVault.Application.Share
         [GeneratedRegex(@"`([^`]+)`")]
         private static partial Regex MarkdownCode();
 
-        public static string BandSentence(string name, IEnumerable<EMusicGenre> genres, string? cityName, string? uf, int? foundedYear)
+        public static string BandSentence(string name, EBandKind kind, IEnumerable<EMusicGenre> genres, string? cityName, string? uf, int? foundedYear)
         {
+            var solo = kind == EBandKind.Solo;
             var styles = genres.Where(g => g != EMusicGenre.Other).Select(g => Genre(g).ToLower(PtBr)).ToList();
-            var sentence = $"{name} é uma banda";
+            var sentence = solo ? $"{name} é artista solo" : $"{name} é uma banda";
 
             if (styles.Count > 0)
                 sentence += $" de {NaturalList(styles)}";
@@ -130,7 +131,7 @@ namespace NoiseVault.Application.Share
                 sentence += uf != null ? $" de {cityName} ({uf})" : $" de {cityName}";
 
             if (foundedYear != null)
-                sentence += $", formada em {foundedYear}";
+                sentence += solo ? $", na ativa desde {foundedYear}" : $", formada em {foundedYear}";
 
             return sentence + ".";
         }

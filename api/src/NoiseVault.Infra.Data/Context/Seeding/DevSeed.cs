@@ -24,7 +24,7 @@ namespace NoiseVault.Infra.Data.Context.Seeding
         private const int RibeiraoPires = 3543303;
         private const int RioGrandeDaSerra = 3544103;
 
-        private static readonly string[] BandSlugs = ["ferrugem", "pogo-mortal", "vulto", "cinzas"];
+        private static readonly string[] BandSlugs = ["ferrugem", "pogo-mortal", "vulto", "cinzas", "okamoto", "bia-santana"];
 
         private readonly AppDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
@@ -66,10 +66,12 @@ namespace NoiseVault.Infra.Data.Context.Seeding
                     created = true;
                 }
 
+                var solo = await EnsureSoloArtistsAsync(people, cancellationToken);
+
                 var restored = await EnsureStoredMediaAsync(people.Values.Select(u => u.Id).ToList(), cancellationToken);
                 var news = await EnsureNewsAsync(cancellationToken);
 
-                _logger.Info("DEV_SEED_APPLIED", "Dev seed applied", extra: new { ContentCreated = created, MediaRestored = restored, NewsCreated = news });
+                _logger.Info("DEV_SEED_APPLIED", "Dev seed applied", extra: new { ContentCreated = created, SoloArtistsCreated = solo, MediaRestored = restored, NewsCreated = news });
             }
             catch (Exception ex)
             {

@@ -160,6 +160,7 @@ namespace NoiseVault.Infra.Data.Repositories.Notifications
                 BandSlug = n.Band != null ? n.Band.Slug : null,
                 BandAvatarKey = n.Band != null ? n.Band.AvatarKey : null,
                 BandIsVerified = n.Band != null && n.Band.IsVerified,
+                BandKind = n.Band != null ? n.Band.Kind : null,
                 BandGenres = n.Band != null ? n.Band.Genres.Select(g => g.Genre).ToList() : new(),
                 InvitationId = n.BandInvitationId,
                 InvitationStatus = n.BandInvitation != null ? n.BandInvitation.Status : null,

@@ -28,6 +28,7 @@ Ideia 1 do `IDEIAS.md`, feita em 14/10/2026 pelo caminho da **rota de compartilh
 | `/s/eventos/{id}` | `/eventos/{id}` | título (com "[Cancelado]" quando for); dia e hora na zona do app · local · cidade · "com" o line-up · "N pessoas vão" (some no cancelado), e o começo da descrição; banner |
 | `/s/feed/{id}` | `/feed/{id}` | "Fulano (\@apelido) no Noise Vault"; "N fotos · N vídeos · N curtidas · N comentários · 18 de outubro de 2026" e, depois de dois-pontos, o começo do texto entre aspas, com os \@handles trocados pelo nome (sem texto, um convite para ver no Noise Vault); primeira foto (ou o avatar). O post automático de evento e de mural usa a prévia do evento ou do registro |
 | `/s/bandas/{slug}` | `/bandas/{slug}` | nome; "Banda · cidade · desde 1991" e o começo da descrição; capa ou avatar |
+| `/s/artistas/{slug}` | `/artistas/{slug}` | o mesmo, com "Artista solo · cidade · desde 2012"; `/s/bandas/` de um solo também responde, e o `refresh` leva para `/artistas/` (`bandas.md`) |
 | `/s/perfil/{apelido}` | `/perfil/{apelido}` | "Nome (\@apelido)", começo da bio, avatar |
 
 - **A descrição imita a do Instagram** (19/10/2026): a primeira prévia, só com o texto ou "Publicação no feed do Noise Vault", saía sem vida no WhatsApp. Agora abre com uma linha de dados (contagens, data, local, line-up), separados por " · "; contagem zero não aparece, e o singular é "1 curtida". O texto vem depois.
@@ -64,7 +65,7 @@ Se virar problema, o link de compartilhamento passa a levar uma assinatura (HMAC
 ~~O front no Amplify precisa de um rewrite `/s/<*>` → `https://<api>/s/<*>` (200, proxy), antes do rewrite da SPA.~~ Desde 20/10/2026 quem decide é a função `infra/cloudfront/web-viewer-request.js`, na distribuição do front (`hospedagem.md`, "Front e a prévia de links"):
 
 - `/s/...` vai para a origem da API, como antes;
-- robô de prévia (`facebookexternalhit`, `WhatsApp`, `TelegramBot` e afins) em `/{feed,mural,eventos,bandas,perfil}/{chave}` (fora do `ensaio.`) vai para a mesma origem como `/s/{seção}/{chave}`. A API não muda nada: recebe o mesmo caminho do botão "Compartilhar";
+- robô de prévia (`facebookexternalhit`, `WhatsApp`, `TelegramBot` e afins) em `/{feed,mural,eventos,bandas,artistas,perfil}/{chave}` (fora do `ensaio.`) vai para a mesma origem como `/s/{seção}/{chave}`. A API não muda nada: recebe o mesmo caminho do botão "Compartilhar";
 - a pessoa recebe a SPA, como sempre.
 
 O `og:url` continua sendo o link `/s/...`, e o Facebook, que segue o `og:url`, cai na mesma rota. Em dev, o `vite.config.ts` repassa só `^/s/` (sem desvio de robô).

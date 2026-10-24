@@ -31,12 +31,28 @@ Módulo 2 da ordem em `dominio.md`. Banda é entidade própria, **sem login**; q
   - `BandProfileDto.FollowerCount` conta seguidores ativos por query, como `PostCount`; `FollowedByMe` diz se quem lê segue. Nada materializado.
   - Quem segue recebe a notificação `FollowedBandPosted` (kind 33) quando a banda publica, inclusive os posts automáticos de evento e de vaga, e o post com vídeo só quando o vídeo fica pronto (`feed.md`, `notificacoes.md`).
 
+## Artista solo: uma banda de outro tipo, não uma entidade nova
+
+Ideia de um amigo do projeto, decidida pelo usuário em 24/10/2026: quem toca sozinho era obrigado a criar uma "banda" que não faz sentido. O artista solo é uma `Band` com **`Kind = Solo`** (`EBandKind`: `Band = 0`, `Solo = 1`), e não uma entidade `Artist` entre `User` e `Band`.
+- **Por que não uma entidade `Artist`**: tudo o que a página da banda já tem (discografia, line-up, seguir, verificação, mural, posts marcados, prévia de link, SEO) passaria a existir em dobro, ou `BandMember`, convites, posts, eventos, notificações e Ensaio teriam de apontar para os dois. Um campo resolve o mesmo.
+- **Uma pessoa pode ser solo e tocar em bandas ao mesmo tempo**: são só linhas de `BandMember`, e o artista solo conta no limite de 10 bandas por pessoa.
+- **URL própria**: o front mostra o solo em `/artistas/:slug`. O slug continua num espaço só, compartilhado com as bandas: `/bandas/x` e `/artistas/x` são a mesma página, e o front corrige o prefixo errado. `BandRules.Section`/`PagePath` é o único lugar da API que monta esse caminho (SEO, prévia, e-mail).
+- **Sem integrantes**: o solo tem só quem criou (Owner). Convidar integrante → `SOLO_ARTIST_NO_MEMBERS` (409), e abrir vaga no Ensaio também, porque o "Tenho interesse" vira convite de integrante (`ensaio.md`). Decisão do usuário: nada de "músicos de apoio". No lugar entra a **parceria** "Costuma tocar com" entre páginas (seção abaixo).
+- **Trocar o tipo** é campo do `PUT /api/bands/{slug}` (`kind`; ausente mantém o atual):
+  - solo → banda: livre;
+  - banda → solo com mais de um integrante → `BAND_HAS_MEMBERS` (409), e o dono remove os outros antes;
+  - banda → solo com vaga aberta no Ensaio → `BAND_HAS_OPEN_OPENINGS` (409);
+  - na troca para solo, os convites de integrante pendentes viram `Revoked` (`RevokePendingForBandAsync`), em vez de travar a troca.
+  - O slug não muda (é identidade pública), mesmo que tenha nascido com o prefixo `banda-`.
+- **Verificação**: o solo pede com **1** integrante, o próprio dono (`BandVerificationRules.MinMembers`). Avatar e link social continuam obrigatórios. O nome verificado reservado vale entre os dois tipos: um artista solo verificado reserva o nome contra banda nova, e vice-versa.
+- `kind` sai em `BandSummaryDto`, `BandProfileDto`, na banda da notificação e em `MentionDto.bandKind`, para o front montar o link certo sem outra ida. A busca aceita `kind` opcional.
+
 ## Verificação: o selo diz que a banda é quem diz ser
 
 Pedido do usuário em 15/10/2026: "é importante para ninguém criar uma banda no nome de outra por maldade". No legado, o pedido (nome do responsável, e-mail, telefone, mensagem) só virava um e-mail para o dono do projeto; qualquer pessoa logada pedia por qualquer banda, não havia fila, decisão, motivo nem aviso de volta, e nada impedia uma segunda "Sepultura". Aqui:
 
 - **Só o Owner pede**, pela página da banda (`POST /api/bands/{slug}/verification { message, contactPhone? }`). Nome e e-mail não entram no pedido: são os da conta. A mensagem é obrigatória ("quem é você na banda e como confirmamos"), e o telefone é opcional, para a equipe chamar no WhatsApp. O telefone é dado pessoal: fica na tabela, vai no e-mail da equipe e na fila, e **nunca no log**.
-- **Exigência mínima para entrar na fila** (pedido do usuário): avatar, **pelo menos 2 integrantes ativos** (contando o Owner) e **pelo menos um link social**. Sem isso, `BAND_VERIFICATION_REQUIREMENTS` (400) diz o que falta. A ideia é a fila não encher de perfil vazio, e o revisor ter onde conferir (o Instagram ou o YouTube da banda).
+- **Exigência mínima para entrar na fila** (pedido do usuário): avatar, **pelo menos 2 integrantes ativos** (contando o Owner; 1 no artista solo) e **pelo menos um link social**. Sem isso, `BAND_VERIFICATION_REQUIREMENTS` (400) diz o que falta. A ideia é a fila não encher de perfil vazio, e o revisor ter onde conferir (o Instagram ou o YouTube da banda).
 - Banda já verificada → `BAND_ALREADY_VERIFIED` (409); pedido pendente → `BAND_VERIFICATION_ALREADY_PENDING` (409). Depois de recusa a banda pede de novo (linha nova). Limite `band-verification` 3/dia por conta.
 - **Fila de revisão** em `/api/admin/bands/verifications`, no molde dos envios do mural (`mural.md`): lista paginada por status com busca (nome ou slug da banda, nome ou apelido de quem pediu), resumo por status, aprovar e recusar com motivo. Pendentes vêm do mais antigo para o mais novo. **Aprovar e recusar são atômicos** (`TryReviewAsync`, `WHERE Status = Pending`; zero linhas → `BAND_VERIFICATION_NOT_PENDING`). Aprovar liga `IsVerified` na mesma transação.
 - **Tirar o selo** (`POST /api/admin/bands/{id}/unverify`): para quando o perfil troca de mão ou a parceria quebra. `BAND_NOT_VERIFIED` (409) se não tinha selo. Sem motivo: é ação de equipe, auditada pela trilha global (`auditoria.md`).
@@ -49,7 +65,7 @@ Pedido do usuário em 15/10/2026: "é importante para ninguém criar uma banda n
 ## Slug: gerado uma vez, nunca muda
 
 - **Geração**: o slug sai do nome na criação (`BandRules.BaseSlug`). O nome vai para minúsculas e perde os acentos; cada sequência que não for `a-z0-9` vira `-`; o resultado fica com 3 a 60 caracteres.
-- **Prefixo**: menos de 3 caracteres ou slug reservado (`nova`, `editar`, que são rotas do front) ganha o prefixo `banda-`.
+- **Prefixo**: menos de 3 caracteres ou slug reservado (`nova`, `editar`, que são rotas do front) ganha o prefixo `banda-`, ou `artista-` no artista solo.
 - **Colisão**: ganha sufixo `-2`, `-3`… A checagem inclui linhas apagadas: o índice único não tem filtro, porque o slug é identidade pública.
 - **Imutável**: renomear a banda não muda o slug, então links compartilhados não quebram. Não existe endpoint de troca de slug.
 - **Busca por slug**: a URL é normalizada (trim e minúsculas) antes de procurar.
@@ -77,11 +93,12 @@ Pedido do usuário em 15/10/2026: "é importante para ninguém criar uma banda n
 - `POST /api/bands/{slug}/invitations { nickname, instrument }` recusa nesta ordem:
   1. instrumento com mais de 60 caracteres → `INVALID_INSTRUMENT`;
   2. quem chama não é Owner → `BAND_FORBIDDEN`;
-  3. nickname inexistente ou inativo → `INVITEE_NOT_FOUND`;
-  4. convidar a si mesmo → `CANNOT_INVITE_SELF`;
-  5. a pessoa já é integrante → `ALREADY_BAND_MEMBER`;
-  6. já existe convite pendente válido → `BAND_INVITATION_ALREADY_PENDING`;
-  7. a banda já tem 20 pendentes → `BAND_INVITATION_LIMIT_REACHED`.
+  3. a página é de artista solo → `SOLO_ARTIST_NO_MEMBERS`;
+  4. nickname inexistente ou inativo → `INVITEE_NOT_FOUND`;
+  5. convidar a si mesmo → `CANNOT_INVITE_SELF`;
+  6. a pessoa já é integrante → `ALREADY_BAND_MEMBER`;
+  7. já existe convite pendente válido → `BAND_INVITATION_ALREADY_PENDING`;
+  8. a banda já tem 20 pendentes → `BAND_INVITATION_LIMIT_REACHED`.
 - Validade de **14 dias** (`BandRules.InvitationLifetime`).
 - **Aceitar** é transição condicional em `IBandInvitationRepository.TryRespondAsync`:
   - O `ExecuteUpdateAsync` tem `WHERE Id = x AND InvitedUserId = eu AND Status = Pending AND ExpiresAt > agora`.
@@ -131,6 +148,7 @@ Em `Controllers/` (escopo do próprio usuário, sem permissão do catálogo). To
 
 | Campo | Regra | Code |
 |---|---|---|
+| `kind` | `0` banda ou `1` artista solo; ausente é banda na criação e o tipo atual na edição | `INVALID_BAND_KIND` |
 | `name` | 2–100 depois de trim e espaços colapsados | `INVALID_BAND_NAME` |
 | `description` | até 1000 | `INVALID_BAND_DESCRIPTION` |
 | `city`, `genres`, `socialLinks.*` | `ProfileRules` | `INVALID_CITY`, `INVALID_GENRE`, `INVALID_SOCIAL_LINK` |
@@ -143,6 +161,7 @@ Em `Controllers/` (escopo do próprio usuário, sem permissão do catálogo). To
 - `BAND_LIMIT_REACHED` (409, mais de 10 bandas);
 - `BAND_MEMBER_NOT_FOUND` (404);
 - `BAND_INVITATION_NOT_FOUND` (404, inclusive quando o convite é de outra pessoa).
+- Artista solo: `SOLO_ARTIST_NO_MEMBERS`, `BAND_HAS_MEMBERS`, `BAND_HAS_OPEN_OPENINGS` (409).
 - Verificação: `INVALID_VERIFICATION_MESSAGE`, `INVALID_VERIFICATION_PHONE`, `BAND_VERIFICATION_REQUIREMENTS` (400); `BAND_ALREADY_VERIFIED`, `BAND_VERIFICATION_ALREADY_PENDING`, `BAND_VERIFICATION_NOT_PENDING`, `BAND_NOT_VERIFIED`, `BAND_NAME_RESERVED`, `BAND_NAME_ALREADY_VERIFIED` (409); `BAND_VERIFICATION_NOT_FOUND` (404); `INVALID_VERIFICATION_REJECTION_REASON`, `INVALID_VERIFICATION_STATUS` (400).
 
 ## Imagens
@@ -165,6 +184,7 @@ Volume (regra de negócio): no máximo **10 bandas por pessoa** (contando partic
 | Evento | Nível | Dados |
 |---|---|---|
 | `BAND_CREATED` | Info | `BandId`, `Slug` |
+| `BAND_KIND_CHANGED` | Info | `BandId`, `From`, `To` |
 | `BAND_INVITATION_SENT` | Info | `InvitationId`, `BandId`, `InvitedUserId` |
 | `BAND_MEMBER_JOINED` | Info | `InvitationId`, `BandId` (aceite) |
 | `BAND_INVITATION_DECLINED` / `BAND_INVITATION_REVOKED` | Info | `InvitationId` (+ `BandId`) |
@@ -217,3 +237,11 @@ Conta A (admin), conta B (Owner de uma banda) e conta C (integrante). Mailpit no
 3. A publica como a banda → B recebe a notificação 33 com `post` e `band`; A não recebe. Com vídeo, a 33 só chega quando o Hangfire publica o post.
 4. A convida B e B aceita → B deixa de ser seguidor (`followerCount: 0`) e passa a integrante.
 5. `DELETE …/follow` → `BAND_UNFOLLOWED`; de novo → o mesmo code, nada apagado.
+
+### Artista solo
+
+1. A cria `{ kind: 1, name: "Okamoto", instrument: "Guitarra" }` → `BAND_CREATED`, `kind: 1`; `kind: 7` → `INVALID_BAND_KIND`. Um solo chamado "Zé" → slug `artista-ze`.
+2. A convida B no solo → `SOLO_ARTIST_NO_MEMBERS`; abrir vaga no Ensaio → `SOLO_ARTIST_NO_MEMBERS`.
+3. Banda com 2 integrantes e `PUT { kind: 1, … }` → `BAND_HAS_MEMBERS`; com vaga aberta → `BAND_HAS_OPEN_OPENINGS`; só com o Owner e um convite pendente → `BAND_UPDATED`, `kind: 1`, o convite vira `Revoked` e o log `BAND_KIND_CHANGED` sai. `PUT` sem `kind` mantém o tipo.
+4. Solo com avatar e Instagram pede verificação com 1 integrante → `BAND_VERIFICATION_REQUESTED`; o e-mail da equipe diz "do artista solo" e aponta para `/artistas/{slug}`.
+5. `GET /api/bands/search?search=oka&kind=1` só traz solo; `GET /seo/artistas/okamoto` e `/seo/bandas/okamoto` → mesmo HTML, `canonical` em `/artistas/okamoto`, lead "Okamoto é artista solo de…" e sem a seção de integrantes; `/s/artistas/okamoto` → "Artista solo · Ribeirão Pires"; o sitemap lista `/artistas/okamoto`.

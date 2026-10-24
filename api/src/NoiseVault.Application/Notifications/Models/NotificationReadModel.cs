@@ -34,6 +34,7 @@ namespace NoiseVault.Application.Notifications.Models
         public string? BandSlug { get; init; }
         public string? BandAvatarKey { get; init; }
         public bool BandIsVerified { get; init; }
+        public EBandKind? BandKind { get; init; }
         public List<EMusicGenre> BandGenres { get; init; } = [];
 
         public int? InvitationId { get; init; }

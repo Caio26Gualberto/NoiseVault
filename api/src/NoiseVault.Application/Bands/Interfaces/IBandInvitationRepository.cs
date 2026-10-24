@@ -9,5 +9,6 @@ namespace NoiseVault.Application.Bands.Interfaces
         Task<bool> TryRespondAsync(int invitationId, int invitedUserId, EBandInvitationStatus status, DateTime now);
         Task<bool> TryRevokeAsync(int invitationId, int bandId, DateTime now);
         Task RetireExpiredAsync(int bandId, int invitedUserId, DateTime now);
+        Task RevokePendingForBandAsync(int bandId, DateTime now);
     }
 }

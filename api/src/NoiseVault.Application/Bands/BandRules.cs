@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 using NoiseVault.Application.Common.Time;
+using NoiseVault.Domain.Enums.Bands;
 
 namespace NoiseVault.Application.Bands
 {
@@ -33,7 +34,13 @@ namespace NoiseVault.Application.Bands
 
         public static string NormalizeSlug(string? slug) => slug?.Trim().ToLowerInvariant() ?? string.Empty;
 
-        public static string BaseSlug(string name)
+        public static bool IsValidKind(EBandKind kind) => Enum.IsDefined(kind);
+
+        public static string Section(EBandKind kind) => kind == EBandKind.Solo ? "artistas" : "bandas";
+
+        public static string PagePath(EBandKind kind, string slug) => $"/{Section(kind)}/{slug}";
+
+        public static string BaseSlug(string name, EBandKind kind)
         {
             var decomposed = name.Normalize(NormalizationForm.FormD);
             var builder = new StringBuilder(decomposed.Length);
@@ -48,7 +55,7 @@ namespace NoiseVault.Application.Bands
                 slug = slug[..SlugMaxLength].TrimEnd('-');
 
             if (slug.Length < SlugMinLength || ReservedSlugs.Contains(slug))
-                slug = $"banda-{slug}".TrimEnd('-');
+                slug = $"{(kind == EBandKind.Solo ? "artista" : "banda")}-{slug}".TrimEnd('-');
 
             return slug;
         }

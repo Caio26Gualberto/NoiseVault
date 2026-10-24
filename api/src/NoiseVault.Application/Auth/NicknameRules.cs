@@ -11,7 +11,7 @@ namespace NoiseVault.Application.Auth
 
         private static readonly HashSet<string> Reserved = new(StringComparer.Ordinal)
         {
-            "admin", "noisevault", "feed", "eventos", "videos", "fotos", "bandas", "perfil", "api", "suporte",
+            "admin", "noisevault", "feed", "eventos", "videos", "fotos", "bandas", "artistas", "perfil", "api", "suporte",
         };
 
         [GeneratedRegex("^[a-z0-9](?:[a-z0-9._]{1,28}[a-z0-9])?$")]

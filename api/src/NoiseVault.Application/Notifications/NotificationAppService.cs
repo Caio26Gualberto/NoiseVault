@@ -11,6 +11,7 @@ using NoiseVault.Application.PublicProfiles.Dtos;
 using NoiseVault.Application.Response;
 using NoiseVault.Application.Support;
 using NoiseVault.Domain.Entities;
+using NoiseVault.Domain.Enums.Bands;
 
 namespace NoiseVault.Application.Notifications
 {
@@ -211,6 +212,7 @@ namespace NoiseVault.Application.Notifications
                     Id = row.BandId.Value,
                     Name = row.BandName ?? string.Empty,
                     Slug = row.BandSlug ?? string.Empty,
+                    Kind = row.BandKind ?? EBandKind.Band,
                     AvatarUrl = _fileStorage.PublicUrl(row.BandAvatarKey),
                     IsVerified = row.BandIsVerified,
                     Genres = row.BandGenres,

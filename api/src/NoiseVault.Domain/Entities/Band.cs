@@ -1,3 +1,5 @@
+using NoiseVault.Domain.Enums.Bands;
+
 namespace NoiseVault.Domain.Entities
 {
     public class Band : EntityBase
@@ -6,6 +8,7 @@ namespace NoiseVault.Domain.Entities
 
         public string Name { get; set; } = string.Empty;
         public string Slug { get; set; } = string.Empty;
+        public EBandKind Kind { get; set; } = EBandKind.Band;
         public string? Description { get; set; }
         public int? CityId { get; set; }
         public City? City { get; set; }

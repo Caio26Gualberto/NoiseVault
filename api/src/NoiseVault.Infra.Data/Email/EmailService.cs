@@ -143,9 +143,10 @@ namespace NoiseVault.Infra.Data.Email
             if (string.IsNullOrWhiteSpace(_settings.VerificationInboxAddress))
                 return Task.FromResult(false);
 
-            var bandUrl = $"{_settings.FrontendBaseUrl}/bandas/{Uri.EscapeDataString(email.BandSlug)}";
+            var bandUrl = $"{_settings.FrontendBaseUrl}{email.BandPath}";
+            var subject = email.IsSolo ? "do artista solo" : "da banda";
             var queueUrl = $"{_settings.FrontendBaseUrl}/admin/bandas";
-            var intro = $"{email.RequestedByName} (@{email.RequestedByNickname}) pediu a verificação da banda {email.BandName}.";
+            var intro = $"{email.RequestedByName} (@{email.RequestedByNickname}) pediu a verificação {subject} {email.BandName}.";
             var contact = string.IsNullOrWhiteSpace(email.ContactPhone) ? "Sem telefone de contato." : $"Contato: {email.ContactPhone}.";
 
             var html = new StringBuilder()
@@ -153,7 +154,7 @@ namespace NoiseVault.Infra.Data.Email
                 .Append(Paragraph(Encode(email.Message).Replace("\n", "<br />")))
                 .Append(Meta(contact))
                 .Append(Button("Abrir a fila de verificação", queueUrl))
-                .Append(Meta($"Página da banda: {bandUrl}"));
+                .Append(Meta($"Página {subject}: {bandUrl}"));
 
             var text = new StringBuilder()
                 .AppendLine("Pedido de verificação de banda")
@@ -165,7 +166,7 @@ namespace NoiseVault.Infra.Data.Email
                 .AppendLine(contact)
                 .AppendLine()
                 .AppendLine($"Fila de verificação: {queueUrl}")
-                .AppendLine($"Página da banda: {bandUrl}");
+                .AppendLine($"Página {subject}: {bandUrl}");
 
             return _sender.SendAsync(
                 _settings.VerificationInboxAddress,

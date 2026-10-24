@@ -10,6 +10,7 @@ namespace NoiseVault.Application.Bands.Dtos
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public string Slug { get; set; } = string.Empty;
+        public EBandKind Kind { get; set; }
         public string? Description { get; set; }
         public CityDto? City { get; set; }
         public string? CityName { get; set; }

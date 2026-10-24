@@ -79,6 +79,9 @@ namespace NoiseVault.Application.BandOpenings
             if (role != EBandMemberRole.Owner)
                 return Fail(BandForbidden());
 
+            if (await _bandAppService.KindOf(bandId.Value) == EBandKind.Solo)
+                return Fail(new Error("SOLO_ARTIST_NO_MEMBERS", "Solo artists do not have members, so they cannot open member openings", ErrorType.Conflict));
+
             var now = DateTime.UtcNow;
             var open = await _openingRepository.CountAsync(new QueryOptions<BandOpening>
             {

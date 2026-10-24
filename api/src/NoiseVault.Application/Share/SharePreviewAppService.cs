@@ -13,6 +13,7 @@ using NoiseVault.Application.Posts.Interfaces;
 using NoiseVault.Application.Share.Dtos;
 using NoiseVault.Application.Share.Interfaces;
 using NoiseVault.Domain.Entities;
+using NoiseVault.Domain.Enums.Bands;
 using NoiseVault.Domain.Enums.Events;
 using NoiseVault.Domain.Enums.Media;
 using static NoiseVault.Application.Share.PreviewText;
@@ -64,7 +65,7 @@ namespace NoiseVault.Application.Share
             "mural" when int.TryParse(key, out var id) => ArchiveAsync(id),
             "eventos" when int.TryParse(key, out var id) => EventAsync(id),
             "feed" when int.TryParse(key, out var id) => PostAsync(id),
-            "bandas" => BandAsync(key),
+            "bandas" or "artistas" => BandAsync(key),
             "perfil" => ProfileAsync(key),
             _ => Task.FromResult<SharePreviewDto?>(null),
         };
@@ -178,14 +179,15 @@ namespace NoiseVault.Application.Share
             if (band == null)
                 return null;
 
-            var lead = Line("Banda", band.City?.Name ?? band.CityName, band.FoundedYear != null ? $"desde {band.FoundedYear}" : null);
+            var solo = band.Kind == EBandKind.Solo;
+            var lead = Line(solo ? "Artista solo" : "Banda", band.City?.Name ?? band.CityName, band.FoundedYear != null ? $"desde {band.FoundedYear}" : null);
 
             return new SharePreviewDto
             {
                 Title = band.Name,
-                Description = Join(lead, PlainMarkdown(band.Description) ?? "Conheça a banda no Noise Vault, a cena do ABC num lugar só.", lead),
+                Description = Join(lead, PlainMarkdown(band.Description) ?? $"Conheça {(solo ? "o artista" : "a banda")} no Noise Vault, a cena do ABC num lugar só.", lead),
                 ImageUrl = _fileStorage.PublicUrl(band.BannerKey) ?? _fileStorage.PublicUrl(band.AvatarKey),
-                Path = $"/bandas/{band.Slug}",
+                Path = BandRules.PagePath(band.Kind, band.Slug),
                 Type = "profile",
             };
         }

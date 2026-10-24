@@ -55,5 +55,15 @@ namespace NoiseVault.Infra.Data.Repositories.BandInvitations
                     .SetProperty(i => i.Status, EBandInvitationStatus.Revoked)
                     .SetProperty(i => i.UpdatedAt, now));
         }
+
+        public async Task RevokePendingForBandAsync(int bandId, DateTime now)
+        {
+            await _dbSet
+                .Where(i => i.BandId == bandId && i.Status == EBandInvitationStatus.Pending && !i.IsDeleted)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(i => i.Status, EBandInvitationStatus.Revoked)
+                    .SetProperty(i => i.RespondedAt, now)
+                    .SetProperty(i => i.UpdatedAt, now));
+        }
     }
 }

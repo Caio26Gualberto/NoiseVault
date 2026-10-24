@@ -1,6 +1,7 @@
 using NoiseVault.Application.Abstractions.Repository;
 using NoiseVault.Application.Archive.Dtos;
 using NoiseVault.Application.Archive.Interfaces;
+using NoiseVault.Application.Bands;
 using NoiseVault.Application.Bands.Dtos;
 using NoiseVault.Application.Bands.Interfaces;
 using NoiseVault.Application.Events.Dtos;
@@ -58,7 +59,7 @@ namespace NoiseVault.Application.Seo
             "eventos" when int.TryParse(key, out var id) => EventAsync(id),
             "mural" when key == null => ArchiveListAsync(),
             "mural" when int.TryParse(key, out var id) => ArchiveAsync(id),
-            "bandas" when !string.IsNullOrWhiteSpace(key) => BandAsync(key),
+            "bandas" or "artistas" when !string.IsNullOrWhiteSpace(key) => BandAsync(key),
             _ => Task.FromResult<SeoPageDto?>(null),
         };
 
@@ -76,7 +77,7 @@ namespace NoiseVault.Application.Seo
                 Take = SitemapLimit,
                 AsNoTracking = true,
             });
-            entries.AddRange(bands.Select(b => new SeoSitemapEntryDto { Path = $"/bandas/{b.Slug}", LastModified = b.UpdatedAt ?? b.CreatedAt }));
+            entries.AddRange(bands.Select(b => new SeoSitemapEntryDto { Path = BandRules.PagePath(b.Kind, b.Slug), LastModified = b.UpdatedAt ?? b.CreatedAt }));
 
             var events = await _eventRepository.ListAsync(new QueryOptions<Event>
             {
@@ -180,7 +181,7 @@ namespace NoiseVault.Application.Seo
                     new SeoSectionDto
                     {
                         Title = "Line-up",
-                        Items = lineup.Select(l => new SeoLinkDto { Text = l.Name!, Path = l.Band != null ? $"/bandas/{l.Band.Slug}" : null }).ToList(),
+                        Items = lineup.Select(l => new SeoLinkDto { Text = l.Name!, Path = l.Band != null ? BandRules.PagePath(l.Band.Kind, l.Band.Slug) : null }).ToList(),
                     },
                     new SeoSectionDto { Title = "Mais shows", Items = [new SeoLinkDto { Text = "Agenda de shows do ABC", Path = "/eventos" }] },
                 ],
@@ -252,7 +253,7 @@ namespace NoiseVault.Application.Seo
                     new SeoSectionDto
                     {
                         Title = "Bandas",
-                        Items = a.Bands.Select(b => new SeoLinkDto { Text = b.Name, Path = b.Band != null ? $"/bandas/{b.Band.Slug}" : null }).ToList(),
+                        Items = a.Bands.Select(b => new SeoLinkDto { Text = b.Name, Path = b.Band != null ? BandRules.PagePath(b.Band.Kind, b.Band.Slug) : null }).ToList(),
                     },
                     new SeoSectionDto { Title = "Mais memórias", Items = [new SeoLinkDto { Text = "Mural das antigas", Path = "/mural" }] },
                 ],
@@ -283,7 +284,8 @@ namespace NoiseVault.Application.Seo
             var discography = (await _discographyAppService.Get(b.Slug)).Data?.Releases.Where(r => !r.IsHidden).ToList() ?? [];
             var events = (await _eventAppService.ByBand(b.Slug, new EventListQueryDto { PageSize = BandListSize })).Data?.Items ?? [];
             var archive = (await _archiveAppService.ByBand(b.Slug, new ArchiveListQueryDto { PageSize = BandListSize })).Data?.Items ?? [];
-            var lead = BandSentence(b.Name, b.Genres, b.City?.Name ?? b.CityName, b.City?.Uf, b.FoundedYear);
+            var solo = b.Kind == EBandKind.Solo;
+            var lead = BandSentence(b.Name, b.Kind, b.Genres, b.City?.Name ?? b.CityName, b.City?.Uf, b.FoundedYear);
             var facts = new List<SeoFactDto>();
 
             if (city != null)
@@ -302,9 +304,9 @@ namespace NoiseVault.Application.Seo
 
             return new SeoPageDto
             {
-                Title = city != null ? $"{b.Name} — banda de {city}" : b.Name,
+                Title = city != null ? $"{b.Name} — {(solo ? "artista solo" : "banda")} de {city}" : b.Name,
                 Description = Excerpt($"{lead} {PlainMarkdown(b.Description)}", DescriptionMaxLength) ?? lead,
-                Path = $"/bandas/{b.Slug}",
+                Path = BandRules.PagePath(b.Kind, b.Slug),
                 ImageUrl = image,
                 Type = "profile",
                 Heading = b.Name,
@@ -317,7 +319,7 @@ namespace NoiseVault.Application.Seo
                     new SeoSectionDto
                     {
                         Title = "Integrantes",
-                        Items = b.Members.Select(m => new SeoLinkDto
+                        Items = solo ? [] : b.Members.Select(m => new SeoLinkDto
                         {
                             Text = m.User.Name,
                             Detail = m.Instrument ?? (m.Role == EBandMemberRole.Owner ? "Responsável" : null),

@@ -284,7 +284,8 @@ namespace NoiseVault.Application.Bands
             var sent = await _emailService.SendBandVerificationRequestedAsync(new BandVerificationEmailDto
             {
                 BandName = request.Band!.Name,
-                BandSlug = request.Band.Slug,
+                BandPath = BandRules.PagePath(request.Band.Kind, request.Band.Slug),
+                IsSolo = request.Band.Kind == EBandKind.Solo,
                 RequestedByName = request.RequestedBy!.Name,
                 RequestedByNickname = request.RequestedBy.Nickname,
                 Message = request.Message,
@@ -307,8 +308,10 @@ namespace NoiseVault.Application.Bands
             if (band.AvatarKey == null)
                 missing.Add("avatar");
 
-            if (memberCount < BandVerificationRules.MinMembers)
-                missing.Add($"at least {BandVerificationRules.MinMembers} members");
+            var minMembers = BandVerificationRules.MinMembers(band.Kind);
+
+            if (memberCount < minMembers)
+                missing.Add($"at least {minMembers} members");
 
             if (band.InstagramUrl == null && band.YoutubeUrl == null && band.SpotifyUrl == null)
                 missing.Add("a social link");
@@ -371,6 +374,7 @@ namespace NoiseVault.Application.Bands
                     Id = band.Id,
                     Name = band.Name,
                     Slug = band.Slug,
+                    Kind = band.Kind,
                     AvatarUrl = _fileStorage.PublicUrl(band.AvatarKey),
                     IsVerified = band.IsVerified,
                     Genres = band.Genres.Select(g => g.Genre).OrderBy(g => g).ToList(),

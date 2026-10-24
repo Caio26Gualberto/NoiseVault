@@ -93,9 +93,9 @@ Com ele, a prévia saía só pela **rota de compartilhamento** (`/s/<*>` repassa
 |---|---|
 | `www.noisevault.net/...` | 301 para `https://noisevault.net/...`, com a query (o Amplify fazia esse redirect) |
 | `/s/...` | escolhe a origem `noisevault-api` (`cf.selectRequestOriginById`): a rota de compartilhamento de sempre |
-| robô de prévia em `/{feed,mural,eventos,bandas,perfil}/{chave}`, fora do Ensaio | troca o caminho para `/s/...` e escolhe a origem da API: o robô recebe as tags Open Graph da mesma página |
+| robô de prévia em `/{feed,mural,eventos,bandas,artistas,perfil}/{chave}`, fora do Ensaio | troca o caminho para `/s/...` e escolhe a origem da API: o robô recebe as tags Open Graph da mesma página |
 | `/sitemap.xml` | troca para `/seo/sitemap.xml` na origem da API, para qualquer um (desde 20/10/2026, `seo.md`) |
-| buscador ou robô de IA em `/`, `/eventos`, `/eventos/{n}`, `/mural`, `/mural/{n}` ou `/bandas/{slug}`, fora do Ensaio | troca para `/seo/...` na origem da API: o HTML com o conteúdo e o JSON-LD (`seo.md`). Formulários (`/eventos/novo`, `/bandas/nova`) e rotas com login seguem para a SPA |
+| buscador ou robô de IA em `/`, `/eventos`, `/eventos/{n}`, `/mural`, `/mural/{n}`, `/bandas/{slug}` ou `/artistas/{slug}`, fora do Ensaio | troca para `/seo/...` na origem da API: o HTML com o conteúdo e o JSON-LD (`seo.md`). Formulários (`/eventos/novo`, `/bandas/nova`, `/artistas/nova`) e rotas com login seguem para a SPA |
 | caminho com extensão de arquivo estático | segue para o bucket como está |
 | qualquer outro caminho (rota da SPA) | troca para `/index.html` |
 

@@ -19,6 +19,7 @@ using NoiseVault.Application.Response;
 using NoiseVault.Domain.Entities;
 using NoiseVault.Domain.Enums.Notifications;
 using NoiseVault.Domain.Enums.Bands;
+using NoiseVault.Domain.Enums.Ensaio;
 using NoiseVault.Domain.Enums.Profiles;
 
 namespace NoiseVault.Application.Bands
@@ -28,6 +29,8 @@ namespace NoiseVault.Application.Bands
         private readonly IRepository<Band> _bandRepository;
         private readonly IRepository<BandMember> _memberRepository;
         private readonly IRepository<BandVerificationRequest> _verificationRepository;
+        private readonly IRepository<BandOpening> _openingRepository;
+        private readonly IBandInvitationRepository _invitationRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUser _currentUser;
         private readonly IFileStorage _fileStorage;
@@ -43,6 +46,8 @@ namespace NoiseVault.Application.Bands
             IRepository<Band> bandRepository,
             IRepository<BandMember> memberRepository,
             IRepository<BandVerificationRequest> verificationRepository,
+            IRepository<BandOpening> openingRepository,
+            IBandInvitationRepository invitationRepository,
             IUnitOfWork unitOfWork,
             ICurrentUser currentUser,
             IFileStorage fileStorage,
@@ -60,6 +65,8 @@ namespace NoiseVault.Application.Bands
             _bandRepository = bandRepository;
             _memberRepository = memberRepository;
             _verificationRepository = verificationRepository;
+            _openingRepository = openingRepository;
+            _invitationRepository = invitationRepository;
             _unitOfWork = unitOfWork;
             _currentUser = currentUser;
             _fileStorage = fileStorage;
@@ -91,7 +98,7 @@ namespace NoiseVault.Application.Bands
             if (await CountMemberships(me) >= BandRules.MaxBandsPerUser)
                 return Result<BandProfileDto>.Fail(new Error("BAND_LIMIT_REACHED", $"You can be part of at most {BandRules.MaxBandsPerUser} bands", ErrorType.Conflict));
 
-            var band = new Band { Slug = await UniqueSlugAsync(BandRules.BaseSlug(data!.Name)) };
+            var band = new Band { Kind = data.Kind, Slug = await UniqueSlugAsync(BandRules.BaseSlug(data.Name, data.Kind)) };
             Apply(band, data);
 
             await _unitOfWork.BeginTransactionAsync();
@@ -154,8 +161,27 @@ namespace NoiseVault.Application.Bands
             if (!band.IsVerified && await VerifiedNameTakenAsync(data!.Name, band.Id))
                 return Result<BandProfileDto>.Fail(VerifiedNameTaken());
 
+            var kind = input.Kind ?? band.Kind;
+            var becomesSolo = kind == EBandKind.Solo && band.Kind != EBandKind.Solo;
+
+            if (becomesSolo)
+            {
+                var kindError = await SoloConversionErrorAsync(band.Id);
+
+                if (kindError != null)
+                    return Result<BandProfileDto>.Fail(kindError);
+            }
+
+            var previousKind = band.Kind;
+            band.Kind = kind;
             Apply(band, data!);
             await _bandRepository.UpdateAsync(band);
+
+            if (becomesSolo)
+                await _invitationRepository.RevokePendingForBandAsync(band.Id, DateTime.UtcNow);
+
+            if (previousKind != kind)
+                _logger.Info("BAND_KIND_CHANGED", "Band kind changed", userId: _currentUser.UserId, extra: new { BandId = band.Id, From = previousKind, To = kind });
 
             return Result<BandProfileDto>.Ok(await MapAsync(band), "BAND_UPDATED", "Band updated successfully");
         }
@@ -190,7 +216,7 @@ namespace NoiseVault.Application.Bands
 
             var options = new QueryOptions<Band>
             {
-                Predicate = b => b.Name.ToLower().Contains(term) || b.Slug.Contains(term),
+                Predicate = b => (b.Name.ToLower().Contains(term) || b.Slug.Contains(term)) && (query.Kind == null || b.Kind == query.Kind),
                 Includes = [b => b.Genres],
                 OrderBy = q => q.OrderBy(b => b.Name).ThenBy(b => b.Id),
                 Skip = query.Skip,
@@ -461,6 +487,9 @@ namespace NoiseVault.Application.Bands
             return members.Select(m => m.UserId).ToList();
         }
 
+        public async Task<EBandKind?> KindOf(int bandId) =>
+            (await _bandRepository.FirstOrDefaultAsync(new QueryOptions<Band> { Predicate = b => b.Id == bandId, AsNoTracking = true }))?.Kind;
+
         public async Task<bool> IsMember(int bandId, int userId) =>
             await _memberRepository.CountAsync(new QueryOptions<BandMember>
             {
@@ -656,6 +685,19 @@ namespace NoiseVault.Application.Bands
             }) > 0;
         }
 
+        private async Task<Error?> SoloConversionErrorAsync(int bandId)
+        {
+            if (await _memberRepository.CountAsync(new QueryOptions<BandMember> { Predicate = m => m.BandId == bandId }) > 1)
+                return new Error("BAND_HAS_MEMBERS", "Remove the other members before turning the band into a solo artist", ErrorType.Conflict);
+
+            var now = DateTime.UtcNow;
+
+            if (await _openingRepository.CountAsync(new QueryOptions<BandOpening> { Predicate = o => o.BandId == bandId && o.Status == EBandOpeningStatus.Open && o.ExpiresAt > now }) > 0)
+                return new Error("BAND_HAS_OPEN_OPENINGS", "Close the open openings before turning the band into a solo artist", ErrorType.Conflict);
+
+            return null;
+        }
+
         private static Error VerifiedNameTaken() =>
             new("BAND_NAME_RESERVED", "A verified band already uses this name", ErrorType.Conflict);
 
@@ -680,6 +722,7 @@ namespace NoiseVault.Application.Bands
         }
 
         private sealed record ValidBand(
+            EBandKind Kind,
             string Name,
             string? Description,
             int? CityId,
@@ -692,6 +735,11 @@ namespace NoiseVault.Application.Bands
 
         private async Task<(ValidBand? Data, Error? Error)> ValidateAsync(BandInputDto input)
         {
+            var kind = input.Kind ?? EBandKind.Band;
+
+            if (!BandRules.IsValidKind(kind))
+                return (null, Invalid("INVALID_BAND_KIND", "Kind must be a band or a solo artist"));
+
             var name = BandRules.NormalizeName(input.Name);
 
             if (!BandRules.IsValidName(name))
@@ -724,7 +772,7 @@ namespace NoiseVault.Application.Bands
                 || !ProfileRules.IsValidSocialLink(ESocialNetwork.Spotify, spotify))
                 return (null, Invalid("INVALID_SOCIAL_LINK", "Each social link must be an http(s) address of its own service"));
 
-            return (new ValidBand(name, description, city.CityId, city.CityName, genres, input.FoundedYear, instagram, youtube, spotify), null);
+            return (new ValidBand(kind, name, description, city.CityId, city.CityName, genres, input.FoundedYear, instagram, youtube, spotify), null);
         }
 
         private static void Apply(Band band, ValidBand data)
@@ -760,6 +808,7 @@ namespace NoiseVault.Application.Bands
                 Id = band.Id,
                 Name = band.Name,
                 Slug = band.Slug,
+                Kind = band.Kind,
                 Description = band.Description,
                 City = await _cityAppService.Get(band.CityId),
                 CityName = band.CityName,
@@ -802,6 +851,7 @@ namespace NoiseVault.Application.Bands
             Id = band.Id,
             Name = band.Name,
             Slug = band.Slug,
+            Kind = band.Kind,
             AvatarUrl = _fileStorage.PublicUrl(band.AvatarKey),
             IsVerified = band.IsVerified,
             Genres = band.Genres.Select(g => g.Genre).OrderBy(g => g).ToList(),

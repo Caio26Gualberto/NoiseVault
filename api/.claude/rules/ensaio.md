@@ -59,6 +59,7 @@ Escopo decidido pelo usuário em 14/10/2026: a ficha, a vitrine, as vagas e o in
   - `Status` (aberta, preenchida, encerrada), `ExpiresAt`, `ClosedAt?`.
 - **Validade de 60 dias**, renovável. Como no convite, **vencida não é status**: é `Open` com `ExpiresAt` no passado, e a busca filtra na leitura. Não precisa de job. O Owner renova (`renew`) e a vaga ganha mais 60 dias.
 - **Até 5 vagas abertas por banda** (`OPENING_LIMIT_REACHED`), contando só as abertas e não vencidas.
+- **Artista solo não abre vaga** (`SOLO_ARTIST_NO_MEMBERS`, `bandas.md`): a vaga termina em convite de integrante, e o solo não tem integrantes. Banda com vaga aberta não vira solo (`BAND_HAS_OPEN_OPENINGS`).
 - **Quem mexe**: os Owners da banda, conferidos no `WHERE` (`Band.Members.Any(Owner == eu)`). Quando a consulta volta vazia, uma segunda consulta separa 404 `OPENING_NOT_FOUND` de 403 `BAND_FORBIDDEN`.
 - **Editar, fechar e renovar** só valem com a vaga `Open` (`OPENING_NOT_OPEN`). Fechar escolhe entre "preenchida" (`filled: true`) e "encerrada".
 - **Leitura**:

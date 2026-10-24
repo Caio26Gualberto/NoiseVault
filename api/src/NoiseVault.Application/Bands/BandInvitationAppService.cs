@@ -75,6 +75,9 @@ namespace NoiseVault.Application.Bands
             if (bandId.Error != null)
                 return Fail(bandId.Error);
 
+            if (await _bandAppService.KindOf(bandId.Value) == EBandKind.Solo)
+                return Fail(new Error("SOLO_ARTIST_NO_MEMBERS", "Solo artists do not have members; invite them as a partner page instead", ErrorType.Conflict));
+
             var nickname = NicknameRules.Normalize(input.Nickname ?? string.Empty);
 
             var invitee = await _userRepository.FirstOrDefaultAsync(new QueryOptions<User>

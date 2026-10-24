@@ -39,7 +39,7 @@ namespace NoiseVault.Application.Mentions
                 resolved[handle] = new MentionDto { Handle = handle, Kind = EMentionKind.Person, Id = person.Id, Name = person.Name, AvatarUrl = person.AvatarUrl };
 
             foreach (var (handle, band) in bands)
-                resolved[handle] = new MentionDto { Handle = handle, Kind = EMentionKind.Band, Id = band.Id, Name = band.Name, AvatarUrl = band.AvatarUrl };
+                resolved[handle] = new MentionDto { Handle = handle, Kind = EMentionKind.Band, BandKind = band.Kind, Id = band.Id, Name = band.Name, AvatarUrl = band.AvatarUrl };
 
             return resolved;
         }
