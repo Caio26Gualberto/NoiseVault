@@ -7,6 +7,7 @@ import {
   CalendarClockIcon,
   CalendarXIcon,
   CassetteTapeIcon,
+  HandshakeIcon,
   HeadsetIcon,
   HeartIcon,
   LifeBuoyIcon,
@@ -24,6 +25,7 @@ import type { TFunction } from 'i18next'
 
 import { ensaioUrl } from '@/ensaio/frame'
 import i18n from '@/i18n'
+import { bandPagePath } from '@/pages/bandas/band-kind'
 import { Instrument, instrumentKey } from '@/pages/ensaio/ensaio-status'
 import { mySubmissionsPath } from '@/pages/mural/archive-status'
 import { adminBandsPath } from '@/pages/bandas/band-verification-status'
@@ -42,7 +44,7 @@ type KindConfig = {
 const postLink = (n: NotificationDto) => (n.post ? `/feed/${n.post.id}` : null)
 const eventLink = (n: NotificationDto) => (n.event ? `/eventos/${n.event.id}` : null)
 const archiveLink = (n: NotificationDto) => (n.archive ? `/mural/${n.archive.id}` : null)
-const bandLink = (n: NotificationDto) => (n.band ? `/bandas/${n.band.slug}` : null)
+const bandLink = (n: NotificationDto) => (n.band ? bandPagePath(n.band) : null)
 const ticketLink = (n: NotificationDto) => (n.ticket ? (n.ticket.mine ? myTicketPath(n.ticket.id) : adminTicketPath(n.ticket.id)) : null)
 const targetLink = (n: NotificationDto) => postLink(n) ?? eventLink(n) ?? archiveLink(n)
 
@@ -81,6 +83,8 @@ export const notificationKinds: Record<NotificationKind, KindConfig> = {
   [NotificationKind.bandVerificationRejected]: { key: 'bandVerificationRejected', icon: BadgeXIcon, link: bandLink },
   [NotificationKind.bandVerificationRevoked]: { key: 'bandVerificationRevoked', icon: BadgeXIcon, link: bandLink },
   [NotificationKind.followedBandPosted]: { key: 'followedBandPosted', icon: RssIcon, link: postLink },
+  [NotificationKind.bandPartnershipInvited]: { key: 'bandPartnershipInvited', icon: HandshakeIcon, link: bandLink },
+  [NotificationKind.bandPartnershipAccepted]: { key: 'bandPartnershipAccepted', icon: HandshakeIcon, link: bandLink },
 }
 
 const withPlace = new Set<NotificationKind>([NotificationKind.mentionedInComment, NotificationKind.bandMentionedInComment, NotificationKind.photoTagged])
@@ -117,6 +121,7 @@ export function notificationMessage(n: NotificationDto) {
       event: n.event?.title ?? '',
       archive: n.archive?.title ?? '',
       band: n.band?.name ?? '',
+      myBand: n.partnership?.myBand.name ?? '',
       instrument: instrument ?? '',
       protocol: n.ticket?.protocol ?? '',
       ticket: n.ticket?.title ?? '',

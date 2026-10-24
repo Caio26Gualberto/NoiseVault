@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { CalendarIcon, MapPinIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { useForm, useWatch } from 'react-hook-form'
+import { useController, useForm, useFormContext, useWatch } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
 import { AppAvatar } from '@/components/app-avatar'
@@ -16,6 +16,8 @@ import { featuredCities, searchCities } from '@/pages/perfil/services/cidades-se
 import { allMusicGenres, useMusicGenreLabel } from '@/pages/perfil/genres'
 import type { MusicGenre } from '@/pages/perfil/genres'
 
+import { allBandKinds, bandKindContext, bandKindKey, bandPagePath } from '../band-kind'
+import type { BandKind } from '../band-kind'
 import { bandDescriptionMaxLength, bandFormSchema } from '../band-validators'
 import type { BandFormValues } from '../band-validators'
 
@@ -32,6 +34,7 @@ const emptyPreview: BandFormPreview = { slug: null, avatarUrl: null, bannerUrl: 
 type BandFormProps = {
   defaultValues: BandFormValues
   withInstrument?: boolean
+  withKind?: boolean
   submitLabel: string
   saving: boolean
   onSubmit: (values: BandFormValues) => Promise<void>
@@ -44,6 +47,7 @@ type BandFormProps = {
 export function BandForm({
   defaultValues,
   withInstrument = false,
+  withKind = false,
   submitLabel,
   saving,
   onSubmit,
@@ -60,10 +64,11 @@ export function BandForm({
     defaultValues,
   })
 
-  const [name, description, city, foundedYear, genres] = useWatch({
+  const [kind, name, description, city, foundedYear, genres] = useWatch({
     control: form.control,
-    name: ['name', 'description', 'city', 'foundedYear', 'genres'],
+    name: ['kind', 'name', 'description', 'city', 'foundedYear', 'genres'],
   })
+  const context = bandKindContext(kind as BandKind)
 
   const submit = async (values: BandFormValues) => {
     await onSubmit(values)
@@ -71,7 +76,7 @@ export function BandForm({
   }
 
   const previewCity = formatCity({ city: city?.city ?? null, cityName: city?.cityName ?? null })
-  const previewName = name || t('form.previewName')
+  const previewName = name || t('form.previewName', { context })
 
   return (
     <AppForm form={form} onSubmit={submit}>
@@ -79,7 +84,7 @@ export function BandForm({
         aside={
           <>
             <div className="flex flex-col gap-2">
-              <span className="app-meta">{t('form.preview')}</span>
+              <span className="app-meta">{t('form.preview', { context })}</span>
               <div className="overflow-hidden rounded-xl border bg-card">
                 <div className="relative aspect-[3/1] bg-muted">
                   {preview.bannerUrl ? (
@@ -92,7 +97,7 @@ export function BandForm({
                   </span>
                   <div className="flex flex-col">
                     <span className="app-h3 truncate">{previewName}</span>
-                    {preview.slug ? <span className="app-meta">/bandas/{preview.slug}</span> : null}
+                    {preview.slug ? <span className="app-meta">{bandPagePath({ slug: preview.slug, kind: kind as BandKind })}</span> : null}
                   </div>
                   {previewCity || foundedYear ? (
                     <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
@@ -131,14 +136,15 @@ export function BandForm({
       >
         {appearance}
 
-        <AppFormPanel title={t('form.sections.about')} wide>
-          <AppField name="name" label={t('form.name')} />
+        <AppFormPanel title={t('form.sections.about', { context })} wide>
+          {withKind ? <KindChoice /> : null}
+          <AppField name="name" label={t('form.name', { context })} />
           <AppTextareaField
             name="description"
-            label={t('form.description')}
+            label={t('form.description', { context })}
             rows={4}
             maxLength={bandDescriptionMaxLength}
-            placeholder={t('form.descriptionPlaceholder')}
+            placeholder={t('form.descriptionPlaceholder', { context })}
             description={t('form.descriptionHint', { max: bandDescriptionMaxLength })}
             hint={t('common:field.markdown')}
           />
@@ -153,9 +159,9 @@ export function BandForm({
             search={searchCities} suggest={featuredCities}
             allowAbroad
           />
-          <AppField name="foundedYear" inputMode="numeric" label={t('form.foundedYear')} placeholder={t('form.foundedYearPlaceholder')} />
+          <AppField name="foundedYear" inputMode="numeric" label={t('form.foundedYear', { context })} placeholder={t('form.foundedYearPlaceholder')} />
           {withInstrument ? (
-            <AppField name="instrument" label={t('form.instrument')} placeholder={t('form.instrumentPlaceholder')} />
+            <AppField name="instrument" label={t('form.instrument', { context })} placeholder={t('form.instrumentPlaceholder')} />
           ) : null}
         </AppFormPanel>
 
@@ -176,5 +182,32 @@ export function BandForm({
         </AppFormPanel>
       </AppFormLayout>
     </AppForm>
+  )
+}
+
+function KindChoice() {
+  const { t } = useTranslation('bandas')
+  const { control } = useFormContext()
+  const { field } = useController({ control, name: 'kind' })
+
+  return (
+    <div className="flex flex-col gap-2">
+      <span className="text-sm font-medium">{t('form.kind')}</span>
+      <div role="radiogroup" aria-label={t('form.kind')} className="grid grid-cols-2 gap-2">
+        {allBandKinds.map((kind) => (
+          <AppButton
+            key={kind}
+            type="button"
+            role="radio"
+            aria-checked={field.value === kind}
+            intent={field.value === kind ? 'primary' : 'neutral'}
+            onClick={() => field.onChange(kind)}
+          >
+            {t(`kinds.${bandKindKey[kind]}.title`)}
+          </AppButton>
+        ))}
+      </div>
+      <span className="app-meta">{t('form.kindHint')}</span>
+    </div>
   )
 }

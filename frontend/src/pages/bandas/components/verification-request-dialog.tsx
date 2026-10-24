@@ -5,16 +5,19 @@ import { useTranslation } from 'react-i18next'
 import { AppButton } from '@/components/app-button'
 import { AppDialog } from '@/components/app-dialog'
 
+import { bandKindContext } from '../band-kind'
+import type { BandKind } from '../band-kind'
 import { bandVerificationMessageMaxLength, bandVerificationMessageMinLength, bandVerificationPhoneMaxLength, requestBandVerification } from '../services/bandas-service'
 
 type VerificationRequestDialogProps = {
   slug: string
+  kind?: BandKind
   open: boolean
   onOpenChange: (open: boolean) => void
   onRequested: () => void
 }
 
-export function VerificationRequestDialog({ slug, open, onOpenChange, onRequested }: VerificationRequestDialogProps) {
+export function VerificationRequestDialog({ slug, kind, open, onOpenChange, onRequested }: VerificationRequestDialogProps) {
   const { t } = useTranslation('bandas')
   const [message, setMessage] = useState('')
   const [phone, setPhone] = useState('')
@@ -47,7 +50,7 @@ export function VerificationRequestDialog({ slug, open, onOpenChange, onRequeste
   }
 
   return (
-    <AppDialog open={open} onOpenChange={change} title={t('verification.dialogTitle')} description={t('verification.dialogDescription')}>
+    <AppDialog open={open} onOpenChange={change} title={t('verification.dialogTitle')} description={t('verification.dialogDescription', { context: bandKindContext(kind) })}>
       <form onSubmit={(event) => void submit(event)} className="flex flex-col gap-4">
         <label className="flex flex-col gap-1.5 text-sm">
           <span className="font-medium">{t('verification.messageLabel')}</span>

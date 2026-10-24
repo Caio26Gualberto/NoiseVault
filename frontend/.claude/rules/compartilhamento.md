@@ -24,7 +24,7 @@ Rule irmã: `../api/.claude/rules/compartilhamento.md`. A prévia (foto e títul
 | card do post (feed, perfil, banda) | ícone no rodapé; o título é "Fulano no Noise Vault" ou o nome da banda |
 | `/eventos/:id` | ícone ao lado do "Vou" |
 | `/mural/:id` | ícone ao lado do "…", **só com o registro publicado** (envio pendente não tem prévia) |
-| `/bandas/:slug` e `/perfil/:nickname` | botão "Compartilhar" no hero, junto dos links |
+| `/bandas/:slug`, `/artistas/:slug` e `/perfil/:nickname` | botão "Compartilhar" no hero, junto dos links; o link sai do `bandPagePath`, então o artista solo compartilha `/s/artistas/...` |
 
 ## Dev: proxy do `/s/`
 

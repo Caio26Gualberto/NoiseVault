@@ -9,6 +9,7 @@ import { useAppConfirm } from '@/components/app-confirm'
 import { AppDialog } from '@/components/app-dialog'
 import { AppSocialLinks } from '@/components/app-social-links'
 import { formatDateTime } from '@/lib/format'
+import { bandPagePath } from '@/pages/bandas/band-kind'
 import { BandVerificationStatus, bandVerificationStatusKey, bandVerificationStatusTone } from '@/pages/bandas/band-verification-status'
 import type { BandVerificationDto } from '@/pages/bandas/services/bandas-service'
 
@@ -78,7 +79,7 @@ export function VerificationReviewDialog({ request, canVerify, onOpenChange, onC
         <div className="flex items-center gap-3">
           <AppAvatar name={request.band.name} src={request.band.avatarUrl} size="lg" verified={request.band.isVerified} />
           <div className="flex min-w-0 flex-1 flex-col">
-            <Link to={`/bandas/${request.band.slug}`} target="_blank" rel="noopener noreferrer" className="truncate font-heading text-lg font-semibold tracking-wide uppercase hover:underline">
+            <Link to={bandPagePath(request.band)} target="_blank" rel="noopener noreferrer" className="truncate font-heading text-lg font-semibold tracking-wide uppercase hover:underline">
               {request.band.name}
             </Link>
             <span className="app-meta">
@@ -91,7 +92,7 @@ export function VerificationReviewDialog({ request, canVerify, onOpenChange, onC
         <div className="flex flex-wrap items-center gap-3">
           <AppSocialLinks links={request.bandSocialLinks} />
           <AppButton intent="ghost" size="sm" asChild>
-            <Link to={`/bandas/${request.band.slug}`} target="_blank" rel="noopener noreferrer">
+            <Link to={bandPagePath(request.band)} target="_blank" rel="noopener noreferrer">
               {t('admin.openBand')}
             </Link>
           </AppButton>

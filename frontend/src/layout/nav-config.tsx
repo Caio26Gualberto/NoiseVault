@@ -35,6 +35,7 @@ import {
 import { BandasPage } from '../pages/bandas'
 import { BandaEditarPage } from '../pages/bandas/editar'
 import { BandaNovaPage } from '../pages/bandas/nova'
+import { BandKind } from '../pages/bandas/band-kind'
 import { BemVindoPage } from '../pages/bem-vindo'
 import { ConfirmarEmailPage } from '../pages/confirmar-email'
 import { CriarContaPage } from '../pages/criar-conta'
@@ -215,9 +216,12 @@ export const hiddenRoutes: HiddenRoute[] = [
   { path: '/eventos/novo', element: <EventoFormPage /> },
   { path: '/eventos/:id/editar', element: <EventoFormPage /> },
   { path: '/eventos/:id', element: <EventoDetalhePage />, public: true },
-  { path: '/bandas/nova', element: <BandaNovaPage /> },
+  { path: '/bandas/nova', element: <BandaNovaPage kind={BandKind.band} /> },
   { path: '/bandas/:slug/editar', element: <BandaEditarPage /> },
   { path: '/bandas/:slug', element: <BandasPage />, public: true },
+  { path: '/artistas/nova', element: <BandaNovaPage kind={BandKind.solo} /> },
+  { path: '/artistas/:slug/editar', element: <BandaEditarPage /> },
+  { path: '/artistas/:slug', element: <BandasPage />, public: true },
   { path: '/suporte', element: <SuportePage /> },
   { path: '/suporte/:id', element: <SuporteDetalhePage /> },
   { path: '/admin/suporte/:id', element: <SuporteAdminDetalhePage />, permission: Permissions.supportView },

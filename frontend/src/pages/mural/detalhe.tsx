@@ -18,6 +18,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { AppAvatar } from '@/components/app-avatar'
 import { AppRichText } from '@/components/app-rich-text'
+import { bandPagePath } from '@/pages/bandas/band-kind'
 import { toRichMentions } from '@/pages/feed/mention'
 import { AppButton, AppIconButton } from '@/components/app-button'
 import { AppShareButton } from '@/components/app-share-button'
@@ -174,7 +175,7 @@ export function MuralDetalhePage() {
             {entry.bands.map((band, index) => (
               <li key={`${index}-${band.name}`}>
                 {band.band ? (
-                  <Link to={`/bandas/${band.band.slug}`} className="flex items-center gap-2 rounded-full border py-1 pr-3 pl-1 text-sm transition-colors hover:bg-accent">
+                  <Link to={bandPagePath(band.band)} className="flex items-center gap-2 rounded-full border py-1 pr-3 pl-1 text-sm transition-colors hover:bg-accent">
                     <AppAvatar name={band.band.name} src={band.band.avatarUrl} size="sm" verified={band.band.isVerified} />
                     {band.band.name}
                   </Link>

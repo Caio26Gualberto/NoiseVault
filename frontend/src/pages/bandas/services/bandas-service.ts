@@ -5,7 +5,9 @@ import type { MusicGenre } from '@/pages/perfil/genres'
 import type { ProfileSummaryDto, SocialLinksDto } from '@/pages/perfil/services/perfil-service'
 
 import type { BandInvitationStatus } from '../band-invitation-status'
+import type { BandKind } from '../band-kind'
 import type { BandMemberRole } from '../band-member-role'
+import type { BandPartnershipDirection, BandPartnershipStatus } from '../band-partnership-status'
 import type { BandVerificationStatus } from '../band-verification-status'
 import type { ReleaseKind, ReleaseSource } from '../release-kind'
 
@@ -13,6 +15,7 @@ export type BandSummaryDto = {
   id: number
   name: string
   slug: string
+  kind?: BandKind
   avatarUrl: string | null
   isVerified: boolean
   genres: MusicGenre[]
@@ -29,6 +32,7 @@ export type BandProfileDto = {
   id: number
   name: string
   slug: string
+  kind?: BandKind
   description: string | null
   city: CityDto | null
   cityName: string | null
@@ -49,6 +53,7 @@ export type BandProfileDto = {
 }
 
 export type BandInput = {
+  kind: BandKind
   name: string
   description: string | null
   cityId: number | null
@@ -83,8 +88,8 @@ export function getSuggestedBands() {
 
 export const bandSearchMinLength = 2
 
-export function searchBands(search: string, pageSize = 6) {
-  return apiGet<PagedResult<BandSummaryDto>>('/api/bands/search', { search, page: 1, pageSize }, { toastError: false })
+export function searchBands(search: string, pageSize = 6, kind?: BandKind) {
+  return apiGet<PagedResult<BandSummaryDto>>('/api/bands/search', { search, page: 1, pageSize, kind }, { toastError: false })
 }
 
 export function getMyBands() {
@@ -310,4 +315,38 @@ export function setReleaseHidden(slug: string, releaseId: number, hidden: boolea
 
 export function setFeaturedTrack(slug: string, trackId: number | null) {
   return apiPut<BandDiscographyDto>(`${discographyPath(slug)}/featured`, { trackId }, { toastSuccess: true })
+}
+
+export type BandPartnershipDto = {
+  id: number
+  partner: BandSummaryDto
+  direction: BandPartnershipDirection
+  status: BandPartnershipStatus
+  expiresAt: string
+  createdAt: string
+  respondedAt: string | null
+}
+
+export function getBandPartners(slug: string, query: PagedRequest) {
+  return apiGet<PagedResult<BandPartnershipDto>>(`${bandPath(slug)}/partnerships`, query)
+}
+
+export function getPendingBandPartnerships(slug: string, query: PagedRequest) {
+  return apiGet<PagedResult<BandPartnershipDto>>(`${bandPath(slug)}/partnerships/pending`, query)
+}
+
+export function inviteBandPartner(slug: string, targetSlug: string) {
+  return apiPost<BandPartnershipDto>(`${bandPath(slug)}/partnerships`, { targetSlug }, { toastSuccess: true })
+}
+
+export function acceptBandPartnership(id: number) {
+  return apiPost<BandPartnershipDto>(`/api/band-partnerships/${id}/accept`, undefined, { toastSuccess: true })
+}
+
+export function declineBandPartnership(id: number) {
+  return apiPost<BandPartnershipDto>(`/api/band-partnerships/${id}/decline`, undefined, { toastSuccess: true })
+}
+
+export function removeBandPartnership(id: number) {
+  return apiDelete<null>(`/api/band-partnerships/${id}`, { toastSuccess: true })
 }

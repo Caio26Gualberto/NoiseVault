@@ -6,6 +6,7 @@ import { AppAvatar } from '@/components/app-avatar'
 import { AppGenreBadges } from '@/components/app-genre-badges'
 import { AppSkeleton } from '@/components/app-skeleton'
 import { dayParts, formatTime } from '@/lib/format'
+import { bandPagePath } from '@/pages/bandas/band-kind'
 import { getSuggestedBands } from '@/pages/bandas/services/bandas-service'
 import type { BandSummaryDto } from '@/pages/bandas/services/bandas-service'
 import { getUpcomingEvents } from '@/pages/eventos/services/eventos-service'
@@ -71,7 +72,7 @@ export function FeedRail() {
           <ul className="flex flex-col gap-3">
             {bands.map((band) => (
               <li key={band.id}>
-                <Link to={`/bandas/${band.slug}`} className="flex items-center gap-3 rounded-lg transition-colors hover:bg-accent">
+                <Link to={bandPagePath(band)} className="flex items-center gap-3 rounded-lg transition-colors hover:bg-accent">
                   <AppAvatar name={band.name} src={band.avatarUrl} size="md" verified={band.isVerified} />
                   <span className="flex min-w-0 flex-col gap-1">
                     <span className="truncate text-sm font-medium">{band.name}</span>

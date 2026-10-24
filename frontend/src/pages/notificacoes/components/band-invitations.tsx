@@ -6,6 +6,7 @@ import { AppAvatar } from '@/components/app-avatar'
 import { AppButton } from '@/components/app-button'
 import { useNotifications } from '@/layout/use-notifications'
 import { formatDate } from '@/lib/format'
+import { bandPagePath } from '@/pages/bandas/band-kind'
 import { acceptBandInvitation, declineBandInvitation, getMyBandInvitations } from '@/pages/bandas/services/bandas-service'
 import type { BandInvitationDto } from '@/pages/bandas/services/bandas-service'
 
@@ -36,7 +37,7 @@ export function BandInvitations({ onNavigate }: { onNavigate?: () => void }) {
     try {
       await acceptBandInvitation(invitation.id)
       onNavigate?.()
-      navigate(`/bandas/${invitation.band.slug}`)
+      navigate(bandPagePath(invitation.band))
     } catch {
       refresh()
     } finally {
@@ -65,7 +66,7 @@ export function BandInvitations({ onNavigate }: { onNavigate?: () => void }) {
         {invitations.map((invitation) => (
           <li key={invitation.id} className="flex flex-col gap-3 p-3">
             <div className="flex items-center gap-3">
-              <Link to={`/bandas/${invitation.band.slug}`} onClick={onNavigate} className="shrink-0">
+              <Link to={bandPagePath(invitation.band)} onClick={onNavigate} className="shrink-0">
                 <AppAvatar name={invitation.band.name} src={invitation.band.avatarUrl} size="lg" verified={invitation.band.isVerified} />
               </Link>
               <div className="flex min-w-0 flex-1 flex-col gap-0.5">

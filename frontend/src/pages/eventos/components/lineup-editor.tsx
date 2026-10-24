@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { AppAvatar } from '@/components/app-avatar'
 import { AppIconButton } from '@/components/app-button'
 import { useDebouncedValue } from '@/hooks/use-debounced-value'
+import { bandPagePath } from '@/pages/bandas/band-kind'
 import { bandSearchMinLength, searchBands } from '@/pages/bandas/services/bandas-service'
 import type { BandSummaryDto } from '@/pages/bandas/services/bandas-service'
 
@@ -130,7 +131,7 @@ export function LineupEditor({ value, onChange, legend, hint }: LineupEditorProp
               >
                 <AppAvatar name={band.name} src={band.avatarUrl} size="sm" verified={band.isVerified} />
                 <span className="flex-1 truncate font-medium">{band.name}</span>
-                <span className="app-meta">/bandas/{band.slug}</span>
+                <span className="app-meta">{bandPagePath(band)}</span>
               </button>
             </li>
           ))}

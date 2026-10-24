@@ -2,6 +2,7 @@ import { apiDelete, apiGet, apiPut } from '@/api/base-service'
 import type { RequestOptions } from '@/api/base-service'
 import type { PagedRequest, PagedResult } from '@/api/types'
 import type { BandInvitationStatus } from '@/pages/bandas/band-invitation-status'
+import type { BandPartnershipStatus } from '@/pages/bandas/band-partnership-status'
 import type { BandSummaryDto } from '@/pages/bandas/services/bandas-service'
 import type { ProfileSummaryDto } from '@/pages/perfil/services/perfil-service'
 import type { SupportTicketStatus } from '@/pages/reportar-problema/support-enums'
@@ -19,6 +20,7 @@ export type NotificationDto = {
   archive: { id: number; title: string } | null
   band: BandSummaryDto | null
   invitation: { id: number; status: BandInvitationStatus; instrument: string | null; expiresAt: string } | null
+  partnership?: { id: number; status: BandPartnershipStatus; expiresAt: string; myBand: BandSummaryDto } | null
   ticket: { id: number; protocol: string; title: string; status: SupportTicketStatus; mine: boolean } | null
   opening: { id: number; instrument: Instrument; otherName: string | null } | null
   readAt: string | null

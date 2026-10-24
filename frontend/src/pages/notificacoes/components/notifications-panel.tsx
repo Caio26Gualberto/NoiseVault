@@ -100,7 +100,7 @@ function PanelBody({ onClose }: { onClose: () => void }) {
         ) : (
           <ul className="-mx-3 flex flex-col divide-y border-y">
             {panel.result.items.map((item) => (
-              <NotificationItem key={item.id} item={item} onOpen={onOpen} onMarkRead={onMarkRead} onRemove={onRemove} />
+              <NotificationItem key={item.id} item={item} onOpen={onOpen} onMarkRead={onMarkRead} onRemove={onRemove} onChanged={afterChange} />
             ))}
           </ul>
         )}

@@ -15,6 +15,7 @@ import { AppPagination } from '@/components/app-pagination'
 import { AppSkeleton } from '@/components/app-skeleton'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { ensaioPath, isExternalUrl, mainUrl } from '@/ensaio/frame'
+import { bandPagePath } from '@/pages/bandas/band-kind'
 import { formatCity } from '@/pages/perfil/city'
 
 import { InterestDialog } from './components/interest-dialog'
@@ -93,7 +94,7 @@ export function EnsaioVagaPage() {
   const status = statusOf(opening)
   const isOpen = status === 'open'
   const label = instrumentLabel(opening.instrument, opening.otherName)
-  const bandHref = mainUrl(`/bandas/${opening.band.slug}`)
+  const bandHref = mainUrl(bandPagePath(opening.band))
 
   const run = async (action: () => Promise<BandOpeningDto>) => {
     try {

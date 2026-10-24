@@ -34,12 +34,13 @@ Rule irmã: `../api/.claude/rules/notificacoes.md`. A regra é do backend; a tel
 - As frases ficam em `notificacoes.json` (`kinds.*`), com `<b>` nos nomes. A lista renderiza com `<Trans>`; o toast usa `notificationPlainText`, que tira as tags.
 - **Links**:
   - post → `/feed/:id`; evento → `/eventos/:id`; registro → `/mural/:id`;
-  - banda (aceite, recusa, promoção, remoção, saída) → `/bandas/:slug`;
+  - banda (aceite, recusa, promoção, remoção, saída) → a página da banda pelo `bandPagePath` (`/bandas/:slug`, ou `/artistas/:slug` no artista solo);
   - o convite não tem link: quem age é a seção de convites no topo da página;
   - ticket de suporte → `/suporte/:id` quando `ticket.mine` (quem reportou), senão `/admin/suporte/:id` (a equipe);
   - envio para o mural: recebido (a curadoria) e publicado → `/mural/:id`; recusado → `/mural/envios`, onde está o motivo.
   - menção e marcação em foto (23–27): o alvo (post, evento ou registro), com a frase pelo lugar (`marcacoes.md`).
   - banda que sigo publicou (33): o post (`/feed/:id`); a frase é "A **Banda** publicou um post" e o avatar é o da banda, não o de quem publicou (o `actor` existe para a API não avisar o autor, mas a tela não o mostra).
+  - parceria "Costuma tocar com" (34 e 35, `bandas.md`): a página da outra banda ou artista (`band`), e a frase cita também a página do destinatário (`partnership.myBand`). No convite (34) pendente e dentro da validade, o próprio item tem "Aceitar" e "Recusar" (`relative z-10`, por cima do link esticado), e responder refaz a lista e a contagem; respondido, mostra o estado como o convite de banda. Não há seção própria no topo do painel: o convite de parceria é para a página, e cada Owner também responde no editar dela.
   - interesse numa vaga (28): a vaga no Ensaio (`ensaioUrl`). Quando o link é de outro endereço, o item vira `<a>` e o "Ver" do toast usa `window.location` (`ensaio.md`).
 - **Suporte**: a frase de `supportTicketStatusChanged` sai do status atual do ticket (`supportTicketResolved`, `…InProgress`, `…Dismissed`, `…Reopened`), e `supportTicketReplied` para quem reportou vira "A equipe respondeu o seu relato" (`supportTicketRepliedToYou`), sem expor quem da equipe respondeu.
 

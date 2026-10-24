@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom'
 
 import { AppAvatar } from '@/components/app-avatar'
 import { AppRichText } from '@/components/app-rich-text'
+import { bandPagePath } from '@/pages/bandas/band-kind'
 import { toRichMentions } from '@/pages/feed/mention'
 import { AppBadge } from '@/components/app-badge'
 import { AppButton } from '@/components/app-button'
@@ -77,7 +78,7 @@ export function PostCard({ post, onLike, onUpdated, onDeleted, detail = false }:
     <article className="flex flex-col gap-3 rounded-xl border bg-card p-4">
       <header className="flex items-center gap-3">
         {post.band ? (
-          <Link to={`/bandas/${post.band.slug}`}>
+          <Link to={bandPagePath(post.band)}>
             <AppAvatar name={post.band.name} src={post.band.avatarUrl} size="lg" verified={post.band.isVerified} />
           </Link>
         ) : (
@@ -88,7 +89,7 @@ export function PostCard({ post, onLike, onUpdated, onDeleted, detail = false }:
         <div className="flex min-w-0 flex-1 flex-col">
           <div className="flex flex-wrap items-baseline gap-x-2">
             {post.band ? (
-              <Link to={`/bandas/${post.band.slug}`} className="truncate font-medium hover:underline">
+              <Link to={bandPagePath(post.band)} className="truncate font-medium hover:underline">
                 {post.band.name}
               </Link>
             ) : (

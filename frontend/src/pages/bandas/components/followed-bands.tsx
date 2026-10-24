@@ -9,6 +9,7 @@ import { AppGenreBadges } from '@/components/app-genre-badges'
 import { AppPagination, defaultPageSize } from '@/components/app-pagination'
 import { AppSkeleton } from '@/components/app-skeleton'
 
+import { bandPagePath } from '../band-kind'
 import { getFollowedBands } from '../services/bandas-service'
 import type { BandSummaryDto } from '../services/bandas-service'
 
@@ -56,7 +57,7 @@ export function FollowedBands() {
             {items.map((band) => (
               <li key={band.id}>
                 <Link
-                  to={`/bandas/${band.slug}`}
+                  to={bandPagePath(band)}
                   className="flex items-center gap-3 rounded-xl border bg-card p-3 transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
                 >
                   <AppAvatar name={band.name} src={band.avatarUrl} size="lg" verified={band.isVerified} />

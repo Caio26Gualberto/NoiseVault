@@ -45,9 +45,9 @@
     "other": "Outros"
   },
   "bands": {
-    "title": "Bandas",
-    "create": "Criar banda",
-    "empty": "Você ainda não está em nenhuma banda. Crie a sua ou espere um convite."
+    "title": "Bandas e projetos",
+    "create": "Novo projeto",
+    "empty": "Você ainda não tem banda nem projeto solo. Crie o seu ou espere um convite."
   },
   "postsLabel_one": "publicação",
   "postsLabel_other": "publicações",

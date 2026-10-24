@@ -6,6 +6,7 @@ import { cityValueSchema, emptyCityValue, toCityInput, toCityValue } from '@/pag
 import { allMusicGenres } from '@/pages/perfil/genres'
 import type { MusicGenre } from '@/pages/perfil/genres'
 
+import { BandKind, allBandKinds } from './band-kind'
 import type { BandInput, BandProfileDto } from './services/bandas-service'
 
 export const bandDescriptionMaxLength = 1000
@@ -18,6 +19,7 @@ const socialLink = (network: 'instagram' | 'youtube' | 'spotify') =>
     .refine((value) => value === '' || isValidSocialLink(network, value), 'validation.socialLink')
 
 export const bandFormSchema = z.object({
+  kind: z.number().refine((value) => allBandKinds.includes(value as BandKind)),
   name: nameSchema,
   description: z.string().trim().max(bandDescriptionMaxLength, 'validation.bandDescriptionLength'),
   city: cityValueSchema,
@@ -43,6 +45,7 @@ export type BandFormValues = z.infer<typeof bandFormSchema>
 const orNull = (value: string) => (value === '' ? null : value)
 
 export const emptyBandForm: BandFormValues = {
+  kind: BandKind.band,
   name: '',
   description: '',
   city: emptyCityValue,
@@ -56,6 +59,7 @@ export const emptyBandForm: BandFormValues = {
 
 export function toBandForm(band: BandProfileDto): BandFormValues {
   return {
+    kind: band.kind ?? BandKind.band,
     name: band.name,
     description: band.description ?? '',
     city: toCityValue(band),
@@ -70,6 +74,7 @@ export function toBandForm(band: BandProfileDto): BandFormValues {
 
 export function toBandInput(values: BandFormValues): BandInput {
   return {
+    kind: values.kind as BandKind,
     name: values.name,
     description: orNull(values.description),
     ...toCityInput(values.city),

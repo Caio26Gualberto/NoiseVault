@@ -13,7 +13,7 @@ Rule irmã: `../api/.claude/rules/seo.md` (quais leituras a API abre e o que ela
 
 ## Rotas abertas
 
-- `public: true` no `nav-config` marca o que o visitante abre: os itens `/eventos`, `/mural` e `/noticias` e as `hiddenRoutes` `/eventos/:id`, `/mural/:id` e `/bandas/:slug`. O `nav-config` continua sendo a fonte única.
+- `public: true` no `nav-config` marca o que o visitante abre: os itens `/eventos`, `/mural` e `/noticias` e as `hiddenRoutes` `/eventos/:id`, `/mural/:id`, `/bandas/:slug` e `/artistas/:slug`. O `nav-config` continua sendo a fonte única.
 - O `app.tsx` monta o `AppShell` com `<RequireAuth allowVisitor>`, e cada rota do shell leva `allowVisitor={route.public}`. Com `allowVisitor` e sem sessão, o `RequireAuth` renderiza a página; com sessão, valem os mesmos gates de sempre (senha inicial, boas-vindas, permissão, `auth.md`). Rota sem `public` continua mandando para `/entrar` com `state.from`.
 - **`/` do visitante vai para `/eventos`** (`HomeRedirect`, `visitorHomePath` em `auth/routes.ts`). Com sessão, continua indo para o `/feed`.
 - O 404 do shell aparece para o visitante dentro da moldura dele.
@@ -37,6 +37,7 @@ Rule irmã: `../api/.claude/rules/seo.md` (quais leituras a API abre e o que ela
 | `/mural` | sem "Meus envios"; "Enviar para o mural" cai no login |
 | `/mural/:id` | "Eu estava lá" e curtir levam ao login; no lugar dos avatares de quem estava lá, só "N pessoas estavam lá"; o autor sem link; sem marcar pessoas nas fotos; as histórias viram o aviso, e o hook não busca os comentários |
 | `/bandas/:slug` | "Seguir" leva ao login; integrantes sem link para o perfil; sem "Vagas abertas" (o Ensaio pede login); as publicações viram o aviso "Entre para ver as publicações da banda" |
+| `/artistas/:slug` | o mesmo da banda, sem integrantes nem vagas; "Costuma tocar com" aparece também para o visitante (a lista de parcerias aceitas é pública) |
 
 - **Nenhuma chamada a endpoint fechado sem sessão.** Um 401 passaria pelo `auth-interceptor`, que tentaria renovar a sessão à toa. Por isso o hook do detalhe recebe `withComments` e os componentes que só funcionam logados não montam.
 - O aviso de login é o `AppSignInPrompt` (`components/app-sign-in-prompt`): ícone de cadeado, a frase e os dois botões. A ação "leva ao login" é o `requireLogin()` do mesmo hook.

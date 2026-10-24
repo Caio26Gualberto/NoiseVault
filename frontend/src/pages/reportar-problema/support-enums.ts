@@ -91,6 +91,7 @@ const areaByPathPrefix: [string, SupportArea][] = [
   ['/mural', SupportArea.archive],
   ['/perfil', SupportArea.profile],
   ['/bandas', SupportArea.bands],
+  ['/artistas', SupportArea.bands],
   ['/minha-conta', SupportArea.account],
 ]
 

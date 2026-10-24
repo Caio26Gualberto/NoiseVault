@@ -15,8 +15,8 @@
     "confirm": "Sair"
   },
   "notFound": {
-    "title": "Banda não encontrada",
-    "description": "Nenhuma banda usa /bandas/{{slug}}.",
+    "title": "Página não encontrada",
+    "description": "Nenhuma banda ou artista usa {{path}}.",
     "action": "Voltar ao feed"
   },
   "failed": {
@@ -26,7 +26,10 @@
   "create": {
     "title": "Criar banda",
     "description": "Você entra como responsável e convida o resto da formação depois.",
-    "submit": "Criar banda"
+    "submit": "Criar banda",
+    "title_solo": "Novo artista solo",
+    "description_solo": "Sua página de artista, igual à de banda: discografia, shows, seguidores e o selo de verificado. Sem integrantes; quem toca com você entra pelo \"Costuma tocar com\".",
+    "submit_solo": "Criar página de artista"
   },
   "form": {
     "name": "Nome da banda",
@@ -52,8 +55,18 @@
       "about": "Sobre a banda",
       "origin": "De onde e desde quando",
       "links": "Redes",
-      "genres": "Sons"
-    }
+      "genres": "Sons",
+      "about_solo": "Sobre o artista"
+    },
+    "name_solo": "Nome artístico",
+    "description_solo": "Sobre o artista",
+    "descriptionPlaceholder_solo": "Som, história, com quem costuma tocar, o que vem por aí...",
+    "foundedYear_solo": "Na ativa desde",
+    "instrument_solo": "Seu instrumento",
+    "preview_solo": "Assim a página aparece",
+    "previewName_solo": "Nome artístico",
+    "kind": "Tipo de página",
+    "kindHint": "Banda tem integrantes; artista solo tem só você e as parcerias. Para virar artista solo, a banda precisa estar só com você e sem vaga aberta."
   },
   "edit": {
     "title": "Editar {{name}}",
@@ -61,12 +74,15 @@
     "back": "Ver página da banda",
     "appearance": {
       "title": "Avatar e capa",
-      "description": "Aparecem na página da banda e em tudo que for marcado com ela."
+      "description": "Aparecem na página da banda e em tudo que for marcado com ela.",
+      "description_solo": "Aparecem na página do artista e em tudo que for marcado com ele."
     },
     "data": {
       "title": "Endereço da banda",
-      "description": "O endereço /bandas/{{slug}} não muda, mesmo se você trocar o nome."
-    }
+      "description": "O endereço {{path}} não muda, mesmo se você trocar o nome.",
+      "title_solo": "Endereço da página"
+    },
+    "back_solo": "Ver página do artista"
   },
   "manage": {
     "title": "Integrantes",
@@ -121,7 +137,10 @@
       "pending": "Em análise",
       "approved": "Aprovado",
       "rejected": "Recusado"
-    }
+    },
+    "askTitle_solo": "Essa página ainda não tem o selo de verificado",
+    "askDescription_solo": "O selo diz que a página é do artista de verdade, e trava o nome para ninguém criar outra igual.",
+    "dialogDescription_solo": "A página precisa de avatar e um link social. A equipe usa esses links para confirmar."
   },
   "discography": {
     "title": "Discografia",
@@ -237,7 +256,9 @@
     "title": "Publicações",
     "empty": "A banda ainda não publicou nada.",
     "emptyMember": "Publique pelo feed escolhendo \"Publicar como\" a banda.",
-    "signIn": "Entre para ver as publicações da banda."
+    "signIn": "Entre para ver as publicações da banda.",
+    "empty_solo": "O artista ainda não publicou nada.",
+    "signIn_solo": "Entre para ver as publicações do artista."
   },
   "showsLabel_one": "show marcado",
   "showsLabel_other": "shows marcados",
@@ -254,5 +275,48 @@
   },
   "followersLabel_zero": "seguidores",
   "followersLabel_one": "seguidor",
-  "followersLabel_other": "seguidores"
+  "followersLabel_other": "seguidores",
+  "verified_solo": "Artista verificado",
+  "editAction_solo": "Editar artista",
+  "kinds": {
+    "band": {
+      "title": "Banda",
+      "description": "Com integrantes: você entra como responsável e convida o resto da formação."
+    },
+    "solo": {
+      "title": "Artista solo",
+      "description": "Só você, com página igual à de banda. Quem costuma tocar com você entra como parceria."
+    }
+  },
+  "newProject": {
+    "title": "Novo projeto",
+    "description": "O que você quer criar?"
+  },
+  "partners": {
+    "title": "Costuma tocar com",
+    "manageDescription": "Bandas e artistas que tocam com você. A outra página precisa aceitar o convite antes de aparecer, dos dois lados.",
+    "incoming": "Convites recebidos",
+    "outgoing": "Convites enviados",
+    "current": "Parcerias",
+    "none": "Nenhuma parceria ainda.",
+    "search": "Banda ou artista",
+    "searchPlaceholder": "Busque pelo nome",
+    "searchEmpty": "Nada encontrado.",
+    "invite": "Convidar",
+    "inviteHint": "O convite vale por 14 dias e só aparece nas páginas quando o outro lado aceitar.",
+    "alreadyRelated": "Já convidado",
+    "expires": "vence {{date}}",
+    "accept": "Aceitar",
+    "decline": "Recusar",
+    "cancel": "Cancelar convite",
+    "notAccepted": "não aceito",
+    "notAcceptedBadge": "Não aceito",
+    "remove": "Desfazer",
+    "cancelTitle": "Cancelar o convite para {{name}}?",
+    "cancelMessage": "O convite deixa de valer. Dá para convidar de novo depois.",
+    "cancelConfirm": "Cancelar convite",
+    "removeTitle": "Desfazer a parceria com {{name}}?",
+    "removeMessage": "A parceria some das duas páginas. Para voltar, alguém convida de novo.",
+    "removeConfirm": "Desfazer"
+  }
 }

@@ -1,15 +1,19 @@
-import { CheckCheckIcon, Trash2Icon } from 'lucide-react'
+import { CheckCheckIcon, CheckIcon, Trash2Icon } from 'lucide-react'
+import { useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
 import { AppAvatar } from '@/components/app-avatar'
 import { AppBadge } from '@/components/app-badge'
 import type { AppBadgeTone } from '@/components/app-badge'
-import { AppIconButton } from '@/components/app-button'
+import { AppButton, AppIconButton } from '@/components/app-button'
 import { isExternalUrl } from '@/ensaio/frame'
 import { formatRelative } from '@/lib/format'
 import { cn } from '@/lib/utils'
+import { bandPagePath } from '@/pages/bandas/band-kind'
 import { BandInvitationStatus } from '@/pages/bandas/band-invitation-status'
+import { BandPartnershipStatus } from '@/pages/bandas/band-partnership-status'
+import { acceptBandPartnership, declineBandPartnership } from '@/pages/bandas/services/bandas-service'
 
 import { NotificationKind } from '../notification-kind'
 
@@ -40,15 +44,29 @@ function invitationState(invitation: NonNullable<NotificationDto['invitation']>)
   return state === 'pending' && new Date(invitation.expiresAt).getTime() < Date.now() ? 'expired' : state
 }
 
+const partnershipStates: Record<BandPartnershipStatus, InvitationState> = {
+  [BandPartnershipStatus.pending]: 'pending',
+  [BandPartnershipStatus.accepted]: 'accepted',
+  [BandPartnershipStatus.declined]: 'declined',
+  [BandPartnershipStatus.revoked]: 'revoked',
+}
+
+function partnershipState(partnership: NonNullable<NotificationDto['partnership']>): InvitationState {
+  const state = partnershipStates[partnership.status]
+  return state === 'pending' && new Date(partnership.expiresAt).getTime() < Date.now() ? 'expired' : state
+}
+
 type NotificationItemProps = {
   item: NotificationDto
   onOpen: (item: NotificationDto) => void
   onMarkRead: (item: NotificationDto) => void
   onRemove: (item: NotificationDto) => void
+  onChanged?: () => void
 }
 
-export function NotificationItem({ item, onOpen, onMarkRead, onRemove }: NotificationItemProps) {
+export function NotificationItem({ item, onOpen, onMarkRead, onRemove, onChanged }: NotificationItemProps) {
   const { t } = useTranslation('notificacoes')
+  const [answering, setAnswering] = useState(false)
   const config = notificationKinds[item.kind]
   const KindIcon = config.icon
   const link = config.link(item)
@@ -59,8 +77,22 @@ export function NotificationItem({ item, onOpen, onMarkRead, onRemove }: Notific
   const avatarIsBand = bandFirst ? Boolean(item.band) : !item.actor && Boolean(item.band)
   const avatarName = (avatarIsBand ? item.band?.name : item.actor?.name) ?? null
   const avatarSrc = (avatarIsBand ? item.band?.avatarUrl : item.actor?.avatarUrl) ?? null
-  const profileLink = avatarIsBand && item.band ? `/bandas/${item.band.slug}` : item.actor ? `/perfil/${item.actor.nickname}` : null
-  const invitation = item.invitation ? invitationState(item.invitation) : null
+  const profileLink = avatarIsBand && item.band ? bandPagePath(item.band) : item.actor ? `/perfil/${item.actor.nickname}` : null
+  const invitation = item.invitation ? invitationState(item.invitation) : item.partnership ? partnershipState(item.partnership) : null
+  const canAnswerPartnership = item.kind === NotificationKind.bandPartnershipInvited && invitation === 'pending'
+
+  const answerPartnership = async (accept: boolean) => {
+    if (!item.partnership) return
+    setAnswering(true)
+    try {
+      await (accept ? acceptBandPartnership(item.partnership.id) : declineBandPartnership(item.partnership.id))
+      onChanged?.()
+    } catch {
+      return
+    } finally {
+      setAnswering(false)
+    }
+  }
   const nameClass = cn('text-foreground', isUnread ? 'font-semibold' : 'font-medium')
 
   const avatar = avatarName ? (
@@ -98,9 +130,19 @@ export function NotificationItem({ item, onOpen, onMarkRead, onRemove }: Notific
           />
         </span>
         {item.post?.excerpt ? <span className="line-clamp-2 text-sm text-muted-foreground italic">“{item.post.excerpt}”</span> : null}
-        {invitation ? (
+        {canAnswerPartnership ? (
+          <span className="relative z-10 flex gap-2">
+            <AppButton size="sm" loading={answering} onClick={() => void answerPartnership(true)}>
+              <CheckIcon />
+              {t('partnership.accept')}
+            </AppButton>
+            <AppButton size="sm" intent="ghost" disabled={answering} onClick={() => void answerPartnership(false)}>
+              {t('partnership.decline')}
+            </AppButton>
+          </span>
+        ) : invitation ? (
           <AppBadge tone={invitationTone[invitation]} className="self-start">
-            {t(`invitationStatus.${invitation}`)}
+            {t(`invitationStatus.`)}
           </AppBadge>
         ) : null}
         <span className="app-meta">{formatRelative(item.lastActivityAt)}</span>

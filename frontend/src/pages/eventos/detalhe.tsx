@@ -17,6 +17,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useRequireLogin } from '@/auth/use-require-login'
 import { AppAvatar } from '@/components/app-avatar'
 import { AppRichText } from '@/components/app-rich-text'
+import { bandPagePath } from '@/pages/bandas/band-kind'
 import { toRichMentions } from '@/pages/feed/mention'
 import { AppBadge } from '@/components/app-badge'
 import { AppButton, AppIconButton } from '@/components/app-button'
@@ -148,7 +149,7 @@ export function EventoDetalhePage() {
         <div className="flex flex-col gap-5 p-4 md:p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             {event.band ? (
-              <Link to={`/bandas/${event.band.slug}`} className="flex items-center gap-3">
+              <Link to={bandPagePath(event.band)} className="flex items-center gap-3">
                 <AppAvatar name={event.band.name} src={event.band.avatarUrl} size="md" verified={event.band.isVerified} />
                 <span className="flex flex-col">
                   <span className="app-meta">{t('organizedBy')}</span>
@@ -252,7 +253,7 @@ export function EventoDetalhePage() {
                   <li key={`${index}-${item.name}`}>
                     {item.band ? (
                       <Link
-                        to={`/bandas/${item.band.slug}`}
+                        to={bandPagePath(item.band)}
                         className="flex items-center gap-2 rounded-full border py-1 pr-3 pl-1 text-sm transition-colors hover:bg-accent"
                       >
                         <AppAvatar name={item.band.name} src={item.band.avatarUrl} size="sm" verified={item.band.isVerified} />

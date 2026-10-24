@@ -93,13 +93,19 @@
     "bandVerificationApproved": "A <b>{{band}}</b> foi verificada. O selo já aparece na página da banda",
     "bandVerificationRejected": "O pedido de verificação da <b>{{band}}</b> foi recusado. Veja o motivo na página da banda",
     "bandVerificationRevoked": "A <b>{{band}}</b> perdeu o selo de verificada",
-    "followedBandPosted": "A <actor>{{band}}</actor> publicou um post"
+    "followedBandPosted": "A <actor>{{band}}</actor> publicou um post",
+    "bandPartnershipInvited": "<actor>{{actor}}</actor> chamou a <b>{{myBand}}</b> para o \"Costuma tocar com\" da <b>{{band}}</b>",
+    "bandPartnershipAccepted": "<actor>{{actor}}</actor> aceitou a parceria: <b>{{band}}</b> agora aparece no \"Costuma tocar com\" da <b>{{myBand}}</b>"
   },
   "invitations": {
     "title": "Convites de banda",
     "message": "{{name}} convidou você para a {{band}}.",
     "messageInstrument": "{{name}} convidou você para tocar {{instrument}} na {{band}}.",
     "expires": "Vale até {{date}}",
+    "accept": "Aceitar",
+    "decline": "Recusar"
+  },
+  "partnership": {
     "accept": "Aceitar",
     "decline": "Recusar"
   }

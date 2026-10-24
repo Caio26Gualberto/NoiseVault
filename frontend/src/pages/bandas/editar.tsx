@@ -1,7 +1,7 @@
 import { ArrowLeftIcon } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
+import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
 
 import { useAuth } from '@/auth/use-auth'
 import { AppAvatarUploader } from '@/components/app-avatar-uploader'
@@ -11,6 +11,7 @@ import { AppFormAsideBox, AppFormPanel } from '@/components/app-form-layout'
 import { AppPageHeader } from '@/components/app-page-header'
 import { AppSkeleton } from '@/components/app-skeleton'
 
+import { bandEditPath, bandKindContext, bandPagePath, canonicalBandLocation, isSolo } from './band-kind'
 import { BandMemberRole } from './band-member-role'
 import { toBandForm, toBandInput } from './band-validators'
 import type { BandFormValues } from './band-validators'
@@ -18,6 +19,7 @@ import { BandForm } from './components/band-form'
 import { InvitationsManager } from './components/invitations-manager'
 import { DiscographyManager } from './components/discography-manager'
 import { MembersManager } from './components/members-manager'
+import { PartnershipsManager } from './components/partnerships-manager'
 import { useBand } from './hooks/use-band'
 import {
   removeBandAvatar,
@@ -32,6 +34,7 @@ import type { BandProfileDto } from './services/bandas-service'
 export function BandaEditarPage() {
   const { t } = useTranslation('bandas')
   const { slug = '' } = useParams()
+  const { pathname } = useLocation()
   const { user } = useAuth()
   const navigate = useNavigate()
   const { state, replace } = useBand(slug)
@@ -42,10 +45,16 @@ export function BandaEditarPage() {
   }
 
   if (state.status !== 'found' || state.band.myRole !== BandMemberRole.owner) {
-    return <Navigate to={`/bandas/${slug}`} replace />
+    return <Navigate to={state.status === 'found' ? bandPagePath(state.band) : pathname.replace(/\/editar$/, '')} replace />
   }
 
   const { band } = state
+  const canonical = canonicalBandLocation(pathname, band.kind)
+
+  if (canonical) return <Navigate to={canonical} replace />
+
+  const context = bandKindContext(band.kind)
+  const solo = isSolo(band.kind)
 
   const apply = async (request: Promise<BandProfileDto>) => {
     const updated = await request
@@ -56,7 +65,8 @@ export function BandaEditarPage() {
   const saveData = async (values: BandFormValues) => {
     setSaving(true)
     try {
-      await apply(updateBand(band.slug, toBandInput(values)))
+      const updated = await apply(updateBand(band.slug, toBandInput(values)))
+      if (updated.kind !== band.kind) navigate(bandEditPath(updated), { replace: true })
     } catch {
       return
     } finally {
@@ -71,24 +81,25 @@ export function BandaEditarPage() {
         description={t('edit.description')}
         actions={
           <AppButton intent="neutral" size="sm" asChild>
-            <Link to={`/bandas/${band.slug}`}>
+            <Link to={bandPagePath(band)}>
               <ArrowLeftIcon />
-              {t('edit.back')}
+              {t('edit.back', { context })}
             </Link>
           </AppButton>
         }
       />
 
       <BandForm
-        key={band.id}
+        key={`${band.id}-${band.kind ?? 0}`}
         defaultValues={toBandForm(band)}
+        withKind
         submitLabel={t('form.save')}
         saving={saving}
         onSubmit={saveData}
         preview={{ slug: band.slug, avatarUrl: band.avatarUrl, bannerUrl: band.bannerUrl, bannerPosition: band.bannerPosition, isVerified: band.isVerified }}
-        asideNote={<AppFormAsideBox title={t('edit.data.title')} description={t('edit.data.description', { slug: band.slug })} />}
+        asideNote={<AppFormAsideBox title={t('edit.data.title', { context })} description={t('edit.data.description', { context, path: bandPagePath(band) })} />}
         appearance={
-          <AppFormPanel title={t('edit.appearance.title')} description={t('edit.appearance.description')} wide>
+          <AppFormPanel title={t('edit.appearance.title')} description={t('edit.appearance.description', { context })} wide>
             <div className="grid gap-6 md:grid-cols-[auto_minmax(0,1fr)]">
               <AppAvatarUploader
                 name={band.name}
@@ -108,9 +119,13 @@ export function BandaEditarPage() {
         }
       />
 
-      <MembersManager band={band} onChange={replace} onLeft={() => navigate(user ? `/perfil/${user.nickname}` : `/bandas/${band.slug}`)} />
-
-      <InvitationsManager band={band} />
+      {solo ? null : (
+        <>
+          <MembersManager band={band} onChange={replace} onLeft={() => navigate(user ? `/perfil/${user.nickname}` : bandPagePath(band))} />
+          <InvitationsManager band={band} />
+        </>
+      )}
+      <PartnershipsManager band={band} />
       <DiscographyManager band={band} />
     </div>
   )

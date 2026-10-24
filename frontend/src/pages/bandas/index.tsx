@@ -1,7 +1,7 @@
 import { BadgeCheckIcon, CalendarIcon, CheckIcon, LogOutIcon, MapPinIcon, PencilIcon, PlusIcon, UsersRoundIcon } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
 
 import { homePath } from '@/auth/routes'
 import { useAuth } from '@/auth/use-auth'
@@ -22,11 +22,13 @@ import { AppSocialLinks } from '@/components/app-social-links'
 import { formatDate } from '@/lib/format'
 import { BandOpenings } from '@/pages/ensaio/components/band-openings'
 import { BandDiscography } from './components/band-discography'
+import { BandPartners } from './components/band-partners'
 import { BandEvents } from '@/pages/eventos/components/band-events'
 import { BandArchive } from '@/pages/mural/components/band-archive'
 import { OwnerPosts } from '@/pages/feed/components/owner-posts'
 import { formatCity } from '@/pages/perfil/city'
 
+import { bandEditPath, bandKindContext, bandPagePath, canonicalBandLocation, isSolo } from './band-kind'
 import { BandMemberRole } from './band-member-role'
 import { useBand } from './hooks/use-band'
 import { BandVerificationStatus } from './band-verification-status'
@@ -36,6 +38,7 @@ import { followBand, leaveBand, unfollowBand } from './services/bandas-service'
 export function BandasPage() {
   const { t } = useTranslation('bandas')
   const { slug = '' } = useParams()
+  const { pathname } = useLocation()
   const { user } = useAuth()
   const { visitor, requireLogin } = useRequireLogin()
   const navigate = useNavigate()
@@ -55,7 +58,7 @@ export function BandasPage() {
         <AppEmptyState
           icon={UsersRoundIcon}
           title={state.status === 'notFound' ? t('notFound.title') : t('failed.title')}
-          description={state.status === 'notFound' ? t('notFound.description', { slug }) : t('failed.description')}
+          description={state.status === 'notFound' ? t('notFound.description', { path: pathname }) : t('failed.description')}
           action={
             <AppButton intent="neutral" asChild>
               <Link to={homePath}>{t('notFound.action')}</Link>
@@ -67,6 +70,12 @@ export function BandasPage() {
   }
 
   const { band } = state
+  const canonical = canonicalBandLocation(pathname, band.kind)
+
+  if (canonical) return <Navigate to={canonical} replace />
+
+  const context = bandKindContext(band.kind)
+  const solo = isSolo(band.kind)
   const isOwner = band.myRole === BandMemberRole.owner
   const isMember = band.myRole === BandMemberRole.member
   const canFollow = !isOwner && !isMember
@@ -99,14 +108,14 @@ export function BandasPage() {
     <div className="app-page-enter mx-auto flex max-w-4xl flex-col gap-6">
       <AppProfileHero
         name={band.name}
-        handle={`/bandas/${band.slug}`}
+        handle={bandPagePath(band)}
         avatarUrl={band.avatarUrl}
         bannerUrl={band.bannerUrl}
         bannerPosition={band.bannerPosition}
         verified={band.isVerified}
         subtitle={band.description ? <AppMarkdown text={band.description} /> : null}
         stats={[
-          { label: t('membersLabel', { count: band.members.length }), value: band.members.length },
+          ...(solo ? [] : [{ label: t('membersLabel', { count: band.members.length }), value: band.members.length }]),
           { label: t('followersLabel', { count: band.followerCount }), value: band.followerCount },
           { label: t('postsLabel', { count: band.postCount }), value: band.postCount },
           { label: t('showsLabel', { count: band.upcomingEventCount }), value: band.upcomingEventCount },
@@ -114,7 +123,7 @@ export function BandasPage() {
         actions={
           <>
             <AppSocialLinks links={band.socialLinks} />
-            <AppShareButton path={`/bandas/${band.slug}`} title={band.name} label size="md" />
+            <AppShareButton path={bandPagePath(band)} title={band.name} label size="md" />
             {canFollow ? (
               <AppButton intent={band.followedByMe ? 'neutral' : 'primary'} aria-pressed={band.followedByMe} loading={following} onClick={visitor ? requireLogin : () => void toggleFollow()}>
                 {band.followedByMe ? <CheckIcon /> : <PlusIcon />}
@@ -123,9 +132,9 @@ export function BandasPage() {
             ) : null}
             {isOwner ? (
               <AppButton intent="neutral" asChild>
-                <Link to={`/bandas/${band.slug}/editar`}>
+                <Link to={bandEditPath(band)}>
                   <PencilIcon />
-                  {t('editAction')}
+                  {t('editAction', { context })}
                 </Link>
               </AppButton>
             ) : null}
@@ -148,10 +157,11 @@ export function BandasPage() {
           {band.foundedYear !== null ? (
             <span className="inline-flex items-center gap-1.5">
               <CalendarIcon className="size-4" />
-              {t('since', { year: band.foundedYear })}
+              {t('since', { year: band.foundedYear, context })}
             </span>
           ) : null}
-          {band.isVerified ? <AppBadge tone="info">{t('verified')}</AppBadge> : null}
+          {solo ? <AppBadge tone="neutral">{t('kinds.solo.title')}</AppBadge> : null}
+          {band.isVerified ? <AppBadge tone="info">{t('verified', { context })}</AppBadge> : null}
         </div>
         <AppGenreBadges genres={band.genres} max={5} tone="brand" />
       </AppProfileHero>
@@ -173,8 +183,8 @@ export function BandasPage() {
                 </>
               ) : (
                 <>
-                  <span className="font-medium">{t('verification.askTitle')}</span>
-                  <span className="text-muted-foreground">{t('verification.askDescription')}</span>
+                  <span className="font-medium">{t('verification.askTitle', { context })}</span>
+                  <span className="text-muted-foreground">{t('verification.askDescription', { context })}</span>
                 </>
               )}
             </div>
@@ -184,10 +194,11 @@ export function BandasPage() {
               {t(band.verification?.status === BandVerificationStatus.rejected ? 'verification.askAgain' : 'verification.ask')}
             </AppButton>
           ) : null}
-          <VerificationRequestDialog slug={band.slug} open={verifying} onOpenChange={setVerifying} onRequested={reload} />
+          <VerificationRequestDialog slug={band.slug} kind={band.kind} open={verifying} onOpenChange={setVerifying} onRequested={reload} />
         </section>
       ) : null}
 
+      {solo ? null : (
       <section className="flex flex-col gap-3">
         <h2 className="app-h3">{t('members')}</h2>
         <ul className="grid gap-3 sm:grid-cols-2">
@@ -222,9 +233,12 @@ export function BandasPage() {
           })}
         </ul>
       </section>
+      )}
+
+      <BandPartners slug={band.slug} />
 
       <BandDiscography slug={band.slug} />
-      {visitor ? null : <BandOpenings slug={band.slug} isOwner={isOwner} />}
+      {visitor || solo ? null : <BandOpenings slug={band.slug} isOwner={isOwner} />}
 
       <BandEvents slug={band.slug} />
 
@@ -234,14 +248,14 @@ export function BandasPage() {
         {visitor ? (
           <section className="flex flex-col gap-3">
             <h2 className="app-h3">{t('posts.title')}</h2>
-            <AppSignInPrompt message={t('posts.signIn')} />
+            <AppSignInPrompt message={t('posts.signIn', { context })} />
           </section>
         ) : (
           <OwnerPosts
             key={band.slug}
             owner={{ bandSlug: band.slug }}
             title={t('posts.title')}
-            emptyTitle={t('posts.empty')}
+            emptyTitle={t('posts.empty', { context })}
             emptyDescription={isOwner || isMember ? t('posts.emptyMember') : undefined}
           />
         )}

@@ -18,7 +18,9 @@ import { AppSkeleton } from '@/components/app-skeleton'
 import { AppSocialLinks } from '@/components/app-social-links'
 import { EnsaioLink } from '@/ensaio/ensaio-link'
 import { formatDate } from '@/lib/format'
+import { BandKind, bandKindKey, bandPagePath, isSolo } from '@/pages/bandas/band-kind'
 import { FollowedBands } from '@/pages/bandas/components/followed-bands'
+import { NewProjectDialog } from '@/pages/bandas/components/new-project-dialog'
 import { OwnerPosts } from '@/pages/feed/components/owner-posts'
 
 import { formatCity } from './city'
@@ -32,6 +34,7 @@ export function PerfilPage() {
   const { nickname = '' } = useParams()
   const { user } = useAuth()
   const [state, setState] = useState<LoadState>({ status: 'loading' })
+  const [creatingProject, setCreatingProject] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -138,11 +141,9 @@ export function PerfilPage() {
           <div className="flex items-center justify-between gap-3">
             <h2 className="app-h3">{t('bands.title')}</h2>
             {isMe ? (
-              <AppButton size="sm" intent="neutral" asChild>
-                <Link to="/bandas/nova">
-                  <PlusIcon />
-                  {t('bands.create')}
-                </Link>
+              <AppButton size="sm" intent="neutral" onClick={() => setCreatingProject(true)}>
+                <PlusIcon />
+                {t('bands.create')}
               </AppButton>
             ) : null}
           </div>
@@ -153,12 +154,13 @@ export function PerfilPage() {
               {profile.bands.map((band) => (
                 <li key={band.id}>
                   <Link
-                    to={`/bandas/${band.slug}`}
+                    to={bandPagePath(band)}
                     className="flex items-center gap-3 rounded-xl border bg-card p-3 transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
                   >
                     <AppAvatar name={band.name} src={band.avatarUrl} size="lg" verified={band.isVerified} />
                     <span className="flex min-w-0 flex-1 flex-col gap-1">
                       <span className="truncate font-medium">{band.name}</span>
+                      {isSolo(band.kind) ? <span className="app-meta">{t(`bandas:kinds.${bandKindKey[BandKind.solo]}.title`)}</span> : null}
                       <AppGenreBadges genres={band.genres} max={2} />
                     </span>
                   </Link>
@@ -169,6 +171,7 @@ export function PerfilPage() {
         </section>
       ) : null}
 
+      {isMe ? <NewProjectDialog open={creatingProject} onOpenChange={setCreatingProject} /> : null}
       {isMe ? <FollowedBands /> : null}
 
       <div className="mx-auto w-full max-w-2xl">

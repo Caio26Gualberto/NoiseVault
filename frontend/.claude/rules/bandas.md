@@ -13,7 +13,7 @@ Rule irmã: `../api/.claude/rules/bandas.md`. A regra é do backend; a tela só 
 | Caminho | Tela | Quem vê |
 |---|---|---|
 | `/bandas/:slug` | página pública da banda: capa, avatar, descrição, cidade, "Desde {ano}", gêneros, links e integrantes; a seção "Vagas abertas" vem do Ensaio (`ensaio.md`) | qualquer pessoa; sem conta, só leitura e sem vagas nem publicações (`visitante.md`) |
-| `/bandas/nova` | criar banda (`BandForm` com o campo "seu instrumento na banda" e "Cancelar" na coluna fixa) | qualquer pessoa logada; entra pelo botão "Criar banda" no próprio perfil |
+| `/bandas/nova` | criar banda (`BandForm` com o campo "seu instrumento na banda" e "Cancelar" na coluna fixa) | qualquer pessoa logada; entra pelo "Novo projeto" do próprio perfil, escolhendo "Banda" (o artista solo está na seção "Artista solo") |
 | `/bandas/:slug/editar` | o `BandForm` (com avatar e capa no primeiro painel), depois os cards de integrantes, convites e discografia | só Owner (`myRole === owner`); quem não é Owner é redirecionado para `/bandas/:slug` |
 | `/admin/bandas` | fila de pedidos de verificação (ver "Verificação") | `Bands.Verifications.View`; decidir exige `Bands.Verify` |
 
@@ -25,6 +25,37 @@ Rule irmã: `../api/.claude/rules/bandas.md`. A regra é do backend; a tela só 
   - `getBandProfile` chama com `toastError: false`;
   - `useBand` (`hooks/use-band.ts`) devolve `notFound`, que vira `AppEmptyState`;
   - qualquer outro erro passa pelo `feedback.error` e cai no estado `failed`.
+
+## Artista solo: a mesma tela, em `/artistas`
+
+Rule irmã: a seção "Artista solo" de `../api/.claude/rules/bandas.md` (24/10/2026). O artista solo é uma banda com `kind = solo` (`band-kind.ts` espelha `EBandKind`: `band: 0, solo: 1`), e as telas são as mesmas componentes da banda.
+
+| Caminho | Tela |
+|---|---|
+| `/artistas/:slug` | `BandasPage`, pública como a da banda |
+| `/artistas/nova` | `BandaNovaPage` com `kind={BandKind.solo}`; a de banda recebe `kind={BandKind.band}` |
+| `/artistas/:slug/editar` | `BandaEditarPage` |
+
+- 🔴 **Link de banda sai sempre do `bandPagePath(band)`** (`band-kind.ts`, com `bandEditPath`, `bandCreatePath` e `bandSectionPath`). Ninguém escreve `/bandas/${slug}`: post, evento, line-up, mural, notificações, convites, Ensaio, perfil, rail do feed, fila de verificação e menções (`MentionDto.bandKind`) usam o helper. O `kind` é opcional no DTO do front e ausente vira banda, para o front entrar antes da API no deploy sem quebrar.
+- **Prefixo errado se corrige sozinho**: o slug é o mesmo nos dois endereços, e a página e o editar trocam `/bandas/x` por `/artistas/x` (ou o contrário) com `Navigate replace` quando o `kind` carregado não bate (`canonicalBandLocation`). Link antigo nunca quebra, nem depois de trocar o tipo.
+- **Textos pelo contexto do i18next**: as chaves que mudam no solo têm a variante `_solo` em `bandas.json` (`create.title_solo`, `form.name_solo` "Nome artístico", `verified_solo` "Artista verificado"…), e a tela passa `{ context: bandKindContext(kind) }`. Chave sem variante cai na da banda, então não há arquivo duplicado.
+- **Na página do solo**: sem a seção "Integrantes" nem o contador de integrantes no hero, sem "Vagas abertas" (a API recusa vaga de solo), e o selo "Artista solo" ao lado da cidade.
+- **No editar do solo**: sem os cards de integrantes e de convite de integrante. O formulário do editar tem o seletor "Tipo de página" (`withKind`), em botões `role="radio"`; trocar o tipo e salvar leva ao editar no prefixo novo. `BAND_HAS_MEMBERS` e `BAND_HAS_OPEN_OPENINGS` chegam pelo toast global.
+- **"Novo projeto"** (pedido do usuário em 24/10/2026, no lugar do "Criar banda" do perfil): `components/new-project-dialog.tsx`, um `AppDialog` com dois cartões, "Banda" e "Artista solo", cada um com uma frase do que é, levando à `/nova` do tipo.
+
+## "Costuma tocar com"
+
+Rule irmã: a seção "Parceria" de `../api/.claude/rules/bandas.md`. Liga páginas (banda ou artista), só aparece depois do aceite do outro lado.
+
+- **Na página pública**, `components/band-partners.tsx` vem depois de Integrantes (ou do hero, no solo) e antes da Discografia: cartões das parcerias aceitas, com avatar, nome e tipo, levando à página parceira. Some quando não há parceria. Uma página de 50 (`partnersPageSize`), que é o teto de parcerias da API, então não pagina na tela.
+- **No editar** (banda e solo), o card `components/partnerships-manager.tsx` vem antes da Discografia:
+  - "Convites recebidos" no topo, com "Aceitar" e "Recusar";
+  - a busca de bandas e artistas (`searchBands`, debounce, 2+ caracteres, sem a própria página), com "Convidar" ou "Já convidado";
+  - "Convites enviados": pendentes com "Cancelar convite", e as recusadas dentro da carência como "Não aceito", sem dizer mais nada (a API não notifica a recusa);
+  - "Parcerias", com "Desfazer" (com `useAppConfirm`).
+  - Toda ação refaz as duas listas.
+- `band-partnership-status.ts` espelha `EBandPartnershipStatus` e `EBandPartnershipDirection`.
+- As notificações 34 e 35 e o "Aceitar" no próprio item do sino estão em `notificacoes.md`.
 
 ## Seguir
 
@@ -80,11 +111,14 @@ Rule irmã: `../api/.claude/rules/discografia.md` (16/10/2026).
 
 Com a API, o Docker e o Vite no ar, conta A (admin) e conta B confirmada:
 
-1. **Criar.** A abre o próprio perfil, vê a seção "Bandas" com "Criar banda", cria "Serra Negra" com ano 1991 e "Vocal", e cai em `/bandas/serra-negra/editar` com A como Responsável.
+1. **Criar.** A abre o próprio perfil, vê a seção "Bandas e projetos" com "Novo projeto", escolhe "Banda", cria "Serra Negra" com ano 1991 e "Vocal", e cai em `/bandas/serra-negra/editar` com A como Responsável.
 2. **Convidar.** A digita parte do nickname de B no convite, escolhe a pessoa na lista, põe "Guitarra" e envia: toast "Convite enviado." e B aparece em "Convites pendentes" com a data de vencimento.
 3. **Aceitar no celular.** B, a 390px, abre o balão do sino, vê "Admin convidou você para tocar Guitarra na Serra Negra." no topo, toca "Aceitar" e vai para `/bandas/serra-negra` como integrante, com "Sair da banda".
 4. **Ver como Owner.** A, a 1440px, abre a banda: dois integrantes, "Editar banda" e "2 integrantes" no hero, sem "Seguir" (integrante não segue).
-5. **Não encontrada.** `/bandas/nao-existe` mostra o estado vazio "Banda não encontrada"; B abrindo `/bandas/serra-negra/editar` é redirecionado para a página da banda.
+5. **Não encontrada.** `/bandas/nao-existe` mostra o estado vazio "Página não encontrada"; B abrindo `/bandas/serra-negra/editar` é redirecionado para a página da banda.
 6. **Promover e sair.** A promove B, sai da banda e vai para o próprio perfil. Na página da banda, B passa a ver "Editar banda".
 7. **Imagens.** Avatar e capa sobem pela edição e aparecem no hero; o perfil de B lista a banda na seção "Bandas".
-8. **Seguir.** Conta C (sem banda) abre a Serra Negra, vê "0 seguidores" e "Seguir"; clica → toast "Você está seguindo a banda.", "1 seguidor", botão "Seguindo". No próprio perfil de C aparece "Bandas que sigo" com a Serra Negra. No `/feed`, a aba "Seguindo" lista só os posts da Serra Negra; A publica como a banda e C recebe "A **Serra Negra** publicou um post" no sino, levando ao post. "Seguindo" de novo → "Você deixou de seguir a banda." e o contador volta.
+8. **Seguir.** Conta C (sem banda) abre a Serra Negra, vê "0 seguidores" e "Seguir"; clica → toast "Você está seguindo esta página.", "1 seguidor", botão "Seguindo". No próprio perfil de C aparece "Bandas que sigo" com a Serra Negra. No `/feed`, a aba "Seguindo" lista só os posts da Serra Negra; A publica como a banda e C recebe "A **Serra Negra** publicou um post" no sino, levando ao post. "Seguindo" de novo → "Você deixou de seguir esta página." e o contador volta.
+9. **Artista solo.** A abre o próprio perfil, toca "Novo projeto", escolhe "Artista solo", cria "Okamoto" e cai em `/artistas/okamoto/editar`, com "Nome artístico" no formulário e sem os cards de integrantes. A página pública não tem "Integrantes" nem "Vagas abertas" e mostra o selo "Artista solo". `/bandas/okamoto` vira `/artistas/okamoto`. Um post e um evento marcados com o solo levam para `/artistas/okamoto`, e a @menção `@okamoto` também.
+10. **Trocar o tipo.** Na Serra Negra com dois integrantes, escolher "Artista solo" e salvar → toast `BAND_HAS_MEMBERS`. Com só o Owner → salva e o endereço vira `/artistas/serra-negra/editar`.
+11. **Parceria.** A (Owner do Okamoto) busca "bia" em "Costuma tocar com" e convida a Bia Santana: ela aparece em "Convites enviados", e nenhuma das duas páginas mostra a parceria. B (Owner da Bia Santana) vê no sino "A chamou a **Bia Santana** para o 'Costuma tocar com' do **Okamoto**", com "Aceitar" no item; aceita, e as duas páginas passam a mostrar a outra em "Costuma tocar com", também para o visitante sem login. "Desfazer" no editar tira das duas. Um convite recusado aparece para A como "Não aceito".
