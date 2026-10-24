@@ -16,6 +16,7 @@ namespace NoiseVault.Domain.Entities
         public int? BandInvitationId { get; set; }
         public int? SupportTicketId { get; set; }
         public int? BandOpeningId { get; set; }
+        public int? BandPartnershipId { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime LastActivityAt { get; set; } = DateTime.UtcNow;
         public DateTime? ReadAt { get; set; }
@@ -28,5 +29,6 @@ namespace NoiseVault.Domain.Entities
         public BandInvitation? BandInvitation { get; set; }
         public SupportTicket? SupportTicket { get; set; }
         public BandOpening? BandOpening { get; set; }
+        public BandPartnership? BandPartnership { get; set; }
     }
 }

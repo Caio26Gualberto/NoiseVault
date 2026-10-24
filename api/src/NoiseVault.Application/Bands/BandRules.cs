@@ -19,7 +19,12 @@ namespace NoiseVault.Application.Bands
         public const int SuggestedCount = 5;
         public const int MinSearchLength = 2;
 
+        public const int MaxPendingPartnershipsPerBand = 20;
+        public const int MaxPartnersPerBand = 50;
+
         public static readonly TimeSpan InvitationLifetime = TimeSpan.FromDays(14);
+        public static readonly TimeSpan PartnershipLifetime = TimeSpan.FromDays(14);
+        public static readonly TimeSpan PartnershipCooldown = TimeSpan.FromDays(30);
 
         private static readonly HashSet<string> ReservedSlugs = ["nova", "editar"];
 

@@ -20,6 +20,7 @@ namespace NoiseVault.Api.RateLimiting
         public const string UserSearch = "user-search";
         public const string BandCreate = "band-create";
         public const string BandInvite = "band-invite";
+        public const string BandPartnership = "band-partnership";
         public const string MediaPhoto = "media-photo";
         public const string MediaVideo = "media-video";
         public const string ArchivePhoto = "archive-photo";
@@ -74,6 +75,7 @@ namespace NoiseVault.Api.RateLimiting
                 AddFixedWindow(options, ApiRateLimitPolicies.UserSearch, permitLimit: 60, windowMinutes: 1);
                 AddFixedWindow(options, ApiRateLimitPolicies.BandCreate, permitLimit: 5, windowMinutes: 60);
                 AddFixedWindow(options, ApiRateLimitPolicies.BandInvite, permitLimit: 30, windowMinutes: 60);
+                AddFixedWindow(options, ApiRateLimitPolicies.BandPartnership, permitLimit: 30, windowMinutes: 60);
                 AddFixedWindow(options, ApiRateLimitPolicies.MediaPhoto, permitLimit: 60, windowMinutes: 60);
                 AddFixedWindow(options, ApiRateLimitPolicies.MediaVideo, permitLimit: 10, windowMinutes: 60);
                 AddFixedWindow(options, ApiRateLimitPolicies.ArchivePhoto, permitLimit: 300, windowMinutes: 60);

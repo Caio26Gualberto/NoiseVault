@@ -20,6 +20,7 @@ namespace NoiseVault.Application.Notifications.Dtos
         public NotificationInvitationDto? Invitation { get; set; }
         public NotificationTicketDto? Ticket { get; set; }
         public NotificationOpeningDto? Opening { get; set; }
+        public NotificationPartnershipDto? Partnership { get; set; }
         public DateTime? ReadAt { get; set; }
         public DateTime LastActivityAt { get; set; }
     }
@@ -57,6 +58,14 @@ namespace NoiseVault.Application.Notifications.Dtos
         public int Id { get; set; }
         public EInstrument Instrument { get; set; }
         public string? OtherName { get; set; }
+    }
+
+    public class NotificationPartnershipDto
+    {
+        public int Id { get; set; }
+        public EBandPartnershipStatus Status { get; set; }
+        public DateTime ExpiresAt { get; set; }
+        public BandSummaryDto MyBand { get; set; } = new();
     }
 
     public class NotificationInvitationDto

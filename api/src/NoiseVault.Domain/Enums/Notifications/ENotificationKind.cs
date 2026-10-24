@@ -36,5 +36,7 @@ namespace NoiseVault.Domain.Enums.Notifications
         BandVerificationRejected = 31,
         BandVerificationRevoked = 32,
         FollowedBandPosted = 33,
+        BandPartnershipInvited = 34,
+        BandPartnershipAccepted = 35,
     }
 }

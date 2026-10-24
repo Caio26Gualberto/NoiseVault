@@ -60,6 +60,11 @@ namespace NoiseVault.Infra.Data.Context
                 ? $"[{column}] = {value} AND [IsDeleted] = 0"
                 : $"\"{column}\" = {value} AND \"IsDeleted\" = false";
 
+        public static string ValuesIndexFilter(DbContext context, string column, params int[] values) =>
+            context.Database.IsSqlServer()
+                ? $"[{column}] IN ({string.Join(", ", values)}) AND [IsDeleted] = 0"
+                : $"\"{column}\" IN ({string.Join(", ", values)}) AND \"IsDeleted\" = false";
+
         public static string JsonColumnType(DbContext context) =>
             context.Database.IsSqlServer() ? "nvarchar(max)" : "jsonb";
     }

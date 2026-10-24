@@ -47,6 +47,22 @@ Ideia de um amigo do projeto, decidida pelo usuário em 24/10/2026: quem toca so
 - **Verificação**: o solo pede com **1** integrante, o próprio dono (`BandVerificationRules.MinMembers`). Avatar e link social continuam obrigatórios. O nome verificado reservado vale entre os dois tipos: um artista solo verificado reserva o nome contra banda nova, e vice-versa.
 - `kind` sai em `BandSummaryDto`, `BandProfileDto`, na banda da notificação e em `MentionDto.bandKind`, para o front montar o link certo sem outra ida. A busca aceita `kind` opcional.
 
+## Parceria: "Costuma tocar com", só com o aceite do outro lado
+
+Pedido do usuário em 24/10/2026: artista solo costuma tocar com outros artistas solo, e "músico de apoio" não descreve isso. A **`BandPartnership`** liga duas **páginas** (banda ou artista solo, nos dois lados e em qualquer combinação), não pessoas. 🔴 Ela só aparece depois que o outro lado aceita: "a pessoa pode não querer se associar do lado dela" (o usuário).
+
+- **Modelo**: `RequesterBandId`, `TargetBandId`, `LowBandId`/`HighBandId` (o par em ordem, para a unicidade valer nos dois sentidos), `InvitedByUserId`, `RespondedByUserId?`, `Status: Pending | Accepted | Declined | Revoked`, `ExpiresAt`, `RespondedAt?`. Índice único filtrado em `(LowBandId, HighBandId) WHERE Status IN (Pending, Accepted)` (`DatabaseProvider.ValuesIndexFilter`): no máximo uma parceria viva por par.
+- **Convite**: um Owner da página A convida a página B pelo slug. Todos os Owners de B recebem a notificação 34. Vale **14 dias**, e "expirado" é `Pending` com `ExpiresAt` no passado, como no convite de integrante (os vencidos do par viram `Revoked` antes de um convite novo).
+- **Enquanto está pendente, não aparece em lugar nenhum público**, nem na página de quem convidou. A lista pública (`GET …/partnerships`) só traz `Accepted`.
+- **Aceitar** (qualquer Owner de B) é a transição atômica `Pending → Accepted` no `WHERE` (`TryRespondAsync`, com o Owner checado na própria query). A parceria passa a aparecer nas duas páginas, e os Owners de A recebem a notificação 35.
+- **Recusar é silencioso**: ninguém é notificado. Quem convidou vê só "não aceito" na lista de pendentes da própria página. Depois de uma recusa, **A não convida B de novo por 30 dias** (`BAND_PARTNERSHIP_COOLDOWN`). B continua podendo convidar A.
+- **Desfazer** (`DELETE /api/band-partnerships/{id}`, transição para `Revoked`):
+  - pendente: só o lado que convidou cancela;
+  - aceita: qualquer Owner dos dois lados desfaz, sem pedir licença, e a parceria some das duas páginas.
+  - Não há notificação ao desfazer. A notificação do convite revogado some pelo filtro de visibilidade, como a do convite de integrante.
+- **Limites**: 20 convites pendentes enviados por página (`BAND_PARTNERSHIP_LIMIT_REACHED`) e 50 parcerias aceitas por página (`BAND_PARTNER_LIMIT_REACHED`, conferido no convite e no aceite, para os dois lados). Rate limit `band-partnership` com 30/h por conta.
+- **No SEO**, a página ganha a seção "Costuma tocar com", com link para as páginas parceiras (`seo.md`).
+
 ## Verificação: o selo diz que a banda é quem diz ser
 
 Pedido do usuário em 15/10/2026: "é importante para ninguém criar uma banda no nome de outra por maldade". No legado, o pedido (nome do responsável, e-mail, telefone, mensagem) só virava um e-mail para o dono do projeto; qualquer pessoa logada pedia por qualquer banda, não havia fila, decisão, motivo nem aviso de volta, e nada impedia uma segunda "Sepultura". Aqui:
@@ -132,6 +148,11 @@ Em `Controllers/` (escopo do próprio usuário, sem permissão do catálogo). To
 | `POST /api/band-invitations/{id}/accept` / `decline` | `BAND_INVITATION_ACCEPTED` / `BAND_INVITATION_DECLINED` |
 | `DELETE /api/band-invitations/{id}` | `BAND_INVITATION_REVOKED` |
 | `POST /api/bands/{slug}/verification { message, contactPhone? }` (Owner, `band-verification`) | `BAND_VERIFICATION_REQUESTED` |
+| `GET /api/bands/{slug}/partnerships` (sem login, paginado, só aceitas, da mais recente) | `BAND_PARTNERSHIPS_FOUND` |
+| `GET /api/bands/{slug}/partnerships/pending` (Owner: pendentes enviadas e recebidas, e as recusadas dentro da carência) | `BAND_PARTNERSHIPS_FOUND` |
+| `POST /api/bands/{slug}/partnerships { targetSlug }` (Owner, `band-partnership`) | `BAND_PARTNERSHIP_SENT` |
+| `POST /api/band-partnerships/{id}/accept` · `…/decline` (Owner da página convidada) | `BAND_PARTNERSHIP_ACCEPTED` / `BAND_PARTNERSHIP_DECLINED` |
+| `DELETE /api/band-partnerships/{id}` | `BAND_PARTNERSHIP_REMOVED` |
 | `GET /api/admin/bands/verifications?status=&search=` (`Bands.Verifications.View`) | `BAND_VERIFICATIONS_FOUND` |
 | `GET /api/admin/bands/verifications/summary` → `{ pending, approved, rejected }` | `BAND_VERIFICATION_SUMMARY_FOUND` |
 | `POST /api/admin/bands/verifications/{id}/approve` · `…/reject { reason }` (`Bands.Verify`) | `BAND_VERIFICATION_APPROVED` / `BAND_VERIFICATION_REJECTED` |
@@ -162,6 +183,7 @@ Em `Controllers/` (escopo do próprio usuário, sem permissão do catálogo). To
 - `BAND_MEMBER_NOT_FOUND` (404);
 - `BAND_INVITATION_NOT_FOUND` (404, inclusive quando o convite é de outra pessoa).
 - Artista solo: `SOLO_ARTIST_NO_MEMBERS`, `BAND_HAS_MEMBERS`, `BAND_HAS_OPEN_OPENINGS` (409).
+- Parceria, nesta ordem no convite: `BAND_NOT_FOUND`/`BAND_FORBIDDEN` da página de quem convida; `BAND_PARTNER_NOT_FOUND` (404); `CANNOT_PARTNER_SELF` (400); `ALREADY_PARTNERS`, `BAND_PARTNERSHIP_ALREADY_PENDING` (pendente em qualquer sentido), `BAND_PARTNERSHIP_COOLDOWN`, `BAND_PARTNERSHIP_LIMIT_REACHED`, `BAND_PARTNER_LIMIT_REACHED` (409). Na resposta: `BAND_PARTNERSHIP_NOT_FOUND` (404, também para quem não é Owner da página convidada), `BAND_PARTNERSHIP_NOT_PENDING` e `BAND_PARTNERSHIP_NOT_REMOVABLE` (409, pendente cancelado pelo lado convidado).
 - Verificação: `INVALID_VERIFICATION_MESSAGE`, `INVALID_VERIFICATION_PHONE`, `BAND_VERIFICATION_REQUIREMENTS` (400); `BAND_ALREADY_VERIFIED`, `BAND_VERIFICATION_ALREADY_PENDING`, `BAND_VERIFICATION_NOT_PENDING`, `BAND_NOT_VERIFIED`, `BAND_NAME_RESERVED`, `BAND_NAME_ALREADY_VERIFIED` (409); `BAND_VERIFICATION_NOT_FOUND` (404); `INVALID_VERIFICATION_REJECTION_REASON`, `INVALID_VERIFICATION_STATUS` (400).
 
 ## Imagens
@@ -174,10 +196,11 @@ São o mesmo fluxo e os mesmos presets do perfil (`armazenamento.md`), agora em 
 |---|---|---|
 | `band-create` | 5/h por conta | `POST /api/bands` |
 | `band-invite` | 30/h por conta | `POST /api/bands/{slug}/invitations` |
+| `band-partnership` | 30/h por conta | `POST /api/bands/{slug}/partnerships` |
 | `band-verification` | 3/dia por conta | `POST /api/bands/{slug}/verification` |
 | `profile-upload` | 20/h por conta, **compartilhado** com o perfil | uploads de avatar/capa da banda |
 
-Volume (regra de negócio): no máximo **10 bandas por pessoa** (contando participação, na criação e no aceite) e **20 convites pendentes por banda**.
+Volume (regra de negócio): no máximo **10 bandas por pessoa** (contando participação, na criação e no aceite), **20 convites pendentes por banda**, **20 convites de parceria pendentes** e **50 parcerias aceitas** por página.
 
 ## Eventos de log (contexto `Bands`)
 
@@ -185,6 +208,8 @@ Volume (regra de negócio): no máximo **10 bandas por pessoa** (contando partic
 |---|---|---|
 | `BAND_CREATED` | Info | `BandId`, `Slug` |
 | `BAND_KIND_CHANGED` | Info | `BandId`, `From`, `To` |
+| `BAND_PARTNERSHIP_SENT` | Info | `PartnershipId`, `RequesterBandId`, `TargetBandId` |
+| `BAND_PARTNERSHIP_ACCEPTED` / `BAND_PARTNERSHIP_DECLINED` / `BAND_PARTNERSHIP_REMOVED` | Info | `PartnershipId` (+ as bandas no aceite, o status anterior no remover) |
 | `BAND_INVITATION_SENT` | Info | `InvitationId`, `BandId`, `InvitedUserId` |
 | `BAND_MEMBER_JOINED` | Info | `InvitationId`, `BandId` (aceite) |
 | `BAND_INVITATION_DECLINED` / `BAND_INVITATION_REVOKED` | Info | `InvitationId` (+ `BandId`) |
@@ -245,3 +270,14 @@ Conta A (admin), conta B (Owner de uma banda) e conta C (integrante). Mailpit no
 3. Banda com 2 integrantes e `PUT { kind: 1, … }` → `BAND_HAS_MEMBERS`; com vaga aberta → `BAND_HAS_OPEN_OPENINGS`; só com o Owner e um convite pendente → `BAND_UPDATED`, `kind: 1`, o convite vira `Revoked` e o log `BAND_KIND_CHANGED` sai. `PUT` sem `kind` mantém o tipo.
 4. Solo com avatar e Instagram pede verificação com 1 integrante → `BAND_VERIFICATION_REQUESTED`; o e-mail da equipe diz "do artista solo" e aponta para `/artistas/{slug}`.
 5. `GET /api/bands/search?search=oka&kind=1` só traz solo; `GET /seo/artistas/okamoto` e `/seo/bandas/okamoto` → mesmo HTML, `canonical` em `/artistas/okamoto`, lead "Okamoto é artista solo de…" e sem a seção de integrantes; `/s/artistas/okamoto` → "Artista solo · Ribeirão Pires"; o sitemap lista `/artistas/okamoto`.
+
+### Parceria
+
+Conta A (Owner do solo `okamoto`), conta B (Owner do solo `bia-santana`) e conta C (Owner de uma banda).
+
+1. A convida `bia-santana` → `BAND_PARTNERSHIP_SENT`, B recebe a notificação 34 com `partnership.myBand` = `bia-santana`. `GET /api/bands/okamoto/partnerships` (sem login) → vazio; `…/pending` de A → a parceria com `direction: 0`; o mesmo de B → `direction: 1`. A convida de novo → `BAND_PARTNERSHIP_ALREADY_PENDING`; B convidando A → o mesmo; A convidando `okamoto` → `CANNOT_PARTNER_SELF`; slug inexistente → `BAND_PARTNER_NOT_FOUND`; C chamando o convite em nome de `okamoto` → `BAND_FORBIDDEN`.
+2. C tenta aceitar → `BAND_PARTNERSHIP_NOT_FOUND`; A tenta aceitar o próprio convite → o mesmo. B aceita → `BAND_PARTNERSHIP_ACCEPTED`; A recebe a 35; a notificação 34 de B fica lida. Aceitar de novo → `BAND_PARTNERSHIP_NOT_PENDING`. As duas listas públicas trazem a outra página; `/seo/artistas/okamoto` mostra "Costuma tocar com".
+3. A convida de novo → `ALREADY_PARTNERS`. B desfaz (`DELETE`) → `BAND_PARTNERSHIP_REMOVED`, some das duas listas.
+4. A convida a banda de C; C recusa → `BAND_PARTNERSHIP_DECLINED`, nenhuma notificação para A, e o `…/pending` de A traz a parceria com `status: 2`. A convida de novo → `BAND_PARTNERSHIP_COOLDOWN`; C convidando A → `BAND_PARTNERSHIP_SENT`.
+5. Pendente: C (convidado) tenta `DELETE` → `BAND_PARTNERSHIP_NOT_REMOVABLE`; A cancela → `BAND_PARTNERSHIP_REMOVED`, e a notificação some da lista de C.
+6. Log: `BAND_PARTNERSHIP_SENT`, `BAND_PARTNERSHIP_ACCEPTED`, `BAND_PARTNERSHIP_DECLINED`, `BAND_PARTNERSHIP_REMOVED` com `user=` e `op=`. O 31º convite na mesma hora → 429.

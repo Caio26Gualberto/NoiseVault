@@ -11,5 +11,6 @@ namespace NoiseVault.Application.Notifications
         int? BandId = null,
         int? BandInvitationId = null,
         int? SupportTicketId = null,
-        int? BandOpeningId = null);
+        int? BandOpeningId = null,
+        int? BandPartnershipId = null);
 }

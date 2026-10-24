@@ -6,6 +6,7 @@ using NoiseVault.Application.Bands.Dtos;
 using NoiseVault.Application.Bands.Interfaces;
 using NoiseVault.Application.Events.Dtos;
 using NoiseVault.Application.Events.Interfaces;
+using NoiseVault.Application.Pagination;
 using NoiseVault.Application.Seo.Dtos;
 using NoiseVault.Application.Seo.Interfaces;
 using NoiseVault.Domain.Entities;
@@ -30,6 +31,7 @@ namespace NoiseVault.Application.Seo
         private readonly IArchiveAppService _archiveAppService;
         private readonly IBandAppService _bandAppService;
         private readonly IBandDiscographyAppService _discographyAppService;
+        private readonly IBandPartnershipAppService _partnershipAppService;
         private readonly IRepository<Band> _bandRepository;
         private readonly IRepository<Event> _eventRepository;
         private readonly IRepository<ArchiveEntry> _archiveRepository;
@@ -39,6 +41,7 @@ namespace NoiseVault.Application.Seo
             IArchiveAppService archiveAppService,
             IBandAppService bandAppService,
             IBandDiscographyAppService discographyAppService,
+            IBandPartnershipAppService partnershipAppService,
             IRepository<Band> bandRepository,
             IRepository<Event> eventRepository,
             IRepository<ArchiveEntry> archiveRepository)
@@ -47,6 +50,7 @@ namespace NoiseVault.Application.Seo
             _archiveAppService = archiveAppService;
             _bandAppService = bandAppService;
             _discographyAppService = discographyAppService;
+            _partnershipAppService = partnershipAppService;
             _bandRepository = bandRepository;
             _eventRepository = eventRepository;
             _archiveRepository = archiveRepository;
@@ -284,6 +288,7 @@ namespace NoiseVault.Application.Seo
             var discography = (await _discographyAppService.Get(b.Slug)).Data?.Releases.Where(r => !r.IsHidden).ToList() ?? [];
             var events = (await _eventAppService.ByBand(b.Slug, new EventListQueryDto { PageSize = BandListSize })).Data?.Items ?? [];
             var archive = (await _archiveAppService.ByBand(b.Slug, new ArchiveListQueryDto { PageSize = BandListSize })).Data?.Items ?? [];
+            var partners = (await _partnershipAppService.ListAccepted(b.Slug, new PagedRequestDto { PageSize = BandListSize })).Data?.Items ?? [];
             var solo = b.Kind == EBandKind.Solo;
             var lead = BandSentence(b.Name, b.Kind, b.Genres, b.City?.Name ?? b.CityName, b.City?.Uf, b.FoundedYear);
             var facts = new List<SeoFactDto>();
@@ -331,6 +336,11 @@ namespace NoiseVault.Application.Seo
                         Items = discography.Select(r => new SeoLinkDto { Text = r.Title, Detail = $"{ReleaseKind(r.Kind)}, {r.Year}" }).ToList(),
                     },
                     new SeoSectionDto { Title = "Shows", Items = events.Select(EventLink).ToList() },
+                    new SeoSectionDto
+                    {
+                        Title = "Costuma tocar com",
+                        Items = partners.Select(p => new SeoLinkDto { Text = p.Partner.Name, Path = BandRules.PagePath(p.Partner.Kind, p.Partner.Slug) }).ToList(),
+                    },
                     new SeoSectionDto { Title = "No mural das antigas", Items = archive.Select(ArchiveLink).ToList() },
                 ],
                 StructuredData = new Dictionary<string, object?>

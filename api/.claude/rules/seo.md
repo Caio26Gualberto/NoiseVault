@@ -24,6 +24,7 @@ Decisões do usuário em 20/10/2026:
 | `GET /api/bands/{slug}` | o perfil da banda, com `myRole` e `followedByMe` nulos/falsos |
 | `GET /api/bands/{slug}/discography` | a discografia, sem `canManage` |
 | `GET /api/bands/{slug}/events` · `GET /api/bands/{slug}/archive` | os eventos e os registros da banda |
+| `GET /api/bands/{slug}/partnerships` | as parcerias aceitas ("Costuma tocar com"); as pendentes pedem login de Owner (`bandas.md`) |
 | `GET /api/events` · `/api/events/upcoming` · `/api/events/{id}` | a agenda e o evento; `interested` e `canManage` falsos, e o filtro `interested=true` volta vazio |
 | `GET /api/archive` · `/api/archive/years` · `/api/archive/{id}` | o mural, a linha do tempo e o registro publicado; `isMine`, `canEdit`, `canDelete`, `canReview` falsos |
 | `GET /api/cities` · `/api/cities/featured` | o filtro de cidade da agenda e do mural |
@@ -44,7 +45,7 @@ O robô de busca e o de IA não executam JavaScript com confiança (a maioria do
 | `/eventos/{id}` | `GET /seo/eventos/{id}` | título, data e hora, local, cidade, line-up (com link para a banda cadastrada), descrição inteira, ingresso e preço, cancelado |
 | `/mural` | `GET /seo/mural` | os registros mais recentes, com links |
 | `/mural/{id}` | `GET /seo/mural/{id}` | título, data na precisão do registro, local, cidade, bandas, a história inteira e as imagens com legenda (sem marcações) |
-| `/bandas/{slug}` e `/artistas/{slug}` | `GET /seo/bandas/{slug}` ou `/seo/artistas/{slug}` (a mesma página; o `canonical` segue o tipo, `bandas.md`) | nome, cidade, ano, gêneros, descrição, integrantes (nome e papel, sem link; o artista solo não tem a seção), discografia, próximos shows e registros do mural |
+| `/bandas/{slug}` e `/artistas/{slug}` | `GET /seo/bandas/{slug}` ou `/seo/artistas/{slug}` (a mesma página; o `canonical` segue o tipo, `bandas.md`) | nome, cidade, ano, gêneros, descrição, integrantes (nome e papel, sem link; o artista solo não tem a seção), discografia, próximos shows, "Costuma tocar com" (as parcerias aceitas, com link) e registros do mural |
 | `/sitemap.xml` | `GET /seo/sitemap.xml` | todas as bandas, eventos e registros publicados, com `lastmod` |
 
 - **A banda abre com uma frase corrida** (pedido do usuário em 20/10/2026, primeiro passo do GEO, `IDEIAS.md` 17): "Ferrugem é uma banda de heavy metal, thrash e speed de Santo André (SP), formada em 1998." É o tipo de frase que uma IA copia na resposta, e a lista "Banda · cidade · desde · estilos" não era. Sai de `PreviewText.BandSentence`, com os estilos em minúsculas e ligados por "e", o gênero "Outros" de fora e cada pedaço só quando existe ("Ferrugem é uma banda." no mínimo). Vai no destaque do topo, no começo da `description` e no `description` do JSON-LD, seguida da descrição da própria banda. A prévia do `/s/` continua com a linha de dados no estilo do Instagram (`compartilhamento.md`): lá quem lê é gente no WhatsApp, não uma IA.

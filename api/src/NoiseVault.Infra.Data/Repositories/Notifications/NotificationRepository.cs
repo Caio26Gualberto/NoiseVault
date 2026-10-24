@@ -106,6 +106,11 @@ namespace NoiseVault.Infra.Data.Repositories.Notifications
                 .Where(n => n.UserId == userId && n.BandInvitationId == invitationId && n.ReadAt == null)
                 .ExecuteUpdateAsync(s => s.SetProperty(n => n.ReadAt, now));
 
+        public Task<int> MarkPartnershipReadAsync(int userId, int partnershipId, DateTime now) =>
+            _context.Notifications
+                .Where(n => n.UserId == userId && n.BandPartnershipId == partnershipId && n.ReadAt == null)
+                .ExecuteUpdateAsync(s => s.SetProperty(n => n.ReadAt, now));
+
         public async Task<bool> DeleteAsync(int userId, int notificationId) =>
             await _context.Notifications
                 .Where(n => n.Id == notificationId && n.UserId == userId)
@@ -120,7 +125,8 @@ namespace NoiseVault.Infra.Data.Repositories.Notifications
                     || (n.BandId != null && n.Band!.IsDeleted)
                     || (n.BandInvitationId != null && n.BandInvitation!.Status == EBandInvitationStatus.Revoked)
                     || (n.SupportTicketId != null && n.SupportTicket!.IsDeleted)
-                    || (n.BandOpeningId != null && n.BandOpening!.IsDeleted))
+                    || (n.BandOpeningId != null && n.BandOpening!.IsDeleted)
+                    || (n.BandPartnershipId != null && n.BandPartnership!.Status == EBandPartnershipStatus.Revoked))
                 .ExecuteDeleteAsync();
 
         private IQueryable<Notification> Visible(int userId) =>
@@ -134,7 +140,8 @@ namespace NoiseVault.Infra.Data.Repositories.Notifications
                 && (n.BandId == null || !n.Band!.IsDeleted)
                 && (n.BandInvitationId == null || n.BandInvitation!.Status != EBandInvitationStatus.Revoked)
                 && (n.SupportTicketId == null || !n.SupportTicket!.IsDeleted)
-                && (n.BandOpeningId == null || !n.BandOpening!.IsDeleted));
+                && (n.BandOpeningId == null || !n.BandOpening!.IsDeleted)
+                && (n.BandPartnershipId == null || n.BandPartnership!.Status != EBandPartnershipStatus.Revoked));
 
         private static IQueryable<NotificationReadModel> Project(IQueryable<Notification> query) =>
             query.Select(n => new NotificationReadModel
@@ -173,6 +180,13 @@ namespace NoiseVault.Infra.Data.Repositories.Notifications
                 OpeningId = n.BandOpeningId,
                 OpeningInstrument = n.BandOpening != null ? n.BandOpening.Instrument : null,
                 OpeningOtherName = n.BandOpening != null ? n.BandOpening.OtherName : null,
+                PartnershipId = n.BandPartnershipId,
+                PartnershipStatus = n.BandPartnership != null ? n.BandPartnership.Status : null,
+                PartnershipExpiresAt = n.BandPartnership != null ? n.BandPartnership.ExpiresAt : null,
+                PartnershipMyBandId = n.BandPartnership != null ? (n.BandPartnership.RequesterBandId == n.BandId ? n.BandPartnership.TargetBandId : n.BandPartnership.RequesterBandId) : null,
+                PartnershipMyBandName = n.BandPartnership != null ? (n.BandPartnership.RequesterBandId == n.BandId ? n.BandPartnership.TargetBand!.Name : n.BandPartnership.RequesterBand!.Name) : null,
+                PartnershipMyBandSlug = n.BandPartnership != null ? (n.BandPartnership.RequesterBandId == n.BandId ? n.BandPartnership.TargetBand!.Slug : n.BandPartnership.RequesterBand!.Slug) : null,
+                PartnershipMyBandKind = n.BandPartnership != null ? (n.BandPartnership.RequesterBandId == n.BandId ? n.BandPartnership.TargetBand!.Kind : n.BandPartnership.RequesterBand!.Kind) : null,
             });
     }
 }

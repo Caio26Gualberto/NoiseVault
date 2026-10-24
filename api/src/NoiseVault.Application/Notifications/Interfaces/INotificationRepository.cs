@@ -12,6 +12,7 @@ namespace NoiseVault.Application.Notifications.Interfaces
         Task<bool> MarkReadAsync(int userId, int notificationId, DateTime now);
         Task<int> MarkAllReadAsync(int userId, DateTime now);
         Task<int> MarkInvitationReadAsync(int userId, int invitationId, DateTime now);
+        Task<int> MarkPartnershipReadAsync(int userId, int partnershipId, DateTime now);
         Task<bool> DeleteAsync(int userId, int notificationId);
         Task<int> PurgeAsync(DateTime olderThan);
     }

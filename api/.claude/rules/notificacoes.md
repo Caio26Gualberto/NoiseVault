@@ -61,6 +61,8 @@ Por que é assim:
 | `BandVerificationRequested` 29 | quem tem `Bands.Verifications.View` (menos quem pediu), com `BandId`; mais o e-mail para `Email:VerificationInbox` por job | não | `BandVerificationAppService.Request` |
 | `BandVerificationApproved` 30 · `BandVerificationRejected` 31 · `BandVerificationRevoked` 32 | os Owners da banda, com `BandId` (`bandas.md`) | não | `Approve` / `Reject` / `Unverify` |
 | `FollowedBandPosted` 33 | quem segue a banda (`BandFollower`), com `PostId` e `BandId`; o ator é quem publicou, por isso integrante nunca recebe | não (uma por post) | `PostAppService.NotifyFollowersAsync`, quando o post fica visível (`feed.md`) |
+| `BandPartnershipInvited` 34 | os Owners da página convidada, com `BandId` (a página que convidou) e `BandPartnershipId` (`bandas.md`) | não | `BandPartnershipAppService.Invite` |
+| `BandPartnershipAccepted` 35 | os Owners da página que convidou, com `BandId` (a que aceitou) e `BandPartnershipId`; recusar é silencioso | não | `BandPartnershipAppService.Accept` |
 
 **Regras gerais:**
 - **Ninguém é notificado da própria ação**: o `NotifyMany` tira o ator da lista.
@@ -69,7 +71,7 @@ Por que é assim:
   - Dois cliques simultâneos podem gerar duas linhas.
   - Aceito: é texto de aviso, não contador de verdade (o contador está no post).
 - **Descurtir e desmarcar não apagam** a notificação.
-- **Aceitar ou recusar um convite** marca como lida a notificação do convite. **Revogar** some com ela pelo filtro de visibilidade.
+- **Aceitar ou recusar um convite** marca como lida a notificação do convite (na parceria, a de todos os Owners da página convidada). **Revogar** some com ela pelo filtro de visibilidade, nos dois tipos de convite.
 
 **Quem é dono do quê:** o `NotificationAppService` é o dono da entidade. Os outros AppServices chamam `Notify`/`NotifyMany` **depois** do commit. A falha vira `NOTIFICATION_FAILED` e nunca derruba a ação principal. Ele não depende de nenhum outro AppService, então não fecha ciclo de DI. O lembrete de "amanhã" mora no `EventAppService.RemindTomorrow`, porque quem sabe de evento é o dono do evento.
 
@@ -122,6 +124,7 @@ O job `notifications:purge` (diário às 4 h) apaga as linhas com `LastActivityA
   - `id`, `kind`, `actor` (`ProfileSummaryDto?`), `actorCount`;
   - `post { id, excerpt }` (80 caracteres), `event { id, title, startsAt }`, `archive { id, title }`;
   - `band` (`BandSummaryDto`), `invitation { id, status, instrument, expiresAt }`;
+  - `partnership { id, status, expiresAt, myBand }`: `myBand` é a página do destinatário na parceria (o outro lado está em `band`), para quem é Owner de várias saber qual foi convidada;
   - `ticket { id, protocol, title, status, mine }`: `mine` diz se o destinatário é quem reportou, e o front escolhe `/suporte/:id` ou `/admin/suporte/:id`;
   - `readAt`, `lastActivityAt`.
 - **Limites**: sem política própria. Ler e marcar ficam no limite global, e quem cria notificação são ações que já têm o seu limite.

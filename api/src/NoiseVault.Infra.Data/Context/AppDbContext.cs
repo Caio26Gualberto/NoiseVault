@@ -29,6 +29,7 @@ namespace NoiseVault.Infra.Data.Context
         public DbSet<BandMember> BandMembers => Set<BandMember>();
         public DbSet<BandFollower> BandFollowers => Set<BandFollower>();
         public DbSet<BandInvitation> BandInvitations => Set<BandInvitation>();
+        public DbSet<BandPartnership> BandPartnerships => Set<BandPartnership>();
         public DbSet<BandVerificationRequest> BandVerificationRequests => Set<BandVerificationRequest>();
         public DbSet<BandRelease> BandReleases => Set<BandRelease>();
         public DbSet<BandTrack> BandTracks => Set<BandTrack>();
@@ -253,6 +254,34 @@ namespace NoiseVault.Infra.Data.Context
                     .HasFilter(DatabaseProvider.ValueIndexFilter(this, nameof(BandInvitation.Status), (int)EBandInvitationStatus.Pending));
 
                 b.HasIndex(x => new { x.InvitedUserId, x.Status });
+            });
+
+            builder.Entity<BandPartnership>(b =>
+            {
+                b.ToTable("BandPartnerships");
+                b.HasKey(x => x.Id);
+
+                b.HasOne(x => x.RequesterBand)
+                    .WithMany()
+                    .HasForeignKey(x => x.RequesterBandId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasOne(x => x.TargetBand)
+                    .WithMany()
+                    .HasForeignKey(x => x.TargetBandId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasOne(x => x.InvitedByUser)
+                    .WithMany()
+                    .HasForeignKey(x => x.InvitedByUserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasIndex(x => new { x.LowBandId, x.HighBandId })
+                    .IsUnique()
+                    .HasFilter(DatabaseProvider.ValuesIndexFilter(this, nameof(BandPartnership.Status), (int)EBandPartnershipStatus.Pending, (int)EBandPartnershipStatus.Accepted));
+
+                b.HasIndex(x => new { x.RequesterBandId, x.Status });
+                b.HasIndex(x => new { x.TargetBandId, x.Status });
             });
 
             builder.Entity<BandRelease>(b =>
@@ -886,6 +915,11 @@ namespace NoiseVault.Infra.Data.Context
                 b.HasOne(x => x.BandOpening)
                     .WithMany()
                     .HasForeignKey(x => x.BandOpeningId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasOne(x => x.BandPartnership)
+                    .WithMany()
+                    .HasForeignKey(x => x.BandPartnershipId)
                     .OnDelete(DeleteBehavior.Restrict);
 
                 b.HasIndex(x => new { x.UserId, x.ReadAt, x.LastActivityAt });

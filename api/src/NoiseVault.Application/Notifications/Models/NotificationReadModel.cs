@@ -50,5 +50,13 @@ namespace NoiseVault.Application.Notifications.Models
         public int? OpeningId { get; init; }
         public EInstrument? OpeningInstrument { get; init; }
         public string? OpeningOtherName { get; init; }
+
+        public int? PartnershipId { get; init; }
+        public EBandPartnershipStatus? PartnershipStatus { get; init; }
+        public DateTime? PartnershipExpiresAt { get; init; }
+        public int? PartnershipMyBandId { get; init; }
+        public string? PartnershipMyBandName { get; init; }
+        public string? PartnershipMyBandSlug { get; init; }
+        public EBandKind? PartnershipMyBandKind { get; init; }
     }
 }

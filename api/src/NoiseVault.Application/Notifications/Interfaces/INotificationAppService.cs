@@ -15,6 +15,7 @@ namespace NoiseVault.Application.Notifications.Interfaces
         Task Notify(int recipientUserId, NotificationInput input);
         Task NotifyMany(IReadOnlyCollection<int> recipientUserIds, NotificationInput input);
         Task MarkInvitationRead(int userId, int invitationId);
+        Task MarkPartnershipRead(int userId, int partnershipId);
         Task<int> Purge();
     }
 }

@@ -128,6 +128,7 @@ namespace NoiseVault.Application.Notifications
                         BandInvitationId = input.BandInvitationId,
                         SupportTicketId = input.SupportTicketId,
                         BandOpeningId = input.BandOpeningId,
+                        BandPartnershipId = input.BandPartnershipId,
                         CreatedAt = now,
                         LastActivityAt = now,
                     })
@@ -143,7 +144,7 @@ namespace NoiseVault.Application.Notifications
                     "Notification could not be stored",
                     exception: ex,
                     userId: input.ActorUserId,
-                    extra: new { input.Kind, Recipients = recipients.Count, input.PostId, input.EventId, input.ArchiveEntryId, input.BandId, input.BandInvitationId, input.SupportTicketId, input.BandOpeningId });
+                    extra: new { input.Kind, Recipients = recipients.Count, input.PostId, input.EventId, input.ArchiveEntryId, input.BandId, input.BandInvitationId, input.SupportTicketId, input.BandOpeningId, input.BandPartnershipId });
                 return;
             }
 
@@ -153,6 +154,12 @@ namespace NoiseVault.Application.Notifications
         public async Task MarkInvitationRead(int userId, int invitationId)
         {
             if (await _notificationRepository.MarkInvitationReadAsync(userId, invitationId, DateTime.UtcNow) > 0)
+                await PushAsync([userId]);
+        }
+
+        public async Task MarkPartnershipRead(int userId, int partnershipId)
+        {
+            if (await _notificationRepository.MarkPartnershipReadAsync(userId, partnershipId, DateTime.UtcNow) > 0)
                 await PushAsync([userId]);
         }
 
@@ -225,6 +232,21 @@ namespace NoiseVault.Application.Notifications
                     Status = row.InvitationStatus!.Value,
                     Instrument = row.InvitationInstrument,
                     ExpiresAt = row.InvitationExpiresAt ?? default,
+                },
+            Partnership = row.PartnershipId == null
+                ? null
+                : new NotificationPartnershipDto
+                {
+                    Id = row.PartnershipId.Value,
+                    Status = row.PartnershipStatus ?? default,
+                    ExpiresAt = row.PartnershipExpiresAt ?? default,
+                    MyBand = new BandSummaryDto
+                    {
+                        Id = row.PartnershipMyBandId ?? 0,
+                        Name = row.PartnershipMyBandName ?? string.Empty,
+                        Slug = row.PartnershipMyBandSlug ?? string.Empty,
+                        Kind = row.PartnershipMyBandKind ?? EBandKind.Band,
+                    },
                 },
             Opening = row.OpeningId == null
                 ? null
