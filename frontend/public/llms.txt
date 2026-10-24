@@ -15,6 +15,7 @@ O conteúdo aberto pode ser lido sem conta. Curtir, comentar, marcar "Vou" e seg
 ## Bandas
 
 - Cada banda tem a sua página em `https://noisevault.net/bandas/{slug}`, com cidade, ano de formação, estilos, integrantes, discografia, shows e registros do mural.
+- Artista solo tem a página em `https://noisevault.net/artistas/{slug}`, igual à de banda sem integrantes. Banda e artista mostram em "Costuma tocar com" as páginas com que tocam junto, quando os dois lados aceitaram.
 
 ## Índice
 

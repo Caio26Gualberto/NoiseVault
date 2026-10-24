@@ -29,6 +29,7 @@ Disallow: /mural/enviar
 Disallow: /mural/novo
 Disallow: /eventos/novo
 Disallow: /bandas/nova
+Disallow: /artistas/nova
 Disallow: /*/editar
 
 Sitemap: https://noisevault.net/sitemap.xml

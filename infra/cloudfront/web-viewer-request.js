@@ -5,8 +5,8 @@ const ENSAIO_HOST = `ensaio.${MAIN_HOST}`;
 const API_ORIGIN_ID = 'noisevault-api';
 const PREVIEW_BOTS = /facebookexternalhit|facebot|whatsapp|twitterbot|telegrambot|discordbot|slackbot|linkedinbot|skypeuripreview/i;
 const SEARCH_BOTS = /googlebot|bingbot|duckduckbot|yandexbot|applebot|gptbot|oai-searchbot|chatgpt-user|claudebot|claude-searchbot|claude-user|perplexitybot|perplexity-user|ccbot/i;
-const SHAREABLE_PAGE = /^\/(feed|mural|eventos|bandas|perfil)\/[^\/]+$/;
-const INDEXABLE_PAGE = /^\/(eventos(\/\d+)?|mural(\/\d+)?|bandas\/(?!nova$)[^\/]+)?$/;
+const SHAREABLE_PAGE = /^\/(feed|mural|eventos|bandas|artistas|perfil)\/[^\/]+$/;
+const INDEXABLE_PAGE = /^\/(eventos(\/\d+)?|mural(\/\d+)?|(bandas|artistas)\/(?!nova$)[^\/]+)?$/;
 const STATIC_FILE = /\.(css|js|mjs|map|png|jpg|jpeg|gif|svg|ico|webp|avif|woff|woff2|ttf|json|webmanifest|txt|xml|html)$/i;
 
 function header(request, name) {
