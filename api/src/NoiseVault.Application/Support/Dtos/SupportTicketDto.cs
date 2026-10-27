@@ -34,5 +34,6 @@ namespace NoiseVault.Application.Support.Dtos
         public string? InternalNote { get; set; }
         public bool CanEdit { get; set; }
         public bool CanReply { get; set; }
+        public bool CanDelete { get; set; }
     }
 }

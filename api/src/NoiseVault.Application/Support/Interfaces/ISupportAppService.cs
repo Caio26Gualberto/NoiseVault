@@ -22,5 +22,6 @@ namespace NoiseVault.Application.Support.Interfaces
         Task<Result<PagedResultDto<SupportMessageDto>>> Messages(int id, PagedRequestDto query);
         Task<Result<SupportMessageDto>> ReplyAsStaff(int id, SupportMessageInputDto input);
         Task<Result<SupportTicketAdminDto>> Update(int id, SupportTicketUpdateInputDto input);
+        Task<Result> Delete(int id);
     }
 }

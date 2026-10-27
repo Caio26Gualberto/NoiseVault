@@ -12,5 +12,6 @@ namespace NoiseVault.Application.Support.Interfaces
         Task<Dictionary<ESupportTicketStatus, int>> CountByStatusAsync();
         Task<int> CountOpenAsync(int reporterUserId);
         Task<(List<SupportTicketMessage> Items, int TotalCount)> PageMessagesAsync(int ticketId, int skip, int take);
+        Task<List<int>> PurgeAsync(int ticketId);
     }
 }

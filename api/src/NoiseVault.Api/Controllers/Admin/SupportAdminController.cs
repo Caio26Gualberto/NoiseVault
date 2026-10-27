@@ -67,5 +67,13 @@ namespace NoiseVault.Api.Controllers.Admin
             var result = await _supportAppService.Update(id, input);
             return ToResponse(result);
         }
+
+        [HttpDelete("tickets/{id:int}")]
+        [Authorize(Policy = Permissions.Support.Delete)]
+        public async Task<ActionResult> Delete(int id)
+        {
+            var result = await _supportAppService.Delete(id);
+            return ToResponse(result);
+        }
     }
 }

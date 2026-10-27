@@ -28,7 +28,8 @@ Módulo 7 da ordem em `dominio.md`, **redefinido pelo usuário em 14/10/2026**. 
 - **`SupportTicketArea`** (`SupportTicketId`, `Area`), **opcional**, várias. `ESupportArea`: `Feed` 0, `Events` 1, `Archive` 2, `Profile` 3, `Bands` 4, `Notifications` 5, `Account` 6, `SignIn` 7, `Other` 8. Decisão do usuário: o bug nem sempre está na última página que a pessoa abriu, então o `OriginPath` sozinho engana. Os dois convivem: a área é o que a pessoa diz; o caminho é o que o navegador viu.
 - **`SupportTicketMedia`** (`SupportTicketId`, `MediaUploadId` único, `Order`): até **6 mídias**, das quais **no máximo 1 vídeo**. A navegação `MediaUpload.SupportAttachment` é o vínculo "em uso", como `Attachment` e `ArchiveAttachment`.
 - **`SupportTicketMessage`** (`EntityBase`): `SupportTicketId`, `AuthorUserId`, `Text` (1–2.000), `FromStaff`. A conversa entre a equipe e quem reportou; só texto.
-- O "não procede" é `Dismissed`, não exclusão: ticket não é apagado, nem pela equipe. Spam fica arquivado como `Dismissed`, com a nota dizendo por quê.
+- O "não procede" é `Dismissed`, não exclusão: spam e relato que não procede ficam arquivados como `Dismissed`, com a nota dizendo por quê.
+- ~~Ticket não é apagado, nem pela equipe.~~ Desde 27/10/2026, a pedido do usuário (limpar os relatos de teste), `Support.Delete` **apaga de vez** (`DELETE /api/admin/support/tickets/{id}`). Não é soft delete: o ticket, as mensagens, as tags, as áreas, os vínculos de mídia e as **notificações que apontam para ele** saem por `ExecuteDeleteAsync` numa transação (`SupportTicketRepository.PurgeAsync`; as FKs são `Restrict`, então a ordem importa). Depois do commit as mídias são descartadas (`IMediaUploadAppService.Discard`: arquivo e linha). O protocolo apagado não volta a existir: o id não é reaproveitado. Como `ExecuteDeleteAsync` não passa pelo `ChangeTracker`, não há `AuditLog`; a trilha é o log `SUPPORT_TICKET_DELETED`.
 - Tags e áreas em tabela de ligação, nunca `List<Enum>` em coluna (`dominio.md`). Valor novo só no fim.
 
 ## Mídia: perfil `Support`
@@ -52,8 +53,9 @@ O ticket **é aberto mesmo com vídeo ainda processando**: a pessoa não fica es
 | Ver a caixa de entrada, qualquer ticket, mensagens, nota interna | `Support.View` |
 | Mudar status, prioridade e nota interna | `Support.Edit` |
 | Responder como equipe | `Support.Reply` |
+| Apagar um ticket de vez | `Support.Delete` |
 
-- Três verbos porque são três ações de escrita (`CLAUDE.md`: `Manage` só com uma). `Edit` e `Reply` declaram `View` como pai. Nenhum papel padrão recebe; o `Admin` tem todas.
+- Quatro verbos porque são quatro ações de escrita (`CLAUDE.md`: `Manage` só com uma). `Edit`, `Reply` e `Delete` declaram `View` como pai. O `SupportTicketAdminDto` traz `canEdit`, `canReply` e `canDelete`. Nenhum papel padrão recebe; o `Admin` tem todas.
 - Ticket de outra pessoa pelo endpoint do usuário → `SUPPORT_TICKET_NOT_FOUND`, nunca 403: não confirma que o id existe.
 
 ## Ciclo do ticket
@@ -105,6 +107,7 @@ Três `ENotificationKind` novos, com o alvo `Notification.SupportTicketId` (`not
 | `GET …/tickets/{id}/messages` (nos dois) | `SUPPORT_MESSAGES_FOUND` |
 | `POST /api/support/tickets/{id}/messages` · `POST /api/admin/support/tickets/{id}/messages` (`Support.Reply`) | `SUPPORT_MESSAGE_CREATED` |
 | `PUT /api/admin/support/tickets/{id}` `{ status, priority, internalNote }` (`Support.Edit`) | `SUPPORT_TICKET_UPDATED` |
+| `DELETE /api/admin/support/tickets/{id}` (`Support.Delete`) | `SUPPORT_TICKET_DELETED` |
 | `GET /api/admin/support/summary` (`Support.View`) | `SUPPORT_SUMMARY_FOUND` |
 | `POST /api/support/media/photos` · `…/videos` | `PHOTO_UPLOADED` / `VIDEO_UPLOAD_STARTED` |
 
@@ -121,6 +124,7 @@ Três `ENotificationKind` novos, com o alvo `Notification.SupportTicketId` (`not
 | `SUPPORT_TICKET_CREATED` | Info | `TicketId`, `Tags`, `Areas`, `Media` |
 | `SUPPORT_TICKET_UPDATED` | Info | `TicketId`, `From`, `To`, `Priority` |
 | `SUPPORT_TICKET_REOPENED` | Info | `TicketId` (resposta de quem reportou num `Resolved`) |
+| `SUPPORT_TICKET_DELETED` | Info | `TicketId`, `Media` |
 
 Mensagem não loga: o dado está no banco. Título, descrição, nota e texto de mensagem nunca entram no log: são texto livre de usuário.
 
@@ -142,6 +146,7 @@ Contas novas são registradas e confirmadas pelo próprio script (lendo o link n
 5. **Status.** A marca `Resolved` com nota → C recebe `SupportTicketStatusChanged`; o `GET` de C não traz a nota. C responde → volta para `Open` com `SUPPORT_TICKET_REOPENED` no log. A marca `Dismissed` → resposta de C → `SUPPORT_TICKET_CLOSED`.
 6. **Dono.** Outra conta lê o ticket de C → `SUPPORT_TICKET_NOT_FOUND`.
 7. **Volume.** O 11º ticket aberto de C → `SUPPORT_TICKET_LIMIT_REACHED`; o 6º em uma hora → 429.
-8. **Limpeza.** Com `ExpiresAt` das mídias do ticket e de mídias soltas no passado, o `media:cleanup` apaga só as soltas (`MEDIA_CLEANED` com `Unattached`); as do ticket continuam `Ready`, com chave.
+8. **Apagar.** C → `DELETE /api/admin/support/tickets/{id}` → 403. A apaga um ticket com print, vídeo, conversa e notificações → `SUPPORT_TICKET_DELETED`; o `GET` dá `SUPPORT_TICKET_NOT_FOUND`, as notificações dele somem do sino dos dois, e as mídias respondem 404 no storage. Apagar de novo → `SUPPORT_TICKET_NOT_FOUND`.
+9. **Limpeza.** Com `ExpiresAt` das mídias do ticket e de mídias soltas no passado, o `media:cleanup` apaga só as soltas (`MEDIA_CLEANED` com `Unattached`); as do ticket continuam `Ready`, com chave.
 
 Resultado em 14/10/2026: todos os passos passaram (ticket `NV-0013`, script `support-api.mjs` com 53 checagens, mais a limpeza feita à mão).

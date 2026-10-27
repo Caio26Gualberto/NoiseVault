@@ -41,6 +41,7 @@ namespace NoiseVault.Domain.Constants
             public const string View = "Support.View";
             public const string Edit = "Support.Edit";
             public const string Reply = "Support.Reply";
+            public const string Delete = "Support.Delete";
         }
 
         public static class News

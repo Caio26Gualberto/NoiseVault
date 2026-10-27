@@ -51,6 +51,7 @@ namespace NoiseVault.Domain.Authorization
             new(Permissions.Support.View, "Ver relatos de suporte", "Permite ver a caixa de entrada de suporte, os relatos, as conversas e a nota interna.", Groups.Support),
             new(Permissions.Support.Edit, "Triar relatos de suporte", "Permite mudar status, prioridade e nota interna de qualquer relato.", Groups.Support, Permissions.Support.View),
             new(Permissions.Support.Reply, "Responder relatos de suporte", "Permite responder como equipe na conversa de um relato.", Groups.Support, Permissions.Support.View),
+            new(Permissions.Support.Delete, "Apagar relatos de suporte", "Permite apagar de vez um relato, com a conversa, os anexos e as notificações dele.", Groups.Support, Permissions.Support.View),
 
             new(Permissions.Bands.VerificationsView, "Ver pedidos de verificação de banda", "Permite ver a fila de pedidos de verificação, com a mensagem e o contato de quem pediu.", Groups.Bands),
             new(Permissions.Bands.Verify, "Decidir a verificação de banda", "Permite aprovar ou recusar um pedido e tirar o selo de uma banda verificada.", Groups.Bands, Permissions.Bands.VerificationsView),

@@ -242,10 +242,10 @@ namespace NoiseVault.Application.Support
                 Sort: sort);
 
             var (rows, totalCount) = await _ticketRepository.PageAsync(filter, query.Skip, query.PageSize);
-            var (canEdit, canReply) = await StaffPermissionsAsync();
+            var (canEdit, canReply, canDelete) = await StaffPermissionsAsync();
 
             return Result<PagedResultDto<SupportTicketAdminDto>>.Ok(
-                PagedResultDto<SupportTicketAdminDto>.Create(rows.Select(r => FillAdmin(new SupportTicketAdminDto(), r, canEdit, canReply)).ToList(), query.Page, query.PageSize, totalCount),
+                PagedResultDto<SupportTicketAdminDto>.Create(rows.Select(r => FillAdmin(new SupportTicketAdminDto(), r, canEdit, canReply, canDelete)).ToList(), query.Page, query.PageSize, totalCount),
                 "SUPPORT_TICKETS_FOUND",
                 "Support tickets found");
         }
@@ -344,6 +344,36 @@ namespace NoiseVault.Application.Support
             return Result<SupportTicketAdminDto>.Ok(await AdminDetailAsync((await _ticketRepository.FindAsync(id, null))!), "SUPPORT_TICKET_UPDATED", "Support ticket updated");
         }
 
+        public async Task<Result> Delete(int id)
+        {
+            _logger.SetOperation("DeleteSupportTicket");
+
+            if (await _ticketRepository.FindAsync(id, null) == null)
+                return Result.Fail(NotFound());
+
+            List<int> mediaIds;
+
+            await _unitOfWork.BeginTransactionAsync();
+
+            try
+            {
+                mediaIds = await _ticketRepository.PurgeAsync(id);
+                await _unitOfWork.CommitAsync();
+            }
+            catch
+            {
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+
+            await _mediaAppService.Discard(mediaIds);
+
+            _logger.Info("SUPPORT_TICKET_DELETED", "Support ticket deleted", userId: _currentUser.UserId,
+                extra: new { TicketId = id, Media = mediaIds.Count });
+
+            return Result.Ok("SUPPORT_TICKET_DELETED", "Support ticket deleted");
+        }
+
         private async Task<SupportTicketMessage> AddMessageAsync(SupportTicket ticket, string text, bool fromStaff, bool reopen)
         {
             var now = DateTime.UtcNow;
@@ -424,11 +454,12 @@ namespace NoiseVault.Application.Support
             await _notificationAppService.NotifyMany(staff, new NotificationInput(kind, actorUserId, SupportTicketId: ticketId));
         }
 
-        private async Task<(bool CanEdit, bool CanReply)> StaffPermissionsAsync()
+        private async Task<(bool CanEdit, bool CanReply, bool CanDelete)> StaffPermissionsAsync()
         {
             var me = _currentUser.UserId;
             return (await _permissionChecker.IsGrantedAsync(me, Permissions.Support.Edit),
-                await _permissionChecker.IsGrantedAsync(me, Permissions.Support.Reply));
+                await _permissionChecker.IsGrantedAsync(me, Permissions.Support.Reply),
+                await _permissionChecker.IsGrantedAsync(me, Permissions.Support.Delete));
         }
 
         private async Task<T> DetailAsync<T>(SupportTicketReadModel row) where T : SupportTicketDto, new()
@@ -440,8 +471,8 @@ namespace NoiseVault.Application.Support
 
         private async Task<SupportTicketAdminDto> AdminDetailAsync(SupportTicketReadModel row)
         {
-            var (canEdit, canReply) = await StaffPermissionsAsync();
-            var dto = FillAdmin(new SupportTicketAdminDto(), row, canEdit, canReply);
+            var (canEdit, canReply, canDelete) = await StaffPermissionsAsync();
+            var dto = FillAdmin(new SupportTicketAdminDto(), row, canEdit, canReply, canDelete);
             dto.Media = await MediaAsync(row.Id);
             return dto;
         }
@@ -480,7 +511,7 @@ namespace NoiseVault.Application.Support
             return dto;
         }
 
-        private SupportTicketAdminDto FillAdmin(SupportTicketAdminDto dto, SupportTicketReadModel r, bool canEdit, bool canReply)
+        private SupportTicketAdminDto FillAdmin(SupportTicketAdminDto dto, SupportTicketReadModel r, bool canEdit, bool canReply, bool canDelete)
         {
             Fill(dto, r);
             dto.Reporter = new ProfileSummaryDto
@@ -497,6 +528,7 @@ namespace NoiseVault.Application.Support
             dto.InternalNote = r.InternalNote;
             dto.CanEdit = canEdit;
             dto.CanReply = canReply;
+            dto.CanDelete = canDelete;
             return dto;
         }
 

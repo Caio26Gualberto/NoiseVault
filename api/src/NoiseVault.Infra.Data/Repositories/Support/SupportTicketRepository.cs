@@ -103,6 +103,23 @@ namespace NoiseVault.Infra.Data.Repositories.Support
             return (items, totalCount);
         }
 
+        public async Task<List<int>> PurgeAsync(int ticketId)
+        {
+            var mediaIds = await _context.Set<SupportTicketMedia>()
+                .Where(m => m.SupportTicketId == ticketId)
+                .Select(m => m.MediaUploadId)
+                .ToListAsync();
+
+            await _context.Set<Notification>().Where(n => n.SupportTicketId == ticketId).ExecuteDeleteAsync();
+            await _context.Set<SupportTicketMessage>().Where(m => m.SupportTicketId == ticketId).ExecuteDeleteAsync();
+            await _context.Set<SupportTicketMedia>().Where(m => m.SupportTicketId == ticketId).ExecuteDeleteAsync();
+            await _context.Set<SupportTicketTag>().Where(t => t.SupportTicketId == ticketId).ExecuteDeleteAsync();
+            await _context.Set<SupportTicketArea>().Where(a => a.SupportTicketId == ticketId).ExecuteDeleteAsync();
+            await _dbSet.Where(t => t.Id == ticketId).ExecuteDeleteAsync();
+
+            return mediaIds;
+        }
+
         private IQueryable<SupportTicket> Visible() =>
             _dbSet.AsNoTracking().Where(t => !t.IsDeleted);
 
