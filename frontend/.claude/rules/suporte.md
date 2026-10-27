@@ -18,7 +18,7 @@ Rule irmã: `../api/.claude/rules/suporte.md`. A regra é do backend; a tela só
 | `/suporte` | "Meus relatos": os próprios tickets, paginados, com status e "Respondido" | quem reportou |
 | `/suporte/:id` | o ticket e a conversa com a equipe | quem reportou |
 | `/admin/suporte` | caixa de entrada: abas por status com contagem, busca, filtros de tipo, página e prioridade, ordenação | `Support.View` |
-| `/admin/suporte/:id` | ticket, conversa, triagem (status, prioridade, nota interna) e contexto do navegador | `Support.View` (triagem só com `Support.Edit`, resposta só com `Support.Reply`) |
+| `/admin/suporte/:id` | ticket, conversa, triagem (status, prioridade, nota interna), contexto do navegador e "Apagar" | `Support.View` (triagem só com `Support.Edit`, resposta só com `Support.Reply`, apagar só com `Support.Delete`) |
 
 - O item "Ajuda e sugestões" (Institucional) marca também `/suporte` e `/suporte/:id` (`subRoutes`). A seção **"Administração"** voltou à sidebar com "Suporte", atrás de `Support.View` no próprio item; a seção não tem permissão (`shell-e-navegacao.md`).
 - Os caminhos ficam em `ajuda/support-paths.ts`, e os enums, rótulos, tons e o mapa caminho → página em `ajuda/support-enums.ts`. A dona dos DTOs e do service do usuário é `ajuda`; `suporte/` e `admin/suporte/` importam do caminho dela. Conversa, resumo e os hooks de detalhe e mensagens moram em `suporte/` e o admin importa de lá.
@@ -29,7 +29,8 @@ Rule irmã: `../api/.claude/rules/suporte.md`. A regra é do backend; a tela só
 - **Um passo por vez** (`AppStepper` + `components/report-wizard.tsx`). Os passos de cada tipo ficam em `components/report-steps.tsx`:
   - **Algo deu errado**: Onde (páginas e aparelho) → O que fez → O que esperava e o que aconteceu → Prints → Enviar (resumo, revisão e aviso do contexto).
   - **Tenho uma ideia**: A ideia (resumo e texto) → Por quê (motivo e parte do site, os dois opcionais) → Imagens → Enviar (revisão e aviso).
-  - "Continuar" valida só os campos do passo (`form.trigger`), e Enter num input fora do último passo avança em vez de enviar. A revisão tem "Editar" por linha, que volta ao passo. O título do passo recebe o foco a cada troca, para o leitor de tela anunciar.
+  - "Continuar" valida só os campos do passo (`form.trigger`), e Enter num input fora do último passo avança em vez de enviar.
+  - **O último passo é revisão: só o clique em "Enviar" envia.** "Continuar" e "Enviar" ocupam o mesmo lugar e levam `key` diferentes. Sem isso o React reaproveitava o mesmo `<button>`: o React 19 aplica a troca de passo numa microtask, antes de o navegador decidir o que fazer com o clique, e o "Continuar" do penúltimo passo já era `type="submit"` quando o navegador olhava, enviando sem passar pela revisão (visto em 27/10/2026). Por segurança, o `onSubmit` do formulário fora do último passo só avança. A revisão tem "Editar" por linha, que volta ao passo. O título do passo recebe o foco a cada troca, para o leitor de tela anunciar.
   - **Todos os passos ficam montados**, e só o atual aparece: o `ReportAttachments` aborta os uploads ao desmontar, e trocar de passo não pode cancelar um vídeo subindo.
   - "Voltar" no primeiro passo leva aos cartões. Se algo já foi escrito ou anexado, confirma antes, porque o que foi preenchido se perde.
 - **A API não mudou.** O tipo vira tag: bug manda `Bug` mais os aparelhos marcados; sugestão manda só `Suggestion`. O chip "Conta" saiu do formulário, porque as áreas "Minha conta" e "Entrar e cadastro" já dizem isso. A tag continua na API, nos tickets antigos e no filtro do admin.
@@ -54,6 +55,7 @@ Rule irmã: `../api/.claude/rules/suporte.md`. A regra é do backend; a tela só
 - A lista e a contagem refazem a busca quando a `version` do `NotificationsProvider` sobe: ticket novo e resposta chegam como notificação, e a caixa se atualiza sozinha.
 - Tons: Novo `info`, Em análise `warning`, Resolvido `success`, Não procede `neutral`. Vermelho só na prioridade alta: a marca não vira cor de status (`design-system.md`).
 - **Triagem** (`components/triage-panel.tsx`) salva status, prioridade e nota juntos (`PUT`, toast de sucesso) e troca o ticket pelo DTO que volta. O painel remonta pela `key` quando o servidor muda esses campos (uma resposta que coloca em análise).
+- **Apagar** (`Support.Delete`, `canDelete` do DTO): botão "Apagar" (`danger`) no cabeçalho do detalhe, com `useAppConfirm` que avisa que some tudo e sugere "Não procede" para só encerrar. Depois volta para a caixa de entrada. É exclusão de vez (`../api/.claude/rules/suporte.md`), pensada para limpar relato de teste.
 - **Contexto**: quem reportou (link para o perfil), "Veio de" (link para a rota), tela e navegador em fonte mono.
 
 ## Roteiro de verificação

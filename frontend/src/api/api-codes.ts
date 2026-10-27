@@ -277,6 +277,7 @@ export const ApiCodes = {
   supportTicketsFound: 'SUPPORT_TICKETS_FOUND',
   supportTicketFound: 'SUPPORT_TICKET_FOUND',
   supportTicketUpdated: 'SUPPORT_TICKET_UPDATED',
+  supportTicketDeleted: 'SUPPORT_TICKET_DELETED',
   supportMessagesFound: 'SUPPORT_MESSAGES_FOUND',
   supportMessageCreated: 'SUPPORT_MESSAGE_CREATED',
   supportSummaryFound: 'SUPPORT_SUMMARY_FOUND',

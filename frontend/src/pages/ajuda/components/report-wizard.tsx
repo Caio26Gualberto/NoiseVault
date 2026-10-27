@@ -52,7 +52,7 @@ export function ReportWizard<T extends FieldValues>({ form, steps, step, onStepC
   }
 
   return (
-    <AppForm form={form} onSubmit={onSubmit} className="mx-auto w-full max-w-2xl">
+    <AppForm form={form} onSubmit={(values) => (last ? onSubmit(values) : next())} className="mx-auto w-full max-w-2xl">
       <div className="flex flex-col gap-6" onKeyDown={skipEarlySubmit}>
         <AppStepper steps={steps.map((item) => item.label)} current={step} />
 
@@ -76,11 +76,11 @@ export function ReportWizard<T extends FieldValues>({ form, steps, step, onStepC
             {t('wizard.back')}
           </AppButton>
           {last ? (
-            <AppButton type="submit" loading={submitting} disabled={uploading} className="font-heading tracking-wider uppercase">
+            <AppButton key="submit" type="submit" loading={submitting} disabled={uploading} className="font-heading tracking-wider uppercase">
               {uploading ? t('uploading') : t('submit')}
             </AppButton>
           ) : (
-            <AppButton type="button" onClick={() => void next()}>
+            <AppButton key="next" type="button" onClick={() => void next()}>
               {t('wizard.next')}
               <ArrowRightIcon />
             </AppButton>

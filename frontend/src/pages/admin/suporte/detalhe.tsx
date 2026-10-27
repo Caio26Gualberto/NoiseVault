@@ -1,11 +1,12 @@
-import { ArrowLeftIcon, InboxIcon } from 'lucide-react'
+import { ArrowLeftIcon, InboxIcon, Trash2Icon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { AppAvatar } from '@/components/app-avatar'
 import { AppBadge } from '@/components/app-badge'
 import { AppButton } from '@/components/app-button'
 import { AppCard } from '@/components/app-card'
+import { useAppConfirm } from '@/components/app-confirm'
 import { AppEmptyState } from '@/components/app-empty-state'
 import { AppPageHeader } from '@/components/app-page-header'
 import { AppSkeleton } from '@/components/app-skeleton'
@@ -17,7 +18,7 @@ import { useTicketDetail } from '@/pages/suporte/hooks/use-ticket-detail'
 import { useTicketMessages } from '@/pages/suporte/hooks/use-ticket-messages'
 
 import { TriagePanel } from './components/triage-panel'
-import { getMessages, getTicket, replyAsStaff } from './services/suporte-admin-service'
+import { deleteTicket, getMessages, getTicket, replyAsStaff } from './services/suporte-admin-service'
 import type { SupportTicketAdminDto } from './services/suporte-admin-service'
 
 function ContextCard({ ticket }: { ticket: SupportTicketAdminDto }) {
@@ -67,7 +68,21 @@ export function SuporteAdminDetalhePage() {
   const { t } = useTranslation('suporte')
   const labels = useSupportLabels()
   const id = Number(useParams().id)
+  const navigate = useNavigate()
+  const confirm = useAppConfirm()
   const { ticket, loading, refresh, replace } = useTicketDetail(id, getTicket)
+
+  const removeTicket = () =>
+    confirm({
+      title: t('admin.deleteTitle'),
+      message: t('admin.deleteMessage'),
+      confirmLabel: t('admin.delete'),
+      danger: true,
+      onConfirm: async () => {
+        await deleteTicket(id)
+        navigate(adminSupportPath, { replace: true })
+      },
+    })
   const messages = useTicketMessages(id, getMessages, async (ticketId, text) => {
     const message = await replyAsStaff(ticketId, text)
     refresh()
@@ -98,6 +113,14 @@ export function SuporteAdminDetalhePage() {
       <div className="mb-2">{back}</div>
       <AppPageHeader
         title={ticket.title}
+        actions={
+          ticket.canDelete ? (
+            <AppButton type="button" intent="danger" onClick={removeTicket}>
+              <Trash2Icon />
+              {t('admin.delete')}
+            </AppButton>
+          ) : null
+        }
         meta={
           <span className="flex flex-wrap items-center gap-2">
             <span className="tabular-nums">{ticket.protocol}</span>

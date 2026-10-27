@@ -265,6 +265,7 @@
   "SUPPORT_TICKETS_FOUND": "Relatos carregados.",
   "SUPPORT_TICKET_FOUND": "Relato carregado.",
   "SUPPORT_TICKET_UPDATED": "Relato atualizado.",
+  "SUPPORT_TICKET_DELETED": "Relato apagado.",
   "SUPPORT_MESSAGES_FOUND": "Conversa carregada.",
   "SUPPORT_MESSAGE_CREATED": "Resposta enviada.",
   "SUPPORT_SUMMARY_FOUND": "Resumo carregado.",

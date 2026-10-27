@@ -114,6 +114,9 @@
     "all": "Todos",
     "searchPlaceholder": "Buscar por título, texto, pessoa ou protocolo (NV-0042)",
     "awaiting": "Aguardando você",
+    "delete": "Apagar",
+    "deleteTitle": "Apagar este relato de vez?",
+    "deleteMessage": "Some o relato, a conversa, os anexos e as notificações dele. Não dá para desfazer. Para só encerrar, use \"Não procede\".",
     "emptyTitle": "Nada por aqui",
     "emptyDescription": "Nenhum relato com esses filtros.",
     "filters": {

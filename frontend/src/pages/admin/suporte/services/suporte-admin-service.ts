@@ -1,4 +1,4 @@
-import { apiGet, apiPost, apiPut } from '@/api/base-service'
+import { apiDelete, apiGet, apiPost, apiPut } from '@/api/base-service'
 import type { PagedRequest, PagedResult } from '@/api/types'
 import type { ProfileSummaryDto } from '@/pages/perfil/services/perfil-service'
 import type { SupportMessageDto, SupportTicketDto } from '@/pages/ajuda/services/suporte-service'
@@ -13,6 +13,7 @@ export type SupportTicketAdminDto = SupportTicketDto & {
   internalNote: string | null
   canEdit: boolean
   canReply: boolean
+  canDelete?: boolean
 }
 
 export type SupportSummaryDto = {
@@ -61,4 +62,8 @@ export function replyAsStaff(id: number, text: string) {
 
 export function updateTicket(id: number, input: SupportTicketUpdateDto) {
   return apiPut<SupportTicketAdminDto>(`/api/admin/support/tickets/${id}`, input, { toastSuccess: true })
+}
+
+export function deleteTicket(id: number): Promise<void> {
+  return apiDelete<void>(`/api/admin/support/tickets/${id}`, { toastSuccess: true })
 }

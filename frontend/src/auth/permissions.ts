@@ -26,6 +26,7 @@ export const Permissions = {
   supportView: 'Support.View',
   supportEdit: 'Support.Edit',
   supportReply: 'Support.Reply',
+  supportDelete: 'Support.Delete',
 
   systemJobsView: 'System.Jobs.View',
   systemJobsManage: 'System.Jobs.Manage',
