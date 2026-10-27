@@ -63,7 +63,7 @@ Rules irmãs: `../api/.claude/rules/feed.md` (post, curtida, comentário, quem p
 - **Mídia**: `AppMediaGrid` recebe `url`, `posterUrl`, `durationSeconds` e `state`.
   - Vídeo mostra o poster, o play e a duração. Clicar em qualquer mídia abre o `AppMediaViewer` naquela posição, com navegação entre as mídias prontas do post; vídeo toca no `AppVideoPlayer` (`design-system.md`). O visualizador saiu do `AppDialog` porque o botão de fechar do diálogo ficava em cima do vídeo e o hover dele aparecia dentro da imagem.
   - Mídia em processamento ou que falhou vira um placeholder com o texto de `common.json` (`media.*`).
-- **Enums próprios**: `post-status.ts`, `media-kind.ts` e `media-status.ts`, cada um num arquivo, nunca no service (`mocks.md`).
+- **Enums próprios**: `post-status.ts`, `media-kind.ts` e `media-status.ts`, cada um num arquivo, nunca no service (`CLAUDE.md`, "Onde cada coisa mora").
 
 ## Menções e marcações
 

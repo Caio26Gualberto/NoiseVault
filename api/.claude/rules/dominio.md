@@ -38,7 +38,7 @@ Enum sai para o cliente como **número** (padrão dos projetos de referência); 
 
 ## Ordem dos módulos, e o que cada um liga no frontend
 
-| # | Módulo | Entidades | Telas mockadas que passam a ser reais |
+| # | Módulo | Entidades | Telas que liga no frontend |
 |---|---|---|---|
 | 1 ✅ | Perfil e mídia | campos de perfil na `User`, `UserGenre`, upload de avatar/capa em S3 com URL pública (`armazenamento.md`) | `/perfil/:nickname` (pessoa), `/minha-conta`, busca da topbar |
 | 2 ✅ | Bandas e convites | `Band`, `BandMember`, `BandInvitation`, `BandGenre` | `/bandas/:slug`, convites em `/notificacoes` |
@@ -54,7 +54,7 @@ Enum sai para o cliente como **número** (padrão dos projetos de referência); 
 | 12 ✅ | Notícias (pedido do usuário em 21/10/2026, fora do `IDEIAS.md`) | `NewsArticle`, sem autor: é dado coletado de fora por job, não conteúdo da comunidade (`noticias.md`) | nasce `/noticias`, pública |
 | 13 ✅ | Artista solo (ideia de um amigo do projeto, 24/10/2026) | `Band.Kind` (`EBandKind`), sem entidade nova (`bandas.md`) | `/artistas/:slug`, `/artistas/nova`, `/artistas/:slug/editar`; o "Criar banda" do perfil vira "Novo projeto" com a escolha entre banda e artista solo |
 
-A ordem segue dependência: feed e eventos mostram autor e banda, logo perfil e bandas vêm antes. Cada módulo nasce com a sua rule (`perfil.md`, `bandas.md`, …) e a linha dele na tabela do `CLAUDE.md`, e termina apagando o `mocks.ts` da tela correspondente (`frontend/.claude/rules/mocks.md`).
+A ordem segue dependência: feed e eventos mostram autor e banda, logo perfil e bandas vêm antes. Cada módulo nasce com a sua rule (`perfil.md`, `bandas.md`, …) e a linha dele na tabela do `CLAUDE.md`. Até o módulo 7, cada um terminava apagando o `mocks.ts` da tela correspondente; desde então a tela nasce sobre o endpoint real.
 
 ## O que fica fora de propósito
 

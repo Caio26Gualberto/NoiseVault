@@ -4,7 +4,7 @@
 
 **Noise Vault** — site público da cena do ABC Paulista (metal, punk, hardcore e afins): feed, mural das antigas, eventos, perfis de pessoas e de bandas, notificações. Quem usa é o fã e o músico da região; a administração (moderação, equipe) é a mesma aplicação com permissão. Reescrita do zero do legado "NewLevel" (`C:\Projetos\Pessoal\Alvo\newlevel`), que não serve de referência de código nem de tela.
 
-**Estado da entrega atual:** auth é real (`/entrar` com Google e Facebook, `/entrar/apelido`, `/entrar/vincular`, `/criar-conta`, `/confirmar-email`, `/esqueci-senha`, `/redefinir-senha`, `/definir-senha`, `/bem-vindo`); perfil e mídia também (`/meu-perfil` com avatar, capa e o perfil público, e `/minha-conta` só com o sensível (acesso, senha, notificações, localização), `/perfil/:nickname`, busca de pessoas na topbar — `.claude/rules/perfil.md`); bandas e convites também (`/bandas/:slug`, `/bandas/nova`, `/bandas/:slug/editar` e a seção de convites no painel do sino; o artista solo em `/artistas/:slug`, com "Novo projeto" no perfil e o "Costuma tocar com" entre páginas — `.claude/rules/bandas.md`); o feed também (`/feed`, `/feed/:id`, publicações no perfil e na banda, com fotos e vídeo — `.claude/rules/feed.md`); os eventos também (`/eventos`, detalhe, formulário, seção Shows da banda e o rail do feed — `.claude/rules/eventos.md`). O mural das antigas também (`/mural` e o detalhe, o formulário com permissão, o envio da comunidade em `/mural/enviar` e `/mural/envios`, e a fila da curadoria em `/admin/mural` — `.claude/rules/mural.md`); Vídeos, Fotos e Moderação saíram do produto. O Ensaio também, com moldura própria em `ensaio.noisevault.net` (em dev, `/ensaio`): vitrine "Procura-se banda", ficha de músico, vagas da banda e o "Tenho interesse" (`.claude/rules/ensaio.md`). As notificações também (o balão do sino, como no Facebook, em tempo real por SignalR e a preferência em `/minha-conta` — `.claude/rules/notificacoes.md`). O suporte também (`/ajuda`, "Ajuda e sugestões": dois cartões, bug ou ideia, cada um num stepper guiado com prints e vídeo; `/suporte` com os relatos e a conversa, e a caixa de entrada `/admin/suporte` com permissão `Support.*` — `.claude/rules/suporte.md`). As notícias também (`/noticias`, pública: manchetes do Whiplash.Net com o link para a matéria — `.claude/rules/noticias.md`). Não sobrou tela mockada: o último `mocks.ts` e o `mock-delay.ts` morreram com o suporte (`.claude/rules/mocks.md`). Institucionais (podcasts, sobre, loja) são páginas estáticas, sem backend; a loja parceira é a Metal Music (Santo André, `pages/institucional/loja.tsx`), com links para o site, o WhatsApp e as categorias da loja.
+**Estado da entrega atual:** auth é real (`/entrar` com Google e Facebook, `/entrar/apelido`, `/entrar/vincular`, `/criar-conta`, `/confirmar-email`, `/esqueci-senha`, `/redefinir-senha`, `/definir-senha`, `/bem-vindo`); perfil e mídia também (`/meu-perfil` com avatar, capa e o perfil público, e `/minha-conta` só com o sensível (acesso, senha, notificações, localização), `/perfil/:nickname`, busca de pessoas na topbar — `.claude/rules/perfil.md`); bandas e convites também (`/bandas/:slug`, `/bandas/nova`, `/bandas/:slug/editar` e a seção de convites no painel do sino; o artista solo em `/artistas/:slug`, com "Novo projeto" no perfil e o "Costuma tocar com" entre páginas — `.claude/rules/bandas.md`); o feed também (`/feed`, `/feed/:id`, publicações no perfil e na banda, com fotos e vídeo — `.claude/rules/feed.md`); os eventos também (`/eventos`, detalhe, formulário, seção Shows da banda e o rail do feed — `.claude/rules/eventos.md`). O mural das antigas também (`/mural` e o detalhe, o formulário com permissão, o envio da comunidade em `/mural/enviar` e `/mural/envios`, e a fila da curadoria em `/admin/mural` — `.claude/rules/mural.md`); Vídeos, Fotos e Moderação saíram do produto. O Ensaio também, com moldura própria em `ensaio.noisevault.net` (em dev, `/ensaio`): vitrine "Procura-se banda", ficha de músico, vagas da banda e o "Tenho interesse" (`.claude/rules/ensaio.md`). As notificações também (o balão do sino, como no Facebook, em tempo real por SignalR e a preferência em `/minha-conta` — `.claude/rules/notificacoes.md`). O suporte também (`/ajuda`, "Ajuda e sugestões": dois cartões, bug ou ideia, cada um num stepper guiado com prints e vídeo; `/suporte` com os relatos e a conversa, e a caixa de entrada `/admin/suporte` com permissão `Support.*` — `.claude/rules/suporte.md`). As notícias também (`/noticias`, pública: manchetes do Whiplash.Net com o link para a matéria — `.claude/rules/noticias.md`). Nenhuma tela é mockada. Institucionais (podcasts, sobre, loja) são páginas estáticas, sem backend; a loja parceira é a Metal Music (Santo André, `pages/institucional/loja.tsx`), com links para o site, o WhatsApp e as categorias da loja.
 
 ## Como trabalhar neste repositório
 
@@ -33,8 +33,7 @@ As **decisões por área** vivem em `.claude/rules/`, com front matter `paths:`,
 | `.claude/rules/compartilhamento.md` | `AppShareButton` (menu do sistema no celular, copiar link no computador), onde aparece, o link `/s/...` e o proxy do Vite |
 | `.claude/rules/notificacoes.md` | SignalR só avisando (`api/notifications-hub.ts` + `layout/notifications-provider.tsx`), toast do push, balão do sino, frase pelo `kind` com plural de agrupamento, convites no topo, preferência de e-mail |
 | `.claude/rules/suporte.md` | "Ajuda e sugestões" com os cartões de bug e de ideia, os steppers e a descrição composta, anexos, página de origem, "Meus relatos", conversa, caixa de entrada com triagem e contexto, permissões `Support.*` |
-| `.claude/rules/mocks.md` | histórico: a forma do mock por página e o que morreu ao ligar cada módulo (não há mais mock) |
-| `.claude/rules/perfil.md` | perfil público, edição em `/meu-perfil` separada da `/minha-conta` (o sensível), avatar, editor de capa, busca de pessoas, fixtures compartilhadas dos mocks |
+| `.claude/rules/perfil.md` | perfil público, edição em `/meu-perfil` separada da `/minha-conta` (o sensível), avatar, editor de capa, busca de pessoas |
 
 **Rule nova entra nesta tabela no mesmo commit.**
 
@@ -102,7 +101,7 @@ src/
   pages/
     <secao>/               # uma pasta por tela; cada tela um arquivo
       index.tsx | <tela>.tsx
-      components/ hooks/ services/   # locais da tela; services/mocks.ts enquanto o módulo não existe
+      components/ hooks/ services/   # locais da tela
       <x>-status.ts        # rótulo/tom derivados de enum
 ```
 
@@ -113,7 +112,7 @@ Alias de import: `@/` aponta para `src/` (desvio do "imports relativos" do boile
 - **Página** é `pages/<secao>/index.tsx` ou `pages/<secao>/<tela>.tsx`, com `components/`, `hooks/` e `services/` **locais** ao lado.
 - **Service nunca é promovido.** Um service vive na página dele e fica lá mesmo quando outra página passa a usá-lo — a segunda importa do caminho da primeira. **Não existe `src/services/`.** A exceção é `auth/auth-service.ts`: sessão não pertence a uma página.
 - **Componente global** mora em `src/components/app-*/` e leva o prefixo `App`. **Sem prefixo, é local da página.** `components/ui/*` é primitivo e só os `App*` o importam.
-- **Rótulo, tom e formatação derivados de enum** moram em `pages/<secao>/<x>-status.ts` com `Record<Enum, …>` exaustivo — o build quebra quando o backend ganha estado novo.
+- **Rótulo, tom e formatação derivados de enum** moram em `pages/<secao>/<x>-status.ts` com `Record<Enum, …>` exaustivo — o build quebra quando o backend ganha estado novo. O enum (`const` + tipo) mora no próprio arquivo, nunca no `*-service.ts`: o service importa o enum, e o enum importando o service fecha um ciclo que estoura em `Cannot access X before initialization`.
 - `layout/` é a moldura, não componente reutilizável — por isso fica fora de `components/` e sem prefixo.
 
 ## Camada de API
@@ -134,7 +133,7 @@ Rota e item de menu **nascem do mesmo lugar**. `publicRoutes` (com `guestOnly` p
 
 ## Listagem: paginação e filtros
 
-**Toda listagem nasce paginada** no servidor (ou no mock, pelo `mockPage`). `PagedResult<T>` em `api/types.ts`; `emptyPage<T>()` para o estado inicial. `AppPagination` é o único paginador (`mode: 'pages' | 'loadMore' | 'infinite'`); `defaultPageSize = 10`, teto 100. O estado de página/filtros mora num **hook local** (`hooks/use-<x>-page.ts`) que devolve `{ items, page, …, loading, change<Filtro>, setPage, refresh, reload }`. **Toda mudança de filtro reseta a página para 1** (por isso `changeX`, não `setX`). Busca textual passa por `useDebouncedValue` (350 ms). Ação que muda a lista chama o service e o hook **refetcha** — nunca edita o array local.
+**Toda listagem nasce paginada** no servidor. `PagedResult<T>` em `api/types.ts`; `emptyPage<T>()` para o estado inicial. `AppPagination` é o único paginador (`mode: 'pages' | 'loadMore' | 'infinite'`); `defaultPageSize = 10`, teto 100. O estado de página/filtros mora num **hook local** (`hooks/use-<x>-page.ts`) que devolve `{ items, page, …, loading, change<Filtro>, setPage, refresh, reload }`. **Toda mudança de filtro reseta a página para 1** (por isso `changeX`, não `setX`). Busca textual passa por `useDebouncedValue` (350 ms). Ação que muda a lista chama o service e o hook **refetcha** — nunca edita o array local.
 
 ## Perfis e acesso
 
@@ -144,7 +143,7 @@ Rota e item de menu **nascem do mesmo lugar**. `publicRoutes` (com `guestOnly` p
 
 ## i18n
 
-Só **pt-BR** por enquanto, mas nada de string solta: **nenhuma string de UI é hardcoded.** `grep -rnP "[áéíóúâêôãõç]" src --include=*.ts --include=*.tsx | grep -v src/i18n/ | grep -v api/client.ts | grep -v services/mocks.ts` deve voltar vazio (as fixtures dos mocks são dado de exemplo e morrem com o módulo). Um namespace por área (`auth`, `conta`, `feed`, …) mais `common`, `layout` e `api`. **O `code` do envelope é a chave de tradução** (`api-codes.ts` + `api.json`); mensagem de validação do zod é chave de `common.json` (`validation.*`) traduzida pelo `AppField`.
+Só **pt-BR** por enquanto, mas nada de string solta: **nenhuma string de UI é hardcoded.** `grep -rnP "[áéíóúâêôãõç]" src --include=*.ts --include=*.tsx | grep -v src/i18n/ | grep -v api/client.ts` deve voltar vazio. Um namespace por área (`auth`, `conta`, `feed`, …) mais `common`, `layout` e `api`. **O `code` do envelope é a chave de tradução** (`api-codes.ts` + `api.json`); mensagem de validação do zod é chave de `common.json` (`validation.*`) traduzida pelo `AppField`.
 
 ## UI e tema
 
@@ -153,7 +152,7 @@ Só **pt-BR** por enquanto, mas nada de string solta: **nenhuma string de UI é 
 ## Fluxo canônico de feature
 
 ```
-página → hook (estado local) → service da página (real ou mocks.ts) → base-service → axios
+página → hook (estado local) → service da página → base-service → axios
 → ApiEnvelope → DTO desembrulhado | ApiError + toast global
 ```
 
@@ -162,7 +161,7 @@ A página **não trata o erro**: o toast já saiu; o hook só devolve `false` ou
 ### Checklist: nova página
 
 1. Pasta `src/pages/<secao>/` com `index.tsx` (ou `<tela>.tsx`).
-2. `services/<secao>-service.ts` com DTOs tipados; se o módulo não existe no backend, `services/mocks.ts` com a mesma assinatura (`mocks.md`).
+2. `services/<secao>-service.ts` com os DTOs do backend tipados.
 3. `hooks/use-<algo>-page.ts` com o estado local.
 4. `components/` para o que for só daquela tela; global → `src/components/app-*/`.
 5. Namespace `src/i18n/pt-BR/<secao>.json` registrado em `i18n/index.ts`; codes novos em `api-codes.ts` + `api.json`.
@@ -174,7 +173,6 @@ A página **não trata o erro**: o toast já saiu; o hook só devolve `false` ou
 
 - Decisão de tela não óbvia → rule da área; rule nova → tabela no topo.
 - Code novo → `api-codes.ts` + `api.json`.
-- Mock novo → tabela em `mocks.md`.
 - Armadilha resolvida fica ~~tachada~~; divergência doc↔código se registra, não se apaga.
 
 ## Convenções gerais
@@ -184,21 +182,20 @@ A página **não trata o erro**: o toast já saiu; o hook só devolve `false` ou
 - Código em inglês; a URL que a pessoa vê fica em português (`/criar-conta`, `/eventos`).
 - Enum do backend chega como número e vira `const` + `Record` exaustivo na página dona.
 - `.env` não vai para o Git (só `.env.example`).
-- Mock é andaime descartável: ao ligar o endpoint real, o `mocks.ts` morre no mesmo commit.
 
 ## Como o agente trabalha aqui
 
 ### Antes de escrever código
 
 1. Ler "Sobre este projeto", este arquivo e a rule da área. Tela ligada a backend: ler também a rule irmã em `../api/.claude/rules/` — a regra é do backend, a tela só reflete.
-2. Confirmar se o endpoint existe. Se não existe, a tela nasce com `mocks.ts` e o DTO do mock é a proposta de contrato; se existe, o DTO é o do backend.
+2. Confirmar que o endpoint existe (ordem api → frontend). Se não existe, ele vem antes da tela; o DTO é sempre o do backend.
 3. Escolher a referência: formulário de auth → `pages/criar-conta`; formulário de criação ou edição → `AppFormLayout` com prévia ao vivo (`pages/eventos/form.tsx`, `pages/ensaio/minha-ficha.tsx`); estados de sucesso → `pages/confirmar-email`; conta → `pages/minha-conta`.
 
 ### Durante
 
 - Copiar a estrutura da referência. Nada de arquitetura paralela (segundo cliente HTTP, segundo paginador, segundo toast, segunda paleta).
 - Cada string no i18n; cada cor no tema; cada botão `AppButton`; cada filtro resetando a página.
-- Não editar array local para simular resultado — refetch (o mock muta a fixture).
+- Não editar array local para simular resultado — refetch.
 
 ### Depois
 

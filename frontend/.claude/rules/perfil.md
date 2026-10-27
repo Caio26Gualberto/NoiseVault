@@ -13,7 +13,7 @@ paths:
 
 Rule irmã: `../api/.claude/rules/perfil-e-midia.md` (campos, validação, codes) e `armazenamento.md` (limites de imagem). A regra é do backend; aqui fica como a tela reflete.
 
-## O que é real e o que ainda é mock
+## De onde vem cada parte
 
 | Tela | Fonte |
 |---|---|

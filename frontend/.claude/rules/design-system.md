@@ -108,7 +108,7 @@ O módulo Ensaio tem uma camada própria de tokens, só dentro de `.ensaio`: pap
 
 ## Roteiro de verificação
 
-1. `npm run build` limpo; greps de cor, de `ui/button` fora de `app-button` e de acentuação fora de `i18n/` (exceto `api/client.ts` e os `services/mocks.ts`, cujas fixtures são dado de exemplo) vazios.
+1. `npm run build` limpo; greps de cor, de `ui/button` fora de `app-button` e de acentuação fora de `i18n/` (exceto `api/client.ts`) vazios.
 2. Abrir `/entrar` a 390px e a 1440px: card centralizado, sem scroll horizontal, foco visível ao navegar por Tab.
 3. Trocar o tema no `user-menu`: nada pisca ao recarregar; os dois temas mostram a mesma hierarquia.
 4. Simular `prefers-reduced-motion`: a entrada de página não anima.
