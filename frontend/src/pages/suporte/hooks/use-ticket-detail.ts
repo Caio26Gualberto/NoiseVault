@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 
 import { usePolling } from '@/hooks/use-polling'
 import { MediaStatus } from '@/pages/feed/media-status'
-import type { SupportTicketDto } from '@/pages/reportar-problema/services/suporte-service'
+import type { SupportTicketDto } from '@/pages/ajuda/services/suporte-service'
 
 const processingPollMs = 5000
 

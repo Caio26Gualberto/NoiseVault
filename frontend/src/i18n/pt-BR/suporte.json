@@ -1,18 +1,27 @@
 {
-  "title": "Reportar problema",
-  "description": "Achou um bug ou quer sugerir algo? Conta pra gente: o relato chega direto para quem cuida do Noise Vault.",
+  "title": "Como podemos ajudar?",
+  "description": "Conte o que deu errado ou mande uma ideia. Chega direto para quem cuida do Noise Vault, e a resposta aparece nas suas notificações.",
   "myTickets": "Meus relatos",
   "submit": "Enviar relato",
   "uploading": "Enviando anexos…",
   "fields": {
-    "tags": "Tipo",
-    "tagsHint": "Marque quantos quiser. O aparelho já vem marcado pelo tamanho da sua tela.",
     "title": "Resumo",
     "titlePlaceholder": "Ex.: o like não atualiza o contador",
-    "description": "O que aconteceu",
-    "descriptionPlaceholder": "Descreva o que você fez, o que esperava e o que aconteceu.",
+    "suggestionTitlePlaceholder": "Ex.: avisar quando uma banda que eu sigo marcar show",
     "areas": "Em quais páginas (opcional)",
-    "areasHint": "Nem sempre o problema está na última página que você abriu. Marque onde ele aparece."
+    "areasHint": "Nem sempre o problema está na última página que você abriu. Marque onde ele aparece.",
+    "devices": "Em qual aparelho",
+    "doing": "O que você fez",
+    "doingPlaceholder": "Ex.: abri um evento, toquei em \"Vou\" e voltei para a agenda.",
+    "expected": "O que você esperava (opcional)",
+    "expectedPlaceholder": "Ex.: que o evento aparecesse na aba dos meus shows.",
+    "happened": "O que aconteceu",
+    "happenedPlaceholder": "Ex.: a aba continuou vazia, mesmo depois de recarregar a página.",
+    "idea": "A ideia",
+    "ideaPlaceholder": "Ex.: receber um aviso quando uma banda que eu acompanho marcar um show perto de mim.",
+    "reason": "Por que ajudaria (opcional)",
+    "reasonPlaceholder": "Ex.: eu ia parar de perder show de banda pequena que só divulga em cima da hora.",
+    "suggestionAreas": "Em qual parte do site (opcional)"
   },
   "tags": {
     "bug": "Bug",
@@ -67,7 +76,8 @@
     "withoutOrigin": "Junto com o relato vão o seu navegador e o tamanho da tela, para a gente conseguir reproduzir."
   },
   "sent": {
-    "title": "Relato enviado",
+    "bugTitle": "Relato enviado",
+    "suggestionTitle": "Sugestão enviada",
     "description": "Protocolo {{protocol}}. A resposta chega aqui no Noise Vault, nas suas notificações.",
     "follow": "Acompanhar relato",
     "back": "Voltar ao feed"
@@ -137,14 +147,88 @@
       "unknown": "Não informado"
     }
   },
-  "aside": {
-    "title": "O que acontece depois",
-    "description": "A equipe recebe o relato na hora e responde por aqui. Você acompanha tudo em Meus relatos."
+  "kinds": {
+    "bug": {
+      "title": "Algo deu errado",
+      "description": "Uma tela que não abre, um botão que não funciona, algo que sumiu ou apareceu errado."
+    },
+    "suggestion": {
+      "title": "Tenho uma ideia",
+      "description": "Algo novo que você gostaria de ver aqui ou um jeito de melhorar o que já existe."
+    }
   },
-  "sections": {
-    "kind": "Que tipo de problema",
-    "where": "Onde aconteceu",
-    "what": "O que aconteceu",
-    "attachments": "Prints e vídeo"
+  "wizard": {
+    "back": "Voltar",
+    "next": "Continuar",
+    "exitTitle": "Descartar o que você escreveu?",
+    "exitMessage": "Se voltar agora, o que você preencheu se perde.",
+    "exitConfirm": "Descartar"
+  },
+  "steps": {
+    "bug": {
+      "where": {
+        "label": "Onde",
+        "title": "Onde aconteceu?",
+        "description": "Marque as páginas em que o problema aparece e o aparelho que você estava usando. Já deixamos marcado o que deu para adivinhar."
+      },
+      "doing": {
+        "label": "O que fez",
+        "title": "O que você estava fazendo?",
+        "description": "Conte o passo a passo até o problema aparecer, como se explicasse para um amigo."
+      },
+      "result": {
+        "label": "O que aconteceu",
+        "title": "O que você esperava e o que aconteceu?",
+        "description": "A diferença entre os dois ajuda a gente a achar o erro."
+      },
+      "attachments": {
+        "label": "Prints",
+        "title": "Tem print ou vídeo?",
+        "description": "Opcional, mas ajuda muito: uma foto da tela ou uma gravação mostrando o problema."
+      },
+      "review": {
+        "label": "Enviar",
+        "title": "Revise e envie",
+        "description": "Dê um nome curto para o relato e confira o que vai junto."
+      }
+    },
+    "suggestion": {
+      "idea": {
+        "label": "A ideia",
+        "title": "Qual é a sua ideia?",
+        "description": "Dê um nome curto e conte como você imagina que funcionaria."
+      },
+      "reason": {
+        "label": "Por quê",
+        "title": "Por que ajudaria?",
+        "description": "Conte quem ganha com isso e em qual parte do site entraria. As duas respostas são opcionais."
+      },
+      "attachments": {
+        "label": "Imagens",
+        "title": "Quer mostrar com imagem?",
+        "description": "Opcional: um print, um rascunho ou um exemplo de outro site."
+      },
+      "review": {
+        "label": "Enviar",
+        "title": "Revise e envie",
+        "description": "Confira o que vai junto antes de enviar."
+      }
+    }
+  },
+  "review": {
+    "title": "O que vai no relato",
+    "edit": "Editar",
+    "empty": "Não respondido",
+    "where": "Onde",
+    "attachmentsLabel": "Prints e vídeo",
+    "attachments_one": "1 arquivo",
+    "attachments_other": "{{count}} arquivos"
+  },
+  "compose": {
+    "doing": "O que eu estava fazendo",
+    "expected": "O que eu esperava",
+    "happened": "O que aconteceu",
+    "idea": "A ideia",
+    "reason": "Por que ajudaria"
   }
 }

@@ -76,7 +76,7 @@ Pedido do usuário em 15/10/2026: "é importante para ninguém criar uma banda n
 - **O que de fato fecha a porta para a maldade é o nome.** Criar ou renomear uma banda com o mesmo nome (sem diferenciar maiúsculas) de uma banda **verificada** é recusado com `BAND_NAME_RESERVED` (409). Na aprovação, se já houver outra verificada com o mesmo nome, `BAND_NAME_ALREADY_VERIFIED` (409): a equipe decide qual é a de verdade antes. Banda não verificada continua podendo ter homônima (slug `-2`), porque banda pequena com nome repetido existe de verdade.
 - **Avisos**: quem tem `Bands.Verifications.View` recebe a notificação `BandVerificationRequested` (menos quem pediu) **e um e-mail** na caixa de `Email:VerificationInbox` (pedido do usuário: "novos pedidos chegam no meu e-mail"), enviado por job como o convite de banda (`notificacoes.md`, `email.md`). Os Owners recebem `BandVerificationApproved`, `BandVerificationRejected` (o motivo aparece na página da banda, em `verification.rejectionReason`) ou `BandVerificationRevoked`.
 - **No `BandProfileDto`**, `verification` (`status`, `requestedAt`, `reviewedAt`, `rejectionReason`) é o último pedido, e só vai para **Owner**; para os outros é nulo. É o que a página usa para mostrar "pedir", "em análise" ou "recusado: motivo".
-- **Denúncia de perfil falso** não ganhou tela própria: o "Reportar problema" com a área Bandas (`suporte.md`) já serve.
+- **Denúncia de perfil falso** não ganhou tela própria: o "Algo deu errado" do "Ajuda e sugestões", com a área Bandas (`suporte.md`), já serve.
 
 ## Slug: gerado uma vez, nunca muda
 

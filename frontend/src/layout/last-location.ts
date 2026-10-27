@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 
-export const reportProblemPath = '/reportar-problema'
+export const helpPath = '/ajuda'
 
 let lastPath: string | null = null
 
@@ -13,6 +13,6 @@ export function useRememberLocation() {
   const { pathname } = useLocation()
 
   useEffect(() => {
-    if (pathname !== reportProblemPath) lastPath = pathname
+    if (pathname !== helpPath) lastPath = pathname
   }, [pathname])
 }

@@ -5,7 +5,7 @@ import type { BandInvitationStatus } from '@/pages/bandas/band-invitation-status
 import type { BandPartnershipStatus } from '@/pages/bandas/band-partnership-status'
 import type { BandSummaryDto } from '@/pages/bandas/services/bandas-service'
 import type { ProfileSummaryDto } from '@/pages/perfil/services/perfil-service'
-import type { SupportTicketStatus } from '@/pages/reportar-problema/support-enums'
+import type { SupportTicketStatus } from '@/pages/ajuda/support-enums'
 import type { Instrument } from '@/pages/ensaio/ensaio-status'
 
 import type { NotificationKind } from '../notification-kind'

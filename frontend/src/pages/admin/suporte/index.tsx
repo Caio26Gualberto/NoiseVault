@@ -23,9 +23,9 @@ import {
   supportPriorityDot,
   supportPriorityTone,
   useSupportLabels,
-} from '@/pages/reportar-problema/support-enums'
-import type { SupportArea, SupportTag } from '@/pages/reportar-problema/support-enums'
-import { adminTicketPath } from '@/pages/reportar-problema/support-paths'
+} from '@/pages/ajuda/support-enums'
+import type { SupportArea, SupportTag } from '@/pages/ajuda/support-enums'
+import { adminTicketPath } from '@/pages/ajuda/support-paths'
 import { TicketStatusBadge } from '@/pages/suporte/components/ticket-summary'
 
 import { useSuporteAdminPage } from './hooks/use-suporte-admin-page'

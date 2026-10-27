@@ -13,6 +13,9 @@
     "previous": "Anterior",
     "next": "Próxima"
   },
+  "stepper": {
+    "progress": "Passo {{current}} de {{total}}"
+  },
   "validation": {
     "required": "Campo obrigatório.",
     "email": "Informe um e-mail válido.",
@@ -33,10 +36,9 @@
     "archiveDayNeedsMonth": "Para informar o dia, escolha o mês.",
     "archiveDay": "Esse dia não existe nesse mês.",
     "supportTitle": "Resuma em 5 a 120 caracteres.",
-    "supportDescription": "Conte com pelo menos 20 caracteres (até 5000).",
-    "supportTags": "Marque pelo menos um tipo.",
     "cityRequired": "Escolha a cidade ou informe uma fora do Brasil.",
-    "dateTime": "Use dia, mês, ano e hora, como 25/10/2026 21:00."
+    "dateTime": "Use dia, mês, ano e hora, como 25/10/2026 21:00.",
+    "supportAnswer": "Escreva pelo menos 10 caracteres."
   },
   "city": {
     "searchPlaceholder": "Buscar qualquer cidade do Brasil…",

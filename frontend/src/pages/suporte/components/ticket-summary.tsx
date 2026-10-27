@@ -1,14 +1,15 @@
 import { useTranslation } from 'react-i18next'
 
 import { AppBadge } from '@/components/app-badge'
+import { AppMarkdown } from '@/components/app-markdown'
 import { AppMediaGrid } from '@/components/app-media-grid'
 import type { MediaItem } from '@/components/app-media-grid'
 import { formatDateTime } from '@/lib/format'
 import { MediaKind } from '@/pages/feed/media-kind'
 import { MediaStatus } from '@/pages/feed/media-status'
 import type { MediaDto } from '@/pages/feed/services/media-service'
-import type { SupportTicketDto } from '@/pages/reportar-problema/services/suporte-service'
-import { supportStatusTone, useSupportLabels } from '@/pages/reportar-problema/support-enums'
+import type { SupportTicketDto } from '@/pages/ajuda/services/suporte-service'
+import { supportStatusTone, useSupportLabels } from '@/pages/ajuda/support-enums'
 
 function toMediaItem(media: MediaDto): MediaItem {
   return {
@@ -37,7 +38,7 @@ export function TicketSummary({ ticket }: { ticket: SupportTicketDto }) {
           <AppBadge key={tag}>{labels.tag(tag)}</AppBadge>
         ))}
       </div>
-      <p className="whitespace-pre-line break-words">{ticket.description}</p>
+      <AppMarkdown text={ticket.description} />
       {ticket.areas.length > 0 ? (
         <p className="text-sm text-muted-foreground">
           {t('detail.areas')}: {ticket.areas.map(labels.area).join(', ')}

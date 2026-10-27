@@ -18,7 +18,7 @@ Módulo 7 da ordem em `dominio.md`, **redefinido pelo usuário em 14/10/2026**. 
 ## Modelo
 
 - **`SupportTicket`** (`EntityBase`):
-  - `ReporterUserId`, `Title` (5–120), `Description` (20–5.000);
+  - `ReporterUserId`, `Title` (5–120), `Description` (20–5.000). Desde 27/10/2026 o front monta a descrição com as respostas das perguntas guiadas, em Markdown com subtítulos `##` (`frontend/.claude/rules/suporte.md`). Para a API continua sendo texto livre: ela não valida nem interpreta essa estrutura;
   - `Status` (`ESupportTicketStatus`: `Open` 0, `InProgress` 1, `Resolved` 2, `Dismissed` 3) e `Priority` (`ESupportTicketPriority`: `Low` 0, `Normal` 1, `High` 2; nasce `Normal`);
   - **contexto capturado pelo front**, que a pessoa não preenche: `OriginPath?` (a rota de onde ela veio, até 300, só o caminho, sem query string), `UserAgent?` (até 500), `ViewportWidth?` e `ViewportHeight?`;
   - `InternalNote?` (até 5.000): anotação só da equipe, nunca sai para quem reportou;

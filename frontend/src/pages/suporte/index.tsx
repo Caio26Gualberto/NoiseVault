@@ -11,12 +11,12 @@ import { AppEmptyState } from '@/components/app-empty-state'
 import { AppPageHeader } from '@/components/app-page-header'
 import { AppPagination, defaultPageSize } from '@/components/app-pagination'
 import { AppSkeleton } from '@/components/app-skeleton'
-import { reportProblemPath } from '@/layout/last-location'
+import { helpPath } from '@/layout/last-location'
 import { formatRelative } from '@/lib/format'
-import { getMyTickets } from '@/pages/reportar-problema/services/suporte-service'
-import type { SupportTicketDto } from '@/pages/reportar-problema/services/suporte-service'
-import { isSupportTicketOpen } from '@/pages/reportar-problema/support-enums'
-import { myTicketPath } from '@/pages/reportar-problema/support-paths'
+import { getMyTickets } from '@/pages/ajuda/services/suporte-service'
+import type { SupportTicketDto } from '@/pages/ajuda/services/suporte-service'
+import { isSupportTicketOpen } from '@/pages/ajuda/support-enums'
+import { myTicketPath } from '@/pages/ajuda/support-paths'
 
 import { TicketStatusBadge } from './components/ticket-summary'
 
@@ -51,7 +51,7 @@ export function SuportePage() {
         description={t('mine.description')}
         actions={
           <AppButton asChild>
-            <Link to={reportProblemPath}>
+            <Link to={helpPath}>
               <PlusIcon />
               {t('mine.new')}
             </Link>

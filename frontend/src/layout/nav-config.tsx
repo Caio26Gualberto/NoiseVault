@@ -58,7 +58,8 @@ import { MinhaContaPage } from '../pages/minha-conta'
 import { MeuPerfilPage } from '../pages/meu-perfil'
 import { PerfilPage } from '../pages/perfil'
 import { RedefinirSenhaPage } from '../pages/redefinir-senha'
-import { ReportarProblemaPage } from '../pages/reportar-problema'
+import { AjudaPage } from '../pages/ajuda'
+import { helpPath } from './last-location'
 import { SuporteAdminPage } from '../pages/admin/suporte'
 import { SuporteAdminDetalhePage } from '../pages/admin/suporte/detalhe'
 import { SuportePage } from '../pages/suporte'
@@ -158,10 +159,10 @@ export const navSections: NavSection[] = [
     labelKey: 'layout:nav.institutional',
     items: [
       {
-        path: '/reportar-problema',
-        labelKey: 'layout:nav.report',
+        path: helpPath,
+        labelKey: 'layout:nav.help',
         icon: LifeBuoyIcon,
-        element: <ReportarProblemaPage />,
+        element: <AjudaPage />,
         subRoutes: ['/suporte', '/suporte/:id'],
       },
       { path: '/podcasts', labelKey: 'layout:nav.podcasts', icon: HeadphonesIcon, element: <PodcastsPage /> },

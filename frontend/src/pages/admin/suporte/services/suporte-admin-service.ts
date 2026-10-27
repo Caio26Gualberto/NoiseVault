@@ -1,8 +1,8 @@
 import { apiGet, apiPost, apiPut } from '@/api/base-service'
 import type { PagedRequest, PagedResult } from '@/api/types'
 import type { ProfileSummaryDto } from '@/pages/perfil/services/perfil-service'
-import type { SupportMessageDto, SupportTicketDto } from '@/pages/reportar-problema/services/suporte-service'
-import type { SupportArea, SupportTag, SupportTicketPriority, SupportTicketStatus } from '@/pages/reportar-problema/support-enums'
+import type { SupportMessageDto, SupportTicketDto } from '@/pages/ajuda/services/suporte-service'
+import type { SupportArea, SupportTag, SupportTicketPriority, SupportTicketStatus } from '@/pages/ajuda/support-enums'
 
 export type SupportTicketAdminDto = SupportTicketDto & {
   reporter: ProfileSummaryDto

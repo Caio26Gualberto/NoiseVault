@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 
 import type { PagedRequest, PagedResult } from '@/api/types'
-import type { SupportMessageDto } from '@/pages/reportar-problema/services/suporte-service'
+import type { SupportMessageDto } from '@/pages/ajuda/services/suporte-service'
 
 const messagesPageSize = 100
 
