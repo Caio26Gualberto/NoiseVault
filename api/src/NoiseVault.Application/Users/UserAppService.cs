@@ -4,6 +4,7 @@ using NoiseVault.Application.Abstractions.Authorization;
 using NoiseVault.Application.Abstractions.Repository;
 using NoiseVault.Application.Abstractions.Repository.UnitOfWork;
 using NoiseVault.Application.Auth;
+using NoiseVault.Application.Common.Time;
 using NoiseVault.Application.Interfaces;
 using NoiseVault.Application.Pagination;
 using NoiseVault.Application.Response;
@@ -28,6 +29,7 @@ namespace NoiseVault.Application.Users
         private readonly IPermissionManager _permissionManager;
         private readonly ICurrentUser _currentUser;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IFileStorage _fileStorage;
 
         public UserAppService(
             IRepository<User> repository,
@@ -37,7 +39,8 @@ namespace NoiseVault.Application.Users
             IRoleManagementService roleManagementService,
             IPermissionManager permissionManager,
             ICurrentUser currentUser,
-            IUnitOfWork unitOfWork)
+            IUnitOfWork unitOfWork,
+            IFileStorage fileStorage)
         {
             _repository = repository;
             _auditRepository = auditRepository;
@@ -47,6 +50,7 @@ namespace NoiseVault.Application.Users
             _permissionManager = permissionManager;
             _currentUser = currentUser;
             _unitOfWork = unitOfWork;
+            _fileStorage = fileStorage;
         }
 
         public async Task<Result<PagedResultDto<UserDto>>> GetAll(UserListQueryDto query)
@@ -57,7 +61,8 @@ namespace NoiseVault.Application.Users
 
             var options = new QueryOptions<User>
             {
-                Predicate = u => string.IsNullOrEmpty(search) || u.Name.ToLower().Contains(search) || u.Nickname.Contains(search),
+                Predicate = u => u.IsActive && (string.IsNullOrEmpty(search) || u.Name.ToLower().Contains(search) || u.Nickname.Contains(search)),
+                Includes = [u => u.City!],
                 OrderBy = q => q.OrderByDescending(u => u.CreatedAt).ThenByDescending(u => u.Id),
                 Skip = query.Skip,
                 Take = query.PageSize,
@@ -66,10 +71,34 @@ namespace NoiseVault.Application.Users
 
             var totalCount = await _repository.CountAsync(options);
             var users = await _repository.ListAsync(options);
+            var methods = await _authService.GetSignInMethodsAsync(users.Select(u => u.Id).ToList());
 
-            var page = PagedResultDto<UserDto>.Create(users.Select(Map).ToList(), query.Page, query.PageSize, totalCount);
+            var page = PagedResultDto<UserDto>.Create(
+                users.Select(u => Map(u, methods.GetValueOrDefault(u.Id))).ToList(),
+                query.Page,
+                query.PageSize,
+                totalCount);
 
             return Result<PagedResultDto<UserDto>>.Ok(page, "USERS_LOADED", "Users loaded successfully");
+        }
+
+        public async Task<Result<UserSignupSummaryDto>> Summary()
+        {
+            var now = DateTime.UtcNow;
+            var todayStart = AppTime.TodayStartUtc;
+            var last7Start = now.AddDays(-7);
+            var last30Start = now.AddDays(-30);
+
+            var summary = new UserSignupSummaryDto
+            {
+                Today = await _repository.CountAsync(new QueryOptions<User> { Predicate = u => u.IsActive && u.CreatedAt >= todayStart }),
+                Last7Days = await _repository.CountAsync(new QueryOptions<User> { Predicate = u => u.IsActive && u.CreatedAt >= last7Start }),
+                Last30Days = await _repository.CountAsync(new QueryOptions<User> { Predicate = u => u.IsActive && u.CreatedAt >= last30Start }),
+                Total = await _repository.CountAsync(new QueryOptions<User> { Predicate = u => u.IsActive }),
+                Unconfirmed = await _authService.CountUnconfirmedAsync(),
+            };
+
+            return Result<UserSignupSummaryDto>.Ok(summary, "USER_SIGNUP_SUMMARY_FOUND", "Signup summary found");
         }
 
         public async Task<Result<UserDto>> Get(int userId)
@@ -77,13 +106,16 @@ namespace NoiseVault.Application.Users
             var user = await _repository.FirstOrDefaultAsync(new QueryOptions<User>
             {
                 Predicate = u => u.Id == userId,
+                Includes = [u => u.City!],
                 AsNoTracking = true,
             });
 
             if (user == null)
                 return Result<UserDto>.Fail(new Error("USER_NOT_FOUND", "User not found", ErrorType.NotFound));
 
-            return Result<UserDto>.Ok(Map(user), "USER_FOUND", "User found successfully");
+            var methods = await _authService.GetSignInMethodsAsync(user.Id);
+
+            return Result<UserDto>.Ok(Map(user, methods), "USER_FOUND", "User found successfully");
         }
 
         public async Task<Result<InvitedUserDto>> Invite(InviteUserInputDto input)
@@ -304,7 +336,7 @@ namespace NoiseVault.Application.Users
                 : prefix + original[..available];
         }
 
-        private static UserDto Map(User user) => new()
+        private UserDto Map(User user, SignInMethods? methods) => new()
         {
             Id = user.Id,
             Name = user.Name,
@@ -312,6 +344,11 @@ namespace NoiseVault.Application.Users
             Email = user.Email,
             IsActive = user.IsActive,
             CreatedAt = user.CreatedAt,
+            AvatarUrl = _fileStorage.PublicUrl(user.AvatarKey),
+            CityName = user.City?.Name ?? user.CityName,
+            EmailConfirmed = methods?.EmailConfirmed ?? false,
+            HasPassword = methods?.HasPassword ?? false,
+            Providers = methods?.Providers.Select(p => (int)p).ToList() ?? [],
         };
     }
 }

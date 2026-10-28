@@ -112,6 +112,16 @@ Quem entra por convite nasce com `IsNeededChangePassword = true`, que vira o cla
 
 Duas guardas: `CANNOT_DELETE_SELF` e `LAST_ADMIN_PROTECTED`.
 
+## Lista de usuários do admin: quem está se cadastrando
+
+Pedido do usuário em 27/10/2026, depois do anúncio do site: ver quantas pessoas se cadastram e quem são. `GET /api/admin/users` e `GET /api/admin/users/summary` ficam atrás de `Authorization.Users.View` (só o Admin hoje). A tela é a `/admin/usuarios` (`../frontend/.claude/rules/usuarios-admin.md`).
+
+- **Só conta ativa.** A lista e o resumo filtram `IsActive`. Conta revogada tem tombstone no e-mail e no nickname, não é cadastro de ninguém e só polui a contagem.
+- **A linha** traz nome, nickname, e-mail, avatar, cidade (`City.Name`, senão o `CityName` livre), data do cadastro e três campos do Identity: `emailConfirmed`, `hasPassword` e `providers` (`EExternalProvider`). Eles mostram se o login social está sendo usado e quem parou antes de confirmar o e-mail.
+- **Identity em lote, sem N+1.** `IAuthenticateService.GetSignInMethodsAsync(userIds)` faz duas consultas para a página inteira, uma em `ApplicationUser` e uma em `UserLogins`. O método de um usuário só continua servindo a "Minha conta".
+- **Resumo** (`USER_SIGNUP_SUMMARY_FOUND`): `today`, `last7Days`, `last30Days`, `total` e `unconfirmed`. "Hoje" é o dia em `America/Sao_Paulo` (`AppTime.TodayStartUtc`), porque meia-noite UTC é 21h aqui e o anúncio da noite cairia no dia seguinte. 7 e 30 dias contam para trás a partir de agora. `unconfirmed` conta os `ApplicationUser` sem `EmailConfirmed`. Conta revogada não entra, porque o `ApplicationUser` dela foi purgado.
+- **E-mail** só nessa resposta, que já exige a permissão. A busca continua em `Name` e `Nickname`, nunca no e-mail (a colação, acima). Nada disso vai para log ou URL.
+
 ## Papéis e permissões: Admin é implícito, o resto é claim
 
 O primeiro uso de negócio das permissões do catálogo é o mural das antigas: `Archive.Create`, `Archive.Edit`, `Archive.Delete` e `Archive.Review` (a fila de envios da comunidade; grupo "Mural das antigas"). Nenhum papel padrão as recebe; quem publica é o `Admin` ou um papel criado pelo painel (`mural.md`). O suporte veio depois, com `Support.View`, `Support.Edit`, `Support.Reply` e `Support.Delete` (grupo "Suporte", `suporte.md`), e trouxe `IPermissionChecker.UsersGrantedAsync`: a lista de quem tem uma permissão (papel `Admin`, claim de papel ou claim de usuário), que a notificação de ticket novo usa para achar a equipe. A verificação de banda (15/10/2026) acrescentou `Bands.Verifications.View` e `Bands.Verify` (grupo "Bandas", `bandas.md`), que usam o mesmo `UsersGrantedAsync` para avisar quem revisa.
@@ -154,3 +164,4 @@ Com `docker compose up -d` e a API no ar (`Email:Provider=Smtp` apontando para o
 9. `POST /api/auth/logout` → `LOGOUT_SUCCESS` e o cookie apagado (`expires=Thu, 01 Jan 1970`); o refresh anterior → `INVALID_TOKEN`.
 10. Login `caiogualbertodev@outlook.com` / `12341234` → `GET /api/admin/users?search=cai` → 200 com o usuário; `POST /api/admin/users/invite {name, email, roleId}` → `USER_INVITED` e o e-mail de convite no Mailpit; login do convidado → `GET /api/admin/users` → 403 `PASSWORD_CHANGE_REQUIRED`; `set-initial-password` → tokens; repetir → `PASSWORD_CHANGE_NOT_PENDING`.
 11. `DELETE /api/admin/users/{id}` do próprio → `CANNOT_DELETE_SELF`; do último Admin → `LAST_ADMIN_PROTECTED`; de outro → `USER_DELETED`, o login dele vira `INVALID_CREDENTIALS`, e registrar de novo o mesmo e-mail e nickname funciona (tombstone).
+12. Admin → `GET /api/admin/users/summary` → `USER_SIGNUP_SUMMARY_FOUND` com `today`, `last7Days`, `last30Days`, `total` e `unconfirmed`; registrar uma conta sem confirmar → `today`, `total` e `unconfirmed` sobem 1. `GET /api/admin/users` → a conta aparece primeiro com `emailConfirmed: false`, `hasPassword: true` e `providers: []`; uma conta de Google traz `providers: [1]`; uma conta revogada some da lista e do `total`. Conta comum → 403 nos dois.

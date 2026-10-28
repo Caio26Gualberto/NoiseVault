@@ -169,6 +169,39 @@ namespace NoiseVault.Infra.Data.Identity.AuthenticateService
             return new SignInMethods(await _userManager.HasPasswordAsync(user), user.EmailConfirmed, providers);
         }
 
+        public async Task<IReadOnlyDictionary<int, SignInMethods>> GetSignInMethodsAsync(IReadOnlyCollection<int> userIds)
+        {
+            if (userIds.Count == 0) return new Dictionary<int, SignInMethods>();
+
+            var accounts = await _userManager.Users
+                .AsNoTracking()
+                .Where(a => userIds.Contains(a.UserId))
+                .Select(a => new { a.Id, a.UserId, HasPassword = a.PasswordHash != null, a.EmailConfirmed })
+                .ToListAsync();
+
+            var accountIds = accounts.Select(a => a.Id).ToList();
+            var logins = await _context.UserLogins
+                .AsNoTracking()
+                .Where(l => accountIds.Contains(l.UserId))
+                .Select(l => new { l.UserId, l.LoginProvider })
+                .ToListAsync();
+
+            return accounts.ToDictionary(
+                a => a.UserId,
+                a => new SignInMethods(
+                    a.HasPassword,
+                    a.EmailConfirmed,
+                    logins
+                        .Where(l => l.UserId == a.Id)
+                        .Select(l => Enum.TryParse<EExternalProvider>(l.LoginProvider, out var provider) ? provider : (EExternalProvider?)null)
+                        .OfType<EExternalProvider>()
+                        .Distinct()
+                        .ToList()));
+        }
+
+        public Task<int> CountUnconfirmedAsync() =>
+            _userManager.Users.CountAsync(a => !a.EmailConfirmed);
+
         public async Task ClaimUnconfirmedAccountAsync(int userId)
         {
             var user = await FindByUserIdAsync(userId);

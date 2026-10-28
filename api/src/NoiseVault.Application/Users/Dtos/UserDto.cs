@@ -8,5 +8,10 @@ namespace NoiseVault.Application.Users.Dtos
         public string Email { get; set; } = string.Empty;
         public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }
+        public string? AvatarUrl { get; set; }
+        public string? CityName { get; set; }
+        public bool EmailConfirmed { get; set; }
+        public bool HasPassword { get; set; }
+        public List<int> Providers { get; set; } = [];
     }
 }

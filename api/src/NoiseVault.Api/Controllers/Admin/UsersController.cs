@@ -24,6 +24,14 @@ namespace NoiseVault.Api.Controllers.Admin
             return ToResponse(result);
         }
 
+        [HttpGet("summary")]
+        [Authorize(Policy = Permissions.Authorization.UsersView)]
+        public async Task<ActionResult> Summary()
+        {
+            var result = await _userAppService.Summary();
+            return ToResponse(result);
+        }
+
         [HttpGet("{userId:int}")]
         [Authorize(Policy = Permissions.Authorization.UsersView)]
         public async Task<ActionResult> Get(int userId)

@@ -28,6 +28,8 @@ namespace NoiseVault.Domain.Interfaces.Authenticate
         Task<bool> AddLoginAsync(int userId, EExternalProvider provider, string providerKey);
         Task<bool> RemoveLoginAsync(int userId, EExternalProvider provider);
         Task<SignInMethods> GetSignInMethodsAsync(int userId);
+        Task<IReadOnlyDictionary<int, SignInMethods>> GetSignInMethodsAsync(IReadOnlyCollection<int> userIds);
+        Task<int> CountUnconfirmedAsync();
         Task ClaimUnconfirmedAccountAsync(int userId);
         Task MarkEmailConfirmedAsync(int userId);
         Task<EPasswordChangeResult> CreatePasswordAsync(int userId, string newPassword);

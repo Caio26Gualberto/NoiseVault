@@ -14,7 +14,7 @@ As **decisões** — o porquê de cada regra — vivem em `.claude/rules/`, um a
 
 | Arquivo | Cobre |
 |---|---|
-| `.claude/rules/auth-e-contas.md` | registro com confirmação de e-mail, login, esqueci/redefinir senha, nickname, refresh atômico, refresh no cookie `HttpOnly` com CSRF barrado por `SameSite` e origem, convite, revogação, papéis e permissões |
+| `.claude/rules/auth-e-contas.md` | registro com confirmação de e-mail, login, esqueci/redefinir senha, nickname, refresh atômico, refresh no cookie `HttpOnly` com CSRF barrado por `SameSite` e origem, convite, revogação, lista de usuários do admin com o resumo de cadastros, papéis e permissões |
 | `.claude/rules/login-social.md` | entrar com Google ou Facebook: verificação do token sem Firebase, ticket do segundo passo, quem confirma e-mail (ninguém), vínculo automático só pelo Google, pré-sequestro desarmado, Facebook sem e-mail, aviso de vínculo, conectar, desconectar e criar senha em Minha conta |
 | `.claude/rules/dominio.md` | o modelo da comunidade (pessoa, banda, integrante, convite, conteúdo, moderação), enums herdados e a ordem dos módulos |
 | `.claude/rules/perfil-e-midia.md` | campos do perfil, edição, avatar e capa, perfil público, busca de pessoas |
