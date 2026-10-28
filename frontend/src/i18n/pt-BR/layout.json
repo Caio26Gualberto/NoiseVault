@@ -37,7 +37,8 @@
     "themeLight": "Claro",
     "themeAuto": "Sistema",
     "logout": "Sair",
-    "installApp": "Instalar o app"
+    "installApp": "Instalar o app",
+    "rules": "Regras da comunidade"
   },
   "pwa": {
     "updateTitle": "Nova versão do Noise Vault",

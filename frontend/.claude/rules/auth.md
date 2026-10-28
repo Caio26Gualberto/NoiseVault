@@ -9,6 +9,7 @@ paths:
   - "src/pages/redefinir-senha/**"
   - "src/pages/definir-senha/**"
   - "src/pages/bem-vindo/**"
+  - "src/pages/regras/**"
   - "src/auth/welcome-storage.ts"
   - "src/pages/minha-conta/**"
 ---
@@ -46,6 +47,7 @@ Decidido em 14/10/2026, antes dos subdomínios (`IDEIAS.md`, item 8). A regra é
 | `/esqueci-senha` | pedido de reset | só e-mail; sucesso vira "confira seu e-mail" sem dizer se existe |
 | `/redefinir-senha?email&token` | nova senha | senha + confirmação; sucesso → `/entrar` com toast |
 | `/definir-senha` | senha inicial (convite) | copiada do boilerplate; só com `isNeededChangePassword` |
+| `/regras` | regras da comunidade | os combinados (o assunto é música, não é palanque político, respeito, divulgar sim e spam não, avisar pelo suporte) sobre a mesma capa do `/bem-vindo`; "Bora, combinado" marca o `localStorage` e segue; aberta também sem login (`visitante.md`), com "Voltar" para quem já aceitou e "Entrar" para o visitante |
 | `/bem-vindo` | boas-vindas do primeiro acesso | o texto original do projeto sobre a capa do *To Mega Therion* (Celtic Frost) em tela cheia; "Começar jornada" marca o `localStorage` e vai para `/feed` |
 | `/meu-perfil` | meu perfil | o que os outros veem: avatar, capa, nome, bio, cidade, instrumento, gêneros e links, com a prévia do perfil; detalhes em `perfil.md` |
 | `/minha-conta` | conta | só o que é sensível: e-mail e apelido (leitura), senha, notificações por e-mail e localização aproximada |
@@ -57,8 +59,9 @@ Caminhos ficam em `auth/routes.ts`; ninguém escreve `'/entrar'` em página.
 1. `status === 'unknown'` → `AppSkeleton` de tela cheia (nunca redirecionar antes do boot terminar: redirecionaria quem tem sessão válida).
 2. Não autenticado → `/entrar` com `state.from` para voltar depois.
 3. `isNeededChangePassword` → `/definir-senha` (exceto nela).
-4. Ainda não viu as boas-vindas (`hasSeenWelcome(user.id)` falso) → `/bem-vindo` (exceto nela e em `/minha-conta`, para não prender quem quer só sair).
-5. `permission` sem capacidade → `/feed`.
+4. Ainda não aceitou as regras (`hasAcceptedRules(user.id)` falso) → `/regras` (exceto nela e em `/minha-conta`).
+5. Ainda não viu as boas-vindas (`hasSeenWelcome(user.id)` falso) → `/bem-vindo` (exceto nela, em `/regras` e em `/minha-conta`, para não prender quem quer só sair).
+6. `permission` sem capacidade → `/feed`.
 
 `redirect-if-authenticated.tsx` faz o inverso para `/entrar`, `/criar-conta` e `/esqueci-senha`.
 
@@ -70,6 +73,16 @@ Quem já viu a tela de boas-vindas fica marcado em `localStorage` na chave `app-
 - `tokenStorage.clear()` **não** apaga a chave: sair e entrar de novo não mostra a tela outra vez.
 - Trocar de navegador, usar aba anônima ou limpar os dados mostra de novo. Aceito: é uma tela de apresentação, não um passo obrigatório.
 - `localStorage` indisponível (modo privado restrito) conta como "já viu" — falha aberta, a pessoa nunca fica presa num redirecionamento.
+
+## Regras da comunidade: antes das boas-vindas, versionadas no `localStorage`
+
+Pedido do usuário em 28/10/2026, antes de abrir o site para a cena: quem entra lê os combinados antes da apresentação. O principal é que o Noise Vault não é palanque político, de lado nenhum: o que a banda canta e como o artista se posiciona fica para o palco, e aqui o assunto é música, lançamento, show e apoio à cena local.
+
+- A chave é `app-rules-accepted:{userId}` (`auth/rules-storage.ts`) e o valor é a `rulesVersion`, não `'true'`. Mudou o texto de um jeito que todo mundo precisa reler → troca a constante, e a tela volta para todas as contas no próximo acesso, sem repetir o `/bem-vindo`.
+- Mesmas regras das boas-vindas: por usuário, o `tokenStorage.clear()` não apaga, outro navegador mostra de novo e `localStorage` indisponível conta como aceito (falha aberta). É um aviso de convivência, não um aceite jurídico: quem precisa de prova de aceite é o servidor, e isso não existe.
+- Um botão só, "Bora, combinado", sem caixa de "li e concordo" (escolha do usuário: tom de gente da cena, sem cara de contrato).
+- A mesma página fica aberta em `/regras` sem login, para a equipe poder apontar a regra a alguém; o link mora no menu da conta e no rodapé das telas de auth. Fica fora do shell, como a `/bem-vindo`, com `<RequireAuth allowVisitor>`.
+- O `skipWelcome` do Ensaio pula os dois gates: as regras aparecem quando a pessoa entra no site principal.
 
 ## Login vindo do Ensaio
 
@@ -99,7 +112,7 @@ Os tooltips vieram do cadastro do legado e explicam o campo sem tomar espaço no
 Com a API e o Mailpit (http://localhost:8025) no ar:
 
 1. `/feed` sem sessão → `/entrar`. Criar conta com nickname `Caio.Teste` → campo normaliza para `caio.teste`; senha `abcdef` → erro inline antes de enviar; válido → estado "confira seu e-mail".
-2. Abrir o link do Mailpit → `/confirmar-email` mostra "E-mail confirmado" → "Entrar" → login → `/bem-vindo` com a capa do Celtic Frost e o texto original → "Começar jornada" → `/feed`. Recarregar `/feed` mantém a sessão; sair e entrar de novo vai direto ao `/feed`; apagar `app-welcome-seen:{id}` do `localStorage` faz a tela voltar.
+2. Abrir o link do Mailpit → `/confirmar-email` mostra "E-mail confirmado" → "Entrar" → login → `/regras` → "Bora, combinado" → `/bem-vindo` com a capa do Celtic Frost e o texto original → "Começar jornada" → `/feed`. Recarregar `/feed` mantém a sessão; sair e entrar de novo vai direto ao `/feed`; apagar `app-welcome-seen:{id}` do `localStorage` faz a tela voltar; apagar `app-rules-accepted:{id}` faz só a `/regras` voltar. `/regras` sem sessão mostra o texto com "Entrar"; com o aceite feito, "Voltar".
 3. Login de conta não confirmada → toast + faixa com "Reenviar"; clicar → toast `CONFIRMATION_EMAIL_SENT` e e-mail novo no Mailpit.
 4. `/esqueci-senha` com e-mail inexistente → mesma tela de sucesso; com existente → link no Mailpit → `/redefinir-senha` → nova senha → `/entrar` com toast → entrar com a nova.
 5. Depois do login, o `localStorage` não tem token nenhum e o `document.cookie` não mostra o `nv_refresh` (o DevTools, em Application → Cookies, mostra, com HttpOnly marcado). Recarregar mantém a sessão; abrir três abas de uma vez mantém as três logadas. Apagar o cookie no DevTools e recarregar → `/entrar` sem toast; apagar com a página aberta e esperar o token vencer → `/entrar` com toast `SESSION_EXPIRED` na próxima request.

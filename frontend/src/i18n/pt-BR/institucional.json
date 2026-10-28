@@ -161,5 +161,36 @@
         ]
       }
     ]
+  },
+  "rules": {
+    "imageAlt": "Capa do disco To Mega Therion, do Celtic Frost",
+    "title": "Antes de entrar no rolê",
+    "intro": "O Noise Vault é da cena do ABC: metal, punk, hardcore e tudo que faz barulho. Aqui um ajuda o outro. Pra isso funcionar, uns combinados:",
+    "items": [
+      {
+        "title": "Aqui o assunto é música.",
+        "body": "Comenta lançamento, divulga show, apoia a banda da região, dá aquela força na visualização e descobre som novo. Tem muita banda boa esperando ser ouvida."
+      },
+      {
+        "title": "Não é palanque político.",
+        "body": "Não importa o lado: política fica fora dos posts e dos comentários. O que sua banda canta, o que você fala no palco e como você se posiciona como artista é seu, e o lugar disso é o show. Aqui a gente fala de música."
+      },
+      {
+        "title": "Respeito com todo mundo.",
+        "body": "Nada de ofensa, preconceito, ameaça ou perseguição. Criticar um som é livre; atacar pessoa ou banda, não."
+      },
+      {
+        "title": "Divulgar sim, spam não.",
+        "body": "Banda, show e lançamento são bem-vindos. Golpe, corrente, venda que não tem nada a ver com a cena e o mesmo post repetido várias vezes, não."
+      },
+      {
+        "title": "Viu algo errado? Avisa.",
+        "body": "Em vez de brigar nos comentários, manda pelo \"Ajuda e sugestões\" que a equipe resolve."
+      }
+    ],
+    "closing": "A equipe pode tirar do ar o que fugir desses combinados.",
+    "accept": "Bora, combinado",
+    "back": "Voltar",
+    "signIn": "Entrar"
   }
 }

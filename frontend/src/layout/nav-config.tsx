@@ -31,6 +31,7 @@ import {
   privacyPath,
   registerPath,
   resetPasswordPath,
+  rulesPath,
   welcomePath,
 } from '../auth/routes'
 import { BandasPage } from '../pages/bandas'
@@ -59,6 +60,7 @@ import { MinhaContaPage } from '../pages/minha-conta'
 import { MeuPerfilPage } from '../pages/meu-perfil'
 import { PerfilPage } from '../pages/perfil'
 import { RedefinirSenhaPage } from '../pages/redefinir-senha'
+import { RegrasPage } from '../pages/regras'
 import { AjudaPage } from '../pages/ajuda'
 import { helpPath } from './last-location'
 import { SuporteAdminPage } from '../pages/admin/suporte'
@@ -240,3 +242,5 @@ export const hiddenRoutes: HiddenRoute[] = [
 ]
 
 export const welcomeRoute: HiddenRoute = { path: welcomePath, element: <BemVindoPage /> }
+
+export const rulesRoute: HiddenRoute = { path: rulesPath, element: <RegrasPage /> }

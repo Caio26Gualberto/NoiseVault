@@ -9,7 +9,7 @@ paths:
 
 ## `nav-config.tsx` é a fonte única de rota, menu e permissão
 
-`layout/nav-config.tsx` exporta três listas: `publicRoutes` (fora do shell: auth, confirmação, redefinição; a `/bem-vindo` também fica fora do shell, em `welcomeRoute`), `navSections` (o que aparece na sidebar e na bottom-nav, com `path`, `labelKey`, `icon`, `element`, `permission?`, `subRoutes?`, `mobile?`) e `hiddenRoutes` (telas sem item de menu: detalhe, formulário, perfil de terceiro, conta). `app.tsx` mapeia as três; `nav-sidebar.tsx` e `bottom-nav.tsx` leem `navSections`.
+`layout/nav-config.tsx` exporta três listas: `publicRoutes` (fora do shell: auth, confirmação, redefinição; a `/bem-vindo` e a `/regras` também ficam fora do shell, em `welcomeRoute` e `rulesRoute`), `navSections` (o que aparece na sidebar e na bottom-nav, com `path`, `labelKey`, `icon`, `element`, `permission?`, `subRoutes?`, `mobile?`) e `hiddenRoutes` (telas sem item de menu: detalhe, formulário, perfil de terceiro, conta). `app.tsx` mapeia as três; `nav-sidebar.tsx` e `bottom-nav.tsx` leem `navSections`.
 
 🔴 **Nunca adicione uma rota direto no `app.tsx` nem um item direto na sidebar ou na bottom-nav.** Item de menu só existe quando a tela existe. Criação é rota própria (`/eventos/novo`), não modal; detalhe e edição vão em `hiddenRoutes` e o item pai declara `subRoutes` para continuar marcado.
 
@@ -17,7 +17,7 @@ Item ativo: `resolveActivePath` (copiado do boilerplate) resolve **uma vez** par
 
 ## Três regiões em desktop, duas em mobile
 
-- **Sidebar** (≥ `md`, 240px): wordmark, `navSections`, e no rodapé o `user-menu` (avatar + nome + `@nickname`; menu com Meu perfil, Editar perfil, Minha conta, Ensaio, "Sobre o Noise Vault", Tema, Sair). A página Sobre saiu da seção Institucional da sidebar para o menu da conta (pedido do usuário em 15/10/2026): é sobre quem fez o site, não uma área do produto; a rota `/sobre` continua em `hiddenRoutes`. Sem modo colapsado nesta entrega: o site não é ferramenta de trabalho em que a pessoa passa o dia — menos estado, menos bug.
+- **Sidebar** (≥ `md`, 240px): wordmark, `navSections`, e no rodapé o `user-menu` (avatar + nome + `@nickname`; menu com Meu perfil, Editar perfil, Minha conta, Ensaio, "Sobre o Noise Vault", "Regras da comunidade", Tema, Sair). A página Sobre saiu da seção Institucional da sidebar para o menu da conta (pedido do usuário em 15/10/2026): é sobre quem fez o site, não uma área do produto; a rota `/sobre` continua em `hiddenRoutes`. Sem modo colapsado nesta entrega: o site não é ferramenta de trabalho em que a pessoa passa o dia — menos estado, menos bug.
 - **Topbar**: busca de pessoas real (`people-search.tsx`, só a partir de `md`; ver `perfil.md`), sino de notificações, que **abre um balão** (`Popover`) com a lista (desde 14/10/2026 não há página `/notificacoes` nem item na sidebar ou no "Mais"; `notificacoes.md`) (`notifications-bell.tsx`, que lê o `NotificationsProvider` do `AppShell`: contador real empurrado por SignalR, com polling de 60 s só enquanto a conexão está caída — `notificacoes.md`), e em mobile o wordmark à esquerda e o avatar à direita.
 - **`<main>`**: coluna de até 680px centrada em páginas de leitura (feed, detalhe); largura total em galerias e listas. A página escolhe com `AppPageHeader`/`contentWidth`.
 - **Rail direito** (≥ `xl`, 320px): a página registra o conteúdo via `useShellRail(node)` (`shell-rail.tsx`); vazio = não renderiza. Feed registra "Próximos eventos" e "Bandas sugeridas".

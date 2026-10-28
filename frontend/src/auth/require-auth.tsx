@@ -6,7 +6,8 @@ import { ExternalRedirect } from '@/ensaio/external-redirect'
 import { isEnsaioHost, loginUrlReturningHere } from '@/ensaio/frame'
 
 import type { Permission } from './permissions'
-import { accountPath, homePath, initialPasswordPath, loginPath, welcomePath } from './routes'
+import { accountPath, homePath, initialPasswordPath, loginPath, rulesPath, welcomePath } from './routes'
+import { hasAcceptedRules } from './rules-storage'
 import { useAuth } from './use-auth'
 import { hasSeenWelcome } from './welcome-storage'
 
@@ -38,7 +39,13 @@ export function RequireAuth({ children, permission, skipWelcome = false, allowVi
     return <Navigate to={initialPasswordPath} replace />
   }
 
-  const welcomeExempt = skipWelcome || location.pathname === welcomePath || location.pathname === accountPath
+  const rulesExempt = skipWelcome || location.pathname === rulesPath || location.pathname === accountPath
+
+  if (user && !user.isNeededChangePassword && !rulesExempt && !hasAcceptedRules(user.id)) {
+    return <Navigate to={rulesPath} replace />
+  }
+
+  const welcomeExempt = rulesExempt || location.pathname === welcomePath
 
   if (user && !user.isNeededChangePassword && !welcomeExempt && !hasSeenWelcome(user.id)) {
     return <Navigate to={welcomePath} replace />

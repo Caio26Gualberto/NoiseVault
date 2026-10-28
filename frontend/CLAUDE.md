@@ -4,7 +4,7 @@
 
 **Noise Vault** — site público da cena do ABC Paulista (metal, punk, hardcore e afins): feed, mural das antigas, eventos, perfis de pessoas e de bandas, notificações. Quem usa é o fã e o músico da região; a administração (moderação, equipe) é a mesma aplicação com permissão. Reescrita do zero do legado "NewLevel" (`C:\Projetos\Pessoal\Alvo\newlevel`), que não serve de referência de código nem de tela.
 
-**Estado da entrega atual:** auth é real (`/entrar` com Google e Facebook, `/entrar/apelido`, `/entrar/vincular`, `/criar-conta`, `/confirmar-email`, `/esqueci-senha`, `/redefinir-senha`, `/definir-senha`, `/bem-vindo`); perfil e mídia também (`/meu-perfil` com avatar, capa e o perfil público, e `/minha-conta` só com o sensível (acesso, senha, notificações, localização), `/perfil/:nickname`, busca de pessoas na topbar — `.claude/rules/perfil.md`); bandas e convites também (`/bandas/:slug`, `/bandas/nova`, `/bandas/:slug/editar` e a seção de convites no painel do sino; o artista solo em `/artistas/:slug`, com "Novo projeto" no perfil e o "Costuma tocar com" entre páginas — `.claude/rules/bandas.md`); o feed também (`/feed`, `/feed/:id`, publicações no perfil e na banda, com fotos e vídeo — `.claude/rules/feed.md`); os eventos também (`/eventos`, detalhe, formulário, seção Shows da banda e o rail do feed — `.claude/rules/eventos.md`). O mural das antigas também (`/mural` e o detalhe, o formulário com permissão, o envio da comunidade em `/mural/enviar` e `/mural/envios`, e a fila da curadoria em `/admin/mural` — `.claude/rules/mural.md`); Vídeos, Fotos e Moderação saíram do produto. O Ensaio também, com moldura própria em `ensaio.noisevault.net` (em dev, `/ensaio`): vitrine "Procura-se banda", ficha de músico, vagas da banda e o "Tenho interesse" (`.claude/rules/ensaio.md`). As notificações também (o balão do sino, como no Facebook, em tempo real por SignalR e a preferência em `/minha-conta` — `.claude/rules/notificacoes.md`). O suporte também (`/ajuda`, "Ajuda e sugestões": dois cartões, bug ou ideia, cada um num stepper guiado com prints e vídeo; `/suporte` com os relatos e a conversa, e a caixa de entrada `/admin/suporte` com permissão `Support.*` — `.claude/rules/suporte.md`). As notícias também (`/noticias`, pública: manchetes do Whiplash.Net com o link para a matéria — `.claude/rules/noticias.md`). Nenhuma tela é mockada. Institucionais (podcasts, sobre, loja) são páginas estáticas, sem backend; a loja parceira é a Metal Music (Santo André, `pages/institucional/loja.tsx`), com links para o site, o WhatsApp e as categorias da loja.
+**Estado da entrega atual:** auth é real (`/entrar` com Google e Facebook, `/entrar/apelido`, `/entrar/vincular`, `/criar-conta`, `/confirmar-email`, `/esqueci-senha`, `/redefinir-senha`, `/definir-senha`, `/regras`, `/bem-vindo`); perfil e mídia também (`/meu-perfil` com avatar, capa e o perfil público, e `/minha-conta` só com o sensível (acesso, senha, notificações, localização), `/perfil/:nickname`, busca de pessoas na topbar — `.claude/rules/perfil.md`); bandas e convites também (`/bandas/:slug`, `/bandas/nova`, `/bandas/:slug/editar` e a seção de convites no painel do sino; o artista solo em `/artistas/:slug`, com "Novo projeto" no perfil e o "Costuma tocar com" entre páginas — `.claude/rules/bandas.md`); o feed também (`/feed`, `/feed/:id`, publicações no perfil e na banda, com fotos e vídeo — `.claude/rules/feed.md`); os eventos também (`/eventos`, detalhe, formulário, seção Shows da banda e o rail do feed — `.claude/rules/eventos.md`). O mural das antigas também (`/mural` e o detalhe, o formulário com permissão, o envio da comunidade em `/mural/enviar` e `/mural/envios`, e a fila da curadoria em `/admin/mural` — `.claude/rules/mural.md`); Vídeos, Fotos e Moderação saíram do produto. O Ensaio também, com moldura própria em `ensaio.noisevault.net` (em dev, `/ensaio`): vitrine "Procura-se banda", ficha de músico, vagas da banda e o "Tenho interesse" (`.claude/rules/ensaio.md`). As notificações também (o balão do sino, como no Facebook, em tempo real por SignalR e a preferência em `/minha-conta` — `.claude/rules/notificacoes.md`). O suporte também (`/ajuda`, "Ajuda e sugestões": dois cartões, bug ou ideia, cada um num stepper guiado com prints e vídeo; `/suporte` com os relatos e a conversa, e a caixa de entrada `/admin/suporte` com permissão `Support.*` — `.claude/rules/suporte.md`). As notícias também (`/noticias`, pública: manchetes do Whiplash.Net com o link para a matéria — `.claude/rules/noticias.md`). Nenhuma tela é mockada. Institucionais (podcasts, sobre, loja) são páginas estáticas, sem backend; a loja parceira é a Metal Music (Santo André, `pages/institucional/loja.tsx`), com links para o site, o WhatsApp e as categorias da loja.
 
 ## Como trabalhar neste repositório
 
@@ -63,7 +63,7 @@ Comandos: `npm run dev` (porta 5173), `npm run build`, `npm run lint` (oxlint), 
 ```
 src/
   main.tsx                 # global.css, i18n, Toaster, TooltipProvider, Router, Auth, AppConfirm
-  app.tsx                  # rotas: publicRoutes (PublicLayout) + definir-senha + bem-vindo + shell (RequireAuth > AppShell) + 404
+  app.tsx                  # rotas: publicRoutes (PublicLayout) + definir-senha + regras + bem-vindo + shell (RequireAuth > AppShell) + 404
   toast-feedback.ts        # liga o FeedbackSink da API ao sonner
   pwa/                     # registro do service worker (aviso de versão nova) e o "Instalar o app" (pwa.md)
   ensaio/                  # frame.ts (moldura pelo endereço, ensaioPath/ensaioUrl/mainUrl, voltar do login), boot.ts, EnsaioLink
@@ -73,7 +73,8 @@ src/
     notifications-hub.ts   # conexão SignalR do sino (carregada sob demanda); só avisa a contagem
   auth/
     auth-context.ts · auth-provider.tsx · auth-service.ts · use-auth.ts
-    require-auth.tsx       # unknown → skeleton; sem sessão → /entrar; senha pendente; boas-vindas (localStorage); permissão
+    require-auth.tsx       # unknown → skeleton; sem sessão → /entrar; senha pendente; regras e boas-vindas (localStorage); permissão
+    rules-storage.ts       # app-rules-accepted:{userId} = rulesVersion — quem aceitou as regras da comunidade
     welcome-storage.ts     # app-welcome-seen:{userId} — quem já viu /bem-vindo
     redirect-if-authenticated.tsx
     permissions.ts · can.tsx · use-can.ts · roles.ts
@@ -90,7 +91,7 @@ src/
     ui/*                   # primitivos do shadcn (não importar de pages/ nem layout/)
     app-*/                 # globais com prefixo App (ver design-system.md)
   layout/
-    nav-config.tsx         # FONTE ÚNICA: publicRoutes, navSections, hiddenRoutes, welcomeRoute
+    nav-config.tsx         # FONTE ÚNICA: publicRoutes, navSections, hiddenRoutes, welcomeRoute, rulesRoute
     nav-active.ts          # resolveActivePath
     app-shell.tsx · nav-sidebar.tsx · top-bar.tsx · bottom-nav.tsx · user-menu.tsx
     shell-rail.tsx · shell-rail-context.ts · use-shell-rail.ts   # rail direito registrado pela página
@@ -128,7 +129,7 @@ Regra central: **toda comunicação HTTP fica em `src/api/`**. Página nenhuma i
 
 ## Navegação — `nav-config.tsx` é a fonte única
 
-Rota e item de menu **nascem do mesmo lugar**. `publicRoutes` (com `guestOnly` para redirecionar quem já tem sessão), `navSections` (sidebar e bottom-nav; `mobile: true` marca os 4 fixos da bottom-nav; `mobilePath` resolve rota dinâmica como `/perfil/:nickname`), `hiddenRoutes` (telas sem item) e `welcomeRoute`. `app.tsx` só mapeia. Detalhes em `shell-e-navegacao.md`.
+Rota e item de menu **nascem do mesmo lugar**. `publicRoutes` (com `guestOnly` para redirecionar quem já tem sessão), `navSections` (sidebar e bottom-nav; `mobile: true` marca os 4 fixos da bottom-nav; `mobilePath` resolve rota dinâmica como `/perfil/:nickname`), `hiddenRoutes` (telas sem item), `welcomeRoute` e `rulesRoute`. `app.tsx` só mapeia. Detalhes em `shell-e-navegacao.md`.
 
 **Nunca adicione uma rota direto no `app.tsx` nem um item direto na sidebar ou bottom-nav.**
 

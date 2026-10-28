@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, Outlet } from 'react-router-dom'
 
-import { dataDeletionPath, homePath, loginPath, privacyPath } from '../auth/routes'
+import { dataDeletionPath, homePath, loginPath, privacyPath, rulesPath } from '../auth/routes'
 import { useAuth } from '../auth/use-auth'
 import { cn } from '@/lib/utils'
 import { Wordmark } from './wordmark'
@@ -36,6 +36,9 @@ export function PublicFrame({ children, wide = false }: { children: ReactNode; w
           </Link>
           <Link to={dataDeletionPath} className="hover:text-foreground hover:underline">
             {t('legal.dataDeletion')}
+          </Link>
+          <Link to={rulesPath} className="hover:text-foreground hover:underline">
+            {t('legal.rules')}
           </Link>
         </nav>
       </div>

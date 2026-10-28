@@ -181,7 +181,8 @@
     "privacy": "Privacidade",
     "dataDeletion": "Apagar seus dados",
     "backHome": "Voltar para o feed",
-    "signIn": "Entrar"
+    "signIn": "Entrar",
+    "rules": "Regras da comunidade"
   },
   "likes": {
     "summary_zero": "Curtido por <b>{{name}}</b>",

@@ -7,7 +7,7 @@ import { initialPasswordPath } from './auth/routes'
 import { isEnsaioHost } from './ensaio/frame'
 import { AppShell } from './layout/app-shell'
 import { EnsaioRoutes } from './layout/ensaio/ensaio-routes'
-import { hiddenRoutes, navSections, publicRoutes, welcomeRoute } from './layout/nav-config'
+import { hiddenRoutes, navSections, publicRoutes, rulesRoute, welcomeRoute } from './layout/nav-config'
 import { PublicLayout } from './layout/public-layout'
 import { DefinirSenhaPage } from './pages/definir-senha'
 import { NaoEncontradoPage } from './pages/nao-encontrado'
@@ -59,6 +59,7 @@ export function App() {
           </RequireAuth>
         }
       />
+      <Route path={rulesRoute.path} element={<RequireAuth allowVisitor>{rulesRoute.element}</RequireAuth>} />
       <Route path={welcomeRoute.path} element={<RequireAuth>{welcomeRoute.element}</RequireAuth>} />
 
       <Route

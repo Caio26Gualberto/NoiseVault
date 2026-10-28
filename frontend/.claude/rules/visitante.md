@@ -13,7 +13,7 @@ Rule irmã: `../api/.claude/rules/seo.md` (quais leituras a API abre e o que ela
 
 ## Rotas abertas
 
-- `public: true` no `nav-config` marca o que o visitante abre: os itens `/eventos`, `/mural` e `/noticias` e as `hiddenRoutes` `/eventos/:id`, `/mural/:id`, `/bandas/:slug` e `/artistas/:slug`. O `nav-config` continua sendo a fonte única.
+- `public: true` no `nav-config` marca o que o visitante abre: os itens `/eventos`, `/mural` e `/noticias` e as `hiddenRoutes` `/eventos/:id`, `/mural/:id`, `/bandas/:slug` e `/artistas/:slug`. O `nav-config` continua sendo a fonte única. Fora do shell, `/regras` (as regras da comunidade, `auth.md`) também abre sem sessão.
 - O `app.tsx` monta o `AppShell` com `<RequireAuth allowVisitor>`, e cada rota do shell leva `allowVisitor={route.public}`. Com `allowVisitor` e sem sessão, o `RequireAuth` renderiza a página; com sessão, valem os mesmos gates de sempre (senha inicial, boas-vindas, permissão, `auth.md`). Rota sem `public` continua mandando para `/entrar` com `state.from`.
 - **`/` do visitante vai para `/eventos`** (`HomeRedirect`, `visitorHomePath` em `auth/routes.ts`). Com sessão, continua indo para o `/feed`.
 - O 404 do shell aparece para o visitante dentro da moldura dele.
