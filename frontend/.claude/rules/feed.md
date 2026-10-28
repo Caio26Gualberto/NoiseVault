@@ -20,6 +20,7 @@ Rules irmãs: `../api/.claude/rules/feed.md` (post, curtida, comentário, quem p
 | `/bandas/:slug` | seção "Publicações" com os posts da banda, depois de Integrantes, e o contador no hero |
 
 - ~~**Sem abas.** "Tudo/Bandas" saiu junto com o mock: sem "seguir", não existe recorte honesto. Decisão do usuário em 13/10/2026.~~ Desde 16/10/2026 existe seguir banda (`bandas.md`) e o feed tem as abas **"Tudo" e "Seguindo"** (`Tabs` do shadcn, como em eventos), abaixo do composer. "Seguindo" chama `getFollowingFeed` (`GET /api/posts?following=true`): só posts das bandas que a pessoa segue, cronológicos. O composer fica fora das abas e publicar recarrega a aba aberta. Vazio da aba "Seguindo" explica onde fica o "Seguir". A aba não persiste entre visitas: o padrão é "Tudo", porque a comunidade pequena vive do feed inteiro.
+- **Rail do `/feed`** (`components/feed-rail.tsx`): cada cartão (próximos eventos, bandas sugeridas) mostra skeleton enquanto carrega e **some quando a lista volta vazia**; um cartão só com o título não diz nada (pedido do usuário em 27/10/2026).
 - Perfil e banda usam `OwnerPosts` (`pages/feed/components/owner-posts.tsx`), dono: feed. A segunda página importa do caminho da primeira, como os services.
 
 ## Lista: acumula e troca o item pelo DTO do servidor
