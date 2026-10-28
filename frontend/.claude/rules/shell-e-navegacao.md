@@ -36,7 +36,7 @@ Rotas públicas usam `PublicLayout` (fundo escuro, card centralizado, wordmark).
 
 ## Admin dentro do mesmo shell
 
-A seção "Administração" saiu com a moderação (módulo 5 redefinido) e **voltou com o suporte** (14/10/2026): `navSections` tem `admin` com os itens "Jobs" (`/admin/jobs`, `System.Jobs.View`, `jobs-admin.md`, desde 21/10/2026), "Verificação de bandas" e estes dois: "Envios do mural" (`/admin/mural`, `Archive.Review`) e "Suporte" (`/admin/suporte`, sub-rota `/admin/suporte/:id`, `Support.View`).
+A seção "Administração" saiu com a moderação (módulo 5 redefinido) e **voltou com o suporte** (14/10/2026): `navSections` tem `admin` com os itens "Usuários" (`/admin/usuarios`, `Authorization.Users.View`, `usuarios-admin.md`, desde 27/10/2026), "Jobs" (`/admin/jobs`, `System.Jobs.View`, `jobs-admin.md`, desde 21/10/2026), "Verificação de bandas" e estes dois: "Envios do mural" (`/admin/mural`, `Archive.Review`) e "Suporte" (`/admin/suporte`, sub-rota `/admin/suporte/:id`, `Support.View`).
 - **A seção não tem permissão própria**: cada item leva a sua, e a sidebar e o "Mais" escondem a seção quando não sobra nenhum item. Assim um curador do mural vê a Administração sem precisar de `Support.View`.
 - Seção nova de administração entra nesse mesmo bloco, cada item com a sua permissão.
 

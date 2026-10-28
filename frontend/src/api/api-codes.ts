@@ -29,6 +29,8 @@ export const ApiCodes = {
   profileUpdated: 'PROFILE_UPDATED',
   userNotFound: 'USER_NOT_FOUND',
   userFound: 'USER_FOUND',
+  usersLoaded: 'USERS_LOADED',
+  userSignupSummaryFound: 'USER_SIGNUP_SUMMARY_FOUND',
 
   invalidBio: 'INVALID_BIO',
   invalidInstrument: 'INVALID_INSTRUMENT',

@@ -12,6 +12,7 @@ import {
   RssIcon,
   StoreIcon,
   UserRoundIcon,
+  UsersIcon,
 } from 'lucide-react'
 import type { ReactNode } from 'react'
 
@@ -62,6 +63,7 @@ import { AjudaPage } from '../pages/ajuda'
 import { helpPath } from './last-location'
 import { SuporteAdminPage } from '../pages/admin/suporte'
 import { SuporteAdminDetalhePage } from '../pages/admin/suporte/detalhe'
+import { UsuariosAdminPage } from '../pages/admin/usuarios'
 import { SuportePage } from '../pages/suporte'
 import { SuporteDetalhePage } from '../pages/suporte/detalhe'
 import { MuralPage } from '../pages/mural'
@@ -201,6 +203,13 @@ export const navSections: NavSection[] = [
         icon: ActivityIcon,
         element: <JobsAdminPage />,
         permission: Permissions.systemJobsView,
+      },
+      {
+        path: '/admin/usuarios',
+        labelKey: 'layout:nav.users',
+        icon: UsersIcon,
+        element: <UsuariosAdminPage />,
+        permission: Permissions.authorizationUsersView,
       },
     ],
   },

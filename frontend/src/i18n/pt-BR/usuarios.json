@@ -1,0 +1,22 @@
+{
+  "title": "Usuários",
+  "description": "Quem está se cadastrando no Noise Vault, dos mais novos para os mais antigos.",
+  "summary": {
+    "today": "Hoje",
+    "last7Days": "Últimos 7 dias",
+    "last30Days": "Últimos 30 dias",
+    "total": "Total",
+    "unconfirmed_one": "{{count}} conta ainda não confirmou o e-mail",
+    "unconfirmed_other": "{{count}} contas ainda não confirmaram o e-mail"
+  },
+  "searchPlaceholder": "Buscar por nome ou apelido",
+  "joined": "Entrou {{when}}",
+  "methods": {
+    "password": "E-mail e senha"
+  },
+  "unconfirmed": "E-mail não confirmado",
+  "emptyTitle": "Ninguém encontrado",
+  "emptyDescription": "Nenhuma conta com esse nome ou apelido.",
+  "emptyAllTitle": "Nenhum cadastro ainda",
+  "emptyAllDescription": "Quando alguém criar conta, aparece aqui."
+}

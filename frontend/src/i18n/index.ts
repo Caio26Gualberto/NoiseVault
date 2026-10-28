@@ -17,6 +17,7 @@ import noticias from './pt-BR/noticias.json'
 import notificacoes from './pt-BR/notificacoes.json'
 import perfil from './pt-BR/perfil.json'
 import suporte from './pt-BR/suporte.json'
+import usuarios from './pt-BR/usuarios.json'
 
 export const defaultLanguage = 'pt-BR'
 
@@ -37,6 +38,7 @@ const namespaces = {
   suporte,
   institucional,
   jobs,
+  usuarios,
 }
 
 i18n.use(initReactI18next).init({
